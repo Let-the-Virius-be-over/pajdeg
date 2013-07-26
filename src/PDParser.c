@@ -36,7 +36,7 @@
 #include "PDScanner.h"
 
 #define fmatox(x, ato) \
-    static inline x fast_mutative_##ato(char *str, int len) \
+    static inline x fast_mutative_##ato(char *str, PDInteger len) \
     { \
         char t = str[len]; \
         str[len] = 0; \
@@ -55,7 +55,7 @@ fmatox(long, atol)
 #define PDXUndefined(pdx)   (pdx.fields[10] != ' ') // we use the space between ob and gen as indicator for whether the PDX was defined (everything is zeroed due to realloc)
 #define PDXSetUndefined(pdx) pdx.fields[10] = 0;
 
-static inline void PDXWrite(char *buf, int value, int digits)
+static inline void PDXWrite(char *buf, PDInteger value, PDInteger digits)
 {
     for (digits--; value > 0 && digits >= 0; digits--) {
         buf[digits] = '0' + (value % 10);
@@ -112,8 +112,10 @@ void PDParserDestroy(PDParserRef parser)
 {
     if (parser->construct) PDObjectRelease(parser->construct);
     if (parser->root) PDObjectRelease(parser->root);
+    if (parser->encrypt) PDObjectRelease(parser->encrypt);
     if (parser->rootRef) PDReferenceDestroy(parser->rootRef);
     if (parser->infoRef) PDReferenceDestroy(parser->infoRef);
+    if (parser->encryptRef) PDReferenceDestroy(parser->encryptRef);
     if (parser->skipT) PDBTreeDestroy(parser->skipT);
     while (parser->appends) {
         PDObjectRef ob = (PDObjectRef)PDStackPopIdentifier(&parser->appends);
@@ -130,7 +132,7 @@ void PDParserDestroy(PDParserRef parser)
     PDPortableDocumentFormatStateRelease();
 }
 
-PDStackRef PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, int obid, int bufsize, PDBool master)
+PDStackRef PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDInteger obid, PDInteger bufsize, PDBool master)
 {
     char *tb;
     char *string;
@@ -170,7 +172,7 @@ void PDParserFetchStreamLengthFromObjectDictionary(PDParserRef parser, PDStackRe
 {
     entry = entry->prev->prev;
     if (entry->type == PDSTACK_STACK) {
-        int refid;
+        PDInteger refid;
         PDStackRef stack;
         // this is a reference length
         // e, Length, { ref, 1, 2 }
@@ -193,7 +195,7 @@ void PDParserFetchStreamLengthFromObjectDictionary(PDParserRef parser, PDStackRe
 void PDParserUpdateObject(PDParserRef parser)
 {
     char *string;
-    int len;
+    PDInteger len;
 
     // old (input)              new (output)
     // <<<<<<<<<<<<<<<<<<<<     >>>>>>>>>>>>>>>>>>>>
@@ -344,6 +346,7 @@ void PDParserUpdateObject(PDParserRef parser)
     parser->construct = NULL;
     
     parser->state = PDParserStateBase;
+    parser->streamLen = 0;
 }
 
 void PDParserPassthroughObject(PDParserRef parser)
@@ -361,7 +364,7 @@ void PDParserPassthroughObject(PDParserRef parser)
         PDTwinStreamAsserts(parser->stream);
 #ifdef PD_DEBUG_TWINSTREAM_ASSERT_OBJECTS
         char expect[100];
-        int len = sprintf(expect, "%zd %zd obj", parser->obid, parser->genid);
+        PDInteger len = sprintf(expect, "%zd %zd obj", parser->obid, parser->genid);
         PDTwinStreamReassert(parser->stream, parser->oboffset, expect, len);
 #endif
         parser->oboffset = PDTwinStreamGetOutputOffset(parser->stream);
@@ -373,9 +376,13 @@ void PDParserPassthroughObject(PDParserRef parser)
     switch (parser->state) {
         case PDParserStateObjectDefinition:
             if (PDScannerPopStack(scanner, &stack)) {
-                entry = PDStackGetDictKey(stack, "Length", false);
-                if (entry) {
-                    PDParserFetchStreamLengthFromObjectDictionary(parser, entry);
+                if (parser->encryptRef && parser->obid == parser->encryptRef->obid) {
+                    // this is an encryption dictionary; those have a Length field that is not the length of the object stream
+                } else {
+                    entry = PDStackGetDictKey(stack, "Length", false);
+                    if (entry) {
+                        PDParserFetchStreamLengthFromObjectDictionary(parser, entry);
+                    }
                 }
                 PDStackDestroy(stack);
             } else {
@@ -419,7 +426,7 @@ void PDParserPassthroughObject(PDParserRef parser)
     
 #ifdef PD_DEBUG_TWINSTREAM_ASSERT_OBJECTS
     char expect[100];
-    int len = sprintf(expect, "%zd %zd obj", parser->obid, parser->genid);
+    PDInteger len = sprintf(expect, "%zd %zd obj", parser->obid, parser->genid);
     PDTwinStreamReassert(parser->stream, parser->oboffset, expect, len);
 #endif
     
@@ -440,9 +447,13 @@ void PDParserPassoverObject(PDParserRef parser)
     switch (parser->state) {
         case PDParserStateObjectDefinition:
             if (PDScannerPopStack(scanner, &stack)) {
-                entry = PDStackGetDictKey(stack, "Length", false);
-                if (entry) {
-                    PDParserFetchStreamLengthFromObjectDictionary(parser, entry);
+                if (parser->encryptRef && parser->obid == parser->encryptRef->obid) {
+                    // this is an encryption dictionary; those have a Length field that is not the length of the object stream
+                } else {
+                    entry = PDStackGetDictKey(stack, "Length", false);
+                    if (entry) {
+                        PDParserFetchStreamLengthFromObjectDictionary(parser, entry);
+                    }
                 }
                 PDStackDestroy(stack);
             } else {
@@ -487,7 +498,7 @@ void PDParserPassoverObject(PDParserRef parser)
 
 void PDParserPassoverXRef(PDParserRef parser, PDStackRef stack, PDBool includeTrailer)
 {
-    int count;
+    PDInteger count;
     PDBool running = true;
     PDScannerRef scanner = parser->scanner;
     
@@ -587,7 +598,7 @@ PDBool PDParserIterate(PDParserRef parser)
             PDTwinStreamAsserts(parser->stream);
             
             // first string is the type
-            string = *PDStackPopIdentifier(&stack);
+            string = (char *)*PDStackPopIdentifier(&stack);
             // we expect 'x'(ref), 'o'(bj)
             switch (string[0]) {
                 case 'x':
@@ -690,7 +701,7 @@ PDObjectRef PDParserCreateNewObject(PDParserRef parser)
         //                       0123456789112345678 9
         memcpy(&xrefs[newiter], "0000000000 00000 n \n", 20);
     } else {
-        int i;
+        PDInteger i;
         PDXSetUsed(xrefs[newiter], true);
         for (i = 11; i < 16; i++) xrefs[newiter].fields[i] = '0';
     }
@@ -713,7 +724,7 @@ PDObjectRef PDParserCreateNewObject(PDParserRef parser)
 PDObjectRef PDParserCreateAppendedObject(PDParserRef parser)
 {
     PDObjectRef object = PDParserCreateNewObject(parser);
-    PDStackPushIdentifier(&parser->appends, (const char **)object);
+    PDStackPushIdentifier(&parser->appends, (PDID)object);
     parser->construct = NULL;
     return object;
 }
@@ -737,12 +748,18 @@ PDObjectRef PDParserConstructObject(PDParserRef parser)
     
     if (PDScannerPopStack(scanner, &stack)) {
         object->def = stack;
-        object->type = PDObjectTypeDictionary; // <-- not always the case
-        if ((stack = PDStackGetDictKey(stack, "Length", false))) {
-            PDParserFetchStreamLengthFromObjectDictionary(parser, stack);
-            object->streamLen = parser->streamLen;
-        } else {
+        object->type = PDObjectTypeFromIdentifier(stack->info);
+
+        if (parser->encryptRef && parser->obid == parser->encryptRef->obid) {
+            // this is an encryption dictionary; those have a Length field that is not the length of the object stream
             parser->streamLen = 0;
+        } else {
+            if ((stack = PDStackGetDictKey(stack, "Length", false))) {
+                PDParserFetchStreamLengthFromObjectDictionary(parser, stack);
+                object->streamLen = parser->streamLen;
+            } else {
+                parser->streamLen = 0;
+            }
         }
     } else {
         PDScannerPopString(scanner, &string);
@@ -773,19 +790,20 @@ PDObjectRef PDParserConstructObject(PDParserRef parser)
 
 PDBool PDParserGetEncryptionState(PDParserRef parser)
 {
-    return NULL != PDObjectGetDictionaryEntry(parser->trailer, "Encrypt");
+    return NULL != parser->encryptRef;
 }
 
 PDBool PDParserFetchXRefs(PDParserRef parser)
 {
-    unsigned long highob;
+    PDSize highob;
     PDScannerRef scanner;
     char *s;
     PDBool running;
     PDXTableRef *tables;
-    int *offsets;
-    int  offscount;
-    int j, i;
+    PDSize      *offsets;
+    PDInteger offscount;
+    PDInteger j;
+    PDInteger i;
 
     PDTwinStreamRef stream = parser->stream;
     PDXRef xrefs;// = parser->xrefs;
@@ -808,7 +826,7 @@ PDBool PDParserFetchXRefs(PDParserRef parser)
     // this stack should start out with "xref" indicating the ob type
     PDStackAssertExpectedKey(&stack, "startxref");
     // next is the offset 
-    size_t offs = PDStackPopSizeT(&stack);
+    PDSize offs = PDStackPopSize(&stack);
     PDAssert(stack == NULL);
     PDScannerDestroy(xrefScanner);
     
@@ -824,12 +842,13 @@ PDBool PDParserFetchXRefs(PDParserRef parser)
     PDObjectRef trailer = parser->trailer = PDObjectCreate(0, 0);
     PDReferenceRef rootRef = NULL;
     PDReferenceRef infoRef = NULL;
+    PDReferenceRef encryptRef = NULL;
     
     offscount = 0;
     do {
         // add this offset to stack
         offscount++;
-        PDStackPushIdentifier(&osstack, (const char **)offs);
+        PDStackPushIdentifier(&osstack, (PDID)offs);
         
         // jump to xref
         PDTwinStreamSeek(stream, offs);
@@ -845,7 +864,7 @@ PDBool PDParserFetchXRefs(PDParserRef parser)
             // this stack = xref, startobid, <startobid>, count, <count>
             PDStackAssertExpectedKey(&stack, "xref");
             PDStackPopInt(&stack);
-            int count = PDStackPopInt(&stack);
+            PDInteger count = PDStackPopInt(&stack);
             
             // we now have a stream (technically speaking) of xrefs
             count *= 20;
@@ -868,13 +887,16 @@ PDBool PDParserFetchXRefs(PDParserRef parser)
         if (infoRef == NULL && (dictStack = PDStackGetDictKey(stack, "Info", false))) {
             infoRef = PDReferenceCreateFromStackDictEntry(dictStack->prev->prev->info);
         }
+        if (encryptRef == NULL && (dictStack = PDStackGetDictKey(stack, "Encrypt", false))) {
+            encryptRef = PDReferenceCreateFromStackDictEntry(dictStack->prev->prev->info);
+        }
         
         // a Prev key may or may not exist, in which case we want to hit it
         PDStackRef prev = PDStackGetDictKey(stack, "Prev", false);
         if (prev) {
             // e, Prev, 116
             s = prev->prev->prev->info;
-            offs = atoi(s);
+            offs = PDSizeFromString(s);
             PDAssert(offs > 0 || !strcmp("0", s));
         } else running = false;
 
@@ -899,13 +921,14 @@ PDBool PDParserFetchXRefs(PDParserRef parser)
     } while (running);
 
     // we now have a stack in versioned order, so we start setting up xrefs
-    offsets = malloc(offscount * sizeof(size_t));
+    offsets = malloc(offscount * sizeof(PDSize));
     tables = malloc(offscount * sizeof(PDXTableRef));
     offscount = 0;
     
     PDXTableRef pdx = NULL;
     while (0 != (offs = (size_t)PDStackPopIdentifier(&osstack))) {
         if (pdx) {
+            /// @todo CLANG doesn't like this (pdx is stored in tables, put into ctx stack, and released on PDParserDestroy)
             pdx = memcpy(malloc(sizeof(struct PDXTable)), pdx, sizeof(struct PDXTable));
             pdx->fields = memcpy(malloc(pdx->cap * 20), pdx->fields, pdx->cap * 20);
         } else {
@@ -937,8 +960,8 @@ PDBool PDParserFetchXRefs(PDParserRef parser)
         while (PDScannerPopStack(scanner, &stack)) {
             // this stack = xref, startobid, <startobid>, count, <count>
             PDStackAssertExpectedKey(&stack, "xref");
-            int startobid = PDStackPopInt(&stack);
-            int count = PDStackPopInt(&stack);
+            PDInteger startobid = PDStackPopInt(&stack);
+            PDInteger count = PDStackPopInt(&stack);
             
             //printf("[%d .. %d]\n", startobid, startobid + count - 1);
             
@@ -954,7 +977,7 @@ PDBool PDParserFetchXRefs(PDParserRef parser)
             }
             
             // we now have a stream (technically speaking) of xrefs
-            int bytes = count * 20;
+            PDInteger bytes = count * 20;
             if (bytes != PDScannerReadStream(scanner, (char*)&xrefs[startobid], bytes)) {
                 PDAssert(0);
             }
@@ -970,7 +993,7 @@ PDBool PDParserFetchXRefs(PDParserRef parser)
     // we now set up the xstack from the (byte-ordered) list of xref tables
     parser->xstack = NULL;
     for (i = offscount - 1; i >= 0; i--) 
-        PDStackPushIdentifier(&parser->xstack, (const char **)tables[i]);
+        PDStackPushIdentifier(&parser->xstack, (PDID)tables[i]);
     free(offsets);
     free(tables);
     // xstackr is now the (reversed) xstack, so we set that up
@@ -985,6 +1008,7 @@ PDBool PDParserFetchXRefs(PDParserRef parser)
     
     parser->rootRef = rootRef;
     parser->infoRef = infoRef;
+    parser->encryptRef = encryptRef;
     
     // we've got all the xrefs so we can switch back to the readwritable method
     PDTWinStreamSetMethod(stream, PDTwinStreamReadWrite);
@@ -1004,8 +1028,8 @@ PDBool PDParserFetchXRefs(PDParserRef parser)
     xrefs = parser->mxt->fields;
     char *buf;
     char obdef[50];
-    int bufl;
-    int  obdefl;
+    PDInteger bufl;
+    PDInteger  obdefl;
     for (i = 0; i < parser->mxt->count; i++) {
         long offs = PDXOffset(xrefs[i]);
         printf("object #%3d: %10ld (%s)\n", i, offs, PDXUsed(xrefs[i]) ? "in use" : "free");
@@ -1035,7 +1059,7 @@ void PDParserDone(PDParserRef parser)
 #define twinstream_put(len, buf) \
         PDTwinStreamInsertContent(stream, len, (char*)buf);
     char *obuf = malloc(2048);
-    int len;
+    PDInteger len;
     PDTwinStreamRef stream = parser->stream;
     PDScannerRef scanner = parser->scanner;
     
@@ -1051,10 +1075,10 @@ void PDParserDone(PDParserRef parser)
     //PDScannerPopStack(scanner, &trailer);
     
     // the output offset is our new startxref entry
-    size_t startxref = PDTwinStreamGetOutputOffset(parser->stream);
+    PDSize startxref = PDTwinStreamGetOutputOffset(parser->stream);
     
     // write xref header
-    twinstream_printf("xref\n%d %lu\n", 0, parser->mxt->count);
+    twinstream_printf("xref\n%d %llu\n", 0, parser->mxt->count);
     
     // also write xref table
     twinstream_put(20 * parser->mxt->count, parser->mxt->fields);
@@ -1087,12 +1111,12 @@ void PDParserDone(PDParserRef parser)
     PDObjectRelease(tob);
     
     // write startxref entry
-    twinstream_printf("startxref\n%lu\n%%%%EOF\n", startxref);
+    twinstream_printf("startxref\n%llu\n%%%%EOF\n", startxref);
     
     free(obuf);
 }
 
-PDBool PDParserIsObjectStillMutable(PDParserRef parser, int obid)
+PDBool PDParserIsObjectStillMutable(PDParserRef parser, PDInteger obid)
 {
     return (PDTwinStreamGetOutputOffset(parser->stream) < PDXOffset(parser->mxt->fields[obid]));
 }
@@ -1105,4 +1129,9 @@ PDObjectRef PDParserGetRootObject(PDParserRef parser)
         parser->root->def = rootDef;
     }
     return parser->root;
+}
+
+PDInteger PDParserGetTotalObjectCount(PDParserRef parser)
+{
+    return parser->mxt->count;
 }

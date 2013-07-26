@@ -75,7 +75,7 @@ extern void PDStackPushKey(PDStackRef *stack, char *key);
  @param stack The stack.
  @param identifier The identifier. Can be anything. Never touched.
  */
-extern void PDStackPushIdentifier(PDStackRef *stack, const char **identifier);
+extern void PDStackPushIdentifier(PDStackRef *stack, PDID identifier);
 
 /**
  Push a freeable, arbitrary object. 
@@ -143,7 +143,7 @@ extern char *PDStackPopKey(PDStackRef *stack);
  
  @param stack The stack.
  */
-extern char **PDStackPopIdentifier(PDStackRef *stack);
+extern PDID PDStackPopIdentifier(PDStackRef *stack);
 
 /**
  Pop a stack off of the stack. Throws assertion if the next item is not a stack.
@@ -171,14 +171,14 @@ extern void *PDStackPopFreeable(PDStackRef *stack);
  
  @param stack The stack.
  */
-extern size_t PDStackPopSizeT(PDStackRef *stack);
+extern PDSize PDStackPopSize(PDStackRef *stack);
 
 /**
- Pop and convert key into an int value. Throws assertion if the next item is not a key.
+ Pop and convert key into an PDInteger value. Throws assertion if the next item is not a key.
  
  @param stack The stack.
  */
-extern int    PDStackPopInt(PDStackRef *stack);
+extern PDInteger PDStackPopInt(PDStackRef *stack);
 
 /**
  Pop the next key, verify that it is equal to the given key, and then discard it. 
@@ -198,14 +198,14 @@ extern void   PDStackAssertExpectedKey(PDStackRef *stack, const char *key);
  @param stack The stack.
  @param i Expected integer value.
  */
-extern void   PDStackAssertExpectedInt(PDStackRef *stack, int i);
+extern void   PDStackAssertExpectedInt(PDStackRef *stack, PDInteger i);
 
 /**
- Look at the next int on the stack without popping it. Throws assertion if the next item is not a key.
+ Look at the next PDInteger on the stack without popping it. Throws assertion if the next item is not a key.
  
  @param stack The stack.
  */
-extern int    PDStackPeekInt(PDStackRef stack);
+extern PDInteger PDStackPeekInt(PDStackRef stack);
 
 /// @name Convenience features
 
@@ -217,7 +217,16 @@ extern int    PDStackPeekInt(PDStackRef stack);
  */
 extern void PDStackPopInto(PDStackRef *dest, PDStackRef *source);
 
-// 
+/**
+ Non-destructive stack iteration.
+ 
+ This simply constructs a for loop that iterates over and puts the PDStackRef entries of the stack into the iter stack one at a time.
+ 
+ @param stack The stack to iterate.
+ @param iter  The iteration PDStackRef variable.
+ */
+#define PDStackForEach(stack, iter) for (iter = stack; iter; iter = iter->prev)
+
 /**
  Non-destructive dictionary get function.
  
@@ -242,6 +251,15 @@ extern PDStackRef PDStackGetDictKey(PDStackRef dictStack, const char *key, PDBoo
  @return true if key and value were set, false if not.
  */
 extern PDBool PDStackGetNextDictKey(PDStackRef *iterStack, char **key, char **value);
+
+/**
+ Replace info object in stack object with a new info object of the given type.
+ 
+ @param stack The stack.
+ @param type The new type.
+ @param info The new info object.
+ */
+extern void PDStackReplaceInfoObject(PDStackRef stack, char type, void *info);
 
 /// @name Debugging
 

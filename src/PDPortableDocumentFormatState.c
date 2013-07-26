@@ -32,7 +32,7 @@
 #include "PDStaticHash.h"
 #include "PDBTree.h" // remove
 
-int users = 0;
+PDInteger users = 0;
 PDStateRef pdfRoot, xrefSeeker;
 
 const char * PD_META       = "meta";
@@ -79,7 +79,7 @@ void PDPortableDocumentFormatStateRetain()
     if (users == 0) {
 #define s(name) name = PDStateCreate(#name)
         
-        PDPDFSetupConverters();
+        PDPortableDocumentFormatConversionTableRetain();
         
         s(pdfRoot);
         s(xrefSeeker);
@@ -412,18 +412,18 @@ void PDPortableDocumentFormatStateRetain()
         PDStackRef s = NULL;
         PDStackRef o = NULL;
         PDBTreeRef seen = NULL;
-        PDStackPushIdentifier(&s, (const char **)pdfRoot);
-        PDStackPushIdentifier(&s, (const char **)xrefSeeker);
+        PDStackPushIdentifier(&s, (PDID)pdfRoot);
+        PDStackPushIdentifier(&s, (PDID)xrefSeeker);
         PDStateRef t;
         PDOperatorRef p;
         while (NULL != (t = (PDStateRef)PDStackPopIdentifier(&s))) {
             PDBTreeInsert(&seen, t, t);
             printf("%s\n", t->name);
-            for (int i = 0; i < t->symbols; i++)
-                PDStackPushIdentifier(&o, (const char **)t->symbolOp[i]);
-            if (t->numberOp) PDStackPushIdentifier(&o, (const char **)t->numberOp);
-            if (t->delimiterOp) PDStackPushIdentifier(&o, (const char **)t->delimiterOp);
-            if (t->fallbackOp) PDStackPushIdentifier(&o, (const char **)t->fallbackOp);
+            for (PDInteger i = 0; i < t->symbols; i++)
+                PDStackPushIdentifier(&o, (PDID)t->symbolOp[i]);
+            if (t->numberOp) PDStackPushIdentifier(&o, (PDID)t->numberOp);
+            if (t->delimiterOp) PDStackPushIdentifier(&o, (PDID)t->delimiterOp);
+            if (t->fallbackOp) PDStackPushIdentifier(&o, (PDID)t->fallbackOp);
 
             while (NULL != (p = (PDOperatorRef)PDStackPopIdentifier(&o))) {
                 while (p) {
@@ -431,7 +431,7 @@ void PDPortableDocumentFormatStateRetain()
                     assert(p->type > 0);
                     if (p->type == PDOperatorPushState && ! PDBTreeFetch(seen, p->pushedState)) {
                         PDBTreeInsert(&seen, t, t);
-                        PDStackPushIdentifier(&s, (const char **)p->pushedState);
+                        PDStackPushIdentifier(&s, (PDID)p->pushedState);
                     }
                     p = p->next;
                 }
@@ -452,17 +452,31 @@ void PDPortableDocumentFormatStateRelease()
         PDStateRelease(xrefSeeker);
         
         PDOperatorSymbolGlobClear();
+        PDPortableDocumentFormatConversionTableRelease();
+    }
+}
+
+PDInteger ctusers = 0;
+void PDPortableDocumentFormatConversionTableRetain()
+{
+    if (ctusers == 0) {
+        PDPDFSetupConverters();
+    }
+    ctusers++;
+}
+
+void PDPortableDocumentFormatConversionTableRelease()
+{
+    ctusers--;
+    if (ctusers == 0) { 
         PDPDFClearConverters();
     }
 }
 
 static PDStaticHashRef converterTable = NULL;
-//static PDStringConverter *converterTable;
-//static int converterTableMask = 0;
-//static int converterTableShift = 0;
+static PDStaticHashRef typeTable = NULL;
 
 #define converterTableHash(key) PDStaticHashIdx(converterTable, key)
-//(((long)key + ((long)key >> converterTableShift)) & converterTableMask)
 
 void PDPDFSetupConverters()
 {
@@ -493,13 +507,39 @@ void PDPDFSetupConverters()
     });
     
     PDStaticHashDisownKeysValues(converterTable, true, true);
+    
+    typeTable = PDStaticHashCreate(9, (void*[]) {
+        (void*)PD_META,     // 1
+        (void*)PD_OBJ,      // 2
+        (void*)PD_REF,      // 3
+        (void*)PD_HEXSTR,   // 4
+        (void*)PD_DICT,     // 5
+        (void*)PD_DE,       // 6 
+        (void*)PD_ARRAY,    // 7
+        (void*)PD_AE,       // 8
+        (void*)PD_NAME,     // 9
+    }, (void*[]) {
+        (void*)PDObjectTypeString,
+        (void*)PDObjectTypeString,
+        (void*)PDObjectTypeString,
+        (void*)PDObjectTypeString,
+        (void*)PDObjectTypeDictionary,
+        (void*)PDObjectTypeString,
+        (void*)PDObjectTypeArray,
+        (void*)PDObjectTypeString,
+        (void*)PDObjectTypeName,
+    });
+
+    PDStaticHashDisownKeysValues(typeTable, true, true);
 
 }
 
 void PDPDFClearConverters()
 {
     PDStaticHashRelease(converterTable);
+    PDStaticHashRelease(typeTable);
     converterTable = NULL;
+    typeTable = NULL;
 }
 
 char *PDStringFromComplex(PDStackRef *complex)
@@ -514,6 +554,12 @@ char *PDStringFromComplex(PDStackRef *complex)
     scv.allocBuf[scv.offs] = 0;
     
     return scv.allocBuf;
+}
+
+PDObjectType PDObjectTypeFromIdentifier(PDID identifier)
+{
+    PDAssert(typeTable); // crash = must PDPortableDocumentFormatConversionTableRetain() first
+    return PDStaticHashValueForKeyAs(typeTable, *identifier, PDObjectType);
 }
 
 //////////////////////////////////////////
@@ -537,8 +583,8 @@ void PDStringFromRef(PDStackRef *s, PDStringConvRef scv)
 void PDStringFromName(PDStackRef *s, PDStringConvRef scv)
 {
     char *namestr = PDStackPopKey(s);
-    int len = strlen(namestr);
-    PDStringGrow(len + 1);
+    PDInteger len = strlen(namestr);
+    PDStringGrow(len + 2);
     currchi = '/';
     putstr(namestr, len);
 }
@@ -546,7 +592,7 @@ void PDStringFromName(PDStackRef *s, PDStringConvRef scv)
 void PDStringFromHexString(PDStackRef *s, PDStringConvRef scv)
 {
     char *hexstr = PDStackPopKey(s);
-    int len = strlen(hexstr);
+    PDInteger len = strlen(hexstr);
     PDStringGrow(2 + len);
     currchi = '<';
     putstr(hexstr, len);
@@ -579,8 +625,8 @@ void PDStringFromDict(PDStackRef *s, PDStringConvRef scv)
 void PDStringFromDictEntry(PDStackRef *s, PDStringConvRef scv)
 {
     char *key;
-    int req = 30;
-    int len;
+    PDInteger req = 30;
+    PDInteger len;
     
     PDStackAssertExpectedKey(s, PD_DE);
     key = PDStackPopKey(s);
@@ -623,7 +669,7 @@ void PDStringFromArrayEntry(PDStackRef *s, PDStringConvRef scv)
 
 void PDStringFromArbitrary(PDStackRef *s, PDStringConvRef scv)
 {
-    char **type = PDStackPopIdentifier(s);
-    int hash = PDStaticHashIdx(converterTable, *type);
+    PDID type = PDStackPopIdentifier(s);
+    PDInteger hash = PDStaticHashIdx(converterTable, *type);
     (*as(PDStringConverter, PDStaticHashValueForHash(converterTable, hash)))(s, scv);
 }

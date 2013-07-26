@@ -28,6 +28,7 @@
 #include "PDTwinStream.h"
 #include "PDReference.h"
 #include "PDBTree.h"
+#include "PDStack.h"
 #include "PDStaticHash.h"
 
 PDTaskResult PDPipeAppendFilterFunc(PDPipeRef pipe, PDTaskRef task, PDObjectRef object)
@@ -44,6 +45,8 @@ PDTaskFunc PDPipeAppendFilter = &PDPipeAppendFilterFunc;
 
 void PDPipeDestroy(PDPipeRef pipe)
 {
+    PDTaskRef task;
+    
     if (pipe->opened) {
         fclose(pipe->fi);
         fclose(pipe->fo);
@@ -53,8 +56,11 @@ void PDPipeDestroy(PDPipeRef pipe)
     free(pipe->pi);
     free(pipe->po);
     PDBTreeDestroyWithDeallocator(pipe->filter, (PDDeallocator)&PDTaskRelease);
-    if (pipe->onPrepareTasks) 
-        PDTaskRelease(pipe->onPrepareTasks);
+    
+    while (NULL != (task = (PDTaskRef)PDStackPopIdentifier(&pipe->unfilteredTasks))) {
+        PDTaskRelease(task);
+    }
+        
     free(pipe);
 }
 
@@ -132,6 +138,9 @@ void PDPipeAddTask(PDPipeRef pipe, PDTaskRef task)
             PDAssert(0); // crash = logic is flawed; object in question should be fetched after preparing pipe rather than dynamically appending filters as data is obtained; worst case, do two passes (one where the id of the offending object is determined and one where the mutations are made)
         }
     } else {
+        // task executes on every iteration
+        PDStackPushIdentifier(&pipe->unfilteredTasks, (PDID)task);
+#if 0
         // task executes in root; this happens right after parser is set up and has read in things like root and info refs
         if (pipe->opened) {
             // which is now; this is odd, but let's be nice
@@ -142,6 +151,7 @@ void PDPipeAddTask(PDPipeRef pipe, PDTaskRef task)
             PDTaskAppendTask(pipe->onPrepareTasks, task);
             
         }
+#endif
     }
 }
 
@@ -181,7 +191,38 @@ PDBool PDPipePrepare(PDPipeRef pipe)
     return pipe->stream && pipe->parser;
 }
 
-int PDPipeExecute(PDPipeRef pipe)
+static inline PDBool PDPipeRunUnfilteredTasks(PDPipeRef pipe, PDParserRef parser)
+{
+    PDTaskRef task;
+    PDTaskResult result;
+    PDStackRef unfilteredIter;
+    PDStackRef prevStack = NULL;
+
+    PDStackForEach(pipe->unfilteredTasks, unfilteredIter) {
+        task = unfilteredIter->info;
+        result = PDTaskExec(task, pipe, PDParserConstructObject(parser));
+        if (PDTaskFailure == result) return false;
+        if (PDTaskUnload == result) {
+            // note that task unloading only reaches PDPipe for unfiltered tasks; filtered task unloading is always caught by the PDTask implementation
+            if (prevStack) {
+                prevStack->prev = unfilteredIter->prev;
+                unfilteredIter->prev = NULL;
+                PDStackDestroy(unfilteredIter);
+                unfilteredIter = prevStack;
+            } else {
+                // since we're dropping the top item, we've lost our iteration variable, so we recall ourselves to start over (which means continuing, as this was the first item)
+                PDStackPopIdentifier(&pipe->unfilteredTasks);
+                PDTaskRelease(task);
+                
+                return PDPipeRunUnfilteredTasks(pipe, parser);
+            }
+        }
+        prevStack = unfilteredIter;
+    }
+    return true;
+}
+
+PDInteger PDPipeExecute(PDPipeRef pipe)
 {
     // if pipe is closed, we need to prepare
     if (! pipe->opened && ! PDPipePrepare(pipe)) 
@@ -189,12 +230,9 @@ int PDPipeExecute(PDPipeRef pipe)
     
     PDParserRef parser = pipe->parser;
     PDTaskRef task;
-    if (pipe->onPrepareTasks) 
-        if (PDTaskFailure == PDTaskExec(pipe->onPrepareTasks, pipe, NULL)) 
-            return -1;
 
     // at this point, we set up a static hash table for O(1) filtering before the O(n) tree fetch; the SHT implementation here triggers false positives and cannot be used on its own
-    int entries = pipe->filterCount;
+    PDInteger entries = pipe->filterCount;
     void **keys = malloc(entries * sizeof(void*));
     pipe->dynamicFiltering = false;
     PDBTreePopulateKeys(pipe->filter, keys);
@@ -203,9 +241,15 @@ int PDPipeExecute(PDPipeRef pipe)
     long fpos = 0;
     long tneg = 0;
     PDBool proceed = true;
-    int seen = 0;
+    PDInteger seen = 0;
     do {
         seen++;
+
+        // run unfiltered tasks
+        if (! (proceed &= PDPipeRunUnfilteredTasks(pipe, parser))) 
+            break;
+        
+        // check filtered tasks
         if (pipe->dynamicFiltering || PDStaticHashValueForKey(sht, parser->obid)) {
             task = PDBTreeFetch(pipe->filter, parser->obid);
             if (task) {

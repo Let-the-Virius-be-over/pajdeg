@@ -98,10 +98,10 @@ void *PDBTreeRemove(PDBTreeRef *root, long key)
     return value;
 }
 
-int PDBTreePopulateKeys(PDBTreeRef root, void **dest)
+PDInteger PDBTreePopulateKeys(PDBTreeRef root, void **dest)
 {
     PDBTreeRef r;
-    int i = 0;
+    PDInteger i = 0;
     while (root) {
         dest[i++] = (void*)root->key;
         r = root->branch[1];

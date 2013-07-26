@@ -41,7 +41,7 @@ PDReferenceRef PDReferenceCreateFromStackDictEntry(PDStackRef stack)
     return ref;
 }
 
-PDReferenceRef PDReferenceCreate(int obid, int genid)
+PDReferenceRef PDReferenceCreate(PDInteger obid, PDInteger genid)
 {
     PDReferenceRef ref = malloc(sizeof(struct PDReference));
     ref->obid = obid;

@@ -55,18 +55,18 @@
  @code
  PDTaskResult asyncWait(PDPipeRef pipe, PDTaskRef task, PDObjectRef object)
  {
-    int asyncDone = 0;
+    PDInteger asyncDone = 0;
     do_asynchronous_thing(object, &asyncDone);
     while (! asyncDone) sleep(1);
     return PDTaskDone;
  }
  
- void do_asynchronous_thing(PDObjectRef object, int *asyncDone)
+ void do_asynchronous_thing(PDObjectRef object, PDInteger *asyncDone)
  {
     // start whatever asynchronous thing needs doing
  }
  
- void finish_asynchronous_thing(PDObjectRef object, int *asyncDone)
+ void finish_asynchronous_thing(PDObjectRef object, PDInteger *asyncDone)
  {
     PDObjectSetDictionaryEntry(object, "Foo", "bar");
     *asyncDone = 1;
@@ -105,14 +105,14 @@ extern void PDObjectRelease(PDObjectRef object);
  
  @param object The object.
  */
-extern int PDObjectGetObID(PDObjectRef object);
+extern PDInteger PDObjectGetObID(PDObjectRef object);
 
 /**
  Get generation ID for an object.
  
  @param object The object.
  */
-extern int PDObjectGetGenID(PDObjectRef object);
+extern PDInteger PDObjectGetGenID(PDObjectRef object);
 
 /**
  Get type of an object.
@@ -136,7 +136,7 @@ extern PDBool PDObjectHasStream(PDObjectRef object);
  
  @param object The object.
  */
-extern int PDObjectGetStreamLength(PDObjectRef object);
+extern PDInteger PDObjectGetStreamLength(PDObjectRef object);
 
 /**
  Fetch the value of the given object.
@@ -148,6 +148,8 @@ extern int PDObjectGetStreamLength(PDObjectRef object);
  */
 extern char *PDObjectGetValue(PDObjectRef object);
 
+/// @name Dictionary objects
+
 /**
  Fetch the dictionary entry for the given key.
  
@@ -157,8 +159,6 @@ extern char *PDObjectGetValue(PDObjectRef object);
  @param key The dictionary key. Note that keys in a PDF dictionary are names, i.e. /Something, but the corresponding key in PDObjectRef is the string without the forward slash, i.e. "Something" in this case.
  */
 extern const char *PDObjectGetDictionaryEntry(PDObjectRef object, const char *key);
-
-/// @name Mutation
 
 /**
  Set a dictionary key to a new value.
@@ -182,6 +182,57 @@ extern void PDObjectSetDictionaryEntry(PDObjectRef object, const char *key, cons
  */
 extern void PDObjectRemoveDictionaryEntry(PDObjectRef object, const char *key);
 
+/// @name Array objects
+
+/**
+ Get the element count of the array object.
+ 
+ @warning Crashes if the object is not an array.
+ 
+ @param object The object.
+ */
+extern PDInteger PDObjectGetArrayCount(PDObjectRef object);
+
+/**
+ Fetch the array element at the given index.
+ 
+ @warning Crashes if the object is not an array.
+ 
+ @param object The object.
+ @param index The array index.
+ */
+extern const char *PDObjectGetArrayElementAtIndex(PDObjectRef object, PDInteger index);
+
+/**
+ Add an element to the array object.
+ 
+ @note Expects object to be an array.
+ @note Value must be a null terminated string.
+ 
+ @param object  The object.
+ @param value   The string value, null terminated.
+ */
+extern void PDObjectAddArrayElement(PDObjectRef object, const char *value);
+
+/**
+ Delete the array element at the given index.
+ 
+ @param object The object.
+ @param index The array index.
+ */
+extern void PDObjectRemoveArrayElementAtIndex(PDObjectRef object, PDInteger index);
+
+/**
+ Replace the value of the array element at the given index with a new value.
+ 
+ @param object The object.
+ @param index The array index.
+ @param value The replacement value.
+ */
+extern void PDObjectSetArrayElement(PDObjectRef object, PDInteger index, const char *value);
+
+/// @name Other mutation
+
 /**
  Replaces the entire object's definition with the given string of the given length; does not replace the stream and the caller is responsible for asserting that the /Length key is preserved; if the stream was turned off, this may include a stream element by abiding by the PDF specification, which requires that
  
@@ -201,7 +252,7 @@ extern void PDObjectRemoveDictionaryEntry(PDObjectRef object, const char *key);
  @param str The replacement string.
  @param len The length of the replacement string.
  */
-extern void PDObjectReplaceWithString(PDObjectRef object, char *str, int len);
+extern void PDObjectReplaceWithString(PDObjectRef object, char *str, PDInteger len);
 
 /**
  Removes the stream from the object.
@@ -222,7 +273,7 @@ extern void PDObjectSkipStream(PDObjectRef object);
  @param len The length of the stream data.
  @param includeLength Whether the object's /Length entry should be updated to reflect the new stream content length.
  */
-extern void PDObjectSetStream(PDObjectRef object, const char *str, int len, PDBool includeLength);
+extern void PDObjectSetStream(PDObjectRef object, const char *str, PDInteger len, PDBool includeLength);
 
 /**
  Sets the encrypted flag for the object's stream.
@@ -248,7 +299,7 @@ extern void PDObjectSetEncryptedStreamFlag(PDObjectRef object, PDBool encrypted)
  @param dstBuf Pointer to buffer into which definition should be written. Must be a proper allocation.
  @param capacity The number of bytes allocated into *dstBuf already.
  */
-extern int PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, int capacity);
+extern PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDInteger capacity);
 
 #endif
 

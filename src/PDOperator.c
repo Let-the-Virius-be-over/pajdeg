@@ -38,7 +38,7 @@ char *PDOperatorSymbolGlob = NULL;
 
 void PDOperatorSymbolGlobSetup()
 {
-    int i;
+    PDInteger i;
 
     if (PDOperatorSymbolGlob != NULL) return;
     
@@ -108,7 +108,7 @@ void PDOperatorAppendOperator(PDOperatorRef op, PDOperatorRef next)
 
 PDOperatorRef PDOperatorCreateFromDefinition(const void **defs)
 {
-    int i = 0;
+    PDInteger i = 0;
     PDOperatorRef result, op, op2;
     result = op = NULL;
     PDOperatorType t;
@@ -122,7 +122,7 @@ PDOperatorRef PDOperatorCreateFromDefinition(const void **defs)
             case PDOperatorStoveComplex:
             case PDOperatorPushComplex:
                 op2 = PDOperatorCreate(t);
-                op2->identifier = (const char **)defs[i++];
+                op2->identifier = (PDID)defs[i++];
                 break;
             case PDOperatorPushState:
             case PDOperatorPushWeakState:
@@ -137,6 +137,7 @@ PDOperatorRef PDOperatorCreateFromDefinition(const void **defs)
                 break;
         }
         if (op) {
+            /// @todo CLANG doesn't like homemade retaining
             PDOperatorAppendOperator(op, op2);
             PDOperatorRelease(op2);
             op = op2;

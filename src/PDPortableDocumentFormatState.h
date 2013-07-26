@@ -65,7 +65,7 @@ extern const char * PD_ENDSTREAM;       ///< the "endstream" symbol
 /**
  Convenience macro for comparing a given value to one of the PD_ entries.
  */
-#define PDIdentifies(key, pdtype) ((const char **)key == &pdtype)
+#define PDIdentifies(key, pdtype) ((PDID)key == &pdtype)
 
 /**
  Retain (constructing, if no previous retains were made) the PDF implementation.
@@ -76,6 +76,16 @@ extern void PDPortableDocumentFormatStateRetain();
  Release (destructing, if no other retains remain) the PDF implementation.
  */
 extern void PDPortableDocumentFormatStateRelease();
+
+/**
+ Retain the PDF conversion table.
+ */
+extern void PDPortableDocumentFormatConversionTableRetain();
+
+/**
+ Release the PDF conversion table.
+ */
+extern void PDPortableDocumentFormatConversionTableRelease();
 
 /**
  The root PDF state.
@@ -96,6 +106,13 @@ extern PDStateRef xrefSeeker;
  @see PDStackSetGlobalPreserveFlag
  */
 extern char * PDStringFromComplex(PDStackRef *complex);
+
+/**
+ Determine object type from identifier.
+ 
+ @param identifier One of the PD_ identifiers.
+ */
+extern PDObjectType PDObjectTypeFromIdentifier(PDID identifier);
 
 #endif
 

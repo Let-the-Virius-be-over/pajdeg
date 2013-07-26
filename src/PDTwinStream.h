@@ -126,7 +126,7 @@ extern PDScannerRef PDTwinStreamSetupScannerWithState(PDTwinStreamRef ts, PDStat
  @param size Pointer to size variable that contains current size, and should be updated with new size after growth.
  @param req The requested amount of data. If 0, an optimal amount in terms of performance is selected.
  */
-extern void PDTwinStreamGrowInputBuffer(void *ts, PDScannerRef scanner, char **buf, int *size, int req);
+extern void PDTwinStreamGrowInputBuffer(void *ts, PDScannerRef scanner, char **buf, PDInteger *size, PDInteger req);
 
 /**
  Grow buffer backwards, i.e. by prepending the buffer with previous content.
@@ -139,7 +139,7 @@ extern void PDTwinStreamGrowInputBuffer(void *ts, PDScannerRef scanner, char **b
  @param size Pointer to size variable that contains current size, and should be updated with new size after growth.
  @param req The requested amount of data. If 0, an optimal amount in terms of performance is selected.
  */
-extern void PDTwinStreamGrowInputBufferReversed(void *ts, PDScannerRef scanner, char **buf, int *size, int req);
+extern void PDTwinStreamGrowInputBufferReversed(void *ts, PDScannerRef scanner, char **buf, PDInteger *size, PDInteger req);
 
 /**
  Do not grow buffer. A call to this method will flag the outgrown flag.
@@ -150,7 +150,7 @@ extern void PDTwinStreamGrowInputBufferReversed(void *ts, PDScannerRef scanner, 
  @param size Pointer to size variable that contains current size, and should be updated with new size after growth.
  @param req The requested amount of data. If 0, an optimal amount in terms of performance is selected.
  */
-extern void PDTwinStreamDisallowGrowth(void *ts, PDScannerRef scanner, char **buf, int *size, int req);
+extern void PDTwinStreamDisallowGrowth(void *ts, PDScannerRef scanner, char **buf, PDInteger *size, PDInteger req);
 
 /**
  Jump to byte position in input file
@@ -160,7 +160,7 @@ extern void PDTwinStreamDisallowGrowth(void *ts, PDScannerRef scanner, char **bu
  @param ts The stream.
  @param position The absolute position to seek to.
  */
-extern void PDTwinStreamSeek(PDTwinStreamRef ts, size_t position);
+extern void PDTwinStreamSeek(PDTwinStreamRef ts, PDSize position);
 
 /**
  Iterate forward `bytes' bytes in input file
@@ -169,7 +169,7 @@ extern void PDTwinStreamSeek(PDTwinStreamRef ts, size_t position);
  @param ts The stream.
  @param bytes Number of bytes to advance in input stream.
  */
-extern void PDTwinStreamAdvance(PDTwinStreamRef ts, size_t bytes);
+extern void PDTwinStreamAdvance(PDTwinStreamRef ts, PDSize bytes);
 
 /**
  Temporarily jump to and read given amount from given offset in input, then immediately jump back to original position.
@@ -184,7 +184,7 @@ extern void PDTwinStreamAdvance(PDTwinStreamRef ts, size_t bytes);
  @param buf Pointer to string that should be updated. The string must not be freed. Instead, PDTwinStreamCutBranch() should be used, or nothing done at all.
  @return The actual amount read (which may be lower, e.g. if EOF is hit).
  */
-extern size_t PDTwinStreamFetchBranch(PDTwinStreamRef ts, size_t position, int bytes, char **buf);
+extern PDSize PDTwinStreamFetchBranch(PDTwinStreamRef ts, PDSize position, PDInteger bytes, char **buf);
 
 /**
  Deallocate (if necessary) a fetched branch buffer.
@@ -220,7 +220,7 @@ extern void PDTwinStreamDiscardContent(PDTwinStreamRef ts);
  @param bytes Number of bytes to write.
  @param content The content to write.
  */
-extern void PDTwinStreamInsertContent(PDTwinStreamRef ts, size_t bytes, const char *content);
+extern void PDTwinStreamInsertContent(PDTwinStreamRef ts, PDSize bytes, const char *content);
 
 /**
  Prune the stream.
@@ -230,7 +230,7 @@ extern void PDTwinStreamInsertContent(PDTwinStreamRef ts, size_t bytes, const ch
  @param ts The stream.
  @param mark Comparison mark.
  */
-extern void PDTwinStreamPrune(PDTwinStreamRef ts, fpos_t mark);
+extern void PDTwinStreamPrune(PDTwinStreamRef ts, PDOffset mark);
 
 /// @name Debugging
 
@@ -243,7 +243,7 @@ extern void PDTwinStreamPrune(PDTwinStreamRef ts, fpos_t mark);
  @param expect The expected string.
  @param len The length of the expected string.
  */
-extern void PDTwinStreamReassert(PDTwinStreamRef ts, fpos_t offset, char *expect, int len);
+extern void PDTwinStreamReassert(PDTwinStreamRef ts, PDOffset offset, char *expect, PDInteger len);
 #endif
 
 #endif

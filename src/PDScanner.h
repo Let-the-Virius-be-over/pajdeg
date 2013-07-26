@@ -90,7 +90,7 @@ extern PDBool PDScannerPopStack(PDScannerRef scanner, PDStackRef *value);
  @param scanner The scanner.
  @param bytes The amount of bytes to skip.
  */
-extern void PDScannerSkip(PDScannerRef scanner, size_t bytes);
+extern void PDScannerSkip(PDScannerRef scanner, PDSize bytes);
 
 /**
  Require that the next result is a string, and that it is equal to the given value, or throw assertion.
@@ -128,7 +128,7 @@ extern void PDScannerAssertComplex(PDScannerRef scanner, const char *identifier)
  @param dest The destination buffer. Must be allocated, and be able to hold at least `bytes` bytes.
  @param bytes The number of bytes to read.
  */
-extern int PDScannerReadStream(PDScannerRef scanner, char *dest, int bytes);
+extern PDInteger PDScannerReadStream(PDScannerRef scanner, char *dest, PDInteger bytes);
 
 /// @name Adjusting scanner / source
 
@@ -160,7 +160,7 @@ extern void PDScannerContextPop(void);
  
  @param cap The cap.
  */
-extern void PDScannerSetLoopCap(int cap);
+extern void PDScannerSetLoopCap(PDInteger cap);
 
 /**
  Pop a symbol as normal, via forward reading of buffer.
@@ -189,7 +189,7 @@ extern void PDScannerPopSymbolRev(PDScannerRef scanner);
  @param scanner The scanner.
  @param offset The offset.
  */
-extern void PDScannerAlign(PDScannerRef scanner, long offset); 
+extern void PDScannerAlign(PDScannerRef scanner, PDOffset offset); 
 
 /**
  Trim off of head from buffer (only used if buffer is a non-allocated pointer into a heap).
@@ -197,7 +197,7 @@ extern void PDScannerAlign(PDScannerRef scanner, long offset);
  @param scanner The scanner.
  @param bytes Bytes to trim off.
  */
-extern void PDScannerTrim(PDScannerRef scanner, long long bytes); 
+extern void PDScannerTrim(PDScannerRef scanner, PDOffset bytes); 
 
 /**
  Reset scanner buffer including size, offset, trail, etc., as well as discarding symbols and results.

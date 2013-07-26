@@ -31,7 +31,7 @@
 #include "PDStack.h"
 #include "PDPortableDocumentFormatState.h" // <-- not ideal
 
-static int PDScannerScanAttemptCap = -1;
+static PDInteger PDScannerScanAttemptCap = -1;
 static PDScannerBufFunc bufFunc = NULL;
 static void *bufFuncInfo;
 static PDStackRef scannerContextStack = NULL;
@@ -55,8 +55,8 @@ PDScannerRef PDScannerCreateWithState(PDStateRef state)
 void PDScannerContextPush(void *ctxInfo, PDScannerBufFunc ctxBufFunc)
 {
     if (bufFunc) {
-        PDStackPushIdentifier(&scannerContextStack, (const char **)bufFunc);
-        PDStackPushIdentifier(&scannerContextStack, (const char **)bufFuncInfo);
+        PDStackPushIdentifier(&scannerContextStack, (PDID)bufFunc);
+        PDStackPushIdentifier(&scannerContextStack, (PDID)bufFuncInfo);
     }
     bufFunc = ctxBufFunc;
     bufFuncInfo = ctxInfo;
@@ -68,7 +68,7 @@ void PDScannerContextPop(void)
     bufFunc = (PDScannerBufFunc)PDStackPopIdentifier(&scannerContextStack);
 }
 
-void PDScannerSetLoopCap(int cap)
+void PDScannerSetLoopCap(PDInteger cap)
 {
     PDScannerScanAttemptCap = cap;
 }
@@ -87,7 +87,7 @@ void PDScannerDestroy(PDScannerRef scanner)
     free(scanner);
 }
 
-void PDScannerAlign(PDScannerRef scanner, long offset)
+void PDScannerAlign(PDScannerRef scanner, PDOffset offset)
 {
     PDStackRef s;
     PDScannerSymbolRef sym;
@@ -104,7 +104,7 @@ void PDScannerAlign(PDScannerRef scanner, long offset)
     }
 }
 
-void PDScannerTrim(PDScannerRef scanner, long long bytes)
+void PDScannerTrim(PDScannerRef scanner, PDOffset bytes)
 {
     if (bytes > scanner->bsize) {
         // we skipped content and scanner iterated beyond its buffer, so we reset
@@ -127,7 +127,7 @@ void PDScannerReset(PDScannerRef scanner)
     PDStackDestroy(scanner->resultStack);
 }
 
-void PDScannerSkip(PDScannerRef scanner, size_t bytes)
+void PDScannerSkip(PDScannerRef scanner, PDSize bytes)
 {
     //scanner->bsize += bytes;
     scanner->boffset += bytes;
@@ -147,7 +147,7 @@ void PDScannerPopSymbol(PDScannerRef scanner)
     unsigned char c;
     char *buf;
     short hash;
-    int   bsize, len, i;
+    PDInteger   bsize, len, i;
     char  prevtype, type;
     PDBool numeric, real, escaped;
     
@@ -208,9 +208,11 @@ void PDScannerPopSymbol(PDScannerRef scanner)
     while (scanner->boffset < scanner->bsize && PDOperatorSymbolGlob[(unsigned char)scanner->buf[scanner->boffset]] == PDOperatorSymbolGlobWhitespace) 
         scanner->boffset++;
     
-    //char *str = strndup(sym->sstart, sym->slen);
-    //printf("\t\t\t★ %s ★\n", str);
-    //free(str);
+#ifdef DEBUG_SCANNER_SYMBOLS
+    char *str = strndup(sym->sstart, sym->slen);
+    printf("\t\t\t★ %s ★\n", str);
+    free(str);
+#endif
 }
 
 void PDScannerPopSymbolRev(PDScannerRef scanner)
@@ -226,7 +228,7 @@ void PDScannerPopSymbolRev(PDScannerRef scanner)
     unsigned char c;
     char *buf;
     short hash;
-    int   bsize, len, i;
+    PDInteger   bsize, len, i;
     char  prevtype, type;
     PDBool numeric;
     
@@ -279,7 +281,7 @@ void PDScannerPopSymbolRev(PDScannerRef scanner)
 void PDScannerReadUntilDelimiter(PDScannerRef scanner, PDBool delimiterIsNewline)
 {
     char *buf;
-    int   bsize, i;
+    PDInteger   bsize, i;
     PDBool escaped;
     PDScannerSymbolRef sym = scanner->sym;
     i = scanner->boffset;
@@ -333,7 +335,7 @@ void PDScannerReadUntilDelimiter(PDScannerRef scanner, PDBool delimiterIsNewline
 }
 
 #ifdef PDSCANNER_OPERATOR_DEBUG
-static int SOSTATES = 0;
+static PDInteger SOSTATES = 0;
 #   define SOLog(msg...) printf("[op] " msg)
 #   define SOEnt() \
         SOSTATES++; \
@@ -357,7 +359,7 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
     PDStackRef *var;
     //PDStackRef ref;
     char *buf;
-    int len;
+    PDInteger len;
     
     while (op) {
         sym = scanner->sym;
@@ -382,6 +384,7 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
                 break;
                 
             case PDOperatorPushResult:      // put symbol on results stack
+                /// @todo CLANG doesn't like complex logic that prevents a condition from occurring due to a specification; however, this may very well happen for seriously broken (or odd) PDFs and should be plugged
                 PDStackPushKey(&scanner->resultStack, strndup(sym->sstart, sym->slen));
                 SOShowStack("results [PUSH] > ", scanner->resultStack);
                 break;
@@ -390,6 +393,7 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
                 PDAssert(scanner->resultStack->type == PDSTACK_STRING);
                 buf = scanner->resultStack->info;
                 len = strlen(buf);
+                /// @todo CLANG doesn't like complex logic that prevents a condition from occurring due to a specification; however, this may very well happen for seriously broken (or odd) PDFs and should be plugged
                 scanner->resultStack->info = buf = realloc(buf, 1 + len + sym->slen);
                 strncpy(&buf[len], sym->sstart, sym->slen);
                 buf[len+sym->slen] = 0;
@@ -430,7 +434,7 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
                     sym->sstart = PDStackPopKey(&scanner->resultStack);
                     PDStackPushKey(&scanner->garbageStack, sym->sstart); // string will leak if we don't keep it around, as sym always refers directly into buf except here
                 } else {
-                    sym->sstart = *PDStackPopIdentifier(&scanner->resultStack);
+                    sym->sstart = (char *)*PDStackPopIdentifier(&scanner->resultStack);
                     // todo: verify that this doesn't break by-ref stringing
                 }
                 sym->slen = strlen(sym->sstart);
@@ -491,8 +495,8 @@ void PDScannerScan(PDScannerRef scanner)
     char **symbol;
     short symindices;
     short hash;
-    int *symindex;
-    int bresoffset = scanner->boffset;
+    PDInteger *symindex;
+    PDInteger bresoffset = scanner->boffset;
     env = scanner->env;
     state = env->state;
     
@@ -620,10 +624,10 @@ void PDScannerAssertComplex(PDScannerRef scanner, const char *identifier)
     }
 }
 
-int PDScannerReadStream(PDScannerRef scanner, char *dest, int bytes)
+PDInteger PDScannerReadStream(PDScannerRef scanner, char *dest, PDInteger bytes)
 {
     char *buf;
-    int bsize, i;
+    PDInteger bsize, i;
 
     PDAssert(! scanner->symbolStack);
     
@@ -659,9 +663,9 @@ int PDScannerReadStream(PDScannerRef scanner, char *dest, int bytes)
 void PDScannerPrintStateTrace(PDScannerRef scanner)
 {
     PDStackRef s;
-    int i = 1;
+    PDInteger i = 1;
     if (scanner->env) 
         printf("#0: %s\n", scanner->env->state->name);
     for (s = scanner->envStack; s; i++, s = s->prev) 
-        printf("#%d: %s\n", i, as(PDEnvRef, s->info)->state->name);
+        printf("#%ld: %s\n", i, as(PDEnvRef, s->info)->state->name);
 }

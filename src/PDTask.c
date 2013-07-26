@@ -36,14 +36,26 @@ void PDTaskDealloc(void *ob)
 
 PDTaskResult PDTaskExec(PDTaskRef task, PDPipeRef pipe, PDObjectRef object)
 {
+    PDTaskRef parent = NULL;
+    
     PDTaskResult res = PDTaskDone;
+    
     while (task && PDTaskDone == (res = (*task->func)(pipe, task, object))) {
+        parent = task;
         task = task->child;
     }
+    
+    if (parent && task && PDTaskUnload == res) {
+        // we can remove this task internally
+        res = task->child == NULL ? PDTaskDone : PDTaskSkipRest;
+        parent->child = NULL;
+        PDTaskRelease(task);
+    }
+    
     return res;
 }
 
-PDTaskRef PDTaskCreateFilterWithValue(PDPropertyType propertyType, int value)
+PDTaskRef PDTaskCreateFilterWithValue(PDPropertyType propertyType, PDInteger value)
 {
     PDTaskRef task = malloc(sizeof(struct PDTask));
     task->deallocator  = &PDTaskDealloc;
@@ -107,7 +119,7 @@ PDTaskRef PDTaskCreateMutatorForPropertyType(PDPropertyType propertyType, PDTask
     return PDTaskCreateMutatorForPropertyTypeWithValue(propertyType, -1, mutatorFunc);
 }
 
-PDTaskRef PDTaskCreateMutatorForPropertyTypeWithValue(PDPropertyType propertyType, int value, PDTaskFunc mutatorFunc)
+PDTaskRef PDTaskCreateMutatorForPropertyTypeWithValue(PDPropertyType propertyType, PDInteger value, PDTaskFunc mutatorFunc)
 {
     PDTaskRef filter;
     PDTaskRef mutator;

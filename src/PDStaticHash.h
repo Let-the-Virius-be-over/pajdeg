@@ -100,7 +100,7 @@
  @param keys The array of keys. Note that keys are primitives.
  @param values The array of values corresponding to the array of keys.
  */
-extern PDStaticHashRef PDStaticHashCreate(int entries, void **keys, void **values);
+extern PDStaticHashRef PDStaticHashCreate(PDInteger entries, void **keys, void **values);
 
 /**
  Indicate that keys and/or values are not owned by the static hash and should not be freed on destruction; enabled flags are not disabled even if false is passed in (once disowned, always disowned)

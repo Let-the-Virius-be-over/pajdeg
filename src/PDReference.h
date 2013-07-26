@@ -49,7 +49,7 @@ extern PDReferenceRef PDReferenceCreateFromStackDictEntry(PDStackRef stack);
  @param obid Object ID.
  @param genid Generation number.
  */
-extern PDReferenceRef PDReferenceCreate(int obid, int genid);
+extern PDReferenceRef PDReferenceCreate(PDInteger obid, PDInteger genid);
 
 /**
  Destroy an existing reference.
@@ -63,13 +63,13 @@ extern void PDReferenceDestroy(PDReferenceRef reference);
  
  @param reference The reference.
  */
-extern int PDReferenceGetObjectID(PDReferenceRef reference);
+extern PDInteger PDReferenceGetObjectID(PDReferenceRef reference);
 /**
  Get the generation ID for the reference.
  
  @param reference The reference.
  */
-extern int PDReferenceGetGenerationID(PDReferenceRef reference);
+extern PDInteger PDReferenceGetGenerationID(PDReferenceRef reference);
 
 #endif
 

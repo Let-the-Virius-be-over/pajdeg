@@ -109,10 +109,10 @@ void PDTWinStreamSetMethod(PDTwinStreamRef ts, PDTwinStreamMethod method)
 
 //#define PDSTREAMOP_DEBUG
 #ifdef PDSTREAMOP_DEBUG
-static inline void print_stream(char *op, char *buf, int start, int length)
+static inline void print_stream(char *op, char *buf, PDInteger start, PDInteger length)
 {
     printf("[%s.%d..%d]: [[[\n", op, start, length);
-    for (int i = 0; i < length; i++) 
+    for (PDInteger i = 0; i < length; i++) 
         putchar(buf[start+i] < '0' || buf[start+i] > 'z' ? '.' : buf[start+i]);
     printf("\n]]]\n");
 }
@@ -131,7 +131,7 @@ static char *OPTYPE;
 // reading 
 //
 
-void PDTwinStreamGrowInputBuffer(void *_ts, PDScannerRef scanner, char **buf, int *size, int req)
+void PDTwinStreamGrowInputBuffer(void *_ts, PDScannerRef scanner, char **buf, PDInteger *size, PDInteger req)
 {
     // req is the bytes of data the requester desires, beyond their current size (*size); presuming the buffer is 
     // at the very edge, we want to pull in `req' bytes straight off, and *size thus increases to *size + req
@@ -146,11 +146,11 @@ void PDTwinStreamGrowInputBuffer(void *_ts, PDScannerRef scanner, char **buf, in
     PDAssert(*size > -1);
     
     if (req > 70000) {
-        printf("huge request: %db\n", req);
+        printf("huge request: %ldb\n", req);
     }
     
     PDTwinStreamRef ts = _ts;
-    size_t pos, capacity;
+    PDSize pos, capacity;
     long preloaded;
     
     if (NULL == (*buf)) {
@@ -194,7 +194,7 @@ void PDTwinStreamGrowInputBuffer(void *_ts, PDScannerRef scanner, char **buf, in
 #endif
     
     if (req > capacity) {
-        size_t growth = PIO_CHUNK_SIZE * (1 + (req - capacity) / PIO_CHUNK_SIZE);
+        PDSize growth = PIO_CHUNK_SIZE * (1 + (req - capacity) / PIO_CHUNK_SIZE);
         ts->size += growth;
         char *h = realloc(ts->heap, ts->size);
         if (h != ts->heap) {
@@ -206,7 +206,7 @@ void PDTwinStreamGrowInputBuffer(void *_ts, PDScannerRef scanner, char **buf, in
     
     // read into heap and update settings
     PDSLogg("reading input bytes %lld .. %lld\n", ts->offsi + ts->holds, ts->offsi + ts->holds + req);
-    size_t read = fread(&ts->heap[ts->holds], 1, req, ts->fi);
+    PDSize read = fread(&ts->heap[ts->holds], 1, req, ts->fi);
     PDSOp("grow");
     PDSLog(req, "grow heap\n");
     ts->holds += read;
@@ -215,10 +215,10 @@ void PDTwinStreamGrowInputBuffer(void *_ts, PDScannerRef scanner, char **buf, in
     PDTwinStreamAsserts(ts);
 }
 
-void PDTwinStreamGrowInputBufferReversed(void *_ts, PDScannerRef scanner, char **buf, int *size, int req)
+void PDTwinStreamGrowInputBufferReversed(void *_ts, PDScannerRef scanner, char **buf, PDInteger *size, PDInteger req)
 {
     PDTwinStreamRef ts = _ts;
-    size_t pos, capacity;
+    PDSize pos, capacity;
     
     /*
      when reading reversed, the ts->heap + ts->size - ts->holds defines the point from which content exists all the way
@@ -262,8 +262,8 @@ void PDTwinStreamGrowInputBufferReversed(void *_ts, PDScannerRef scanner, char *
     // grow heap if necessary
     if (req > capacity) {
         // this is a *very* expensive operation, which means we make absolutely sure it only happens once or twice
-        size_t growth = (req - capacity) > 6 * PIO_CHUNK_SIZE ? PIO_CHUNK_SIZE * (1 + (req - capacity) / PIO_CHUNK_SIZE) : 6 * PIO_CHUNK_SIZE;
-        size_t offset = ts->size - ts->holds;
+        PDSize growth = (req - capacity) > 6 * PIO_CHUNK_SIZE ? PIO_CHUNK_SIZE * (1 + (req - capacity) / PIO_CHUNK_SIZE) : 6 * PIO_CHUNK_SIZE;
+        PDSize offset = ts->size - ts->holds;
 
         ts->size += growth;
         char *h = malloc(ts->size);
@@ -291,17 +291,17 @@ void PDTwinStreamGrowInputBufferReversed(void *_ts, PDScannerRef scanner, char *
     // note: support for a buffer that does not end at the same point as the heap is unsupported at this point in time
 }
 
-void PDTwinStreamDisallowGrowth(void *ts, PDScannerRef scanner, char **buf, int *size, int req)
+void PDTwinStreamDisallowGrowth(void *ts, PDScannerRef scanner, char **buf, PDInteger *size, PDInteger req)
 {
-    ((PDTwinStreamRef)ts)->outgrown = true;
+    as(PDTwinStreamRef, ts)->outgrown = true;
 }
 
-void PDTwinStreamAdvance(PDTwinStreamRef ts, size_t bytes)
+void PDTwinStreamAdvance(PDTwinStreamRef ts, PDSize bytes)
 {
     PDTwinStreamSeek(ts, ts->offsi + bytes);
 }
 
-void PDTwinStreamSeek(PDTwinStreamRef ts, size_t position)
+void PDTwinStreamSeek(PDTwinStreamRef ts, PDSize position)
 {
     PDAssert(ts->method == PDTwinStreamRandomAccess);
     if (ts->offsi <= position && ts->offsi + ts->holds > position) {
@@ -315,7 +315,7 @@ void PDTwinStreamSeek(PDTwinStreamRef ts, size_t position)
     ts->offsi = position;
 }
 
-size_t PDTwinStreamFetchBranch(PDTwinStreamRef ts, size_t position, int bytes, char **buf)
+PDSize PDTwinStreamFetchBranch(PDTwinStreamRef ts, PDSize position, PDInteger bytes, char **buf)
 {
     // discard existing branch buffer, if any
     if (ts->sidebuf) 
@@ -324,8 +324,8 @@ size_t PDTwinStreamFetchBranch(PDTwinStreamRef ts, size_t position, int bytes, c
     // clear outgrown flag (this is only ever used for branches)
     ts->outgrown = false;
     
-    int alignment = (int)(position - ts->offsi);
-    int covered = (int)(ts->holds - alignment);
+    PDInteger alignment = (PDInteger)(position - ts->offsi);
+    PDInteger covered = (PDInteger)(ts->holds - alignment);
     
     // is position within reasonable distance from heap?
     if (alignment >= 0 && covered > 0 && covered + 4 * PIO_CHUNK_SIZE > bytes) {
@@ -339,30 +339,30 @@ size_t PDTwinStreamFetchBranch(PDTwinStreamRef ts, size_t position, int bytes, c
     }
     
     // we set up a dedicated buffer for this request
-    fpos_t cpos;
+    PDOffset cpos;
     fgetpos(ts->fi, &cpos);
     fseek(ts->fi, position, SEEK_SET);
     *buf = ts->sidebuf = malloc(bytes);
-    size_t read = fread(ts->sidebuf, 1, bytes, ts->fi);
+    PDSize read = fread(ts->sidebuf, 1, bytes, ts->fi);
     fseek(ts->fi, cpos, SEEK_SET);
     return read;
 }
 
 #ifdef PD_DEBUG_TWINSTREAM_ASSERT_OBJECTS
-void PDTwinStreamReassert(PDTwinStreamRef ts, fpos_t offset, char *expect, int len)
+void PDTwinStreamReassert(PDTwinStreamRef ts, PDOffset offset, char *expect, PDInteger len)
 {
     // we set up a dedicated buffer for this request
-    fpos_t cpos;
+    PDOffset cpos;
     fgetpos(ts->fo, &cpos);
     fseek(ts->fo, offset, SEEK_SET);
     char *tmpbuf = malloc(len + 1);
-    size_t read = fread(tmpbuf, 1, len, ts->fo);
+    PDSize read = fread(tmpbuf, 1, len, ts->fo);
     fseek(ts->fo, cpos, SEEK_SET);
 
     if (read != len || strncmp(tmpbuf, expect, len)) {
         tmpbuf[len] = 0;
         if (read != len) {
-            fprintf(stderr, "* twin stream assertion : expected \"%s\" at %lld but output truncates at %zd of %d bytes *\n", expect, offset, read, len);
+            fprintf(stderr, "* twin stream assertion : expected \"%s\" at %lld but output truncates at %zd of %ld bytes *\n", expect, offset, read, len);
         } else {
             fprintf(stderr, "* twin stream assertion : expected \"%s\" at %lld but got \"%s\" *\n", expect, offset, tmpbuf);
         }
@@ -385,24 +385,26 @@ void PDTwinStreamCutBranch(PDTwinStreamRef ts, char *buf)
 // committing
 //
 
-/*size_t PDTwinStreamScannerCommitBytes(PDTwinStreamRef ts)
+/*PDSize PDTwinStreamScannerCommitBytes(PDTwinStreamRef ts)
 {
     return ts->scanner->buf - ts->heap + ts->scanner->boffset - ts->cursor;
 }*/
 
 void PDTwinStreamAsserts(PDTwinStreamRef ts)
 {
-    fpos_t fp;
+    PDOffset fp;
     fgetpos(ts->fi, &fp);
     PDAssert(fp == ts->offsi + ts->holds);
     fgetpos(ts->fo, &fp);
     PDAssert(fp == ts->offso);
 
+    /*
     if (ts->scanner && ts->scanner->buf) {
         PDSLogg("[%p <%u> [%p <%d>] %u]\n", ts->heap, ts->cursor, ts->scanner->buf, ts->scanner->bsize, ts->holds);
         PDAssert(ts->scanner->buf == ts->heap + ts->cursor);
         PDAssert(ts->scanner->bsize + (ts->scanner->buf - ts->heap) <= ts->holds);
     }
+     */
 }
 
 void PDTwinStreamRealign(PDTwinStreamRef ts)
@@ -416,7 +418,7 @@ void PDTwinStreamRealign(PDTwinStreamRef ts)
         memmove(ts->heap, &ts->heap[ts->cursor], ts->holds);
     }
     
-    // we also realign the scanner
+    // we also realign the scanner, if present
     PDAssert(ts->scanner->buf - ts->heap >= ts->cursor);
     PDScannerAlign(ts->scanner, -ts->cursor);
     
@@ -425,9 +427,9 @@ void PDTwinStreamRealign(PDTwinStreamRef ts)
     PDTwinStreamAsserts(ts);
 }
 
-void PDTwinStreamOperatorDiscard(PDTwinStreamRef ts, char *buf, size_t bytes);
+void PDTwinStreamOperatorDiscard(PDTwinStreamRef ts, char *buf, PDSize bytes);
 
-void PDTwinStreamOperateOnContent(PDTwinStreamRef ts, long long bytes, void(*op)(PDTwinStreamRef, char *, size_t))
+void PDTwinStreamOperateOnContent(PDTwinStreamRef ts, PDOffset bytes, void(*op)(PDTwinStreamRef, char *, PDSize))
 {
     PDAssert(bytes >= 0);
     if (bytes <= 0) 
@@ -457,7 +459,7 @@ void PDTwinStreamOperateOnContent(PDTwinStreamRef ts, long long bytes, void(*op)
                 fseek(ts->fi, bytes, SEEK_CUR);
             } else {
                 // use the heap as a shuttle for remaining content
-                size_t req, read;
+                PDSize req, read;
                 while (bytes > 0) {
                     req = bytes < ts->size ? bytes : ts->size;
                     read = fread(ts->heap, 1, req, ts->fi);
@@ -489,38 +491,38 @@ void PDTwinStreamOperateOnContent(PDTwinStreamRef ts, long long bytes, void(*op)
     }
 }
 
-void PDTwinStreamOperatorPassthrough(PDTwinStreamRef ts, char *buf, size_t bytes)
+void PDTwinStreamOperatorPassthrough(PDTwinStreamRef ts, char *buf, PDSize bytes)
 {
     fwrite(buf, 1, bytes, ts->fo);
     ts->offso += bytes;
 }
 
-void PDTwinStreamOperatorDiscard(PDTwinStreamRef ts, char *buf, size_t bytes)
+void PDTwinStreamOperatorDiscard(PDTwinStreamRef ts, char *buf, PDSize bytes)
 {}
 
-void PDTWinStreamPassthroughContent(PDTwinStreamRef ts)//, size_t bytes)
+void PDTWinStreamPassthroughContent(PDTwinStreamRef ts)//, PDSize bytes)
 {
     PDSOp("pass");
-    long long bytes = ts->scanner->buf - ts->heap + ts->scanner->boffset - ts->cursor;
+    PDOffset bytes = ts->scanner->buf - ts->heap + ts->scanner->boffset - ts->cursor;
     PDTwinStreamOperateOnContent(ts, bytes, &PDTwinStreamOperatorPassthrough);
 }
 
-void PDTwinStreamDiscardContent(PDTwinStreamRef ts)//, size_t bytes)
+void PDTwinStreamDiscardContent(PDTwinStreamRef ts)//, PDSize bytes)
 {
     PDSOp("discard");
-    long long bytes = ts->scanner->buf - ts->heap + ts->scanner->boffset - ts->cursor;
+    PDOffset bytes = ts->scanner->buf - ts->heap + ts->scanner->boffset - ts->cursor;
     PDTwinStreamOperateOnContent(ts, bytes, &PDTwinStreamOperatorDiscard);
 }
 
-void PDTwinStreamPrune(PDTwinStreamRef ts, fpos_t mark)
+void PDTwinStreamPrune(PDTwinStreamRef ts, PDOffset mark)
 {
     PDSOp("prune");
-    long long bytes = mark - PDTwinStreamGetInputOffset(ts);
+    PDOffset bytes = mark - PDTwinStreamGetInputOffset(ts);
     if (bytes > 0) 
         PDTwinStreamOperateOnContent(ts, bytes, &PDTwinStreamOperatorPassthrough);
 }
 
-void PDTwinStreamInsertContent(PDTwinStreamRef ts, size_t bytes, const char *content)
+void PDTwinStreamInsertContent(PDTwinStreamRef ts, PDSize bytes, const char *content)
 {
     ts->offso += fwrite(content, 1, bytes, ts->fo);
 }

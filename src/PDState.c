@@ -40,7 +40,7 @@ PDStateRef PDStateCreate(char *name)
 
 void PDStateDefineSymbolOperator(PDStateRef state, const char *symbol, PDOperatorRef op)
 {
-    int syms = state->symbols;
+    PDInteger syms = state->symbols;
     state->symbols++;
     state->symbol = realloc(state->symbol, sizeof(char*) * state->symbols);
     state->symbolOp = realloc(state->symbolOp, sizeof(PDOperatorRef) * state->symbols);
@@ -70,7 +70,7 @@ void PDStateDefineOperatorsWithDefinition(PDStateRef state, const void **defs)
 {
     PDOperatorRef op;
     const char *c;
-    int i = 0;
+    PDInteger i = 0;
     while (defs[i]) {
         c = defs[i++];
         
@@ -99,13 +99,13 @@ void PDStateDefineOperatorsWithDefinition(PDStateRef state, const void **defs)
 
 void PDStateCompile(PDStateRef state)
 {
-    int i, j;
+    PDInteger i, j;
     if (state->symindex) return; // already compiled
     
-    int symbols = state->symbols;
+    PDInteger symbols = state->symbols;
     short *hashes = calloc(symbols, sizeof(short));
     
-    int slen;
+    PDInteger slen;
     char *sym;
     short hash;
     for (i = 0; i < symbols; i++) {
@@ -118,24 +118,24 @@ void PDStateCompile(PDStateRef state)
     }
     
     // we want to define the symindex as 2^n >= symbols with minimal collision and minimal n
-    int n = 2;
-    int m;
+    PDInteger n = 2;
+    PDInteger m;
     while (n < symbols) n <<= 1;    // weak to (very) big symbol tables
     
     short coll = 0;
-    int *index;
+    PDInteger *index;
     do {
         m = n - 1;
         
         // n = e.g. 64 = 1000000
         // m = e.g. 63 = 0111111
 
-        index = calloc(n, sizeof(int));
+        index = calloc(n, sizeof(PDInteger));
         for (i = 0; i < symbols; i++) {
             hash = hashes[i] & m;
             if (index[hash]) {
                 coll++;
-                while (index[hash] && hash < n) hash++;
+                while (hash < n && index[hash]) hash++;
                 if (hash == n) {
                     coll = n;
                     hash = 0;
@@ -169,7 +169,7 @@ PDStateRef PDStateRetain(PDStateRef state)
 
 void PDStateRelease(PDStateRef state)
 {
-    int i;
+    PDInteger i;
     state->users--;
     if (state->users == 0) {
         if (state->symbols) {

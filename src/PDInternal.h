@@ -48,7 +48,7 @@
 //extern PDArrayRef PDArrayCreateWithChunk(PDChunkRef chunk);
 //extern PDDictionaryRef PDDictionaryCreate();
 //extern PDDictionaryRef PDDictionaryCreateWithChunk(PDChunkRef chunk);
-extern PDObjectRef PDObjectCreate(int obid, int genid);
+extern PDObjectRef PDObjectCreate(PDInteger obid, PDInteger genid);
 //#define PDStringCreateWithCapacity(capacity) malloc(capacity)
 //#define PDStringDestroy(str) free(str)
 
@@ -73,20 +73,20 @@ extern void PDParserDestroy(PDParserRef parser);
 //
 
 struct PDObject {
-    int                 users;          // retain count
-    int                 obid;           // object id
-    int                 genid;          // generation id
+    PDInteger           users;          // retain count
+    PDInteger           obid;           // object id
+    PDInteger           genid;          // generation id
     PDObjectType        type;           // data structure of def below
     void               *def;            // the object content
     PDBool              hasStream;      // if set, object has a stream
-    int                 streamLen;      // length of stream (if one exists)
+    PDInteger           streamLen;      // length of stream (if one exists)
     PDBool              skipStream;     // if set, even if an object has a stream, the stream (including keywords) is skipped when written to output
     PDBool              skipObject;     // if set, entire object is discarded
     PDStackRef          mutations;      // key/value stack of alterations to do when writing the object
     const char         *ovrStream;      // stream override
-    int                 ovrStreamLen;   // length of ^
+    PDInteger           ovrStreamLen;   // length of ^
     char               *ovrDef;         // definition override
-    int                 ovrDefLen;      // take a wild guess
+    PDInteger           ovrDefLen;      // take a wild guess
     PDBool              encryptedDoc;   // if set, the object is contained in an encrypted PDF; if false, PDObjectSetEncryptedStreamFlag is NOP
 };
 
@@ -105,7 +105,7 @@ struct PDEnv {
     PDStackRef    buildStack;
     PDStackRef    varStack;
     PDOperatorRef op;
-    int           entryOffset;
+    PDInteger     entryOffset;
 };
 
 //
@@ -113,7 +113,7 @@ struct PDEnv {
 //
 
 struct PDBTree {
-    long key;
+    PDInteger key;
     void *value;
     PDBTreeRef branch[2];
 };
@@ -127,11 +127,11 @@ struct PDOperator {
     union {
         PDStateRef   pushedState; // for "PushNewEnv", this is the environment being pushed
         char        *key;         // the argument to the operator, for PopVariable, Push/StoveComplex, PullBuildVariable
-        const char **identifier;  // identifier (constant string pointer pointer)
+        PDID         identifier;  // identifier (constant string pointer pointer)
     };
     
     PDOperatorRef    next;        // the next operator, if any
-    int              users;       // retain count, for this operator
+    PDInteger        users;       // retain count, for this operator
 };
 
 //
@@ -146,9 +146,9 @@ struct PDX {
 typedef struct PDXTable *PDXTableRef;
 struct PDXTable {
     PDXRef fields;
-    size_t cap;     // capacity
-    size_t count;   // # of objects
-    size_t pos;     // byte-wise position in the PDF where the xref (and subsequent trailer) begins; reaching this point means the xref cease to apply
+    PDSize cap;     // capacity
+    PDSize count;   // # of objects
+    PDSize pos;     // byte-wise position in the PDF where the xref (and subsequent trailer) begins; reaching this point means the xref cease to apply
 };
 
 typedef enum {
@@ -180,8 +180,10 @@ struct PDParser {
     size_t size;
     PDObjectRef trailer;
     PDObjectRef root;
+    PDObjectRef encrypt;
     PDReferenceRef rootRef;
     PDReferenceRef infoRef;
+    PDReferenceRef encryptRef;
     
     // miscellaneous
     PDBool success;
@@ -196,8 +198,8 @@ typedef struct PDScannerSymbol *PDScannerSymbolRef;
 struct PDScannerSymbol {
     char         *sstart;       // symbol start
     short         shash;        // symbol hash (not normalized)
-    int           slen;         // symbol length
-    int           stype;        // symbol type
+    PDInteger     slen;         // symbol length
+    PDInteger     stype;        // symbol type
 };
 
 struct PDScanner {
@@ -209,10 +211,9 @@ struct PDScanner {
     PDStackRef garbageStack;    // temporary allocations; only used in operator function when a symbol is regenerated from a malloc()'d string
     
     char         *buf;          // buffer
-    int           bresoffset;   // previously popped result's offset relative to buf
-    int           bsize;        // buffer capacity
-    int           boffset;      // buffer offset (we are at position &buf[boffset]
-    //int           btrail;       // buffer trail (we no longer need data &buf[0..btrail]
+    PDInteger     bresoffset;   // previously popped result's offset relative to buf
+    PDInteger     bsize;        // buffer capacity
+    PDInteger     boffset;      // buffer offset (we are at position &buf[boffset]
     PDScannerSymbolRef sym;     // the latest symbol
     PDScannerPopFunc popFunc;   // the symbol pop function
 };
@@ -241,16 +242,16 @@ struct PDState {
     PDBool         iterates;    // if true, scanner will stop while in this state, after reading one entry
     char          *name;        // name of the state
     char         **symbol;      // symbol strings
-    int            symbols;     // # of symbols in total
+    PDInteger      symbols;     // # of symbols in total
     
-    int           *symindex;    // symbol indices (for hash)
+    PDInteger     *symindex;    // symbol indices (for hash)
     short          symindices;  // # of index slots in total (not = `symbols', often bigger)
     
     PDOperatorRef *symbolOp;    // symbol operators
     PDOperatorRef  numberOp;    // number operator
     PDOperatorRef  delimiterOp; // delimiter operator
     PDOperatorRef  fallbackOp;  // fallback operator
-    int            users;       // retain count, for this state
+    PDInteger      users;       // retain count, for this state
 };
 
 //
@@ -258,10 +259,10 @@ struct PDState {
 //
 
 struct PDStaticHash {
-    int users;
-    int entries;
-    int mask;
-    int shift;
+    PDInteger users;
+    PDInteger entries;
+    PDInteger mask;
+    PDInteger shift;
     PDBool leaveKeys;     // if set, the keys are not deallocated on destruction; default = false (i.e. dealloc keys)
     PDBool leaveValues;   // -'-
     void **keys;
@@ -274,10 +275,10 @@ struct PDStaticHash {
 //
 
 struct PDTask {
-    int             users;
+    PDInteger       users;
     PDBool          isFilter;
     PDPropertyType  propertyType;
-    int             value;
+    PDInteger       value;
     PDTaskFunc      func;
     PDTaskRef       child;
     PDDeallocator   deallocator;
@@ -318,12 +319,11 @@ struct PDPipe {
     char           *po;
     FILE           *fi;
     FILE           *fo;
-    int             filterCount;
+    PDInteger       filterCount;
     PDTwinStreamRef stream;
     PDParserRef     parser;
     PDBTreeRef      filter;
-    PDTaskRef       onPrepareTasks;
-    //PDTaskRef       onEndOfObjectsTask;
+    PDStackRef      unfilteredTasks;
 };
 
 //
@@ -331,7 +331,8 @@ struct PDPipe {
 //
 
 struct PDReference {
-    int obid, genid;
+    PDInteger obid;
+    PDInteger genid;
 };
 
 
@@ -344,8 +345,8 @@ struct PDReference {
 typedef struct PDStringConv *PDStringConvRef;
 struct PDStringConv {
     char *allocBuf;
-    int offs;
-    int left;
+    PDInteger offs;
+    PDInteger left;
 };
 
 ////////////////////////////////////////

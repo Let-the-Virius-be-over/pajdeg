@@ -28,7 +28,7 @@
 #include "PDState.h"
 #include "PDPortableDocumentFormatState.h"
 
-static int PDStackPreserveUsers = 0;
+static PDInteger PDStackPreserveUsers = 0;
 PDDeallocator PDStackDealloc = free;
 void PDStackPreserve(void *ptr)
 {}
@@ -41,7 +41,7 @@ void PDStackSetGlobalPreserveFlag(PDBool preserve)
         PDStackDealloc = preserve ? &PDStackPreserve : &free;
 }
 
-void PDStackPushIdentifier(PDStackRef *stack, const char **identifier)
+void PDStackPushIdentifier(PDStackRef *stack, PDID identifier)
 {
     PDStackRef s = malloc(sizeof(struct PDStack));
     s->prev = *stack;
@@ -103,13 +103,13 @@ void PDStackPushEnv(PDStackRef *stack, PDEnvRef env)
     *stack = s;
 }
 
-char **PDStackPopIdentifier(PDStackRef *stack)
+PDID PDStackPopIdentifier(PDStackRef *stack)
 {
     if (*stack == NULL) return NULL;
     PDStackRef popped = *stack;
     PDAssert(popped->type == PDSTACK_ID);
     *stack = popped->prev;
-    char **identifier = popped->info;
+    PDID identifier = popped->info;
     (*PDStackDealloc)(popped);
     return identifier;
 }
@@ -133,7 +133,7 @@ void PDStackAssertExpectedKey(PDStackRef *stack, const char *key)
     (*PDStackDealloc)(popped);
 }
 
-void PDStackAssertExpectedInt(PDStackRef *stack, int i)
+void PDStackAssertExpectedInt(PDStackRef *stack, PDInteger i)
 {
     PDAssert(*stack != NULL);
     
@@ -148,37 +148,37 @@ void PDStackAssertExpectedInt(PDStackRef *stack, int i)
     (*PDStackDealloc)(popped);
 }
 
-size_t PDStackPopSizeT(PDStackRef *stack)
+PDSize PDStackPopSize(PDStackRef *stack)
 {
     if (*stack == NULL) return 0;
     PDStackRef popped = *stack;
     PDAssert(popped->type == PDSTACK_STRING);
     *stack = popped->prev;
     char *key = popped->info;
-    size_t st = atol(key);
+    PDSize st = atol(key);
     (*PDStackDealloc)(key);
     (*PDStackDealloc)(popped);
     return st;
 }
 
-int PDStackPopInt(PDStackRef *stack)
+PDInteger PDStackPopInt(PDStackRef *stack)
 {
     if (*stack == NULL) return 0;
     PDStackRef popped = *stack;
     PDAssert(popped->type == PDSTACK_STRING);
     *stack = popped->prev;
     char *key = popped->info;
-    int st = atoi(key);
+    PDInteger st = atol(key);
     (*PDStackDealloc)(key);
     (*PDStackDealloc)(popped);
     return st;
 }
 
-int PDStackPeekInt(PDStackRef popped)
+PDInteger PDStackPeekInt(PDStackRef popped)
 {
     if (popped == NULL) return 0;
     PDAssert(popped->type == PDSTACK_STRING);
-    return atoi(popped->info);
+    return PDIntegerFromString(popped->info);
 }
 
 char *PDStackPopKey(PDStackRef *stack)
@@ -238,34 +238,46 @@ void PDStackPopInto(PDStackRef *dest, PDStackRef *source)
     *dest = popped;
 }
 
+static inline void PDStackFreeInfo(PDStackRef stack)
+{
+    switch (stack->type) {
+        case PDSTACK_STRING:
+        case PDSTACK_FREEABL:
+            free(stack->info);
+            break;
+        case PDSTACK_STACK:
+            PDStackDestroy(stack->info);
+            break;
+        case PDSTACK_ENV:
+            PDEnvDestroy(stack->info);
+            break;
+    }
+}
+
+void PDStackReplaceInfoObject(PDStackRef stack, char type, void *info)
+{
+    PDStackFreeInfo(stack);
+    stack->type = type;
+    stack->info = info;
+}
+
 void PDStackDestroy(PDStackRef stack)
 {
     PDStackRef p;
     while (stack) {
         //printf("-stack %p\n", stack);
         p = stack->prev;
-        switch (stack->type) {
-            case PDSTACK_STRING:
-            case PDSTACK_FREEABL:
-                free(stack->info);
-                break;
-            case PDSTACK_STACK:
-                PDStackDestroy(stack->info);
-                break;
-            case PDSTACK_ENV:
-                PDEnvDestroy(stack->info);
-                break;
-        }
+        PDStackFreeInfo(stack);
         free(stack);
         stack = p;
     }
 }
 
 static char *sind = NULL;
-static int cind = 0;
-void PDStackPrint_(PDStackRef stack, int indent)
+static PDInteger cind = 0;
+void PDStackPrint_(PDStackRef stack, PDInteger indent)
 {
-    int res = cind;
+    PDInteger res = cind;
     sind[cind] = ' ';
     sind[indent] = 0;
     printf("%sstack<%p> {\n", sind, stack);

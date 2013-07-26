@@ -30,7 +30,7 @@
 #include "PDStaticHash.h"
 #include "PDPDFPrivate.h"
 
-PDStaticHashRef PDStaticHashCreate(int entries, void **keys, void **values)
+PDStaticHashRef PDStaticHashCreate(PDInteger entries, void **keys, void **values)
 {
     PDStaticHashRef sh = malloc(sizeof(struct PDStaticHash));
 #define converterTableHash(key) static_hash_idx(converterTableMask, converterTableShift, key)
@@ -39,15 +39,16 @@ PDStaticHashRef PDStaticHashCreate(int entries, void **keys, void **values)
     sh->entries = entries;
     sh->keys = keys;
     sh->values = values;
-    sh->leaveKeys = sh->leaveValues = 0;
+    sh->leaveKeys = 0;
+    sh->leaveValues = keys == values;
 
-    int i, hash;
-    int converterTableMask = 0;
-    int converterTableShift = 0;
-    int converterTableSize = 4;
+    PDInteger i, hash;
+    PDInteger converterTableMask = 0;
+    PDInteger converterTableShift = 0;
+    PDInteger converterTableSize = 4;
     
     // determine no-collision table size, if necessary (everything is constant throughout execution, so we only do this once, no matter what)
-    int maxe = entries << 7;
+    PDInteger maxe = entries << 7;
     if (maxe < 128) maxe = 128;
     char *coll = calloc(1, maxe);
     char k = 0;

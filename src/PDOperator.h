@@ -134,7 +134,7 @@ extern void PDOperatorCompileStates(PDOperatorRef op);
  */
 #define PDSymbolDetermineNumeric(numeric, real, c, sym, len) \
     do {                                          \
-        int i;                                    \
+        PDInteger i;                              \
         for (i = len-1; numeric && i >= 0; i--) { \
             c = sym[i];                           \
             PDSymbolUpdateNumeric(numeric, real, c, i==0); \

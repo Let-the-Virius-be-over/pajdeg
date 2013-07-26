@@ -70,7 +70,7 @@ extern void *PDBTreeFetch(PDBTreeRef root, long key);
  Dump all keys (not values) into preallocated array. 
  @return Number of keys added.
  */
-extern int PDBTreePopulateKeys(PDBTreeRef root, void **dest);
+extern PDInteger PDBTreePopulateKeys(PDBTreeRef root, void **dest);
 
 /**
  Destroy a tree, without touching value.

@@ -65,7 +65,7 @@ extern PDBool PDParserIterate(PDParserRef parser);
  
  @param parser The parser.
  
- @note Subsequent calls to PDParserConstructObject() if the parser has not iterated does the same as retaining the previously constructed object.
+ @note Subsequent calls to PDParserConstructObject() if the parser has not iterated does nothing.
  */
 extern PDObjectRef PDParserConstructObject(PDParserRef parser);
 
@@ -105,7 +105,7 @@ extern PDBool PDParserGetEncryptionState(PDParserRef parser);
  @param bufsize The size of the buffer to use, and the amount of bytes to read (max) from the input file. The smaller, the faster, but if the requested object exceeds the size, NULL is returned. 
  @param master If true, the master PDX ref is referenced, otherwise the current PDX ref is used. Generally speaking, you always want to use the master (non-master is used internally to determine the deprecated length of a stream for a multi-part PDF).
  */
-extern PDStackRef PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, int obid, int bufsize, PDBool master);
+extern PDStackRef PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDInteger obid, PDInteger bufsize, PDBool master);
 
 /**
  Write remaining objects, XREF table, trailer, and end fluff to output PDF.
@@ -125,7 +125,7 @@ extern void PDParserDone(PDParserRef parser);
  @see PDPipeGetRootObject
  @see PDParserLocateAndCreateDefinitionForObject
  */
-extern PDBool PDParserIsObjectStillMutable(PDParserRef parser, int obid);
+extern PDBool PDParserIsObjectStillMutable(PDParserRef parser, PDInteger obid);
 
 /**
  Get an immutable reference to the root object for the input PDF.
@@ -134,6 +134,13 @@ extern PDBool PDParserIsObjectStillMutable(PDParserRef parser, int obid);
  */
 // get the root object
 extern PDObjectRef PDParserGetRootObject(PDParserRef parser);
+
+/**
+ Get the total number of objects in the input stream.
+ 
+ @param parser The parser.
+ */
+extern PDInteger PDParserGetTotalObjectCount(PDParserRef parser);
 
 /*
  * [1]: an intriguing problem arises with PDF's that have data appended to them, where multiple instances of the same object with the same generation ID exist, which have streams that have

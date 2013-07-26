@@ -53,6 +53,8 @@
 // is broken or not (XREF table tends to break "first").
 //#define DEBUG_PARSER_CHECK_XREFS
 
+#define DEBUG_SCANNER_SYMBOLS
+
 /**
  @defgroup CORE_GRP Core
  @brief Internal type definitions.
@@ -63,12 +65,22 @@
     /**
      PDF integer type in Pajdeg.
      */
-    typedef long int             PDInteger;
+    typedef long                 PDInteger;
+
+    /**
+     C atoXX function matching PDInteger size
+     */
+    #define PDIntegerFromString atol
 
     /**
      PDF real type in Pajdeg.
      */
     typedef float                PDReal;
+
+    /**
+     C atoXX function matching PDReal
+     */
+    #define PDRealFromString atof
 
     /**
      PDF object identifier type in Pajdeg. Together with a generation number, an object ID uniquely identifies an object in a PDF.
@@ -90,9 +102,24 @@
     typedef unsigned long long   PDSize;
 
     /**
+     C atoXX function matching PDSize
+     */
+    #define PDSizeFromString(s) atoll(s)
+
+    /**
      Offset type (signed).
      */
     typedef long long            PDOffset;
+
+    /**
+     C atoXX function matching PDOffset
+     */
+    #define PDOffsetFromString atoll
+
+    /**
+     Identifier type.
+     */
+    typedef const char         **PDID;
 
 /** @} */
 
@@ -291,6 +318,7 @@
             PDTaskFailure   = -1,       ///< the entire pipe operation is terminated and the destination file is left unfinished
             PDTaskDone      =  0,       ///< the task ended as normal
             PDTaskSkipRest  =  1,       ///< the task ended, and requires that remaining tasks in its pipeline are skipped
+            PDTaskUnload    =  2,       ///< the task ended as normal; additionally, it should never be called again
         } PDTaskResult;
 
         /**
@@ -460,7 +488,7 @@
          
          The scanner's buffer function requires that the buffer is intact in the sense that the content in the range 0..*size (on call) remains intact and in the same position relative to *buf; req may be set if the scanner has an idea of how much data it needs, but is most often 0.
          */
-        typedef void(*PDScannerBufFunc)(void *info, PDScannerRef scanner, char **buf, int *size, int req);
+        typedef void(*PDScannerBufFunc)(void *info, PDScannerRef scanner, char **buf, PDInteger *size, PDInteger req);
 
         /**
          Pop function signature. 

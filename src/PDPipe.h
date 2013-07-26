@@ -127,7 +127,7 @@ extern PDObjectRef PDPipeGetRootObject(PDPipeRef pipe);
  
  @note After executing a pipe, it can in theory be reused, but this is currently experimental. Recreating a pipe is recommended for multi-pass operations.
  */
-extern int PDPipeExecute(PDPipeRef pipe);
+extern PDInteger PDPipeExecute(PDPipeRef pipe);
 
 /**
  Destroy a pipe.

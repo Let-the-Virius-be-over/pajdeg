@@ -45,21 +45,21 @@
     }
 
 #define PDStringFromObRef(ref, reflen) \
-    int obid = PDStackPopInt(s); \
-    int genid = PDStackPopInt(s); \
-    int sz;\
+    PDInteger obid = PDStackPopInt(s); \
+    PDInteger genid = PDStackPopInt(s); \
+    PDInteger sz;\
     \
     char req = 5 + reflen + 2; \
     if (obid > 999) req += 3; \
     if (genid > 99) req += 5; \
     PDStringGrow(req); \
-    putfmt("%d %d " ref, obid, genid)
+    putfmt("%ld %ld " ref, obid, genid)
 
 // get primitive if primtiive, otherwise delegate to arbitrary func
 #define PDStringFromAnything() \
     if ((*s)->type == PDSTACK_STRING) {\
         char *str = PDStackPopKey(s);\
-        int len = strlen(str);\
+        PDInteger len = strlen(str);\
         PDStringGrow(len);\
         putstr(str, len);\
         PDDeallocateViaStackDealloc(str); \

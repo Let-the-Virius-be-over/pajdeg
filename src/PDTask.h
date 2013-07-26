@@ -47,7 +47,7 @@ extern PDTaskRef PDTaskCreateFilter(PDPropertyType propertyType);
 /**
  Create a filtering task with the given argument.
  */
-extern PDTaskRef PDTaskCreateFilterWithValue(PDPropertyType propertyType, int value);
+extern PDTaskRef PDTaskCreateFilterWithValue(PDPropertyType propertyType, PDInteger value);
 
 /**
  Create a mutator task. Mutator tasks receive objects from the pipe if their parent tasks pass them through. A mutator task can be a filter, if it uses PDTaskSkipRest to abort for objects that should be skipped.
@@ -94,7 +94,7 @@ extern PDTaskRef PDTaskCreateMutatorForPropertyType(PDPropertyType propertyType,
 /**
  Create a mutator for the given property type with the given value.
  */
-extern PDTaskRef PDTaskCreateMutatorForPropertyTypeWithValue(PDPropertyType propertyType, int value, PDTaskFunc mutatorFunc);
+extern PDTaskRef PDTaskCreateMutatorForPropertyTypeWithValue(PDPropertyType propertyType, PDInteger value, PDTaskFunc mutatorFunc);
 
 #endif
 
