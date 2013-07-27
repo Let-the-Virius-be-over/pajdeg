@@ -29,6 +29,7 @@
 #include "PDInternal.h"
 #include "PDEnv.h"
 #include "PDStack.h"
+#include "PDStreamFilter.h"
 #include "PDPortableDocumentFormatState.h" // <-- not ideal
 
 static PDInteger PDScannerScanAttemptCap = -1;
@@ -383,6 +384,10 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
                 scanner->env = PDStackPopEnv(&scanner->envStack);
                 break;
                 
+            case PDOperatorPushEmptyString:
+                PDStackPushKey(&scanner->resultStack, strdup(""));
+                break;
+                
             case PDOperatorPushResult:      // put symbol on results stack
                 /// @todo CLANG doesn't like complex logic that prevents a condition from occurring due to a specification; however, this may very well happen for seriously broken (or odd) PDFs and should be plugged
                 PDStackPushKey(&scanner->resultStack, strndup(sym->sstart, sym->slen));
@@ -470,7 +475,7 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
             case PDOperatorReadToDelimiter:
                 PDScannerReadUntilDelimiter(scanner, false);
                 break;
-
+                
             case PDOperatorNOP:
                 break;
                 
@@ -624,7 +629,30 @@ void PDScannerAssertComplex(PDScannerRef scanner, const char *identifier)
     }
 }
 
-PDInteger PDScannerReadStream(PDScannerRef scanner, char *dest, PDInteger bytes)
+
+
+
+
+
+
+PDBool PDScannerAttachFilter(PDScannerRef scanner, PDStreamFilterRef filter)
+{
+    if (scanner->filter) {
+        PDStreamFilterDestroy(scanner->filter);
+    }
+    scanner->filter = filter;
+    return 0 != (*filter->init)(filter);
+}
+
+void PDScannerDetachFilter(PDScannerRef scanner)
+{
+    if (scanner->filter) {
+        PDStreamFilterDestroy(scanner->filter);
+    }
+    scanner->filter = NULL;
+}
+
+PDInteger PDScannerReadStream(PDScannerRef scanner, PDInteger bytes, char *dest, PDInteger capacity)
 {
     char *buf;
     PDInteger bsize, i;
@@ -652,12 +680,36 @@ PDInteger PDScannerReadStream(PDScannerRef scanner, char *dest, PDInteger bytes)
     }
     if (bsize - i < bytes) 
         bytes = bsize - i;
-
-    memcpy(dest, &buf[i], bytes);
     
     scanner->boffset = i + bytes;
     
+    if (scanner->filter) {
+        PDStreamFilterRef filter = scanner->filter;
+        filter->bufIn = (unsigned char *)&buf[i]; // is this okay???
+        filter->bufInAvailable = bytes;
+        filter->bufOut = (unsigned char *)dest;
+        filter->bufOutCapacity = capacity;
+        
+        // we set bytes to the results of the filter process call, as that gives us the # of bytes stored (which is what we return too)
+        bytes = (*filter->process)(filter);
+    } else {
+        memcpy(dest, &buf[i], bytes);
+    }
+    
     return bytes;
+}
+
+PDInteger PDScannerReadStreamNext(PDScannerRef scanner, char *dest, PDInteger capacity)
+{
+    if (scanner->filter) {
+        PDStreamFilterRef filter = scanner->filter;
+        filter->bufOut = (unsigned char *)dest;
+        filter->bufOutCapacity = capacity;
+        return (*filter->proceed)(filter);
+    }
+    
+    PDWarn("Call to PDScannerReadStreamNext despite no filter attached.\n");
+    return 0;
 }
 
 void PDScannerPrintStateTrace(PDScannerRef scanner)

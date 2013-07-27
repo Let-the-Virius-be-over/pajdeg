@@ -98,6 +98,10 @@ extern PDStateRef pdfRoot;
 extern PDStateRef xrefSeeker;
 
 /**
+ Request 
+ */
+
+/**
  Convert stack representation of complex object into PDF string.
  
  @warning Destroys target stack unless preserve flag is set.

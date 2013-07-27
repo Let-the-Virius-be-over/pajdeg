@@ -83,16 +83,6 @@ extern PDBool PDScannerPopString(PDScannerRef scanner, char **value);
 extern PDBool PDScannerPopStack(PDScannerRef scanner, PDStackRef *value);
 
 /**
- Skip over a chunk of data internally.
- 
- @note The stream is not iterated, only the scanner's internal buffer offset is.
- 
- @param scanner The scanner.
- @param bytes The amount of bytes to skip.
- */
-extern void PDScannerSkip(PDScannerRef scanner, PDSize bytes);
-
-/**
  Require that the next result is a string, and that it is equal to the given value, or throw assertion.
 
  @param scanner The scanner.
@@ -116,19 +106,65 @@ extern void PDScannerAssertStackType(PDScannerRef scanner);
  */
 extern void PDScannerAssertComplex(PDScannerRef scanner, const char *identifier);
 
-// 
+/// @name Raw streams
+
 /**
- Read parts or entire stream at current position.
+ Skip over a chunk of data internally, usually a PDF stream.
+ 
+ @note The stream is not iterated, only the scanner's internal buffer offset is.
+ 
+ @param scanner The scanner.
+ @param bytes The amount of bytes to skip.
+ */
+extern void PDScannerSkip(PDScannerRef scanner, PDSize bytes);
+
+/**
+ Attach a stream filter to the scanner. 
+ 
+ Stream filters are used to e.g. compress/decompress or encrypt/decrypt binary content.
+ 
+ @param scanner The scanner.
+ @param filter The filter.
+ */
+extern PDBool PDScannerAttachFilter(PDScannerRef scanner, PDStreamFilterRef filter);
+
+/**
+ Detach attached stream filter from the scanner.
+ 
+ @param scanner The scanner.
+ */
+extern void PDScannerDetachFilter(PDScannerRef scanner);
+
+/**
+ Read parts or entire stream at current position via attached filter.
  
  Iterates scanner and stream (contrary to PDScannerSkip above, which only iterates scanner).
  
- @note dest must be capable of holding `bytes' bytes
+ @note If a decompression filter is attached, not all data may be read at once due to capacity limitations, and may require calls to PDScannerReadStreamNext().
+ 
+ @see PDScannerAttachFilter
+ @see PDScannerReadStreamNext
  
  @param scanner The scanner.
- @param dest The destination buffer. Must be allocated, and be able to hold at least `bytes` bytes.
- @param bytes The number of bytes to read.
+ @param bytes The number of raw bytes to read.
+ @param dest The destination buffer.
+ @param capacity The capacity of the destination buffer.
+ @return The number of bytes stored in dest. If this value is equal to capacity, there may be more data available via PDScannerReadStreamNext.
  */
-extern PDInteger PDScannerReadStream(PDScannerRef scanner, char *dest, PDInteger bytes);
+extern PDInteger PDScannerReadStream(PDScannerRef scanner, PDInteger bytes, char *dest, PDInteger capacity);
+
+/**
+ Continue reading stream data via attached filter.
+ 
+ @see PDScannerAttachFilter
+ @see PDScannerReadStream
+ 
+ @param scanner The scanner.
+ @param dest The destination buffer.
+ @param capacity The capacity of the destination buffer.
+ @return The number of bytes stored in dest.
+ */
+extern PDInteger PDScannerReadStreamNext(PDScannerRef scanner, char *dest, PDInteger capacity);
 
 /// @name Adjusting scanner / source
 

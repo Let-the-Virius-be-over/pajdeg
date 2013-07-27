@@ -30,6 +30,9 @@
 #ifndef INCLUDED_PDDefines_h
 #define INCLUDED_PDDefines_h
 
+// Support zlib.
+#define PD_SUPPORT_ZLIB
+
 // The DEBUG directive turns on all assertions and warnings. It is recommended when writing or testing but not for production code.
 // #define DEBUG
 
@@ -380,6 +383,27 @@
     /** @} */
 
     /**
+     @defgroup FILTER_GRP Stream filters
+     
+     @{
+     */
+
+    /**
+     @file PDStreamFilter.h
+     */
+
+    /**
+     @file PDStreamFilterFlateDecode.h
+     */
+
+    /**
+     The stream filter type.
+     */
+    typedef struct PDStreamFilter *PDStreamFilterRef;
+
+    /** @} */
+
+    /**
      @defgroup SCANNER_GRP Scanners
      
      @{
@@ -452,24 +476,25 @@
          @see PDPortableDocumentFormatState.h
          */
         typedef enum {
-            PDOperatorPushState = 1,    ///< pushes another state; e.g. "<" pushes dict_hex, which on seeing "<" pushes "dict"
-            PDOperatorPushWeakState,    ///< identical to above, but does not 'retain' the target state, to prevent retain cycles (e.g. arb -> array -> arb -> ...)
-            PDOperatorPopState,         ///< pops back to previous state
-            PDOperatorPopVariable,      ///< pops entry off of results stack and stores as an attribute of a future complex result
-            PDOperatorPopValue,         ///< pops entry off of results stack and stores in variable stack, without including a variable name
-            PDOperatorPushResult,       ///< pushes current symbol onto results stack
-            PDOperatorAppendResult,     ///< appends current symbol to last result on stack
-            PDOperatorPushContent,      ///< pushes everything from the point where the state was entered to current offset to results
-            PDOperatorPushComplex,      ///< pushes object of type description `key' with variables (if any) as attributes onto results stack
-            PDOperatorStoveComplex,     ///< pushes a complex onto build stack rather than results stack (for popping as a chunk of objects later)
-            PDOperatorPullBuildVariable,///< takes build stack as is, and stores it as if it was a popped variable
-            PDOperatorPushbackSymbol,   ///< pushes the scanned symbol back onto the symbols stack, so that it is re-read the next time a symbol is popped from the scanner
-            PDOperatorPushbackValue,    ///< pushes the top value on the stack onto the symbols stack as if it were never read
-            PDOperatorPopLine,          ///< read to end of line
-            PDOperatorReadToDelimiter,  ///< read over symbols and whitespace until a delimiter is encountered
-            PDOperatorNOP,              ///< do nothing
+            PDOperatorPushState = 1,    ///< Pushes another state; e.g. "<" pushes dict_hex, which on seeing "<" pushes "dict"
+            PDOperatorPushWeakState,    ///< Identical to above, but does not 'retain' the target state, to prevent retain cycles (e.g. arb -> array -> arb -> ...)
+            PDOperatorPopState,         ///< Pops back to previous state
+            PDOperatorPopVariable,      ///< Pops entry off of results stack and stores as an attribute of a future complex result
+            PDOperatorPopValue,         ///< Pops entry off of results stack and stores in variable stack, without including a variable name
+            PDOperatorPushEmptyString,  ///< Pushes an empty string onto the results stack
+            PDOperatorPushResult,       ///< Pushes current symbol onto results stack
+            PDOperatorAppendResult,     ///< Appends current symbol to last result on stack
+            PDOperatorPushContent,      ///< Pushes everything from the point where the state was entered to current offset to results
+            PDOperatorPushComplex,      ///< Pushes object of type description "key" with variables (if any) as attributes onto results stack
+            PDOperatorStoveComplex,     ///< Pushes a complex onto build stack rather than results stack (for popping as a chunk of objects later)
+            PDOperatorPullBuildVariable,///< Takes build stack as is, and stores it as if it was a popped variable
+            PDOperatorPushbackSymbol,   ///< Pushes the scanned symbol back onto the symbols stack, so that it is re-read the next time a symbol is popped from the scanner
+            PDOperatorPushbackValue,    ///< Pushes the top value on the stack onto the symbols stack as if it were never read
+            PDOperatorPopLine,          ///< Read to end of line
+            PDOperatorReadToDelimiter,  ///< Read over symbols and whitespace until a delimiter is encountered
+            PDOperatorNOP,              ///< Do nothing
             // debugging
-            PDOperatorBreak,            ///< break (presuming breakpoint is properly placed)
+            PDOperatorBreak,            ///< Break (presuming breakpoint is properly placed)
         } PDOperatorType;
 
         /** @} */

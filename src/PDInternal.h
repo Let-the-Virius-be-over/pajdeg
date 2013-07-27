@@ -138,18 +138,20 @@ struct PDOperator {
 //  parser
 //
 
-typedef struct PDX *PDXRef;
-struct PDX {
-    char fields[20];
-};
+#define fmatox(x, ato) \
+    static inline x fast_mutative_##ato(char *str, PDInteger len) \
+    { \
+        char t = str[len]; \
+        str[len] = 0; \
+        x l = ato(str); \
+        str[len] = t; \
+        return l; \
+    }
+
+fmatox(long long, atoll)
+fmatox(long, atol)
 
 typedef struct PDXTable *PDXTableRef;
-struct PDXTable {
-    PDXRef fields;
-    PDSize cap;     // capacity
-    PDSize count;   // # of objects
-    PDSize pos;     // byte-wise position in the PDF where the xref (and subsequent trailer) begins; reaching this point means the xref cease to apply
-};
 
 typedef enum {
     PDParserStateBase,              // parser is in between objects
@@ -209,6 +211,8 @@ struct PDScanner {
     PDStackRef resultStack;     // results stack
     PDStackRef symbolStack;     // symbols stack; used to "rewind" when misinterpretations occur (e.g. for "number_or_obref" when one or two numbers)
     PDStackRef garbageStack;    // temporary allocations; only used in operator function when a symbol is regenerated from a malloc()'d string
+    
+    PDStreamFilterRef filter;   // filter, if any
     
     char         *buf;          // buffer
     PDInteger     bresoffset;   // previously popped result's offset relative to buf

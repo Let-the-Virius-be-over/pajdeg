@@ -32,28 +32,10 @@
 #include "PDTwinStream.h"
 #include "PDReference.h"
 #include "PDBTree.h"
+#include "PDStreamFilter.h"
+#include "PDXTable.h"
 
 #include "PDScanner.h"
-
-#define fmatox(x, ato) \
-    static inline x fast_mutative_##ato(char *str, PDInteger len) \
-    { \
-        char t = str[len]; \
-        str[len] = 0; \
-        x l = ato(str); \
-        str[len] = t; \
-        return l; \
-    }
-
-fmatox(long long, atoll)
-fmatox(long, atol)
-
-#define PDXOffset(pdx)      fast_mutative_atol(pdx.fields, 10)
-#define PDXGenId(pdx)       fast_mutative_atol(&(pdx.fields)[11], 5)
-#define PDXUsed(pdx)        (pdx.fields[17] == 'n')
-#define PDXSetUsed(pdx,u)    pdx.fields[17] = (u ? 'n' : 'f')
-#define PDXUndefined(pdx)   (pdx.fields[10] != ' ') // we use the space between ob and gen as indicator for whether the PDX was defined (everything is zeroed due to realloc)
-#define PDXSetUndefined(pdx) pdx.fields[10] = 0;
 
 static inline void PDXWrite(char *buf, PDInteger value, PDInteger digits)
 {
@@ -65,8 +47,6 @@ static inline void PDXWrite(char *buf, PDInteger value, PDInteger digits)
         buf[digits--] = '0';
 }
 
-PDBool PDParserFetchXRefs(PDParserRef parser);
-
 PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
 {
     PDPortableDocumentFormatStateRetain();
@@ -76,7 +56,7 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
     parser->state = PDParserStateBase;
     parser->success = true;
     
-    if (! PDParserFetchXRefs(parser)) {
+    if (! PDXTableFetchXRefsForParser(parser)) {
         PDWarn("PDF is invalid or in an unsupported format.");
         //PDAssert(0); // the PDF is invalid or in a format that isn't supported
         free(parser);
@@ -634,7 +614,7 @@ PDBool PDParserIterate(PDParserRef parser)
                     PDAssert(nextobid < parser->mxt->cap);
                     parser->genid = nextgenid = PDStackPopInt(&stack);
                     PDStackDestroy(stack);
-
+                    
                     skipObject = false;
                     parser->state = PDParserStateObjectDefinition;
                     
@@ -791,262 +771,6 @@ PDObjectRef PDParserConstructObject(PDParserRef parser)
 PDBool PDParserGetEncryptionState(PDParserRef parser)
 {
     return NULL != parser->encryptRef;
-}
-
-PDBool PDParserFetchXRefs(PDParserRef parser)
-{
-    PDSize highob;
-    PDScannerRef scanner;
-    char *s;
-    PDBool running;
-    PDXTableRef *tables;
-    PDSize      *offsets;
-    PDInteger offscount;
-    PDInteger j;
-    PDInteger i;
-
-    PDTwinStreamRef stream = parser->stream;
-    PDXRef xrefs;// = parser->xrefs;
-
-    PDTWinStreamSetMethod(stream, PDTwinStreamReversed);
-    
-    PDScannerRef xrefScanner = PDScannerCreateWithStateAndPopFunc(xrefSeeker, &PDScannerPopSymbolRev);
-    PDScannerContextPush(stream, &PDTwinStreamGrowInputBufferReversed);
-    
-    // we expect a stack, because it should have skipped until it found startxref
-    
-    PDStackRef stack;
-    PDScannerSetLoopCap(100);
-    if (! PDScannerPopStack(xrefScanner, &stack)) {
-        return false;
-    }
-    
-    //PDStackShow(stack);
-    
-    // this stack should start out with "xref" indicating the ob type
-    PDStackAssertExpectedKey(&stack, "startxref");
-    // next is the offset 
-    PDSize offs = PDStackPopSize(&stack);
-    PDAssert(stack == NULL);
-    PDScannerDestroy(xrefScanner);
-    
-    // we set up a stack of startxref pointers, and loop until we've got them in chronological order
-    
-    PDStackRef osstack = NULL;
-    
-    // we now start looping, each loop covering one xref entry, until we've jumped through all of them
-    PDTWinStreamSetMethod(stream, PDTwinStreamRandomAccess);
-    PDScannerContextPop();
-    
-    running = true;
-    PDObjectRef trailer = parser->trailer = PDObjectCreate(0, 0);
-    PDReferenceRef rootRef = NULL;
-    PDReferenceRef infoRef = NULL;
-    PDReferenceRef encryptRef = NULL;
-    
-    offscount = 0;
-    do {
-        // add this offset to stack
-        offscount++;
-        PDStackPushIdentifier(&osstack, (PDID)offs);
-        
-        // jump to xref
-        PDTwinStreamSeek(stream, offs);
-        
-        // set up scanner
-        scanner = PDScannerCreateWithState(pdfRoot);
-        
-        // we're positioned right, so pop the next stack (which should be the xref header)
-        // we keep popping stacks until we fail, which means we've encountered the trailer (which is a string, not a stack)
-        
-        while (PDScannerPopStack(scanner, &stack)) {
-            
-            // this stack = xref, startobid, <startobid>, count, <count>
-            PDStackAssertExpectedKey(&stack, "xref");
-            PDStackPopInt(&stack);
-            PDInteger count = PDStackPopInt(&stack);
-            
-            // we now have a stream (technically speaking) of xrefs
-            count *= 20;
-            PDScannerSkip(scanner, count);
-            PDTwinStreamAdvance(stream, scanner->boffset);
-
-        }
-        
-        // we now get the trailer
-        PDScannerAssertString(scanner, "trailer");
-        
-        // and the trailer dictionary
-        PDScannerPopStack(scanner, &stack);
-        
-        // if we have no Root or Info yet, grab them if found
-        PDStackRef dictStack;
-        if (rootRef == NULL && (dictStack = PDStackGetDictKey(stack, "Root", false))) {
-            rootRef = PDReferenceCreateFromStackDictEntry(dictStack->prev->prev->info);
-        }
-        if (infoRef == NULL && (dictStack = PDStackGetDictKey(stack, "Info", false))) {
-            infoRef = PDReferenceCreateFromStackDictEntry(dictStack->prev->prev->info);
-        }
-        if (encryptRef == NULL && (dictStack = PDStackGetDictKey(stack, "Encrypt", false))) {
-            encryptRef = PDReferenceCreateFromStackDictEntry(dictStack->prev->prev->info);
-        }
-        
-        // a Prev key may or may not exist, in which case we want to hit it
-        PDStackRef prev = PDStackGetDictKey(stack, "Prev", false);
-        if (prev) {
-            // e, Prev, 116
-            s = prev->prev->prev->info;
-            offs = PDSizeFromString(s);
-            PDAssert(offs > 0 || !strcmp("0", s));
-        } else running = false;
-
-        // update the trailer object in case additional info is included
-        // TODO: determine if spec requires this or if the last trailer is the whole truth
-        if (trailer->def == NULL) {
-            trailer->def = stack;
-        } else {
-            char *key;
-            char *value;
-            PDStackRef iter = stack; 
-            while (PDStackGetNextDictKey(&iter, &key, &value)) {
-                if (NULL == PDObjectGetDictionaryEntry(trailer, key)) {
-                    PDObjectSetDictionaryEntry(trailer, key, value);
-                }
-                free(value);
-            }
-            PDStackDestroy(stack);
-        }
-        
-        PDScannerDestroy(scanner);
-    } while (running);
-
-    // we now have a stack in versioned order, so we start setting up xrefs
-    offsets = malloc(offscount * sizeof(PDSize));
-    tables = malloc(offscount * sizeof(PDXTableRef));
-    offscount = 0;
-    
-    PDXTableRef pdx = NULL;
-    while (0 != (offs = (size_t)PDStackPopIdentifier(&osstack))) {
-        if (pdx) {
-            /// @todo CLANG doesn't like this (pdx is stored in tables, put into ctx stack, and released on PDParserDestroy)
-            pdx = memcpy(malloc(sizeof(struct PDXTable)), pdx, sizeof(struct PDXTable));
-            pdx->fields = memcpy(malloc(pdx->cap * 20), pdx->fields, pdx->cap * 20);
-        } else {
-            pdx = malloc(sizeof(struct PDXTable));
-            pdx->cap = 0;
-            pdx->count = 0;
-            pdx->fields = NULL;
-        }
-        
-        // put offset in (sorted)
-        for (i = 0; i < offscount && offsets[i] < offs; i++) ;
-        for (j = i + 1; j <= offscount; j++) {
-            offsets[j] = offsets[j-1];
-            tables[j] = tables[j-1];
-        }
-        offsets[i] = offs;
-        tables[i] = pdx;
-        offscount++;
-        
-        pdx->pos = offs;
-        xrefs = pdx->fields;
-        
-        // jump to xref
-        PDTwinStreamSeek(stream, offs);
-        
-        // set up scanner
-        scanner = PDScannerCreateWithState(pdfRoot);
-        
-        while (PDScannerPopStack(scanner, &stack)) {
-            // this stack = xref, startobid, <startobid>, count, <count>
-            PDStackAssertExpectedKey(&stack, "xref");
-            PDInteger startobid = PDStackPopInt(&stack);
-            PDInteger count = PDStackPopInt(&stack);
-            
-            //printf("[%d .. %d]\n", startobid, startobid + count - 1);
-            
-            highob = startobid + count;
-            
-            if (highob > pdx->count) {
-                pdx->count = highob;
-                if (highob > pdx->cap) {
-                    // we must realloc xref as it can't contain all the xrefs
-                    pdx->cap = highob;
-                    xrefs = pdx->fields = realloc(pdx->fields, 20 * highob);
-                }
-            }
-            
-            // we now have a stream (technically speaking) of xrefs
-            PDInteger bytes = count * 20;
-            if (bytes != PDScannerReadStream(scanner, (char*)&xrefs[startobid], bytes)) {
-                PDAssert(0);
-            }
-        }
-        
-        PDScannerDestroy(scanner);
-        PDStackDestroy(stack);
-    }
-    
-    // pdx is now the complete input xref table with all offsets correct, so we use it as is for the master table
-    parser->mxt = pdx;
-    
-    // we now set up the xstack from the (byte-ordered) list of xref tables
-    parser->xstack = NULL;
-    for (i = offscount - 1; i >= 0; i--) 
-        PDStackPushIdentifier(&parser->xstack, (PDID)tables[i]);
-    free(offsets);
-    free(tables);
-    // xstackr is now the (reversed) xstack, so we set that up
-    //parser->xstack = NULL;
-    //while (xstackr) 
-    //    PDStackPopInto(&parser->xstack, &xstackr);
-    
-    // and finally pull out the current table
-    parser->cxt = (PDXTableRef) PDStackPopIdentifier(&parser->xstack);
-    
-    parser->xrefnewiter = 1;
-    
-    parser->rootRef = rootRef;
-    parser->infoRef = infoRef;
-    parser->encryptRef = encryptRef;
-    
-    // we've got all the xrefs so we can switch back to the readwritable method
-    PDTWinStreamSetMethod(stream, PDTwinStreamReadWrite);
-    
-//#define DEBUG_PARSER_PRINT_XREFS
-#ifdef DEBUG_PARSER_PRINT_XREFS
-    printf("\n"
-           "       XREFS     \n"
-           "  OFFSET    GEN  U\n"
-           "---------- ----- -\n"
-           "%s", (char*)xrefs);
-#endif
-    
-//#define DEBUG_PARSER_CHECK_XREFS
-#ifdef DEBUG_PARSER_CHECK_XREFS
-    printf("* * * * *\nCHECKING XREFS\n* * * * * *\n");
-    xrefs = parser->mxt->fields;
-    char *buf;
-    char obdef[50];
-    PDInteger bufl;
-    PDInteger  obdefl;
-    for (i = 0; i < parser->mxt->count; i++) {
-        long offs = PDXOffset(xrefs[i]);
-        printf("object #%3d: %10ld (%s)\n", i, offs, PDXUsed(xrefs[i]) ? "in use" : "free");
-        if (PDXUsed(xrefs[i])) {
-            bufl = PDTwinStreamFetchBranch(stream, offs, 200, &buf);
-            obdefl = sprintf(obdef, "%d %ld obj", i, PDXGenId(xrefs[i]));
-            if (bufl < obdefl || strncmp(obdef, buf, obdefl)) {
-                printf("ERROR: object definition did not start at %ld: instead, this was encountered: ", offs);
-                for (j = 0; j < 20 && j < bufl; j++) 
-                    putchar(buf[j] < '0' || buf[j] > 'z' ? '.' : buf[j]);
-                printf("\n");
-            }
-        }
-    }
-#endif
-    
-    return true;
 }
 
 void PDParserDone(PDParserRef parser)

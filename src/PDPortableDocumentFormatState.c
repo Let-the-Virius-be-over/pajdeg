@@ -31,6 +31,7 @@
 #include "PDPDFPrivate.h"
 #include "PDStaticHash.h"
 #include "PDBTree.h" // remove
+#include "PDStreamFilterFlateDecode.h"
 
 PDInteger users = 0;
 PDStateRef pdfRoot, xrefSeeker;
@@ -76,15 +77,25 @@ void PDPDFClearConverters();
 
 void PDPortableDocumentFormatStateRetain()
 {
+    static PDBool first = true;
+    if (first) {
+        first = false;
+#ifdef PD_SUPPORT_ZLIB
+        // register FlateDecode handler
+        PDStreamFilterRegisterDualFilter("FlateDecode", PDStreamFilterFlateDecodeConstructor);
+#endif
+    }
+    
     if (users == 0) {
-#define s(name) name = PDStateCreate(#name)
         
         PDPortableDocumentFormatConversionTableRetain();
         
+        PDOperatorSymbolGlobSetup();
+
+#define s(name) name = PDStateCreate(#name)
+        
         s(pdfRoot);
         s(xrefSeeker);
-        
-        PDOperatorSymbolGlobSetup();
         
         PDStateRef s(comment_or_meta);     // %anything (comment) or %%EOF (meta)
         PDStateRef s(object_reference);    // "obid genid reftype"
@@ -120,9 +131,14 @@ void PDPortableDocumentFormatStateRetain()
                                                          and PDOperatorPushState, arb),
                                                    "Sstream",
                                                    PDDef(PDOperatorPushResult),
+                                                   
+                                                   // endstream, ndstream, or dstream; this is all depending on how the stream length was defined; some PDF writers say that the length is from the end of "stream" to right before the "endstrean", which includes newlines; other PDF writers exclude the initial newline after "stream" in the length; these will come out as "ndstream" here; if they are visitors from the past and use DOS newline formatting (\r\n), they will come out as "dstream"
+                                                   // one might fear that this would result in extraneous "e" or "en" in the written stream, but this is never the case, because Pajdeg either passes everything through to the output as is (in which case it will come out as it was), or Pajdeg replaces the stream, in which case it writes its own "endstream" keyword
                                                    "Sendstream",
                                                    PDDef(PDOperatorPushComplex, &PD_ENDSTREAM),
                                                    "Sndstream",
+                                                   PDDef(PDOperatorPushComplex, &PD_ENDSTREAM),
+                                                   "Sdstream",
                                                    PDDef(PDOperatorPushComplex, &PD_ENDSTREAM),
                                                    "Sxref",
                                                    PDDef(PDOperatorPushState, xref),
@@ -302,6 +318,11 @@ void PDPortableDocumentFormatStateRetain()
         PDStateDefineOperatorsWithDefinition(dict_hex, 
                                              PDDef("S<",
                                                    PDDef(PDOperatorPushState, dict,
+                                                         and PDOperatorPopState),
+                                                   "S>", 
+                                                   PDDef(PDOperatorPushEmptyString,
+                                                         and PDOperatorPopValue,
+                                                         and PDOperatorPushComplex, &PD_HEXSTR,
                                                          and PDOperatorPopState),
                                                    "F",
                                                    PDDef(PDOperatorPushbackSymbol,
