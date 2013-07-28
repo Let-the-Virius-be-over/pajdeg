@@ -93,22 +93,6 @@ PDBool PDStreamFilterApply(PDStreamFilterRef filter, unsigned char *src, unsigne
     
     *dst = resbuf;
     *newlen = got;
-    
-    /*PDStreamFilterRef bajs = PDStreamFilterObtain("FlateDecode", true, filter->options);
-    assert(PDStreamFilterInit(bajs));
-    assert(bajs->nextFilter);
-    bajs->bufIn = resbuf;
-    bajs->bufInAvailable = got;
-    unsigned char *kex = bajs->bufOut = malloc(25600);
-    bajs->bufOutCapacity = 25600;
-    PDInteger b = PDStreamFilterProcess(bajs);
-    assert(bajs->finished);
-    assert(bajs->failing == false);
-    assert(b == len);
-    for (b--; b >= 0; b--) assert(src[b] == kex[b]);
-    PDStreamFilterDestroy(bajs);
-    free(kex);*/
-    
 
     return true;
 }
