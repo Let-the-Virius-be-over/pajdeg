@@ -83,11 +83,11 @@ struct PDObject {
     PDBool              skipStream;     // if set, even if an object has a stream, the stream (including keywords) is skipped when written to output
     PDBool              skipObject;     // if set, entire object is discarded
     PDStackRef          mutations;      // key/value stack of alterations to do when writing the object
-    const char         *ovrStream;      // stream override
+    char               *ovrStream;      // stream override
     PDInteger           ovrStreamLen;   // length of ^
     char               *ovrDef;         // definition override
     PDInteger           ovrDefLen;      // take a wild guess
-    PDBool              encryptedDoc;   // if set, the object is contained in an encrypted PDF; if false, PDObjectSetEncryptedStreamFlag is NOP
+    PDBool              encryptedDoc;   // if set, the object is contained in an encrypted PDF; if false, PDObjectSetStreamEncrypted is NOP
 };
 
 //
@@ -220,6 +220,7 @@ struct PDScanner {
     PDInteger     boffset;      // buffer offset (we are at position &buf[boffset]
     PDScannerSymbolRef sym;     // the latest symbol
     PDScannerPopFunc popFunc;   // the symbol pop function
+    PDBool        fixedBuf;     // if set, the buffer is fixed (i.e. buffering function should not be called)
 };
 
 //

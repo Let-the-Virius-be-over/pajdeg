@@ -40,19 +40,6 @@ static PDStackRef scannerContextStack = NULL;
 void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op);
 void PDScannerScan(PDScannerRef scanner);
 
-PDScannerRef PDScannerCreateWithStateAndPopFunc(PDStateRef state, PDScannerPopFunc popFunc)
-{
-    PDScannerRef scanner = calloc(1, sizeof(struct PDScanner));
-    scanner->env = PDEnvCreateWithState(state);
-    scanner->popFunc = popFunc;
-    return scanner;
-}
-
-PDScannerRef PDScannerCreateWithState(PDStateRef state)
-{
-    return PDScannerCreateWithStateAndPopFunc(state, &PDScannerPopSymbol);
-}
-
 void PDScannerContextPush(void *ctxInfo, PDScannerBufFunc ctxBufFunc)
 {
     if (bufFunc) {
@@ -72,6 +59,28 @@ void PDScannerContextPop(void)
 void PDScannerSetLoopCap(PDInteger cap)
 {
     PDScannerScanAttemptCap = cap;
+}
+
+PDScannerRef PDScannerCreateWithStateAndPopFunc(PDStateRef state, PDScannerPopFunc popFunc)
+{
+    PDScannerRef scanner = calloc(1, sizeof(struct PDScanner));
+    scanner->env = PDEnvCreateWithState(state);
+    scanner->popFunc = popFunc;
+    return scanner;
+}
+
+PDScannerRef PDScannerCreateWithState(PDStateRef state)
+{
+    return PDScannerCreateWithStateAndPopFunc(state, &PDScannerPopSymbol);
+}
+
+void PDScannerAttachFixedSizeBuffer(PDScannerRef scanner, char *buf, PDInteger len)
+{
+    scanner->fixedBuf = true;
+    scanner->buf = buf;
+    scanner->boffset = 0;
+    scanner->bsize = len;
+    scanner->bresoffset = 0;
 }
 
 void PDScannerDestroy(PDScannerRef scanner)
@@ -174,8 +183,10 @@ void PDScannerPopSymbol(PDScannerRef scanner)
     // we want to move past whitespace, and we want to stop immediately on (prev=) delimiter, and we want to parse until the end of regular
     while (true) {
         if (bsize <= i) {
-            (*bufFunc)(bufFuncInfo, scanner, &buf, &bsize, 0);
-            if (bsize <= i) break;
+            if (! scanner->fixedBuf) 
+                (*bufFunc)(bufFuncInfo, scanner, &buf, &bsize, 0);
+            if (bsize <= i) 
+                break;
         }
         prevtype = type;
         c = buf[i];
@@ -196,15 +207,19 @@ void PDScannerPopSymbol(PDScannerRef scanner)
         } else break;
         i++;
     }
-    // we also want to bump offset past whitespace
+    // we also want to bump offset past whitespace, until we hit newline (next line may be byte counted)
     I = i;
     i--;
     do {
+        c = (buf[i] == '\r' || buf[i] == '\n');
         i++;
         if (bsize <= i) {
-            (*bufFunc)(bufFuncInfo, scanner, &buf, &bsize, 0);
+            if (! scanner->fixedBuf)
+                (*bufFunc)(bufFuncInfo, scanner, &buf, &bsize, 0);
+            if (bsize <= i) 
+                break;
         }
-    } while (PDOperatorSymbolGlob[(unsigned char)buf[i]] == PDOperatorSymbolGlobWhitespace);
+    } while ((!c || buf[i] == '\r' || buf[i] == '\n') && PDOperatorSymbolGlob[(unsigned char)buf[i]] == PDOperatorSymbolGlobWhitespace);
 
     sym->sstart = buf + I - len;
     sym->slen = len;
@@ -254,8 +269,10 @@ void PDScannerPopSymbolRev(PDScannerRef scanner)
     // we want to move past whitespace, and we want to stop immediately on (prev=) delimiter, and we want to parse until the end of regular
     while (true) {
         if (i <= 0) {
-            (*bufFunc)(bufFuncInfo, scanner, &buf, &bsize, 0);
-            if (bsize <= 1) break;
+            if (! scanner->fixedBuf)
+                (*bufFunc)(bufFuncInfo, scanner, &buf, &bsize, 0);
+            if (bsize <= 1) 
+                break;
             i = bsize - 1;
         }
         prevtype = type;
@@ -307,8 +324,10 @@ void PDScannerReadUntilDelimiter(PDScannerRef scanner, PDBool delimiterIsNewline
     bsize = scanner->bsize;
     while (true) {
         if (bsize <= i) {
-            (*bufFunc)(bufFuncInfo, scanner, &buf,  &bsize, 0);
-            if (bsize <= i) break;
+            if (! scanner->fixedBuf)
+                (*bufFunc)(bufFuncInfo, scanner, &buf,  &bsize, 0);
+            if (bsize <= i)
+                break;
         }
         if (! escaped && 
             ((delimiterIsNewline && (buf[i] == '\n' || buf[i] == '\r')) ||
@@ -333,8 +352,10 @@ void PDScannerReadUntilDelimiter(PDScannerRef scanner, PDBool delimiterIsNewline
     while (PDOperatorSymbolGlob[(unsigned char)buf[i]] == PDOperatorSymbolGlobWhitespace) {
         i++;
         if (bsize <= i) {
-            (*bufFunc)(bufFuncInfo, scanner, &buf,  &bsize, 0);
-            if (bsize <= i) break;
+            if (! scanner->fixedBuf)
+                (*bufFunc)(bufFuncInfo, scanner, &buf,  &bsize, 0);
+            if (bsize <= i) 
+                break;
         }
     }
 
@@ -636,18 +657,13 @@ void PDScannerAssertComplex(PDScannerRef scanner, const char *identifier)
 }
 
 
-
-
-
-
-
 PDBool PDScannerAttachFilter(PDScannerRef scanner, PDStreamFilterRef filter)
 {
     if (scanner->filter) {
         PDStreamFilterDestroy(scanner->filter);
     }
     scanner->filter = filter;
-    return 0 != (*filter->init)(filter);
+    return 0 != PDStreamFilterInit(filter);
 }
 
 void PDScannerDetachFilter(PDScannerRef scanner)
@@ -672,17 +688,21 @@ PDInteger PDScannerReadStream(PDScannerRef scanner, PDInteger bytes, char *dest,
     // skip over all newlines
     do {
         if (bsize <= i) {
-            (*bufFunc)(bufFuncInfo, scanner, &buf, &bsize, 0);
-            scanner->buf = buf;
-            scanner->bsize = bsize;
+            if (! scanner->fixedBuf) {
+                (*bufFunc)(bufFuncInfo, scanner, &buf, &bsize, 0);
+                scanner->buf = buf;
+                scanner->bsize = bsize;
+            }
         }
         i += (buf[i] == '\r' || buf[i] == '\n');
     } while (buf[i] == '\r' || buf[i] == '\n');
     
     if (bsize - i < bytes) {
-        (*bufFunc)(bufFuncInfo, scanner, &buf, &bsize, bytes + i - bsize);
-        scanner->buf = buf;
-        scanner->bsize = bsize;
+        if (! scanner->fixedBuf) {
+            (*bufFunc)(bufFuncInfo, scanner, &buf, &bsize, bytes + i - bsize);
+            scanner->buf = buf;
+            scanner->bsize = bsize;
+        }
     }
     if (bsize - i < bytes) 
         bytes = bsize - i;
@@ -691,13 +711,15 @@ PDInteger PDScannerReadStream(PDScannerRef scanner, PDInteger bytes, char *dest,
     
     if (scanner->filter) {
         PDStreamFilterRef filter = scanner->filter;
-        filter->bufIn = (unsigned char *)&buf[i]; // is this okay???
+        filter->bufIn = (unsigned char *)&buf[i];
         filter->bufInAvailable = bytes;
         filter->bufOut = (unsigned char *)dest;
         filter->bufOutCapacity = capacity;
         
         // we set bytes to the results of the filter process call, as that gives us the # of bytes stored (which is what we return too)
-        bytes = (*filter->process)(filter);
+        bytes = PDStreamFilterProcess(filter);
+        
+        // if filter has a next filter, we 
     } else {
         memcpy(dest, &buf[i], bytes);
     }
@@ -711,7 +733,7 @@ PDInteger PDScannerReadStreamNext(PDScannerRef scanner, char *dest, PDInteger ca
         PDStreamFilterRef filter = scanner->filter;
         filter->bufOut = (unsigned char *)dest;
         filter->bufOutCapacity = capacity;
-        return (*filter->proceed)(filter);
+        return  PDStreamFilterProceed(filter);
     }
     
     PDWarn("Call to PDScannerReadStreamNext despite no filter attached.\n");

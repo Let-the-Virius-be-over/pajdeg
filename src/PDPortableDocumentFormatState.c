@@ -114,6 +114,8 @@ void PDPortableDocumentFormatStateRetain()
         PDStateRef s(xref);                // xref table state
         PDStateRef s(end_numeric);         // for xref seeker, when a number is encountered, find out who refers to it
         
+        //pdfArrayRoot = array;
+        
         // this #define is disgusting, but it removes two billion
         // 'initialization makes pointer from integer without a cast'
         // warnings outside of gnu99 mode

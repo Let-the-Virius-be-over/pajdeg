@@ -231,7 +231,7 @@ extern void PDObjectRemoveArrayElementAtIndex(PDObjectRef object, PDInteger inde
  */
 extern void PDObjectSetArrayElement(PDObjectRef object, PDInteger index, const char *value);
 
-/// @name Other mutation
+/// @name Miscellaneous
 
 /**
  Replaces the entire object's definition with the given string of the given length; does not replace the stream and the caller is responsible for asserting that the /Length key is preserved; if the stream was turned off, this may include a stream element by abiding by the PDF specification, which requires that
@@ -254,6 +254,8 @@ extern void PDObjectSetArrayElement(PDObjectRef object, PDInteger index, const c
  */
 extern void PDObjectReplaceWithString(PDObjectRef object, char *str, PDInteger len);
 
+/// @name PDF stream support
+
 /**
  Removes the stream from the object.
  
@@ -266,14 +268,58 @@ extern void PDObjectSkipStream(PDObjectRef object);
 /**
  Replaces the stream with given data.
  
- @warning Caller is responsible for asserting that e.g. presence of /Filter /FlateDecode and usage of gzip compression match up. 
+ @note The stream is inserted as is, with no filtering applied to it whatsoever. To insert a filtered stream, e.g. FlateDecoded, use PDObjectSetStreamFiltered() instead.
+ 
+ @warning str is freed on destruction.
  
  @param object The object.
  @param str The stream data.
  @param len The length of the stream data.
  @param includeLength Whether the object's /Length entry should be updated to reflect the new stream content length.
  */
-extern void PDObjectSetStream(PDObjectRef object, const char *str, PDInteger len, PDBool includeLength);
+extern void PDObjectSetStream(PDObjectRef object, char *str, PDInteger len, PDBool includeLength);
+
+/**
+ Replaces the stream with given data, filtered according to the object's /Filter and /DecodeParams settings.
+ 
+ @note Pajdeg only supports a limited number of filters. If the object's filter settings are not supported, the operation is aborted.
+ 
+ @see PDObjectSetStreamFiltered
+ @see PDObjectSetFlateDecodedFlag
+ @see PDObjectSetPredictionStrategy
+ 
+ @warning str is not freed.
+ 
+ @param object The object.
+ @param str The stream data.
+ @param len The length of the stream data.
+ @return Success value. If false is returned, the stream remains unset.
+ */
+extern PDBool PDObjectSetStreamFiltered(PDObjectRef object, const char *str, PDInteger len);
+
+/**
+ Enable or disable compression (FlateDecode) filter flag for the object stream.
+ 
+ @note Passing false to the state will remove the Filter and DecodeParms dictionary entries from the object.
+ 
+ @param object The object.
+ @param state Boolean value of whether the stream is compressed or not.
+ */
+extern void PDObjectSetFlateDecodedFlag(PDObjectRef object, PDBool state);
+
+/**
+ Define prediction strategy for the stream.
+ 
+ @warning Pajdeg currently only supports PDPredictorNone and PDPredictorPNG_UP. Updating an existing stream (e.g. fixing its predictor values) is possible, however, but replacing the stream or requiring Pajdeg to predict the content in some other way will cause an assertion.
+ 
+ @param object The object.
+ @param strategy The PDPredictorType value.
+ @param columns Columns value.
+ 
+ @see PDPredictorType
+ @see PDStreamFilterPrediction.h
+ */
+extern void PDObjectSetPredictionStrategy(PDObjectRef object, PDPredictorType strategy, PDInteger columns);
 
 /**
  Sets the encrypted flag for the object's stream.
@@ -283,7 +329,7 @@ extern void PDObjectSetStream(PDObjectRef object, const char *str, PDInteger len
  @param object The object.
  @param encrypted Whether or not the stream is encrypted.
  */
-extern void PDObjectSetEncryptedStreamFlag(PDObjectRef object, PDBool encrypted);
+extern void PDObjectSetStreamEncrypted(PDObjectRef object, PDBool encrypted);
 
 /// @name Conversion
 

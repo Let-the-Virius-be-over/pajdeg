@@ -29,6 +29,7 @@
 #include "PDScanner.h"
 #include "PDPortableDocumentFormatState.h"
 #include "PDPDFPrivate.h"
+#include "PDStreamFilter.h"
 
 PDObjectRef PDObjectCreate(PDInteger obid, PDInteger genid)
 {
@@ -55,6 +56,8 @@ void PDObjectRelease(PDObjectRef object)
             free(object->def);
         else
             PDStackDestroy(object->def);
+        if (object->ovrDef) free(object->ovrDef);
+        if (object->ovrStream) free(object->ovrStream);
         free(object);
     }
 }
@@ -142,19 +145,6 @@ void PDObjectSetDictionaryEntry(PDObjectRef object, const char *key, const char 
         lastKeyContainer->prev->info = strdup(value);
         return;
     }
-    
-#if 0
-    PDStackRef entry;
-    for (entry = object->mutations; entry; entry = entry->prev->prev) {
-        if (!strcmp((char*)entry->info, key)) {
-            // we do, so replace the value
-            entry = entry->prev;
-            free(entry->info);
-            entry->info = strdup(value);
-            return;
-        }
-    }
-#endif
     
     // we didn't so we add
     PDStackPushKey(&object->mutations, strdup(value));
@@ -370,7 +360,7 @@ void PDObjectSkipStream(PDObjectRef object)
     object->skipStream = true;
 }
 
-void PDObjectSetStream(PDObjectRef object, const char *str, PDInteger len, PDBool includeLength)
+void PDObjectSetStream(PDObjectRef object, char *str, PDInteger len, PDBool includeLength)
 {
     object->ovrStream = str;
     object->ovrStreamLen = len;
@@ -382,7 +372,114 @@ void PDObjectSetStream(PDObjectRef object, const char *str, PDInteger len, PDBoo
     }
 }
 
-void PDObjectSetEncryptedStreamFlag(PDObjectRef object, PDBool encrypted)
+PDBool PDObjectSetStreamFiltered(PDObjectRef object, const char *str, PDInteger len)
+{
+    // Need to get /Filter and /DecodeParms
+    const char *filter = PDObjectGetDictionaryEntry(object, "Filter");
+    
+    if (NULL == filter) {
+        // no filter
+        return false;
+    } else filter = &filter[1]; // get rid of name slash
+
+    const char *decodeParms = PDObjectGetDictionaryEntry(object, "DecodeParms");
+    
+    PDStackRef options = NULL;
+    if (NULL != decodeParms) {
+        /// @todo At some point this (all values as strings) should not be as roundabout as it is but it will do for now.
+        
+        PDScannerRef scanner = PDScannerCreateWithState(pdfRoot);
+        PDScannerAttachFixedSizeBuffer(scanner, (char*)decodeParms, strlen(decodeParms));
+        PDStackRef optsDict;
+        if (! PDScannerPopStack(scanner, &optsDict)) {
+            PDWarn("Unable to pop dictionary stack from decode parameters: %s", decodeParms);
+            PDAssert(0);
+            optsDict = NULL;
+        }
+        if (optsDict) {
+            options = PDStreamFilterCreateOptionsFromDictionaryStack(optsDict);
+            PDStackDestroy(optsDict);
+        }
+        PDScannerDestroy(scanner);
+    }
+    
+    PDBool success = true;
+    PDStreamFilterRef sf = PDStreamFilterObtain(filter, false, options);
+    if (NULL == sf) {
+        // we don't support this filter, at all
+        PDStackDestroy(options);
+        success = false;
+    } 
+    
+    if (success) success = PDStreamFilterInit(sf);
+    // if !success, filter did not initialize properly
+
+    if (success) success = (sf->compatible);
+    // if !success, filter was not compatible with options
+
+    char *filtered;
+    PDInteger flen;
+    if (success) success = PDStreamFilterApply(sf, (unsigned char *)str, (unsigned char **)&filtered, len, &flen);
+    // if !success, filter did not apply to input data successfully
+
+    if (sf) PDStreamFilterDestroy(sf);
+    
+    if (success) PDObjectSetStream(object, filtered, flen, true);
+    
+    return success;
+}
+
+#if 0
+        // we want to chop off << and >> from decodeParms or pdfArrayRoot will see it as one single dictionary entry
+        PDInteger start = 0;
+        PDInteger len = strlen(decodeParms);
+        PDInteger x = 0;
+        while (x < 2 && start < len) {
+            x = decodeParms[start++] == '<' ? x + 1 : 0;
+            len--;
+        }
+        x = 0;
+        while (x < 2 && len > start) {
+            x = decodeParms[start+(len--)] == '>' ? x + 1 : 0;
+        }
+        
+        PDScannerRef scanner = PDScannerCreateWithState(pdfArrayRoot);
+        PDScannerAttachFixedSizeBuffer(scanner, (char*)&decodeParms[start], len);
+        
+        PDBool isString;
+        char      *string;
+        PDStackRef key;
+        PDStackRef stack;
+        PDStackRef options = NULL;
+        while (PDScannerPopStack(scanner, &key)) {
+            if (! (isString = PDScannerPopString(scanner, &string))) PDScannerPopStack(scanner, &stack);
+                
+            if (isString) {
+                char *keyString = strdup(key->prev->info);
+                
+            } else PDStackDestroy(stack);
+            PDStackDestroy(key);
+        }
+#endif
+
+void PDObjectSetFlateDecodedFlag(PDObjectRef object, PDBool state)
+{
+    if (state) {
+        PDObjectSetDictionaryEntry(object, "Filter", "/FlateDecode");
+    } else {
+        PDObjectRemoveDictionaryEntry(object, "Filter");
+        PDObjectRemoveDictionaryEntry(object, "DecodeParms");
+    }
+}
+
+void PDObjectSetPredictionStrategy(PDObjectRef object, PDPredictorType strategy, PDInteger columns)
+{
+    char buf[52];
+    sprintf(buf, "<</Predictor %d /Columns %ld>>", strategy, columns);
+    PDObjectSetDictionaryEntry(object, "DecodeParms", buf);
+}
+
+void PDObjectSetStreamEncrypted(PDObjectRef object, PDBool encrypted)
 {
     if (object->encryptedDoc) {
         if (encrypted) {

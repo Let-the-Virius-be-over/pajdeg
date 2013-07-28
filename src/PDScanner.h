@@ -56,6 +56,15 @@ extern PDScannerRef PDScannerCreateWithState(PDStateRef state);
 extern PDScannerRef PDScannerCreateWithStateAndPopFunc(PDStateRef state, PDScannerPopFunc popFunc);
 
 /**
+ Attach a fixed-size buffer to the scanner. The scanner will refuse to use the buffering function, if one is present.
+ 
+ @param scanner The scanner.
+ @param buf The buffer.
+ @param len The length of the buffer.
+ */
+extern void PDScannerAttachFixedSizeBuffer(PDScannerRef scanner, char *buf, PDInteger len);
+
+/**
  Destroy an existing scanner.
  
  @param scanner The scanner.

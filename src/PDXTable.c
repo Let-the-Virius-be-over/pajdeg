@@ -83,7 +83,9 @@ PDBool PDXTableInsertXRef(PDParserRef parser)
     PDTwinStreamInsertContent(stream, len, obuf)
 #define twinstream_put(len, buf) \
     PDTwinStreamInsertContent(stream, len, (char*)buf);
-    
+    ///// does it set xref and unsed??????????
+    ///// does it set xref and unsed??????????
+    ///// does it set xref and unsed??????????    
     char *obuf = malloc(2048);
     PDInteger len;
     PDInteger i;
@@ -129,88 +131,27 @@ extern void PDParserPassthroughObject(PDParserRef parser);
 
 PDBool PDXTableInsertXRefStream(PDParserRef parser)
 {
-    char *obuf = malloc(2048);
+    char *obuf = malloc(128);
 
     PDObjectRef trailer = parser->trailer;
     PDXTableRef mxt = parser->mxt;
-    PDStreamFilterRef filter = NULL;
-    PDStackRef filterOpts;
-    const char *filterName;
+    
+    PDXRefSetOffsetForID(mxt->xrefs, trailer->obid, parser->oboffset);
+    *PDXRefTypeForID(mxt->xrefs, trailer->obid) = PDXTypeUsed;
     
     sprintf(obuf, "%zd", mxt->count);
     PDObjectSetDictionaryEntry(trailer, "Size", obuf);
+    PDObjectSetDictionaryEntry(trailer, "W", PDXWEntry);
 
     PDObjectRemoveDictionaryEntry(trailer, "Prev");
     PDObjectRemoveDictionaryEntry(trailer, "Index");
-    PDObjectSetDictionaryEntry(trailer, "DecodeParms", "<< /Columns 6 /Predictor 12 >>");
 
-    PDObjectSetDictionaryEntry(trailer, "W", PDXWEntry);
-
-    // If we use a filter, apply that now
-    filterName = PDObjectGetDictionaryEntry(trailer, "Filter");
-    if (filterName && strlen(filterName) > 0) {
-        filterOpts = PDStackCreateFromDefinition
-        (PDDef("12", "Predictor",
-               "6",  "Columns"));
-        filter = PDStreamFilterObtain(&filterName[1], false, filterOpts); // exclude /name slash from filter name
-    }
-
-    PDInteger orig = mxt->count * PDXWidth;
-    PDInteger got = 0;
-    if (filter) {
-        PDStreamFilterRef nextFilter;
-        PDInteger cap = orig / 2;
-        if (cap < 2048) 
-            cap = 2048; 
-        else 
-            obuf = realloc(obuf, cap);
-        unsigned char *src = (unsigned char *)mxt->xrefs;
-        PDInteger avail = orig;
-        
-        while (filter) {
-            // we use the filter directly for output; luckily all we have to do is hook the xref buffer into it and go
-            (*filter->init)(filter);
-            nextFilter = filter->nextFilter;
-            
-            filter->bufIn = src; //(unsigned char *)mxt->xrefs;
-            filter->bufInAvailable = avail;// orig;
-            filter->bufOut = (unsigned char *)obuf;
-            filter->bufOutCapacity = cap;
-            
-            PDInteger bytes = (*filter->process)(filter);
-            while (bytes > 0) {
-                got += bytes;
-                if (filter->bufOutCapacity < 512) {
-                    cap *= 2;
-                    obuf = realloc(obuf, cap);
-                }
-                filter->bufOut = (unsigned char *)&obuf[got];
-                filter->bufOutCapacity = cap - got;
-                bytes = (*filter->proceed)(filter);
-            }
-            
-            (*filter->done)(filter);
-            PDStreamFilterDestroy(filter);
-            
-            filter = nextFilter;
-            if (src != (unsigned char *)mxt->xrefs) 
-                free(src);
-            if (filter) {
-                src = (unsigned char *)obuf;
-                avail = got;
-                got = 0;
-                obuf = malloc(cap);
-            }
-        }
-    } else {
-        if (orig > 2048) 
-            obuf = realloc(obuf, orig);
-        got = orig;
-    }
+    // override filters/decode params always -- better than risk passing something on by mistake that makes the xref stream unreadable
+    PDObjectSetFlateDecodedFlag(trailer, true);
+    PDObjectSetPredictionStrategy(trailer, PDPredictorPNG_UP, 6);
     
-    // set the stream
-    PDObjectSetStream(trailer, obuf, got, true);
-    
+    PDObjectSetStreamFiltered(trailer, (const char *)mxt->xrefs, PDXWidth * mxt->count);
+
     // now chuck this through via parser
     parser->state = PDParserStateBase;
     parser->obid = trailer->obid;
@@ -408,20 +349,19 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X)
         PDInteger bytes = PDScannerReadStream(X->scanner, len, buf, cap);
         while (bytes > 0) {
             got += bytes;
-            if (cap - got < 128) {
+            if (! filter->finished && filter->bufOutCapacity < 512) {
                 cap *= 2;
                 buf = realloc(buf, cap);
             }
             bytes = PDScannerReadStreamNext(X->scanner, &buf[got]  , cap - got);
         }
-        
+#if 0        
         filter = filter->nextFilter;
-        PDScannerDetachFilter(X->scanner);
         
         while (filter) {
             char *buf2 = malloc(cap);
             
-            (*filter->init)(filter);
+            (*fih8lter->init)(filter);
             filter->bufIn = (unsigned char *)buf;
             filter->bufInAvailable = got;
             filter->bufOut = (unsigned char *)buf2;
@@ -442,10 +382,11 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X)
             free(buf);
             buf = buf2;
             
-            PDStreamFilterRef nextFilter = filter->nextFilter;
-            PDStreamFilterDestroy(filter);
-            filter = nextFilter;
+            filter = filter->nextFilter;
         }
+#endif
+        // we cannot detach from scanner until the filtering is done as it will destroy the filters recursively
+        PDScannerDetachFilter(X->scanner);
     } else {
         buf = malloc(len);
         PDScannerReadStream(X->scanner, len, buf, len);

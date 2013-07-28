@@ -93,6 +93,11 @@ extern void PDPortableDocumentFormatConversionTableRelease();
 extern PDStateRef pdfRoot;
 
 /**
+ The PDF array state, useful for iterating over stuff.
+ */
+//extern PDStateRef pdfArrayRoot;
+
+/**
  The root XREF seeking state.
  */
 extern PDStateRef xrefSeeker;

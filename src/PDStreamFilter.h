@@ -52,6 +52,11 @@ typedef PDStreamFilterRef (*PDStreamDualFilterConstr)(PDBool inputEnd, PDStackRe
  */
 struct PDStreamFilter {
     PDBool initialized;                 ///< Determines if filter was set up or not. 
+    PDBool compatible;                  ///< If false after initialization, the filter initialized fine but encountered compatibility issues that could potentially cause problems.
+    PDBool needsInput;                  ///< Whether the filter needs data. If true, its input buffer must not be modified.
+    PDBool hasInput;                    ///< Whether the filter has pending input that, for capacity reasons, has not been added to the buffer yet.
+    PDBool finished;                    ///< Whether the filter is finished.
+    PDBool failing;                     ///< Whether the filter is failing to handle its input.
     PDStackRef options;                 ///< Filter options
     void *data;                         ///< User info object.
     unsigned char *bufIn;               ///< Input buffer.
@@ -63,6 +68,9 @@ struct PDStreamFilter {
     PDStreamFilterFunc process;         ///< Processing function. Called any number of times, at most once per new input buffer.
     PDStreamFilterFunc proceed;         ///< Proceed function. Called any number of times to request more output from last process call.
     PDStreamFilterRef nextFilter;       ///< The next filter that should receive the output end of this filter as its input, or NULL if no such requirement exists.
+    float growthHint;                   ///< The growth hint is an indicator for how the filter expects the size of its resulting data to be relative to the unfiltered data. 
+    unsigned char *bufOutOwned;         ///< Internal output buffer, that will be freed on destruction. This is used internally for chained filters.
+    PDInteger bufOutOwnedCapacity;      ///< Capacity of internal output buffer.
 };
 
 /**
@@ -81,6 +89,7 @@ extern PDStreamFilterRef PDStreamFilterCreate(PDStreamFilterFunc init, PDStreamF
  @note If initialized is true, the filter's done function will be called before deallocating.
  
  @param filter The filter.
+ @param destroyRecursively If set, and the filter has a nextFilter, the nextFilter is destroyed as well (and *its* nextFilter, etc).
  */
 extern void PDStreamFilterDestroy(PDStreamFilterRef filter);
 
@@ -102,6 +111,38 @@ extern void PDStreamFilterRegisterDualFilter(const char *name, PDStreamDualFilte
 extern PDStreamFilterRef PDStreamFilterObtain(const char *name, PDBool inputEnd, PDStackRef options);
 
 /**
+ Initialize a filter.
+ */
+extern PDBool PDStreamFilterInit(PDStreamFilterRef filter);
+
+/**
+ Deinitialize a filter.
+ */
+extern PDBool PDStreamFilterDone(PDStreamFilterRef filter);
+
+/**
+ Process filter, meaning that it should take its input buffer as entirely new content and reset any deprecated states.
+ */
+extern PDInteger PDStreamFilterProcess(PDStreamFilterRef filter);
+
+/**
+ Proceed with a filter, meaning that it should continue filtering its input, which is the same (context wise, the bytes in the buffer may have been updated/filled/etc) as it was before.
+ */
+extern PDInteger PDStreamFilterProceed(PDStreamFilterRef filter);
+
+/**
+ Apply a filter to the given buffer, creating a new buffer and size.
+ 
+ @param filter The filter to apply.
+ @param src The source buffer.
+ @param dst The destination buffer pointer.
+ @param len The length of the source buffer content.
+ @param newlen The filtered content length pointer.
+ @return true on success, false on failure.
+ */
+extern PDBool PDStreamFilterApply(PDStreamFilterRef filter, unsigned char *src, unsigned char **dst, PDInteger len, PDInteger *newlen);
+
+/**
  Convert a PDScanner dictionary stack into a stream filter options stack.
  
  @note The original stack remains untouched.
@@ -110,26 +151,6 @@ extern PDStreamFilterRef PDStreamFilterObtain(const char *name, PDBool inputEnd,
  @return New allocated stack suited for stream filter options.
  */
 extern PDStackRef PDStreamFilterCreateOptionsFromDictionaryStack(PDStackRef dictStack);
-
-/**
- Convenience macro for init.
- */
-#define PDStreamFilterInit(f) (*f->init)(f)
-
-/**
- Convenience macro for done.
- */
-#define PDStreamFilterDone(f) (*f->done)(f)
-
-/**
- Convenience macro for process.
- */
-#define PDStreamFilterProcess(f) (*f->process)(f)
-
-/**
- Convenience macro for proceed.
- */
-#define PDStreamFilterProceed(f) (*f->proceed)(f)
 
 /**
  Convenience macro for setting buffers and sizes.

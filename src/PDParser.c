@@ -176,6 +176,9 @@ void PDParserFetchStreamLengthFromObjectDictionary(PDParserRef parser, PDStackRe
 
 void PDParserUpdateObject(PDParserRef parser)
 {
+    if (parser->obid == 1927) {
+        printf("");
+    }
     char *string;
     PDInteger len;
 
@@ -376,6 +379,7 @@ void PDParserPassthroughObject(PDParserRef parser)
                     PDAssert(PDIdentifies(entry->info, PD_NAME));
                     if (!strcmp("XRef", entry->prev->info)) {
                         PDStackDestroy(stack);
+                        *PDXRefTypeForID(parser->mxt->xrefs, parser->obid) = PDXTypeFreed;
                         parser->state = PDParserStateObjectAppendix;
                         PDParserPassoverObject(parser);
                         // we also have a startxref
@@ -511,6 +515,10 @@ void PDParserPassoverObject(PDParserRef parser)
 void PDParserAppendObjects(PDParserRef parser)
 {
     PDObjectRef obj;
+    
+    if (parser->state != PDParserStateBase)
+        PDParserPassthroughObject(parser);
+    
     while (parser->appends) {
         obj = parser->construct = (PDObjectRef)PDStackPopIdentifier(&parser->appends);
         parser->obid = obj->obid;
@@ -534,8 +542,14 @@ PDBool PDParserIterate(PDParserRef parser)
     
     // we may have passed beyond the last object, or the current xref
     while (PDTwinStreamGetInputOffset(parser->stream) >= parser->cxt->pos) {
-        if (parser->cxt == parser->mxt)
+        if (parser->cxt == parser->mxt) {
+            if (parser->appends) 
+                PDParserAppendObjects(parser);
+            PDAssert(NULL == parser->xstack); // crash = we missed an xref table in the PDF; that's very not good
+            PDAssert(NULL == parser->skipT); // crash = we lost objects
+            parser->success &= NULL == parser->xstack && NULL == parser->skipT;
             return false;
+        }
         
         PDXTableRef next = (PDXTableRef) PDStackPopIdentifier(&parser->xstack);
         
@@ -601,6 +615,10 @@ PDBool PDParserIterate(PDParserRef parser)
                     parser->genid = nextgenid = PDStackPopInt(&stack);
                     PDStackDestroy(stack);
                     
+                    if (nextobid == 2459) {
+                        printf("");
+                    }
+                    
                     skipObject = false;
                     parser->state = PDParserStateObjectDefinition;
                     
@@ -662,15 +680,13 @@ PDObjectRef PDParserCreateNewObject(PDParserRef parser)
         newiter++;
     if (newiter == cap) {
         // we must realloc xref as it can't contain all the xrefs
-        parser->mxt->cap = cap = cap + 1;
+        parser->mxt->cap = parser->mxt->count = cap = cap + 1;
         xrefs = parser->mxt->xrefs = realloc(parser->mxt->xrefs, PDXWidth * cap);
     }
     *PDXRefTypeForID(xrefs, newiter) = PDXTypeUsed;
     *PDXRefGenForID(xrefs, newiter) = 0;
 
     parser->xrefnewiter = newiter;
-    
-    parser->mxt->count++;
     
     parser->obid = newiter;
     parser->genid = 0;

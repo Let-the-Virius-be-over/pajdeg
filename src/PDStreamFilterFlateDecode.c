@@ -29,8 +29,8 @@ PDInteger fd_compress_init(PDStreamFilterRef filter)
                     filter->options = NULL;
                     // because prediction has to come before compression we do a swap-a-roo here
                     PDStreamFilterRef newSelf = malloc(sizeof(struct PDStreamFilter)); // new field for us
-                    memcpy(newSelf, filter, sizeof(struct PDStreamFilter)); // move us there
-                    memcpy(filter, predictor, sizeof(struct PDStreamFilter)); // replace old us with predictor
+                    memcpy(newSelf, filter, sizeof(struct PDStreamFilter));     // move us there
+                    memcpy(filter, predictor, sizeof(struct PDStreamFilter));   // replace old us with predictor
                     filter->nextFilter = newSelf;                               // set new us as predictor's next
                     predictor->options = NULL;                                  // clear OLD predictor's options or destroyed twice
                     PDStreamFilterDestroy(predictor);
@@ -134,11 +134,20 @@ PDInteger fd_compress_proceed(PDStreamFilterRef filter)
     stream->avail_out = filter->bufOutCapacity;
     stream->next_out = filter->bufOut;
     
-    // we always flush stream as we expect to get entire chunks passed always; this may change
-    ret = deflate(stream, Z_FINISH);
+    // we flush stream, if we have no more input
+    int flush = filter->hasInput ? Z_NO_FLUSH : Z_FINISH;
+    ret = deflate(stream, flush);
+    if (ret < 0) { PDWarn("deflate error: %s\n", stream->msg); }
     assert (ret != Z_STREAM_ERROR); // crash = screwed up setup
+    assert (ret != Z_BUF_ERROR);    // crash = buffer was trashed
+    filter->failing = ret < 0;
     
+    filter->bufInAvailable = stream->avail_in;
     outputLength = filter->bufOutCapacity - stream->avail_out;
+    filter->bufOut += outputLength;
+    
+    filter->needsInput = 0 == stream->avail_in;
+    filter->bufOutCapacity = stream->avail_out;
     
     return outputLength;
 }
@@ -154,18 +163,26 @@ PDInteger fd_decompress_proceed(PDStreamFilterRef filter)
     stream->next_out = filter->bufOut;
     
     ret = inflate(stream, Z_NO_FLUSH);
+    if (ret < 0) { PDWarn("inflate error: %s\n", stream->msg); }
     assert (ret != Z_STREAM_ERROR); // crash = screwed up setup
+    assert (ret != Z_BUF_ERROR);    // crash = buffer was trashed
     switch (ret) {
         case Z_NEED_DICT:
             ret = Z_DATA_ERROR;
         case Z_DATA_ERROR:
         case Z_MEM_ERROR:
             inflateEnd(stream);
-            return -1;
+            filter->failing = true;
+            return 0;
     }
     
+    filter->bufInAvailable = stream->avail_in;
     outputLength = filter->bufOutCapacity - stream->avail_out;
+    filter->bufOut += outputLength;
     
+    filter->needsInput = 0 == stream->avail_in;
+    filter->bufOutCapacity = stream->avail_out;
+
     return outputLength;
 }
 
@@ -185,7 +202,7 @@ PDInteger fd_decompress_process(PDStreamFilterRef filter)
     
     stream->avail_in = filter->bufInAvailable;
     stream->next_in = filter->bufIn;
-    
+
     return fd_decompress_proceed(filter);
 }
 

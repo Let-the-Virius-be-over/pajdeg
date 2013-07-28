@@ -47,7 +47,7 @@
 
 // PD_DEBUG_TWINSTREAM_ASSERT_OBJECTS enables reassertions of every single object inserted into the output
 // PDF, by seeking back to its supposed position (XREF-wise) and reading in the <num> <num> obj part.
-//#define PD_DEBUG_TWINSTREAM_ASSERT_OBJECTS
+#define PD_DEBUG_TWINSTREAM_ASSERT_OBJECTS
 
 // DEBUG_PARSER_PRINT_XREFS prints out the resulting XREF table to stdout on setup.
 //#define DEBUG_PARSER_PRINT_XREFS
@@ -403,6 +403,29 @@
     /**
      @file PDStreamFilterFlateDecode.h
      */
+
+    /** @} */
+
+    /**
+     @defgroup FILTER_PREDICTION_GRP Prediction Filter
+     
+     @{
+     */
+
+    /**
+     @file PDStreamFilterPrediction.h
+     */
+
+    typedef enum {
+        PDPredictorNone = 1,        ///< no prediction (default)
+        PDPredictorTIFF2 = 2,       ///< TIFF predictor 2
+        PDPredictorPNG_NONE = 10,   ///< PNG prediction (on encoding, PNG None on all rows)
+        PDPredictorPNG_SUB = 11,    ///< PNG prediction (on encoding, PNG Sub on all rows)
+        PDPredictorPNG_UP = 12,     ///< PNG prediction (on encoding, PNG Up on all rows)
+        PDPredictorPNG_AVG = 13,    ///< PNG prediction (on encoding, PNG Average on all rows)
+        PDPredictorPNG_PAE = 14,    ///< PNG prediction (on encoding, PNG Paeth on all rows)
+        PDPredictorPNG_OPT = 15,    ///< PNG prediction (on encoding, PNG Paeth on all rows)
+    } PDPredictorType;
 
     /** @} */
 
