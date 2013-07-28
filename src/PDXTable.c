@@ -11,594 +11,881 @@
 #include "PDTwinStream.h"
 #include "PDScanner.h"
 #include "PDStack.h"
+#include "PDXTable.h"
+#include "PDReference.h"
+#include "PDObject.h"
+#include "PDStreamFilter.h"
 #include "PDPortableDocumentFormatState.h"
 
-PDSize PDXTableFindStartXRef(PDParserRef parser)
+/**
+ @todo Below functions swap endianness due to the fact numbers are big-endian in binary XRefs (and, I guess, in text-form XRefs as well); if the machine running Pajdeg happens to be big-endian as well, below methods need to be #ifdef-ified to handle this (by NOT swapping every byte around in the integral representation).
+ */
+
+PDXOffsetType PDXRefGetOffsetForID(char *xrefs, PDInteger obid)
 {
-    PDTwinStreamRef stream;
+    unsigned char *o = (unsigned char *) &xrefs[PDXOffsAlign + obid * PDXWidth];
+    // note: requires that offs size is 4
+    return (PDXOffsetType)o[3] | (o[2]<<8) | (o[1]<<16) | (o[0]<<24);
+}
+
+void PDXRefSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offset)
+{
+    unsigned char *o = (unsigned char *) &xrefs[PDXOffsAlign + obid * PDXWidth];
+    // note: requires that offs size is 4
+    o[0] = (offset & 0xff000000) >> 24;
+    o[1] = (offset & 0x00ff0000) >> 16;
+    o[2] = (offset & 0x0000ff00) >> 8;
+    o[3] = (offset & 0x000000ff);
+    PDAssert(offset == ((PDXOffsetType)o[3] | (o[2]<<8) | (o[1]<<16) | (o[0]<<24)));
+}
+
+typedef struct PDXI *PDXI;
+struct PDXI {
+    PDInteger mtobid; // master trailer object id
+    PDXTableRef pdx;
+    PDParserRef parser;
+    PDScannerRef scanner;
     PDStackRef stack;
-    PDScannerRef xrefScanner;
+    PDTwinStreamRef stream;
     PDSize offs;
+    PDReferenceRef rootRef;
+    PDReferenceRef infoRef;
+    PDReferenceRef encryptRef;
+    PDObjectRef trailer;
+    PDInteger tables;
+};
+
+#define PDXIStart(parser) (struct PDXI) { \
+    0,\
+    NULL, \
+    parser, \
+    parser->scanner, \
+    NULL, \
+    parser->stream, \
+    0, \
+    NULL, \
+    NULL, \
+    NULL, \
+    NULL, \
+    0, \
+}
+
+void PDXTableDestroy(PDXTableRef xtable)
+{
+    free(xtable->xrefs);
+    free(xtable);
+}
+
+PDBool PDXTableInsertXRef(PDParserRef parser)
+{
+#define twinstream_printf(fmt...) \
+    len = sprintf(obuf, fmt); \
+    PDTwinStreamInsertContent(stream, len, obuf)
+#define twinstream_put(len, buf) \
+    PDTwinStreamInsertContent(stream, len, (char*)buf);
     
-    stream = parser->stream;
+    char *obuf = malloc(2048);
+    PDInteger len;
+    PDInteger i;
+    PDTwinStreamRef stream = parser->stream;
+    PDXTableRef mxt = parser->mxt;
     
-    PDTWinStreamSetMethod(stream, PDTwinStreamReversed);
+    // we should now be right at the trailer
+    PDScannerAssertString(parser->scanner, "trailer");
+    
+    // we already have the trailer defined so we don't have to read any more from the file
+    
+    // read the trailer dict
+    //PDScannerPopStack(scanner, &trailer);
+    
+    // write xref header
+    twinstream_printf("xref\n%d %llu\n", 0, mxt->count);
+    
+    // write xref table
+    twinstream_put(20, "0000000000 65535 f \n");
+    for (i = 1; i < mxt->count; i++) {
+        sprintf(obuf, "%010u %05d %c \n", PDXTableOffsetForID(mxt, i), *PDXTableGenForID(mxt, i), PDXTableIsIDFree(mxt, i) ? 'f' : 'n');
+    }
+    
+    PDObjectRef tob = parser->trailer;
+    
+    sprintf(obuf, "%zd", parser->mxt->count);
+    PDObjectSetDictionaryEntry(tob, "Size", obuf);
+    
+    char *string = NULL;
+    len = PDObjectGenerateDefinition(tob, &string, 0);
+    // overwrite "0 0 obj" 
+    //      with "trailer"
+    memcpy(string, "trailer", 7);
+    PDTwinStreamInsertContent(stream, len, string); 
+    free(string);
+    
+    free(obuf);
+    
+    return true;
+}
+
+extern void PDParserPassthroughObject(PDParserRef parser);
+
+PDBool PDXTableInsertXRefStream(PDParserRef parser)
+{
+    char *obuf = malloc(2048);
+
+    PDObjectRef trailer = parser->trailer;
+    PDXTableRef mxt = parser->mxt;
+    PDStreamFilterRef filter = NULL;
+    PDStackRef filterOpts;
+    const char *filterName;
+    
+    sprintf(obuf, "%zd", mxt->count);
+    PDObjectSetDictionaryEntry(trailer, "Size", obuf);
+
+    PDObjectRemoveDictionaryEntry(trailer, "Prev");
+    PDObjectRemoveDictionaryEntry(trailer, "Index");
+    PDObjectSetDictionaryEntry(trailer, "DecodeParms", "<< /Columns 6 /Predictor 12 >>");
+
+    PDObjectSetDictionaryEntry(trailer, "W", PDXWEntry);
+
+    // If we use a filter, apply that now
+    filterName = PDObjectGetDictionaryEntry(trailer, "Filter");
+    if (filterName && strlen(filterName) > 0) {
+        filterOpts = PDStackCreateFromDefinition
+        (PDDef("12", "Predictor",
+               "6",  "Columns"));
+        filter = PDStreamFilterObtain(&filterName[1], false, filterOpts); // exclude /name slash from filter name
+    }
+
+    PDInteger orig = mxt->count * PDXWidth;
+    PDInteger got = 0;
+    if (filter) {
+        PDStreamFilterRef nextFilter;
+        PDInteger cap = orig / 2;
+        if (cap < 2048) 
+            cap = 2048; 
+        else 
+            obuf = realloc(obuf, cap);
+        unsigned char *src = (unsigned char *)mxt->xrefs;
+        PDInteger avail = orig;
+        
+        while (filter) {
+            // we use the filter directly for output; luckily all we have to do is hook the xref buffer into it and go
+            (*filter->init)(filter);
+            nextFilter = filter->nextFilter;
+            
+            filter->bufIn = src; //(unsigned char *)mxt->xrefs;
+            filter->bufInAvailable = avail;// orig;
+            filter->bufOut = (unsigned char *)obuf;
+            filter->bufOutCapacity = cap;
+            
+            PDInteger bytes = (*filter->process)(filter);
+            while (bytes > 0) {
+                got += bytes;
+                if (filter->bufOutCapacity < 512) {
+                    cap *= 2;
+                    obuf = realloc(obuf, cap);
+                }
+                filter->bufOut = (unsigned char *)&obuf[got];
+                filter->bufOutCapacity = cap - got;
+                bytes = (*filter->proceed)(filter);
+            }
+            
+            (*filter->done)(filter);
+            PDStreamFilterDestroy(filter);
+            
+            filter = nextFilter;
+            if (src != (unsigned char *)mxt->xrefs) 
+                free(src);
+            if (filter) {
+                src = (unsigned char *)obuf;
+                avail = got;
+                got = 0;
+                obuf = malloc(cap);
+            }
+        }
+    } else {
+        if (orig > 2048) 
+            obuf = realloc(obuf, orig);
+        got = orig;
+    }
+    
+    // set the stream
+    PDObjectSetStream(trailer, obuf, got, true);
+    
+    // now chuck this through via parser
+    parser->state = PDParserStateBase;
+    parser->obid = trailer->obid;
+    parser->genid = trailer->genid = 0;
+    parser->construct = PDObjectRetain(trailer);
+
+    PDParserPassthroughObject(parser);
+    
+    free(obuf);
+    
+    return true;
+}
+
+PDBool PDXTableInsert(PDParserRef parser)
+{
+    if (parser->mxt->format == PDXTableFormatText) {
+        return PDXTableInsertXRef(parser);
+    } else {
+        return PDXTableInsertXRefStream(parser);
+    }
+}
+
+PDBool PDXTablePassoverXRefEntry(PDParserRef parser, PDStackRef stack, PDBool includeTrailer)
+{
+    PDInteger count;
+    PDBool running = true;
+    PDScannerRef scanner = parser->scanner;
+    
+    do {
+        // this stack = (xref,) startobid, count
+        
+        free(PDStackPopKey(&stack));
+        count = PDStackPopInt(&stack);
+        
+        // we know the # of bytes to skip over, so we discard right away
+        ////scanner->btrail = scanner->boffset;
+        
+        PDScannerSkip(scanner, count * 20);
+        PDTwinStreamDiscardContent(parser->stream);//, PDTwinStreamScannerCommitBytes(parser->stream) + count * 20);
+        //bytes = count * 20;
+        //if (bytes != PDScannerReadStream(scanner, NULL, bytes)) {
+        //    PDAssert(0);
+        //}
+        
+        running = PDScannerPopStack(scanner, &stack);
+        if (running) PDStackAssertExpectedKey(&stack, "xref");
+    } while (running);
+    
+    if (includeTrailer) {
+        // read the trailer
+        PDScannerAssertString(scanner, "trailer");
+        
+        // read the trailer dict
+        PDScannerAssertStackType(scanner);
+        
+        // read startxref
+        PDScannerPopStack(scanner, &stack);
+        PDStackAssertExpectedKey(&stack, "startxref");
+        PDStackDestroy(stack);
+        
+        // next is EOF meta
+        PDScannerPopStack(scanner, &stack);
+        PDStackAssertExpectedKey(&stack, "meta");
+        PDStackAssertExpectedKey(&stack, "EOF");
+        
+        // set trail and discard the content
+        ////scanner->btrail = scanner->boffset;
+        
+        PDTwinStreamDiscardContent(parser->stream);//, PDTwinStreamScannerCommitBytes(parser->stream));
+    }
+    
+    return true;
+}
+
+
+
+static inline PDBool PDXTableFindStartXRef(PDXI X)
+{
+    PDScannerRef xrefScanner;
+    
+    PDTWinStreamSetMethod(X->stream, PDTwinStreamReversed);
     
     xrefScanner = PDScannerCreateWithStateAndPopFunc(xrefSeeker, &PDScannerPopSymbolRev);
     
-    PDScannerContextPush(stream, &PDTwinStreamGrowInputBufferReversed);
+    PDScannerContextPush(X->stream, &PDTwinStreamGrowInputBufferReversed);
     
     // we expect a stack, because it should have skipped until it found startxref
-    
+
+    /// @todo If this is a corrupt PDF, or not a PDF at all, the scanner may end up scanning forever so we put a cap on # of loops -- 100 is overkill but who knows what crazy footers PDFs out there may have (the spec probably disallows that, though, so this should be investigated and truncated at some point)
     PDScannerSetLoopCap(100);
-    if (! PDScannerPopStack(xrefScanner, &stack)) {
+    if (! PDScannerPopStack(xrefScanner, &X->stack)) {
         PDScannerContextPop();
         return false;
     }
     
     // this stack should start out with "xref" indicating the ob type
-    PDStackAssertExpectedKey(&stack, "startxref");
+    PDStackAssertExpectedKey(&X->stack, "startxref");
     // next is the offset 
-    offs = PDStackPopSize(&stack);
-    PDAssert(stack == NULL);
+    X->offs = PDStackPopSize(&X->stack);
+    PDAssert(X->stack == NULL);
     PDScannerDestroy(xrefScanner);
     
     // we now start looping, each loop covering one xref entry, until we've jumped through all of them
-    PDTWinStreamSetMethod(stream, PDTwinStreamRandomAccess);
+    PDTWinStreamSetMethod(X->stream, PDTwinStreamRandomAccess);
     PDScannerContextPop();
     
-    return offs;
+    return true;
 }
 
-PDBool PDXTableFetchXRefsForParser(PDParserRef parser)
+// a 1.5 ob stream header; pull in the definition, skip past stream, then move on
+static inline PDBool PDXTableReadXRefStreamHeader(PDXI X)
 {
-    PDTwinStreamRef stream = parser->stream;
-    PDSize highob;
-    PDScannerRef scanner;
-    char *s;
+    PDStackPopIdentifier(&X->stack);
+    X->mtobid = PDStackPopInt(&X->stack);
+    PDStackDestroy(X->stack);
+    PDScannerPopStack(X->scanner, &X->stack);
+    PDScannerAssertString(X->scanner, "stream");
+    PDInteger len = PDIntegerFromString(PDStackGetDictKey(X->stack, "Length", false)->prev->prev->info);
+    PDScannerSkip(X->scanner, len);
+    PDTwinStreamAdvance(X->stream, X->scanner->boffset);
+    PDScannerAssertComplex(X->scanner, PD_ENDSTREAM);
+    PDScannerAssertString(X->scanner, "endobj");
+        
+    return true;
+}
+
+static inline PDBool PDXTableReadXRefStreamContent(PDXI X)
+{
+    PDSize size;
+    char *xrefs;
+    char *buf;
+    char *bufi;
+    PDBool aligned;
+    PDInteger len;
+    PDStackRef byteWidths;
+    PDStackRef index;
+    PDStackRef filterOpts;
+    PDInteger startob;
+    PDInteger obcount;
+    PDStackRef filterDef;
+    PDInteger j;
+    PDInteger i;
+    PDInteger sizeT;
+    PDInteger sizeO;
+    PDInteger sizeI;
+    PDInteger padT;
+    PDInteger padO;
+    PDInteger padI;
+    PDInteger shrT;
+    PDInteger shrO;
+    PDInteger shrI;
+    PDInteger capT;
+    PDInteger capO;
+    PDInteger capI;
+    PDXTableRef pdx;
+    
+    pdx = X->pdx;
+    pdx->format = PDXTableFormatBinary;
+    
+    // pull in defs stack and get ready to read stream
+    PDStackDestroy(X->stack);
+    PDScannerPopStack(X->scanner, &X->stack);
+    PDScannerAssertString(X->scanner, "stream");
+    len = PDIntegerFromString(PDStackGetDictKey(X->stack, "Length", false)->prev->prev->info);
+    byteWidths = PDStackGetDictKey(X->stack, "W", false);
+    index = PDStackGetDictKey(X->stack, "Index", false);
+    filterDef = PDStackGetDictKey(X->stack, "Filter", false);
+    size = PDIntegerFromString(PDStackGetDictKey(X->stack, "Size", false)->prev->prev->info);
+    
+    PDStreamFilterRef filter = NULL;
+    if (filterDef) {
+        // ("name"), "filter name"
+        filterDef = as(PDStackRef, filterDef->prev->prev->info)->prev;
+        filterOpts = PDStackGetDictKey(X->stack, "DecodeParms", false);
+        if (filterOpts) 
+            filterOpts = PDStreamFilterCreateOptionsFromDictionaryStack(filterOpts->prev->prev->info);
+        filter = PDStreamFilterObtain(filterDef->info, true, filterOpts);
+    }
+    
+    if (size > pdx->count) {
+        pdx->count = size;
+        if (size > pdx->cap) {
+            /// @todo this size is known beforehand, or can be known beforehand, in pass 1; xrefs should never have to be reallocated, except for the initial setup
+            pdx->cap = size;
+            pdx->xrefs = realloc(pdx->xrefs, PDXWidth * size);
+        }
+    }
+        
+    if (filter) {
+        PDInteger got = 0;
+        PDInteger cap = len < 1024 ? 1024 : len * 4;
+        buf = malloc(cap);
+        
+        PDScannerAttachFilter(X->scanner, filter);
+        PDInteger bytes = PDScannerReadStream(X->scanner, len, buf, cap);
+        while (bytes > 0) {
+            got += bytes;
+            if (cap - got < 128) {
+                cap *= 2;
+                buf = realloc(buf, cap);
+            }
+            bytes = PDScannerReadStreamNext(X->scanner, &buf[got]  , cap - got);
+        }
+        
+        filter = filter->nextFilter;
+        PDScannerDetachFilter(X->scanner);
+        
+        while (filter) {
+            char *buf2 = malloc(cap);
+            
+            (*filter->init)(filter);
+            filter->bufIn = (unsigned char *)buf;
+            filter->bufInAvailable = got;
+            filter->bufOut = (unsigned char *)buf2;
+            filter->bufOutCapacity = cap;
+            
+            got = 0;
+            bytes = (*filter->process)(filter);
+            while (bytes > 0) {
+                got += bytes;
+                if (cap - got < 128) {
+                    cap *= 2;
+                    buf2 = realloc(buf2, cap);
+                }
+                filter->bufOut = (unsigned char *)&buf2[got];
+                filter->bufOutCapacity = cap - got;
+                bytes = (*filter->proceed)(filter);
+            }
+            free(buf);
+            buf = buf2;
+            
+            PDStreamFilterRef nextFilter = filter->nextFilter;
+            PDStreamFilterDestroy(filter);
+            filter = nextFilter;
+        }
+    } else {
+        buf = malloc(len);
+        PDScannerReadStream(X->scanner, len, buf, len);
+    }
+    
+    // process buf
+    
+    byteWidths = as(PDStackRef, byteWidths->prev->prev->info)->prev->prev->info;
+    sizeT = PDIntegerFromString(as(PDStackRef, byteWidths->info)->prev->info);
+    sizeO = PDIntegerFromString(as(PDStackRef, byteWidths->prev->info)->prev->info);
+    sizeI = PDIntegerFromString(as(PDStackRef, byteWidths->prev->prev->info)->prev->info);
+    
+    // this layout may be optimized for Pajdeg; if it is, we can inject the buffer straight into the data structure
+    aligned = sizeT == PDXTypeSize && sizeO == PDXOffsSize && sizeI == PDXGenSize;
+    
+    if (! aligned) {
+        // not aligned, so need pad
+#define setup_align(suf, our_size) \
+        if (our_size > size##suf) { \
+            cap##suf = size##suf; \
+            pad##suf = our_size - size##suf; \
+            shr##suf = 0; \
+        } else { \
+            cap##suf = our_size; \
+            pad##suf = 0; \
+            shr##suf = size##suf - our_size; \
+        }
+
+        setup_align(T, PDXTypeSize);
+        setup_align(O, PDXOffsSize);
+        setup_align(I, PDXGenSize);
+        
+#undef setup_align
+#define transfer_pc(dst, src, pad, shr, cap, i) \
+            memcpy(dst, src, cap); \
+            dst += cap; src += cap; \
+            for (i = 0; i < pad; i++) \
+                dst[i] = 0; \
+            dst += pad; \
+            src += shr
+#define transfer_pcs(dst, src, i, suf) transfer_pc(dst, src, pad##suf, shr##suf, cap##suf, i)
+    }
+    
+    // index, which is optional, can fine tune startob/obcount; it defaults to [0 Size]
+
+#define index_pop() \
+    startob = PDIntegerFromString(as(PDStackRef, index->info)->prev->info); \
+    obcount = PDIntegerFromString(as(PDStackRef, index->prev->info)->prev->info); \
+    index = index->prev->prev
+    
+    startob = 0;
+    obcount = size;
+
+    if (index) {
+        // move beyond header
+        index = as(PDStackRef, index->prev->prev->info)->prev->prev->info;
+        // some crazy PDF creators out there may think it's a lovely idea to put an empty index in; if they do, we will presume they meant the default [0 Size]
+        if (index) {
+            index_pop();
+        }
+    }
+    
+    xrefs = pdx->xrefs;
+    bufi = buf;
+    do {
+        PDAssert(startob + obcount <= size);
+        
+        if (aligned) {
+            memcpy(&pdx->xrefs[startob * PDXWidth], bufi, obcount * PDXWidth);
+            bufi += obcount * PDXWidth;
+        } else {
+            char *dst = &pdx->xrefs[startob * PDXWidth];
+            
+            for (i = 0; i < obcount; i++) {
+                // transfer 
+                transfer_pcs(dst, bufi, j, T);
+                transfer_pcs(dst, bufi, j, O);
+                transfer_pcs(dst, bufi, j, I);
+                PDAssert(((dst - pdx->xrefs) % PDXWidth) == 0);
+            }
+        }
+        
+        obcount = 0;
+        if (index) {
+            index_pop();
+            PDAssert(obcount > 0);
+        }
+    } while (obcount > 0);
+    
+#undef transfer_pcs
+#undef transfer_pc
+#undef index_pop
+    
+    free(buf);
+    
+    // 01 0E8A 0    % entry for object 2 (0x0E8A = 3722)
+    // 02 0002 00   % entry for object 3 (in object stream 2, index 0)
+    
+    // Index defines what we've got 
+    /*
+     stack<0xb648ae0> {
+         0x46d0b0 ("de")
+         Index
+         stack<0x172aef60> {
+             0x46d0b4 ("array")
+             0x46d0a8 ("entries")
+             stack<0x172adff0> {
+                 stack<0x172adfe0> {
+                     0x46d0b8 ("ae")
+                     1636
+                 }
+                 stack<0x172ae000> {
+                     0x46d0b8 ("ae")
+                     1
+                 }
+                 stack<0x172ae070> {
+                     0x46d0b8 ("ae")
+                     1660
+                 }
+                 stack<0x172ae0c0> {
+                     0x46d0b8 ("ae")
+                     1
+                 }
+                 stack<0x172ae160> {
+                     0x46d0b8 ("ae")
+                     1663
+                 }
+     */
+    
+    PDScannerAssertComplex(X->scanner, PD_ENDSTREAM);
+    PDScannerAssertString(X->scanner, "endobj");
+    
+    return true;
+}
+
+static inline PDBool PDXTableReadXRefHeader(PDXI X)
+{
+    // we keep popping stacks until we fail, which means we've encountered the trailer (which is a string, not a stack)
+    do {
+        // this stack = xref, startobid, <startobid>, count, <count>
+        PDStackAssertExpectedKey(&X->stack, "xref");
+        PDStackPopInt(&X->stack);
+        PDInteger count = PDStackPopInt(&X->stack);
+        
+        // we now have a stream (technically speaking) of xrefs
+        count *= 20;
+        PDScannerSkip(X->scanner, count);
+        PDTwinStreamAdvance(X->stream, X->scanner->boffset);
+    } while (PDScannerPopStack(X->scanner, &X->stack));
+    
+    // we now get the trailer
+    PDScannerAssertString(X->scanner, "trailer");
+    
+    // and the trailer dictionary
+    PDScannerPopStack(X->scanner, &X->stack);
+
+    return true;
+}
+
+static inline PDBool PDXTableReadXRefContent(PDXI X)
+{
+    PDSize size;
+    PDInteger i;
+    char *xrefs;
+    char *buf;
+    char *src;
+    char *dst;
+    PDXGenType *freeLink;
+
+    PDXTableRef pdx = X->pdx;
+    pdx->format = PDXTableFormatText;
+    
+    do {
+        // this stack = xref, startobid, <startobid>, count, <count>
+        PDStackAssertExpectedKey(&X->stack, "xref");
+        PDInteger startobid = PDStackPopInt(&X->stack);
+        PDInteger count = PDStackPopInt(&X->stack);
+        
+        //printf("[%d .. %d]\n", startobid, startobid + count - 1);
+        
+        size = startobid + count;
+        
+        if (size > pdx->count) {
+            pdx->count = size;
+            if (size > pdx->cap) {
+                // we must realloc xref as it can't contain all the xrefs
+                pdx->cap = size;
+                xrefs = pdx->xrefs = pdx->xrefs ? realloc(pdx->xrefs, PDXWidth * size) : malloc(PDXWidth * size);
+            }
+        }
+        
+        // we now have a stream (technically speaking) of xrefs
+        PDInteger bytes = count * 20;
+        buf = malloc(bytes);
+        if (bytes != PDScannerReadStream(X->scanner, bytes, buf, bytes)) {
+            free(buf);
+            return false;
+        }
+        
+        // convert into internal xref table
+        src = buf;
+        dst = &xrefs[PDXWidth * startobid];
+        freeLink = NULL;
+        for (i = 0; i < count; i++) {
+#define PDXOffset(pdx)      fast_mutative_atol(pdx, 10)
+#define PDXGenId(pdx)       fast_mutative_atol(&pdx[11], 5)
+#define PDXUsed(pdx)        (pdx[17] == 'n')
+            
+            PDXRefSetOffsetForID(dst, i, PDXOffset(src));
+
+            if (PDXUsed(src)) {
+                *PDXRefTypeForID(dst, i) = PDXTypeUsed;
+                *PDXRefGenForID(dst, i) = PDXGenId(src);
+            } else {
+                // freed objects link to each other in obstreams
+                *PDXRefTypeForID(dst, i) = PDXTypeFreed;
+                if (freeLink) 
+                    *freeLink =  startobid + i;
+                freeLink = PDXRefGenForID(dst, i);
+                *freeLink = 0;
+            }
+            
+            src += 20;
+        }
+    } while (PDScannerPopStack(X->scanner, &X->stack));
+    
+    return true;
+}
+
+static inline PDBool PDXTableParseTrailer(PDXI X)
+{
+    PDBool running = false;
+    
+    // if we have no Root or Info yet, grab them if found
+    PDStackRef dictStack;
+    if (X->rootRef == NULL && (dictStack = PDStackGetDictKey(X->stack, "Root", false))) {
+        X->rootRef = PDReferenceCreateFromStackDictEntry(dictStack->prev->prev->info);
+    }
+    if (X->infoRef == NULL && (dictStack = PDStackGetDictKey(X->stack, "Info", false))) {
+        X->infoRef = PDReferenceCreateFromStackDictEntry(dictStack->prev->prev->info);
+    }
+    if (X->encryptRef == NULL && (dictStack = PDStackGetDictKey(X->stack, "Encrypt", false))) {
+        X->encryptRef = PDReferenceCreateFromStackDictEntry(dictStack->prev->prev->info);
+    }
+    
+    // a Prev key may or may not exist, in which case we want to hit it
+    PDStackRef prev = PDStackGetDictKey(X->stack, "Prev", false);
+    if (prev) {
+        // e, Prev, 116
+        char *s = prev->prev->prev->info;
+        X->offs = PDSizeFromString(s);
+        PDAssert(X->offs > 0 || !strcmp("0", s));
+
+        running = true;
+    } 
+    
+    // update the trailer object in case additional info is included
+    // TODO: determine if spec requires this or if the last trailer is the whole truth
+    if (X->trailer->def == NULL) {
+        X->trailer->obid = X->mtobid;
+        X->trailer->def = X->stack;
+    } else {
+        char *key;
+        char *value;
+        PDStackRef iter = X->stack; 
+        while (PDStackGetNextDictKey(&iter, &key, &value)) {
+            if (NULL == PDObjectGetDictionaryEntry(X->trailer, key)) {
+                PDObjectSetDictionaryEntry(X->trailer, key, value);
+            }
+            free(value);
+        }
+        PDStackDestroy(X->stack);
+    }
+
+    return running;
+}
+
+PDBool PDXTableFetchHeaders(PDXI X)
+{
     PDBool running;
+    PDStackRef osstack;
+    
+    X->tables = 0;
+    X->mtobid = 0;
+    X->trailer = X->parser->trailer = PDObjectCreate(0, 0);
+    
+    osstack = NULL;
+    running = true;
+    
+    do {
+        // add this offset to stack
+        X->tables++;
+        PDStackPushIdentifier(&osstack, (PDID)X->offs);
+        
+        // jump to xref
+        PDTwinStreamSeek(X->stream, X->offs);
+        
+        // set up scanner
+        X->scanner = PDScannerCreateWithState(pdfRoot);
+        
+        // if this is a v1.5 PDF, we may run into an object definition here; the object is the replacement for the trailer, and has a (usually compressed) stream of the XREF table
+        if (PDScannerPopStack(X->scanner, &X->stack)) {
+            // we determine this by checking the identifier for the popped stack
+            if (PDIdentifies(X->stack->info, PD_OBJ)) {
+                if (! PDXTableReadXRefStreamHeader(X)) {
+                    PDWarn("Failed to read XRef stream header.");
+                    return false;
+                }
+            } else {
+                // this is a regular old xref table with a trailer at the end
+                if (! PDXTableReadXRefHeader(X)) {
+                    PDWarn("Failed to read XRef header.");
+                    return false;
+                }
+            }
+        }
+        
+        running = PDXTableParseTrailer(X);
+        
+        PDScannerDestroy(X->scanner);
+    } while (running);
+    
+    X->stack = osstack;
+    
+    return true;
+}
+
+PDBool PDXTableFetchContent(PDXI X)
+{
+    char *xrefs;
     PDXTableRef *tables;
     PDSize      *offsets;
     PDInteger offscount;
     PDInteger j;
     PDInteger i;
-    PDXRef xrefs;
+    PDStackRef osstack;
+    PDXTableRef prev;
+    PDXTableRef pdx;
     
-    running = true;
-    PDObjectRef trailer = parser->trailer = PDObjectCreate(0, 0);
-    PDReferenceRef rootRef = NULL;
-    PDReferenceRef infoRef = NULL;
-    PDReferenceRef encryptRef = NULL;
-    
-    offscount = 0;
-    do {
-        // add this offset to stack
-        offscount++;
-        PDStackPushIdentifier(&osstack, (PDID)offs);
-        
-        // jump to xref
-        PDTwinStreamSeek(stream, offs);
-        
-        // set up scanner
-        scanner = PDScannerCreateWithState(pdfRoot);
-        
-        // if this is a v1.5 PDF, we may run into an object definition here; the object is the replacement for the trailer, and has a (usually compressed) stream of the XREF table
-        if (PDScannerPopStack(scanner, &stack)) {
-            // we determine this by checking the identifier for the popped stack
-            if (PDIdentifies(stack->info, PD_OBJ)) {
-                // this is indeed a 1.5 ob stream; pull in the definition, skip past stream, then move on
-                PDStackDestroy(stack);
-                PDScannerPopStack(scanner, &stack);
-                PDScannerAssertString(scanner, "stream");
-                PDInteger len = PDIntegerFromString(PDStackGetDictKey(stack, "Length", false)->prev->prev->info);
-                PDScannerSkip(scanner, len);
-                PDTwinStreamAdvance(stream, scanner->boffset);
-                PDScannerAssertComplex(scanner, PD_ENDSTREAM);
-                PDScannerAssertString(scanner, "endobj");
-                
-                /*
-                 stack<0x17d74410> {
-                 0x46d0ac ("dict")
-                 0x46d0a8 ("entries")
-                 stack<0x172ab3a0> {
-                 stack<0x172ac3f0> {
-                 0x46d0b0 ("de")
-                 DecodeParms
-                 stack<0x172adcd0> {
-                 0x46d0ac ("dict")
-                 0x46d0a8 ("entries")
-                 stack<0x172ad090> {
-                 stack<0x172ad080> {
-                 0x46d0b0 ("de")
-                 Columns
-                 6
-                 }
-                 stack<0x172adca0> {
-                 0x46d0b0 ("de")
-                 Predictor
-                 12
-                 }
-                 }
-                 }
-                 }
-                 stack<0x172adcf0> {
-                 0x46d0b0 ("de")
-                 Filter
-                 stack<0x172add80> {
-                 0x46d098 ("name")
-                 FlateDecode
-                 }
-                 }
-                 stack<0x172add70> {
-                 0x46d0b0 ("de")
-                 ID
-                 stack<0x172aded0> {
-                 0x46d0b4 ("array")
-                 0x46d0a8 ("entries")
-                 stack<0x172addd0> {
-                 stack<0x172adde0> {
-                 0x46d0b8 ("ae")
-                 stack<0x172adeb0> {
-                 0x46d0a4 ("hexstr")
-                 7A1018F6F6840A3ACF5AE3FE390B8CAF
-                 }
-                 }
-                 stack<0x172ade00> {
-                 0x46d0b8 ("ae")
-                 stack<0x172adf00> {
-                 0x46d0a4 ("hexstr")
-                 31CF30870E074234BF633D6118DFF806
-                 }
-                 }
-                 }
-                 }
-                 }
-                 stack<0xb648ae0> {
-                 0x46d0b0 ("de")
-                 Index
-                 stack<0x172aef60> {
-                 0x46d0b4 ("array")
-                 0x46d0a8 ("entries")
-                 stack<0x172adff0> {
-                 stack<0x172adfe0> {
-                 0x46d0b8 ("ae")
-                 1636
-                 }
-                 stack<0x172ae000> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x172ae070> {
-                 0x46d0b8 ("ae")
-                 1660
-                 }
-                 stack<0x172ae0c0> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x172ae160> {
-                 0x46d0b8 ("ae")
-                 1663
-                 }
-                 stack<0x172ae1c0> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x172ae260> {
-                 0x46d0b8 ("ae")
-                 1679
-                 }
-                 stack<0x172ae2c0> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x172ae360> {
-                 0x46d0b8 ("ae")
-                 1681
-                 }
-                 stack<0x172ae3c0> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x172ae460> {
-                 0x46d0b8 ("ae")
-                 1683
-                 }
-                 stack<0x172ae4c0> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x172ae560> {
-                 0x46d0b8 ("ae")
-                 1685
-                 }
-                 stack<0x172ae5c0> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x172ae660> {
-                 0x46d0b8 ("ae")
-                 1687
-                 }
-                 stack<0x172ae6c0> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x172ae760> {
-                 0x46d0b8 ("ae")
-                 1689
-                 }
-                 stack<0x172ae7c0> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x172ae860> {
-                 0x46d0b8 ("ae")
-                 1691
-                 }
-                 stack<0x172ae8c0> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x172ae960> {
-                 0x46d0b8 ("ae")
-                 1693
-                 }
-                 stack<0x172ae9c0> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x172aea60> {
-                 0x46d0b8 ("ae")
-                 1695
-                 }
-                 stack<0x172aeac0> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x172aeb60> {
-                 0x46d0b8 ("ae")
-                 1697
-                 }
-                 stack<0x172aebc0> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x172aec60> {
-                 0x46d0b8 ("ae")
-                 1699
-                 }
-                 stack<0x172aecc0> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x172aed60> {
-                 0x46d0b8 ("ae")
-                 1747
-                 }
-                 stack<0x172aedc0> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x172aee60> {
-                 0x46d0b8 ("ae")
-                 2248
-                 }
-                 stack<0x172aeec0> {
-                 0x46d0b8 ("ae")
-                 211
-                 }
-                 }
-                 }
-                 }
-                 stack<0x172addb0> {
-                 0x46d0b0 ("de")
-                 Info
-                 stack<0x172af0e0> {
-                 0x46d0a0 ("ref")
-                 1663
-                 0
-                 }
-                 }
-                 stack<0x172aefc0> {
-                 0x46d0b0 ("de")
-                 Length
-                 324
-                 }
-                 stack<0x17d703b0> {
-                 0x46d0b0 ("de")
-                 Prev
-                 19337293
-                 }
-                 stack<0x17d70190> {
-                 0x46d0b0 ("de")
-                 Root
-                 stack<0x17d71140> {
-                 0x46d0a0 ("ref")
-                 1665
-                 0
-                 }
-                 }
-                 stack<0x17d710e0> {
-                 0x46d0b0 ("de")
-                 Size
-                 2459
-                 }
-                 stack<0x17d71ae0> {
-                 0x46d0b0 ("de")
-                 Type
-                 stack<0x17d722b0> {
-                 0x46d098 ("name")
-                 XRef
-                 }
-                 }
-                 stack<0x17d72180> {
-                 0x46d0b0 ("de")
-                 W
-                 stack<0x17d73dc0> {
-                 0x46d0b4 ("array")
-                 0x46d0a8 ("entries")
-                 stack<0x17d72c60> {
-                 stack<0x17d72930> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x17d72e90> {
-                 0x46d0b8 ("ae")
-                 4
-                 }
-                 stack<0x17d736d0> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 }
-                 }
-                 }
-                 }
-                 }
-                 */
-                
-            } else {
-                // this is a regular old xref table with a trailer at the end
-                
-                // we keep popping stacks until we fail, which means we've encountered the trailer (which is a string, not a stack)
-                do {
-                    // this stack = xref, startobid, <startobid>, count, <count>
-                    PDStackAssertExpectedKey(&stack, "xref");
-                    PDStackPopInt(&stack);
-                    PDInteger count = PDStackPopInt(&stack);
-                    
-                    // we now have a stream (technically speaking) of xrefs
-                    count *= 20;
-                    PDScannerSkip(scanner, count);
-                    PDTwinStreamAdvance(stream, scanner->boffset);
-                } while (PDScannerPopStack(scanner, &stack));
-                
-                // we now get the trailer
-                PDScannerAssertString(scanner, "trailer");
-                
-                // and the trailer dictionary
-                PDScannerPopStack(scanner, &stack);
-            }
-        }
-        
-        // if we have no Root or Info yet, grab them if found
-        PDStackRef dictStack;
-        if (rootRef == NULL && (dictStack = PDStackGetDictKey(stack, "Root", false))) {
-            rootRef = PDReferenceCreateFromStackDictEntry(dictStack->prev->prev->info);
-        }
-        if (infoRef == NULL && (dictStack = PDStackGetDictKey(stack, "Info", false))) {
-            infoRef = PDReferenceCreateFromStackDictEntry(dictStack->prev->prev->info);
-        }
-        if (encryptRef == NULL && (dictStack = PDStackGetDictKey(stack, "Encrypt", false))) {
-            encryptRef = PDReferenceCreateFromStackDictEntry(dictStack->prev->prev->info);
-        }
-        
-        // a Prev key may or may not exist, in which case we want to hit it
-        PDStackRef prev = PDStackGetDictKey(stack, "Prev", false);
-        if (prev) {
-            // e, Prev, 116
-            s = prev->prev->prev->info;
-            offs = PDSizeFromString(s);
-            PDAssert(offs > 0 || !strcmp("0", s));
-        } else running = false;
-        
-        // update the trailer object in case additional info is included
-        // TODO: determine if spec requires this or if the last trailer is the whole truth
-        if (trailer->def == NULL) {
-            trailer->def = stack;
-        } else {
-            char *key;
-            char *value;
-            PDStackRef iter = stack; 
-            while (PDStackGetNextDictKey(&iter, &key, &value)) {
-                if (NULL == PDObjectGetDictionaryEntry(trailer, key)) {
-                    PDObjectSetDictionaryEntry(trailer, key, value);
-                }
-                free(value);
-            }
-            PDStackDestroy(stack);
-        }
-        
-        PDScannerDestroy(scanner);
-    } while (running);
+    // fetch headers puts offset stack into X as stack so we get that out
+    osstack = X->stack;
+    X->stack = NULL;
     
     // we now have a stack in versioned order, so we start setting up xrefs
-    offsets = malloc(offscount * sizeof(PDSize));
-    tables = malloc(offscount * sizeof(PDXTableRef));
+    offsets = malloc(X->tables * sizeof(PDSize));
+    tables = malloc(X->tables * sizeof(PDXTableRef));
     offscount = 0;
     
-    PDXTableRef pdx = NULL;
-    while (0 != (offs = (size_t)PDStackPopIdentifier(&osstack))) {
+    pdx = NULL;
+    while (0 != (X->offs = (PDSize)PDStackPopIdentifier(&osstack))) {
+        prev = pdx;
         if (pdx) {
             /// @todo CLANG doesn't like this (pdx is stored in tables, put into ctx stack, and released on PDParserDestroy)
             pdx = memcpy(malloc(sizeof(struct PDXTable)), pdx, sizeof(struct PDXTable));
-            pdx->fields = memcpy(malloc(pdx->cap * 20), pdx->fields, pdx->cap * 20);
+            pdx->xrefs = memcpy(malloc(pdx->cap * PDXWidth), pdx->xrefs, pdx->cap * PDXWidth);
+            prev->next = pdx;
         } else {
             pdx = malloc(sizeof(struct PDXTable));
             pdx->cap = 0;
             pdx->count = 0;
-            pdx->fields = NULL;
+            pdx->next = NULL;
+            pdx->xrefs = NULL;
         }
         
+        pdx->prev = prev;
+        X->pdx = pdx;
+        
         // put offset in (sorted)
-        for (i = 0; i < offscount && offsets[i] < offs; i++) ;
+        for (i = 0; i < offscount && offsets[i] < X->offs; i++) ;
         for (j = i + 1; j <= offscount; j++) {
             offsets[j] = offsets[j-1];
             tables[j] = tables[j-1];
         }
-        offsets[i] = offs;
+        offsets[i] = X->offs;
         tables[i] = pdx;
         offscount++;
         
-        pdx->pos = offs;
-        xrefs = pdx->fields;
+        pdx->pos = X->offs;
+        
+        xrefs = pdx->xrefs;
         
         // jump to xref
-        PDTwinStreamSeek(stream, offs);
+        PDTwinStreamSeek(X->stream, X->offs);
         
         // set up scanner
-        scanner = PDScannerCreateWithState(pdfRoot);
+        X->scanner = PDScannerCreateWithState(pdfRoot);
         
         // if this is a v1.5 PDF, we may run into an object definition here; the object is the replacement for the trailer, and has a (usually compressed) stream of the XREF table
-        if (PDScannerPopStack(scanner, &stack)) {
+        if (PDScannerPopStack(X->scanner, &X->stack)) {
             // we determine this by checking the identifier for the popped stack
-            if (PDIdentifies(stack->info, PD_OBJ)) {
-                // this is indeed a 1.5 ob stream; pull in defs stack and get ready to read stream
-                PDStackDestroy(stack);
-                PDScannerPopStack(scanner, &stack);
-                PDScannerAssertString(scanner, "stream");
-                PDInteger len = PDIntegerFromString(PDStackGetDictKey(stack, "Length", false)->prev->prev->info);
-                PDStackRef byteWidths = PDStackGetDictKey(stack, "W", false);
-                PDStackRef index = PDStackGetDictKey(stack, "Index", false);
-                PDStackRef filterDef = PDStackGetDictKey(stack, "Filter", false);
-                highob = PDIntegerFromString(PDStackGetDictKey(stack, "Size", false)->prev->prev->info);
-                
-                PDStreamFilterRef filter = NULL;
-                if (filterDef) {
-                    // ("name"), "filter name"
-                    filterDef = as(PDStackRef, filterDef->prev->prev->info)->prev;
-                    filter = PDStreamFilterObtain(filterDef->info, true);
+            if (PDIdentifies(X->stack->info, PD_OBJ)) {
+                if (! PDXTableReadXRefStreamContent(X)) {
+                    PDWarn("Failed to read XRef stream header.");
+                    return false;
                 }
-                
-                if (highob > pdx->count) {
-                    pdx->count = highob;
-                    if (highob > pdx->cap) {
-                        pdx->cap = highob;
-                        xrefs = pdx->fields = realloc(pdx->fields, 20 * highob);
-                    }
-                }
-                
-                char *buf;
-                
-                if (filter) {
-                    PDInteger got = 0;
-                    PDInteger cap = len < 1024 ? 1024 : len * 4;
-                    buf = malloc(cap);
-                    
-                    PDScannerAttachFilter(scanner, filter);
-                    PDInteger bytes = PDScannerReadStream(scanner, len, buf, cap);
-                    while (bytes > 0) {
-                        got += bytes;
-                        if (cap - got < 512) {
-                            cap *= 2;
-                            buf = realloc(buf, cap);
-                        }
-                        bytes = PDScannerReadStreamNext(scanner, &buf[got]  , cap - got);
-                    }
-                    PDScannerDetachFilter(scanner);
-                } else {
-                    buf = malloc(len);
-                    PDScannerReadStream(scanner, len, buf, len);
-                }
-                
-                // process buf
-                
-                byteWidths = byteWidths->prev->prev->info;
-                PDInteger sizeT = PDIntegerFromString(as(PDStackRef, byteWidths->info)->prev->info);
-                PDInteger sizeO = PDIntegerFromString(as(PDStackRef, byteWidths->prev->info)->prev->info);
-                PDInteger sizeI = PDIntegerFromString(as(PDStackRef, byteWidths->prev->prev->info)->prev->info);
-                
-                
-                
-                // 01 0E8A 0    % entry for object 2 (0x0E8A = 3722)
-                // 02 0002 00   % entry for object 3 (in object stream 2, index 0)
-                
-                // Index defines what we've got 
-                /*
-                 stack<0xb648ae0> {
-                 0x46d0b0 ("de")
-                 Index
-                 stack<0x172aef60> {
-                 0x46d0b4 ("array")
-                 0x46d0a8 ("entries")
-                 stack<0x172adff0> {
-                 stack<0x172adfe0> {
-                 0x46d0b8 ("ae")
-                 1636
-                 }
-                 stack<0x172ae000> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x172ae070> {
-                 0x46d0b8 ("ae")
-                 1660
-                 }
-                 stack<0x172ae0c0> {
-                 0x46d0b8 ("ae")
-                 1
-                 }
-                 stack<0x172ae160> {
-                 0x46d0b8 ("ae")
-                 1663
-                 }
-                 */
-                
-                PDScannerAssertComplex(scanner, PD_ENDSTREAM);
-                PDScannerAssertString(scanner, "endobj");
             } else {
-                do {
-                    // this stack = xref, startobid, <startobid>, count, <count>
-                    PDStackAssertExpectedKey(&stack, "xref");
-                    PDInteger startobid = PDStackPopInt(&stack);
-                    PDInteger count = PDStackPopInt(&stack);
-                    
-                    //printf("[%d .. %d]\n", startobid, startobid + count - 1);
-                    
-                    highob = startobid + count;
-                    
-                    if (highob > pdx->count) {
-                        pdx->count = highob;
-                        if (highob > pdx->cap) {
-                            // we must realloc xref as it can't contain all the xrefs
-                            pdx->cap = highob;
-                            xrefs = pdx->fields = realloc(pdx->fields, 20 * highob);
-                        }
-                    }
-                    
-                    // we now have a stream (technically speaking) of xrefs
-                    PDInteger bytes = count * 20;
-                    if (bytes != PDScannerReadStream(scanner, bytes, (char*)&xrefs[startobid], bytes)) {
-                        PDAssert(0);
-                    }
-                } while (PDScannerPopStack(scanner, &stack));
+                // this is a regular old xref table with a trailer at the end
+                if (! PDXTableReadXRefContent(X)) {
+                    PDWarn("Failed to read XRef header.");
+                    return false;
+                }
             }
         }
         
-        PDScannerDestroy(scanner);
-        PDStackDestroy(stack);
+        PDScannerDestroy(X->scanner);
+        PDStackDestroy(X->stack);
     }
     
     // pdx is now the complete input xref table with all offsets correct, so we use it as is for the master table
-    parser->mxt = pdx;
+    X->parser->mxt = pdx;
     
     // we now set up the xstack from the (byte-ordered) list of xref tables
-    parser->xstack = NULL;
-    for (i = offscount - 1; i >= 0; i--) 
-        PDStackPushIdentifier(&parser->xstack, (PDID)tables[i]);
+    X->parser->xstack = NULL;
+    for (i = X->tables - 1; i >= 0; i--) 
+        PDStackPushIdentifier(&X->parser->xstack, (PDID)tables[i]);
     free(offsets);
     free(tables);
+    
+    return true;
+}
+
+PDBool PDXTableFetchXRefs(PDParserRef parser)
+{
+    struct PDXI X = PDXIStart(parser);
+    
+    // find starting XRef position in PDF
+    if (! PDXTableFindStartXRef(&X)) {
+        return false;
+    }
+    
+    // pass over XRefs once, to get offsets in the right order (we want oldest first)
+    if (! PDXTableFetchHeaders(&X)) {
+        return false;
+    }
+    
+    // pass over XRefs again, in right order, and parse through content this time
+    if (! PDXTableFetchContent(&X)) {
+        return false;
+    }
+    
     // xstackr is now the (reversed) xstack, so we set that up
     //parser->xstack = NULL;
     //while (xstackr) 
@@ -609,12 +896,12 @@ PDBool PDXTableFetchXRefsForParser(PDParserRef parser)
     
     parser->xrefnewiter = 1;
     
-    parser->rootRef = rootRef;
-    parser->infoRef = infoRef;
-    parser->encryptRef = encryptRef;
+    parser->rootRef = X.rootRef;
+    parser->infoRef = X.infoRef;
+    parser->encryptRef = X.encryptRef;
     
     // we've got all the xrefs so we can switch back to the readwritable method
-    PDTWinStreamSetMethod(stream, PDTwinStreamReadWrite);
+    PDTWinStreamSetMethod(X.stream, PDTwinStreamReadWrite);
     
     //#define DEBUG_PARSER_PRINT_XREFS
 #ifdef DEBUG_PARSER_PRINT_XREFS
@@ -625,25 +912,29 @@ PDBool PDXTableFetchXRefsForParser(PDParserRef parser)
            "%s", (char*)xrefs);
 #endif
     
-    //#define DEBUG_PARSER_CHECK_XREFS
+#define DEBUG_PARSER_CHECK_XREFS
 #ifdef DEBUG_PARSER_CHECK_XREFS
     printf("* * * * *\nCHECKING XREFS\n* * * * * *\n");
-    xrefs = parser->mxt->fields;
-    char *buf;
-    char obdef[50];
-    PDInteger bufl;
-    PDInteger  obdefl;
-    for (i = 0; i < parser->mxt->count; i++) {
-        long offs = PDXOffset(xrefs[i]);
-        printf("object #%3d: %10ld (%s)\n", i, offs, PDXUsed(xrefs[i]) ? "in use" : "free");
-        if (PDXUsed(xrefs[i])) {
-            bufl = PDTwinStreamFetchBranch(stream, offs, 200, &buf);
-            obdefl = sprintf(obdef, "%d %ld obj", i, PDXGenId(xrefs[i]));
-            if (bufl < obdefl || strncmp(obdef, buf, obdefl)) {
-                printf("ERROR: object definition did not start at %ld: instead, this was encountered: ", offs);
-                for (j = 0; j < 20 && j < bufl; j++) 
-                    putchar(buf[j] < '0' || buf[j] > 'z' ? '.' : buf[j]);
-                printf("\n");
+    {
+        char *xrefs = parser->mxt->xrefs;
+        char *buf;
+        char obdef[50];
+        PDInteger bufl,obdefl,i,j;
+        
+        char *types[] = {"free", "used", "compressed"};
+        
+        for (i = 0; i < parser->mxt->count; i++) {
+            PDOffset offs = PDXRefGetOffsetForID(xrefs, i);
+            printf("object #%3ld: %10lld (%s)\n", i, offs, types[*PDXRefTypeForID(xrefs, i)]);
+            if (PDXTypeUsed == *PDXRefTypeForID(xrefs, i)) {
+                bufl = PDTwinStreamFetchBranch(X.stream, offs, 200, &buf);
+                obdefl = sprintf(obdef, "%ld %d obj", i, *PDXRefGenForID(xrefs, i));//PDXGenId(xrefs[i]));
+                if (bufl < obdefl || strncmp(obdef, buf, obdefl)) {
+                    printf("ERROR: object definition did not start at %lld: instead, this was encountered: ", offs);
+                    for (j = 0; j < 20 && j < bufl; j++) 
+                        putchar(buf[j] < '0' || buf[j] > 'z' ? '.' : buf[j]);
+                    printf("\n");
+                }
             }
         }
     }

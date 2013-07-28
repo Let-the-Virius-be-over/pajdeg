@@ -7,7 +7,7 @@
 //
 
 /**
- @defgroup FILTER_GRP Stream filters
+ @defgroup FILTER_FLATE_GRP Flate Filter
  
  @brief Flate Decode (compression/decompression) stream filter
  
@@ -30,17 +30,17 @@
 /**
  Set up a stream filter for FlateDecode compression.
  */
-extern PDStreamFilterRef PDStreamFilterFlateDecodeCompressCreate(void);
+extern PDStreamFilterRef PDStreamFilterFlateDecodeCompressCreate(PDStackRef options);
 
 /**
  Set up stream filter for FlateDecode decompression.
  */
-extern PDStreamFilterRef PDStreamFilterFlateDecodeDecompressCreate(void);
+extern PDStreamFilterRef PDStreamFilterFlateDecodeDecompressCreate(PDStackRef options);
 
 /**
  Set up a stream filter for FlateDecode based on inputEnd boolean. 
  */
-extern PDStreamFilterRef PDStreamFilterFlateDecodeConstructor(PDBool inputEnd);
+extern PDStreamFilterRef PDStreamFilterFlateDecodeConstructor(PDBool inputEnd, PDStackRef options);
 
 #endif
 

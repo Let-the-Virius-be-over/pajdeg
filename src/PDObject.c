@@ -164,6 +164,26 @@ void PDObjectSetDictionaryEntry(PDObjectRef object, const char *key, const char 
 
 void PDObjectRemoveDictionaryEntry(PDObjectRef object, const char *key)
 {
+    // check mutations dict as well
+    PDStackRef entry, prev;
+    prev = NULL;
+    for (entry = object->mutations; entry; entry = entry->prev->prev) {
+        if (!strcmp((char*)entry->info, key)) {
+            if (prev) {
+                prev->prev->prev = entry->prev->prev;
+                entry->prev->prev = NULL;
+                PDStackDestroy(entry);
+            } else {
+                prev = object->mutations;
+                object->mutations = entry->prev->prev;
+                prev->prev->prev = NULL;
+                PDStackDestroy(prev);
+            }
+            return;
+        }
+        prev = entry;
+    }
+
     PDStackRef ks = PDStackGetDictKey(object->def, key, true);
     PDStackDestroy(ks);
 }

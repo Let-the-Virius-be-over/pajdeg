@@ -358,6 +358,16 @@ struct PDStringConv {
 // macros / convenience
 //
 
+/**
+ Pajdeg definition list.
+ */
+#define PDDEF const void*[]
+
+/**
+ Wrapper for null terminated definitions.
+ */
+#define PDDef(defs...) (PDDEF){(void*)defs, NULL}
+
 #ifndef PDWarn
 #   if defined(DEBUG) || defined(PD_WARNINGS)
 #       define PD_WARNINGS
@@ -376,7 +386,7 @@ struct PDStringConv {
 #       if defined(PD_WARNINGS)
 #           define PDAssert(args...) \
                 if (!(args)) { \
-                    PDWarn("assertion failure : " #args); \
+                    PDWarn("assertion failure : %s", #args); \
                     assert(args); \
                 }
 #       else

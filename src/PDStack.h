@@ -261,6 +261,14 @@ extern PDBool PDStackGetNextDictKey(PDStackRef *iterStack, char **key, char **va
  */
 extern void PDStackReplaceInfoObject(PDStackRef stack, char type, void *info);
 
+/**
+ Set up a stack with NULL terminated list of values, put in backward.
+ 
+ @param values NULL terminated list of values.
+ @return Stack with each value pushed as an identifier.
+ */
+extern PDStackRef PDStackCreateFromDefinition(const void **defs);
+
 /// @name Debugging
 
 /**

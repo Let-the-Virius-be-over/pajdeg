@@ -69,16 +69,6 @@ extern void PDOperatorSymbolGlobClear();
 extern char PDOperatorSymbolGlobDefine(char *str);
 
 /**
- Pajdeg definition list.
- */
-#define PDDEF const void*[]
-
-/**
- Wrapper for null terminated definitions.
- */
-#define PDDef(defs...) (PDDEF){(void*)defs, NULL}
-
-/**
  Create a PDOperatorRef chain based on a definition in the form of NULL terminated arrays of operator types followed by (if any) arguments of corresponding types.
  
  @param defs Definitions, null terminated.

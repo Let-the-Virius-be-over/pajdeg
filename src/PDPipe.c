@@ -139,7 +139,7 @@ void PDPipeAddTask(PDPipeRef pipe, PDTaskRef task)
         }
     } else {
         // task executes on every iteration
-        PDStackPushIdentifier(&pipe->unfilteredTasks, (PDID)task);
+        PDStackPushIdentifier(&pipe->unfilteredTasks, (PDID)PDTaskRetain(task));
 #if 0
         // task executes in root; this happens right after parser is set up and has read in things like root and info refs
         if (pipe->opened) {

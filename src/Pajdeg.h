@@ -22,6 +22,36 @@
 //  THE SOFTWARE.
 //
 
+/**
+   @mainpage Pajdeg PDF mutation library
+
+   @section intro_sec Introduction
+
+   Pajdeg is a C library for modifying existing PDF documents by passing them through a stream with tasks assigned based on object ID's.
+
+   Typical usage involves three things:
+
+   - Setting up a PDPipe with in- and out paths.
+   - Adding filters and/or mutator PDTasks to the pipe.
+   - Executing.
+
+   Tasks can be chained together, and appended to the stream at any time through other tasks, with the caveat that the requested object has not yet passed through the stream.
+
+   @section dependencies_sec Dependencies
+
+   Pajdeg has very few dependencies. While the aim was to have none at all, certain PDFs require compression to function at all.
+
+   Beyond this, Pajdeg does not contain any other dependencies beyond a relatively modern C compiler.
+
+   @subsection libz_subsec libz
+
+   Pajdeg can use libz for stream compression. Some PDFs, in particular PDFs made using the 1.5+ specification, require libz support to be parsed via Pajdeg, because the cross reference table can be a compressed object stream. If support for this is not desired, libz support can be disabled by removing the PD_SUPPORT_ZLIB definition in PDDefines.h.
+
+   @section integrating_sec Integrating
+
+   Adding Pajdeg to your project can be done by either compiling the static library using the provided Makefile, and putting the library and the .h files into your project, or by adding the .c and .h files directly. 
+*/
+
 #ifndef INCLUDED_Pajdeg_h
     #define INCLUDED_Pajdeg_h
 

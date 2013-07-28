@@ -148,7 +148,7 @@ void PDScannerPopSymbol(PDScannerRef scanner)
     unsigned char c;
     char *buf;
     short hash;
-    PDInteger   bsize, len, i;
+    PDInteger   bsize, len, i, I;
     char  prevtype, type;
     PDBool numeric, real, escaped;
     
@@ -196,18 +196,24 @@ void PDScannerPopSymbol(PDScannerRef scanner)
         } else break;
         i++;
     }
-    sym->sstart = buf + i - len;
+    // we also want to bump offset past whitespace
+    I = i;
+    i--;
+    do {
+        i++;
+        if (bsize <= i) {
+            (*bufFunc)(bufFuncInfo, scanner, &buf, &bsize, 0);
+        }
+    } while (PDOperatorSymbolGlob[(unsigned char)buf[i]] == PDOperatorSymbolGlobWhitespace);
+
+    sym->sstart = buf + I - len;
     sym->slen = len;
     sym->stype = len == 0 ? PDOperatorSymbolExtEOB : prevtype == PDOperatorSymbolGlobRegular && numeric ? PDOperatorSymbolExtNumeric : prevtype;
     sym->shash = 10 * abs(hash) + len;
-
+    
     scanner->buf = buf;
     scanner->bsize = bsize;
     scanner->boffset = i;
-    
-    // we also want to bump offset past whitespace
-    while (scanner->boffset < scanner->bsize && PDOperatorSymbolGlob[(unsigned char)scanner->buf[scanner->boffset]] == PDOperatorSymbolGlobWhitespace) 
-        scanner->boffset++;
     
 #ifdef DEBUG_SCANNER_SYMBOLS
     char *str = strndup(sym->sstart, sym->slen);

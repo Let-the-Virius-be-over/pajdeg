@@ -30,7 +30,9 @@
 #ifndef INCLUDED_PDDefines_h
 #define INCLUDED_PDDefines_h
 
-// Support zlib.
+/**
+  Support zlib compression for filters.
+  */
 #define PD_SUPPORT_ZLIB
 
 // The DEBUG directive turns on all assertions and warnings. It is recommended when writing or testing but not for production code.
@@ -393,8 +395,16 @@
      */
 
     /**
+     @defgroup FILTER_FLATE_GRP Flate Filter
+     
+     @{
+     */
+
+    /**
      @file PDStreamFilterFlateDecode.h
      */
+
+    /** @} */
 
     /**
      The stream filter type.

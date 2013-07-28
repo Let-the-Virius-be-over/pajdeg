@@ -30,8 +30,8 @@
 #include "PDPortableDocumentFormatState.h"
 #include "PDPDFPrivate.h"
 #include "PDStaticHash.h"
-#include "PDBTree.h" // remove
 #include "PDStreamFilterFlateDecode.h"
+#include "PDStreamFilterPrediction.h"
 
 PDInteger users = 0;
 PDStateRef pdfRoot, xrefSeeker;
@@ -80,6 +80,8 @@ void PDPortableDocumentFormatStateRetain()
     static PDBool first = true;
     if (first) {
         first = false;
+        // register predictor handler, even if flate decode is not available
+        PDStreamFilterRegisterDualFilter("Predictor", PDStreamFilterPredictionConstructor);
 #ifdef PD_SUPPORT_ZLIB
         // register FlateDecode handler
         PDStreamFilterRegisterDualFilter("FlateDecode", PDStreamFilterFlateDecodeConstructor);

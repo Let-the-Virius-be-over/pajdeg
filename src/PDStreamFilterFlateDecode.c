@@ -10,12 +10,37 @@
 
 #ifdef PD_SUPPORT_ZLIB
 
+#include "PDStack.h"
 #include "PDStreamFilterFlateDecode.h"
 #include "zlib.h"
 
 PDInteger fd_compress_init(PDStreamFilterRef filter)
 {
     PDAssert(! filter->initialized);
+    
+    if (filter->options) {
+        PDStackRef iter = filter->options;
+        while (iter) {
+            if (!strcmp(iter->info, "Predictor")) {
+                // we need a predictor as well
+                PDStreamFilterRef predictor = PDStreamFilterObtain(iter->info, false, filter->options);
+                if (predictor) {
+                    // untie this from ourselves or we will destroy it twice
+                    filter->options = NULL;
+                    // because prediction has to come before compression we do a swap-a-roo here
+                    PDStreamFilterRef newSelf = malloc(sizeof(struct PDStreamFilter)); // new field for us
+                    memcpy(newSelf, filter, sizeof(struct PDStreamFilter)); // move us there
+                    memcpy(filter, predictor, sizeof(struct PDStreamFilter)); // replace old us with predictor
+                    filter->nextFilter = newSelf;                               // set new us as predictor's next
+                    predictor->options = NULL;                                  // clear OLD predictor's options or destroyed twice
+                    PDStreamFilterDestroy(predictor);
+                    return (*filter->init)(filter);                             // init predictor, not us
+                }
+                break;
+            }
+            iter = iter->prev->prev;
+        }
+    }
     
     z_stream *stream = filter->data = calloc(1, sizeof(z_stream));
     
@@ -36,6 +61,22 @@ PDInteger fd_compress_init(PDStreamFilterRef filter)
 PDInteger fd_decompress_init(PDStreamFilterRef filter)
 {
     PDAssert(! filter->initialized);
+    
+    if (filter->options) {
+        PDStackRef iter = filter->options;
+        while (iter) {
+            if (!strcmp(iter->info, "Predictor")) {
+                // we need a predictor as well
+                filter->nextFilter = PDStreamFilterObtain(iter->info, true, filter->options);
+                if (filter->nextFilter) {
+                    // untie this from ourselves or we will destroy it twice
+                    filter->options = NULL;
+                }
+                break;
+            }
+            iter = iter->prev->prev;
+        }
+    }
     
     z_stream *stream = filter->data = calloc(1, sizeof(z_stream));
     
@@ -148,21 +189,21 @@ PDInteger fd_decompress_process(PDStreamFilterRef filter)
     return fd_decompress_proceed(filter);
 }
 
-PDStreamFilterRef PDStreamFilterFlateDecodeCompressCreate(void)
+PDStreamFilterRef PDStreamFilterFlateDecodeCompressCreate(PDStackRef options)
 {
-    return PDStreamFilterCreate(fd_compress_init, fd_compress_done, fd_compress_process, fd_compress_proceed);
+    return PDStreamFilterCreate(fd_compress_init, fd_compress_done, fd_compress_process, fd_compress_proceed, options);
 }
 
-PDStreamFilterRef PDStreamFilterFlateDecodeDecompressCreate(void)
+PDStreamFilterRef PDStreamFilterFlateDecodeDecompressCreate(PDStackRef options)
 {
-    return PDStreamFilterCreate(fd_decompress_init, fd_decompress_done, fd_decompress_process, fd_decompress_proceed);
+    return PDStreamFilterCreate(fd_decompress_init, fd_decompress_done, fd_decompress_process, fd_decompress_proceed, options);
 }
 
-PDStreamFilterRef PDStreamFilterFlateDecodeConstructor(PDBool inputEnd)
+PDStreamFilterRef PDStreamFilterFlateDecodeConstructor(PDBool inputEnd, PDStackRef options)
 {
     return (inputEnd
-            ? PDStreamFilterFlateDecodeDecompressCreate()
-            : PDStreamFilterFlateDecodeCompressCreate());
+            ? PDStreamFilterFlateDecodeDecompressCreate(options)
+            : PDStreamFilterFlateDecodeCompressCreate(options));
 }
 
 #endif // PD_SUPPORT_ZLIB

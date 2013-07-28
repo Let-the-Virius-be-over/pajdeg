@@ -273,6 +273,107 @@ void PDStackDestroy(PDStackRef stack)
     }
 }
 
+PDStackRef PDStackGetDictKey(PDStackRef dictStack, const char *key, PDBool remove)
+{
+    // dicts are set up (reversedly) as
+    // "dict"
+    // "entries"
+    // [stack]
+    if (dictStack == NULL || ! PDIdentifies(dictStack->info, PD_DICT)) 
+        return NULL;
+    
+    PDStackRef prev = dictStack->prev->prev;
+    PDStackRef stack = dictStack->prev->prev->info;
+    PDStackRef entry;
+    while (stack) {
+        // entries are stacks, with
+        // e
+        // ID
+        // entry
+        entry = stack->info;
+        if (! strcmp((char*)entry->prev->info, key)) {
+            if (remove) {
+                if (prev == dictStack->prev->prev) {
+                    // first entry; container stack must reref
+                    prev->info = stack->prev;
+                } else {
+                    // not first entry; simply reref prev
+                    prev->prev = stack->prev;
+                }
+                // disconnect stack from its siblings and from prev (or prev is destroyed), then destroy stack and we can return prev
+                stack->info = NULL;
+                stack->prev = NULL;
+                PDStackDestroy(stack);
+                return entry;
+            }
+            return entry;
+        }
+        prev = stack;
+        stack = stack->prev;
+    }
+    return NULL;
+}
+
+PDBool PDStackGetNextDictKey(PDStackRef *iterStack, char **key, char **value)
+{
+    // dicts are set up (reversedly) as
+    // "dict"
+    // "entries"
+    // [stack]
+    PDStackRef stack = *iterStack;
+    PDStackRef entry;
+    
+    // two instances where we hit falsity; stack is indeed a dictionary, but it's empty: we will initially have a stack but it will be void after below if case (hence, stack truthy is included), otherwise it is the last element, in which case it's NULL on entry
+    if (stack && PDIdentifies(stack->info, PD_DICT)) {
+        *iterStack = stack = stack->prev->prev->info;
+    }
+    if (! stack) return false;
+    
+    // entries are stacks, with
+    // de
+    // ID
+    // entry
+    entry = stack->info;
+    *key = (char*)entry->prev->info;
+    entry = (PDStackRef)entry->prev->prev;
+    
+    // entry is now iterated past e, ID and is now at
+    // entry
+    // so we see if type is primitive or not
+    if (entry->type == PDSTACK_STACK) {
+        // it's not primitive, so we set the preserve flag and stringify
+        PDStackSetGlobalPreserveFlag(true);
+        entry = (PDStackRef)entry->info;
+        *value = PDStringFromComplex(&entry);
+        PDStackSetGlobalPreserveFlag(false);
+    } else {
+        // it is primitive (we presume)
+        PDAssert(entry->type == PDSTACK_STRING);
+        *value = strdup((char*)entry->info);
+    }
+    
+    *iterStack = stack->prev;
+    
+    return true;
+}
+
+PDStackRef PDStackCreateFromDefinition(const void **defs)
+{
+    PDInteger i;
+    PDStackRef stack = NULL;
+    
+    for (i = 0; defs[i]; i++) {
+        PDStackPushIdentifier(&stack, (const char **)defs[i]);
+    }
+    
+    return stack;
+}
+
+//
+// debugging
+//
+
+
 static char *sind = NULL;
 static PDInteger cind = 0;
 void PDStackPrint_(PDStackRef stack, PDInteger indent)
@@ -376,86 +477,4 @@ void PDStackShow(PDStackRef stack)
     printf(" }\n");
 }
 
-PDStackRef PDStackGetDictKey(PDStackRef dictStack, const char *key, PDBool remove)
-{
-    // dicts are set up (reversedly) as
-    // "dict"
-    // "entries"
-    // [stack]
-    if (dictStack == NULL || ! PDIdentifies(dictStack->info, PD_DICT)) 
-        return NULL;
-    
-    PDStackRef prev = dictStack->prev->prev;
-    PDStackRef stack = dictStack->prev->prev->info;
-    PDStackRef entry;
-    while (stack) {
-        // entries are stacks, with
-        // e
-        // ID
-        // entry
-        entry = stack->info;
-        if (! strcmp((char*)entry->prev->info, key)) {
-            if (remove) {
-                if (prev == dictStack->prev->prev) {
-                    // first entry; container stack must reref
-                    prev->info = stack->prev;
-                } else {
-                    // not first entry; simply reref prev
-                    prev->prev = stack->prev;
-                }
-                // disconnect stack from its siblings and from prev (or prev is destroyed), then destroy stack and we can return prev
-                stack->info = NULL;
-                stack->prev = NULL;
-                PDStackDestroy(stack);
-                return entry;
-            }
-            return entry;
-        }
-        prev = stack;
-        stack = stack->prev;
-    }
-    return NULL;
-}
 
-PDBool PDStackGetNextDictKey(PDStackRef *iterStack, char **key, char **value)
-{
-    // dicts are set up (reversedly) as
-    // "dict"
-    // "entries"
-    // [stack]
-    PDStackRef stack = *iterStack;
-    PDStackRef entry;
-    
-    // two instances where we hit falsity; stack is indeed a dictionary, but it's empty: we will initially have a stack but it will be void after below if case (hence, stack truthy is included), otherwise it is the last element, in which case it's NULL on entry
-    if (stack && PDIdentifies(stack->info, PD_DICT)) {
-        *iterStack = stack = stack->prev->prev->info;
-    }
-    if (! stack) return false;
-    
-    // entries are stacks, with
-    // de
-    // ID
-    // entry
-    entry = stack->info;
-    *key = (char*)entry->prev->info;
-    entry = (PDStackRef)entry->prev->prev;
-    
-    // entry is now iterated past e, ID and is now at
-    // entry
-    // so we see if type is primitive or not
-    if (entry->type == PDSTACK_STACK) {
-        // it's not primitive, so we set the preserve flag and stringify
-        PDStackSetGlobalPreserveFlag(true);
-        entry = (PDStackRef)entry->info;
-        *value = PDStringFromComplex(&entry);
-        PDStackSetGlobalPreserveFlag(false);
-    } else {
-        // it is primitive (we presume)
-        PDAssert(entry->type == PDSTACK_STRING);
-        *value = strdup((char*)entry->info);
-    }
-    
-    *iterStack = stack->prev;
-    
-    return true;
-}
