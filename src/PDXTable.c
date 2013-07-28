@@ -83,9 +83,6 @@ PDBool PDXTableInsertXRef(PDParserRef parser)
     PDTwinStreamInsertContent(stream, len, obuf)
 #define twinstream_put(len, buf) \
     PDTwinStreamInsertContent(stream, len, (char*)buf);
-    ///// does it set xref and unsed??????????
-    ///// does it set xref and unsed??????????
-    ///// does it set xref and unsed??????????    
     char *obuf = malloc(2048);
     PDInteger len;
     PDInteger i;
