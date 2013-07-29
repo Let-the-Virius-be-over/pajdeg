@@ -13,8 +13,8 @@
 #include "PDDefines.h"
 
 typedef enum {
-    PDXTableFormatText = 0,     // PDF-1.4 and below, using 20-byte leading zero space delimited entries
-    PDXTableFormatBinary = 1,   // PDX-1.5 and forward, using variable width object stream format
+    PDXTableFormatText   = 0, // PDF-1.4 and below, using 20-byte leading zero space delimited entries
+    PDXTableFormatBinary = 1, // PDX-1.5 and forward, using variable width object stream format
 } PDXFormat;
 
 enum {
@@ -38,16 +38,17 @@ typedef unsigned char PDXGenType;
 #define PDXWEntry       "[ 1 4 1 ]" // why can't I make this use the quoted value of the #defines above...?
 
 struct PDXTable {
-    char       *xrefs;  // xref entries stored as a chunk of memory
+    char       *xrefs;      // xref entries stored as a chunk of memory
     
-    PDXFormat   format; // format
-    PDParserRef parser; // parser
-    PDSize      cap;    // capacity
-    PDSize      count;  // # of objects
-    PDSize      pos;    // byte-wise position in the PDF where the xref (and subsequent trailer) begins; reaching this point means the xref cease to apply
+    PDXFormat   format;     // format
+    PDBool      linearized; // if set, unexpected XREF entries in the PDF are silently ignored by the parser
+    PDParserRef parser;     // parser
+    PDSize      cap;        // capacity
+    PDSize      count;      // # of objects
+    PDSize      pos;        // byte-wise position in the PDF where the xref (and subsequent trailer) begins; reaching this point means the xref cease to apply
     
-    PDXTableRef prev;   // previous (older) table
-    PDXTableRef next;   // next (newer) table
+    PDXTableRef prev;       // previous (older) table
+    PDXTableRef next;       // next (newer) table
 };
 
 extern PDXOffsetType PDXRefGetOffsetForID(char *xrefs, PDInteger obid);

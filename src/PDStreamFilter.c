@@ -31,7 +31,7 @@ PDStreamFilterRef PDStreamFilterObtain(const char *name, PDBool inputEnd, PDStac
     return NULL;
 }
 
-PDStreamFilterRef PDStreamFilterCreate(PDStreamFilterFunc init, PDStreamFilterFunc done, PDStreamFilterFunc process, PDStreamFilterFunc proceed, PDStackRef options)
+PDStreamFilterRef PDStreamFilterCreate(PDStreamFilterFunc init, PDStreamFilterFunc done, PDStreamFilterFunc process, PDStreamFilterFunc proceed, PDStreamFilterPrcs inversion, PDStackRef options)
 {
     PDStreamFilterRef filter = calloc(1, sizeof(struct PDStreamFilter));
     filter->growthHint = 1.f;
@@ -41,6 +41,7 @@ PDStreamFilterRef PDStreamFilterCreate(PDStreamFilterFunc init, PDStreamFilterFu
     filter->done = done;
     filter->process = process;
     filter->proceed = proceed;
+    filter->inversion = inversion;
     return filter;
 }
 
@@ -166,7 +167,7 @@ PDInteger PDStreamFilterProceed(PDStreamFilterRef filter)
     if (filter->finished) return 0;
     
     // or energy
-    if (filter->nextFilter == NULL) return (*filter->process)(filter);
+    if (filter->nextFilter == NULL) return (*filter->proceed)(filter);
     
     // we pull out filter's output values
     PDInteger result = 0;
@@ -189,7 +190,7 @@ PDInteger PDStreamFilterProceed(PDStreamFilterRef filter)
             // filters sometimes need more data to process (e.g. predictor), so we can't blindly throw out and replace the buffers each time; the next->bufInAvailable declares how many bytes are still unprocessed
             if (next->bufInAvailable > 0) {
                 // we can always memcpy() as no overlap will occur (or we would've skipped this filter)
-                assert(curr->bufOutOwned + curr->bufOutOwnedCapacity - next->bufInAvailable == next->bufIn);
+                //assert(curr->bufOutOwned + curr->bufOutOwnedCapacity - next->bufInAvailable == next->bufIn);
                 memcpy(curr->bufOutOwned, next->bufIn, next->bufInAvailable);
                 next->bufIn = curr->bufOutOwned;
                 curr->bufOut = curr->bufOutOwned + next->bufInAvailable;
@@ -222,6 +223,13 @@ PDInteger PDStreamFilterProceed(PDStreamFilterRef filter)
         // we may be in a situation where we consumed a lot of content and produced little; to prevent bottlenecks we will return to previous filters and reapply in these cases
         if (prev && prev->bufInAvailable > 0 && curr->bufInAvailable < 64 && curr->bufOutCapacity > 64) {
             // we have a prev, its input buffer has stuff, our input buffer has very little or no stuff, and our output buffer is capable of taking more stuff
+            // this is a good sign that we may need to grow an inbetween buffer to not bounce around too much
+            if (prev->bufOutOwnedCapacity < result + bufOutCapacity) {
+                PDInteger offs = curr->bufIn - prev->bufOutOwned;
+                prev->bufOutOwned = realloc(prev->bufOutOwned, result + bufOutCapacity);
+                curr->bufIn = prev->bufOutOwned + offs;
+                prev->bufOutOwnedCapacity = result + bufOutCapacity;
+            }
             next = prev;
             curr = NULL;
         } 
@@ -236,10 +244,46 @@ PDInteger PDStreamFilterProceed(PDStreamFilterRef filter)
     // we actually go through once more to set 'finished' as it may flip back and forth as the filters rewind
     PDBool finished = true;
     for (curr = filter; curr; curr = curr->nextFilter)
-        finished &= curr->needsInput && curr->bufInAvailable == 0;
+        finished &= curr->finished;
     
     filter->finished = finished;
 
+    return result;
+}
+
+PDStreamFilterRef PDStreamFilterCreateInversionForFilter(PDStreamFilterRef filter)
+{
+    PDStreamFilterRef inversionParent = NULL;
+    
+    if (! filter->initialized) (*filter->init)(filter);
+    
+    if (filter->inversion == NULL) return NULL;
+    
+    if (filter->nextFilter) {
+        if (filter->nextFilter->inversion) 
+            inversionParent = (*filter->nextFilter->inversion)(filter);
+        if (inversionParent == NULL) 
+            return NULL;
+    }
+    
+    PDStreamFilterRef inversion = (*filter->inversion)(filter);
+    if (! inversionParent) {
+        return inversion;
+    }
+    
+    // we went from  [1] ->  [2] ->  [3] to 
+    //                       [2] ->  [3] to
+    //                              ~[3] to
+    //                      ~[3] -> ~[2]
+    // and we keep getting the "super parent" back each time, so we have to step down
+    // to the last child and put us below that, in order to get
+    //              ~[3] -> ~[2] -> ~[1]
+    // which is the only proper inversion (~ is not the proper sign for inversion, but ^-1 looks ugly)
+    
+    PDStreamFilterRef result = inversionParent;
+    while (inversionParent->nextFilter) inversionParent = inversionParent->nextFilter;
+    inversionParent->nextFilter = inversion;
+    
     return result;
 }
 

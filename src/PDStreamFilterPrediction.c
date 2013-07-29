@@ -7,6 +7,7 @@
 //
 
 #include "PDInternal.h"
+#include "PDStack.h"
 
 #include "PDStreamFilterPrediction.h"
 
@@ -23,7 +24,8 @@ struct PDPredictor {
 
 PDInteger pred_init(PDStreamFilterRef filter)
 {
-    PDAssert(! filter->initialized);
+    if (filter->initialized)
+        return true;
     
     PDPredictorRef pred = malloc(sizeof(struct PDPredictor));
     pred->predictor = PDPredictorNone;
@@ -103,8 +105,10 @@ PDInteger pred_proceed(PDStreamFilterRef filter)
     
     PDPredictorRef pred = filter->data;
     
-    if (filter->bufInAvailable == 0) 
+    if (filter->bufInAvailable == 0) {
+        filter->finished = ! filter->hasInput;
         return 0;
+    }
     
     if (pred->predictor == PDPredictorNone) {
         PDInteger amount = filter->bufOutCapacity > filter->bufInAvailable ? filter->bufInAvailable : filter->bufOutCapacity;
@@ -154,6 +158,7 @@ PDInteger pred_proceed(PDStreamFilterRef filter)
     filter->bufInAvailable = avail;
     filter->bufOutCapacity = cap;
     filter->needsInput = avail < bw;
+    filter->finished = avail == 0 && ! filter->hasInput;
 
     return outputLength;
 }
@@ -164,8 +169,10 @@ PDInteger unpred_proceed(PDStreamFilterRef filter)
     
     PDPredictorRef pred = filter->data;
     
-    if (filter->bufInAvailable == 0) 
+    if (filter->bufInAvailable == 0) {
+        filter->finished = ! filter->hasInput;
         return 0;
+    }
     
     if (pred->predictor == PDPredictorNone) {
         PDInteger amount = filter->bufOutCapacity > filter->bufInAvailable ? filter->bufInAvailable : filter->bufOutCapacity;
@@ -212,7 +219,8 @@ PDInteger unpred_proceed(PDStreamFilterRef filter)
     filter->bufInAvailable = avail;
     filter->bufOutCapacity = cap;
     filter->needsInput = avail < rw;
-    
+    filter->finished = avail == 0 && ! filter->hasInput;
+
     return outputLength;
 }
 
@@ -228,14 +236,45 @@ PDInteger unpred_process(PDStreamFilterRef filter)
     return unpred_proceed(filter);
 }
 
+PDStreamFilterRef pred_invert_with_options(PDStreamFilterRef filter, PDBool inputEnd)
+{
+    PDPredictorRef pred = filter->data;
+    char colstr[6];
+    char predstr[6];
+    sprintf(colstr, "%ld", pred->columns);
+    sprintf(predstr, "%d", pred->predictor);
+    
+    PDStackRef opts = NULL;
+    PDStackPushKey(&opts, strdup(colstr));
+    PDStackPushKey(&opts, strdup("Columns"));
+    PDStackPushKey(&opts, strdup(predstr));
+    PDStackPushKey(&opts, strdup("Predictor"));
+    
+    /*PDStackRef opts = (PDStackCreateFromDefinition
+                       (PDDef(colstr, "Columns",
+                              predstr, "Predictor")));
+    */
+    return PDStreamFilterPredictionConstructor(inputEnd, opts);
+}
+
+PDStreamFilterRef pred_invert(PDStreamFilterRef filter)
+{
+    return pred_invert_with_options(filter, true);
+}
+
+PDStreamFilterRef unpred_invert(PDStreamFilterRef filter)
+{
+    return pred_invert_with_options(filter, false);
+}
+
 PDStreamFilterRef PDStreamFilterUnpredictionCreate(PDStackRef options)
 {
-    return PDStreamFilterCreate(unpred_init, unpred_done, unpred_process, unpred_proceed, options);
+    return PDStreamFilterCreate(unpred_init, unpred_done, unpred_process, unpred_proceed, unpred_invert, options);
 }
 
 PDStreamFilterRef PDStreamFilterPredictionCreate(PDStackRef options)
 {
-    return PDStreamFilterCreate(pred_init, pred_done, pred_process, pred_proceed, options);
+    return PDStreamFilterCreate(pred_init, pred_done, pred_process, pred_proceed, pred_invert, options);
 }
 
 PDStreamFilterRef PDStreamFilterPredictionConstructor(PDBool inputEnd, PDStackRef options)

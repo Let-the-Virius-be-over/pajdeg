@@ -37,18 +37,6 @@
 
 #include "PDScanner.h"
 
-#if 0
-static inline void PDXWrite(char *buf, PDInteger value, PDInteger digits)
-{
-    for (digits--; value > 0 && digits >= 0; digits--) {
-        buf[digits] = '0' + (value % 10);
-        value /= 10;
-    }
-    while (digits >= 0) 
-        buf[digits--] = '0';
-}
-#endif
-
 PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
 {
     PDPortableDocumentFormatStateRetain();
@@ -204,7 +192,6 @@ void PDParserUpdateObject(PDParserRef parser)
             PDScannerSkip(scanner, parser->streamLen);
             PDTwinStreamDiscardContent(parser->stream);//, PDTwinStreamScannerCommitBytes(parser->stream));
             
-            //PDScannerReadStream(scanner, NULL, parser->streamLen);
             
             PDScannerAssertComplex(scanner, PD_ENDSTREAM);
             //PDScannerAssertString(scanner, "endstream");
@@ -382,7 +369,8 @@ void PDParserPassthroughObject(PDParserRef parser)
                         *PDXRefTypeForID(parser->mxt->xrefs, parser->obid) = PDXTypeFreed;
                         parser->state = PDParserStateObjectAppendix;
                         PDParserPassoverObject(parser);
-                        // we also have a startxref
+                        // we also have a startxref (apparently not always)
+#if 0
                         PDScannerAssertComplex(scanner, PD_STARTXREF);
                         PDTwinStreamDiscardContent(parser->stream);
                         // we most likely also have a %%EOF
@@ -396,6 +384,7 @@ void PDParserPassthroughObject(PDParserRef parser)
                                 PDStackPushStack(&scanner->resultStack, stack);
                             } 
                         }
+#endif
                         return;
                     }
                 }
@@ -415,7 +404,6 @@ void PDParserPassthroughObject(PDParserRef parser)
                 PDAssert(parser->streamLen > 0);
                 PDScannerSkip(scanner, parser->streamLen);
                 PDTWinStreamPassthroughContent(parser->stream);//, PDTwinStreamScannerCommitBytes(parser->stream));
-                //PDScannerReadStream(scanner, NULL, parser->streamLen);
                 PDScannerAssertComplex(scanner, PD_ENDSTREAM);
                 //PDScannerAssertString(scanner, "endstream");
                 PDScannerPopString(scanner, &string);
@@ -528,46 +516,76 @@ void PDParserAppendObjects(PDParserRef parser)
     }
 }
 
+// advance to the next XRef domain
+PDBool PDParserIterateXRefDomain(PDParserRef parser)
+{
+    // linearized XREF = ignore extraneous XREF records
+    if (parser->cxt->linearized && parser->cxt->pos > PDTwinStreamGetInputOffset(parser->stream)) 
+        return true;
+    
+    if (parser->xstack == NULL) {
+        parser->done = true;
+        
+        PDParserAppendObjects(parser);
+        PDAssert(NULL == parser->xstack); // crash = we missed an xref table in the PDF; that's very not good
+        PDAssert(NULL == parser->skipT); // crash = we lost objects
+        parser->success &= NULL == parser->xstack && NULL == parser->skipT;
+        return false;
+    }
+    
+    PDXTableRef next = (PDXTableRef) PDStackPopIdentifier(&parser->xstack);
+    
+    PDBool retval = true;
+    if (parser->cxt != parser->mxt) {
+        PDXTableDestroy(parser->cxt);
+        parser->cxt = next;
+
+        if (parser->cxt->pos < PDTwinStreamGetInputOffset(parser->stream)) 
+            retval = PDParserIterateXRefDomain(parser);
+    } else {
+        if (next->pos < PDTwinStreamGetInputOffset(parser->stream)) 
+            retval = PDParserIterateXRefDomain(parser);
+        PDXTableDestroy(next);
+    }
+    
+    return retval;
+}
+
 // iterate to the next (non-deprecated) object
 PDBool PDParserIterate(PDParserRef parser)
 {
+    PDBool running;
     PDBool skipObject;
     PDStackRef stack;
-    char * string;
+    PDID typeid;
     PDScannerRef scanner = parser->scanner;
     char *mxrefs = parser->mxt->xrefs;
     size_t nextobid, nextgenid;
 
     PDTwinStreamAsserts(parser->stream);
     
-    // we may have passed beyond the last object, or the current xref
-    while (PDTwinStreamGetInputOffset(parser->stream) >= parser->cxt->pos) {
-        if (parser->cxt == parser->mxt) {
-            if (parser->appends) 
-                PDParserAppendObjects(parser);
-            PDAssert(NULL == parser->xstack); // crash = we missed an xref table in the PDF; that's very not good
-            PDAssert(NULL == parser->skipT); // crash = we lost objects
-            parser->success &= NULL == parser->xstack && NULL == parser->skipT;
+    // parser may be done
+    if (parser->done) 
+        return false;
+    
+    // we may have passed beyond the current binary XREF table
+    if (parser->cxt->format == PDXTableFormatBinary && PDTwinStreamGetInputOffset(parser->stream) >= parser->cxt->pos) {
+        if (! PDParserIterateXRefDomain(parser)) 
+            // we've reached the end
             return false;
-        }
-        
-        PDXTableRef next = (PDXTableRef) PDStackPopIdentifier(&parser->xstack);
-        
-        PDXTableDestroy(parser->cxt);
-        parser->cxt = next;
     }
     
+    // move past half-read objects
     if (PDParserStateBase != parser->state || NULL != parser->construct) {
         PDParserPassthroughObject(parser);
     }
 
     PDTwinStreamAsserts(parser->stream);
     
-    PDBool running = true;
-    while (running) {
-        // discard scanner trail up to this point
+    while (true) {
+        // discard up to this point
         if (scanner->boffset > 0) {
-            PDTwinStreamDiscardContent(parser->stream);//, PDTwinStreamScannerCommitBytes(parser->stream));
+            PDTwinStreamDiscardContent(parser->stream);
         }
         
         PDTwinStreamAsserts(parser->stream);
@@ -578,79 +596,70 @@ PDBool PDParserIterate(PDParserRef parser)
             
             PDTwinStreamAsserts(parser->stream);
             
-            // first string is the type
-            string = (char *)*PDStackPopIdentifier(&stack);
-            // we expect 'x'(ref), 'o'(bj)
-            switch (string[0]) {
-                case 'x':
-                    // xref entry
-                    
-                    if (PDTwinStreamGetInputOffset(parser->stream) >= parser->mxt->pos) {
-                        // iteration phase is ended; we now have the primary xref table in front of us, then the trailer; we want to pass over the xref part as always, but stop at the trailer; we also may have objects to append
-                        PDParserAppendObjects(parser);
-                        PDAssert(NULL == parser->xstack); // crash = we missed an xref table in the PDF; that's very not good
-                        PDAssert(NULL == parser->skipT); // crash = we lost objects
-                        parser->success &= NULL == parser->xstack && NULL == parser->skipT;
-                        PDXTablePassoverXRefEntry(parser, stack, false);
-                        return false;
-                    }
-                    
-                    // not the final xref table; we iterate to the next one internally and pass over the definition
-                    
-                    PDAssert(PDTwinStreamGetInputOffset(parser->stream) >= parser->cxt->pos);
-                    
-                    PDXTableRef next = (PDXTableRef) PDStackPopIdentifier(&parser->xstack);
-                    PDAssert(next);
-                    
-                    PDXTableDestroy(parser->cxt);
-                    parser->cxt = next;
-                    
-                    PDXTablePassoverXRefEntry(parser, stack, true);
-                    break;
-                    
-                case 'o':
-                    // object definition; this is what we're after, unless this object is deprecated
-                    parser->obid = nextobid = PDStackPopInt(&stack);
-                    PDAssert(nextobid < parser->mxt->cap);
-                    parser->genid = nextgenid = PDStackPopInt(&stack);
-                    PDStackDestroy(stack);
-                    
-                    if (nextobid == 2459) {
-                        printf("");
-                    }
-                    
-                    skipObject = false;
-                    parser->state = PDParserStateObjectDefinition;
-                    
-                    //printf("object %zd (genid = %zd)\n", nextobid, nextgenid);
-                    
-                    if (nextgenid != *PDXRefGenForID(mxrefs, nextobid)) {
-                        // this is the wrong object
-                        skipObject = true;
-                    } else {
-                        long long offset = scanner->bresoffset + PDTwinStreamGetInputOffset(parser->stream) - PDXRefGetOffsetForID(mxrefs, nextobid); // PDXOffset(mxrefs[nextobid]);
-                        //printf("offset = %lld\n", offset);
-                        if (offset == 0) {
-                            PDBTreeRemove(&parser->skipT, nextobid);
-                        } else {
-                            //printf("offset mismatch for object %zd\n", nextobid);
-                            PDBTreeInsert(&parser->skipT, nextobid, (void*)nextobid);
-                            // this is an old version of the object (in reality, PDF:s should not have the same object defined twice; in practice, Adobe InDesign CS5.5 (7.5) happily spews out 2 (+?) copies of the same object with different versions in the same PDF (admittedly the obs are separated by %%EOF and in separate appendings, but regardless)
-                            skipObject = true;
-                        }
-                    }
-                    
-                    if (skipObject) {
-                        // move past object
-                        PDParserPassoverObject(parser);
-                        break;
-                    } 
-  
-                    return true;
-                default:
-                    PDWarn("unknown type: %s\n", string);
-                    PDAssert(0);
+            // first is the type, returned as an identifier
+            
+            typeid = PDStackPopIdentifier(&stack);
+
+            // we expect PD_XREF, PD_STARTXREF, or PD_OBJ
+            
+            if (typeid == &PD_XREF) {
+                // xref entry; note that we use running as the 'should consume trailer' argument to passover as the two states coincide
+                running = PDParserIterateXRefDomain(parser);
+                PDXTablePassoverXRefEntry(parser, stack, running);
+
+                if (! running) return false;
+                
+                continue;
             }
+            
+            if (typeid == &PD_OBJ) {
+                // object definition; this is what we're after, unless this object is deprecated
+                parser->obid = nextobid = PDStackPopInt(&stack);
+                PDAssert(nextobid < parser->mxt->cap);
+                parser->genid = nextgenid = PDStackPopInt(&stack);
+                PDStackDestroy(stack);
+                
+                skipObject = false;
+                parser->state = PDParserStateObjectDefinition;
+                
+                //printf("object %zd (genid = %zd)\n", nextobid, nextgenid);
+                
+                if (nextgenid != *PDXRefGenForID(mxrefs, nextobid)) {
+                    // this is the wrong object
+                    skipObject = true;
+                } else {
+                    long long offset = scanner->bresoffset + PDTwinStreamGetInputOffset(parser->stream) - PDXRefGetOffsetForID(mxrefs, nextobid); // PDXOffset(mxrefs[nextobid]);
+                    //printf("offset = %lld\n", offset);
+                    if (offset == 0) {
+                        PDBTreeRemove(&parser->skipT, nextobid);
+                    } else {
+                        //printf("offset mismatch for object %zd\n", nextobid);
+                        PDBTreeInsert(&parser->skipT, nextobid, (void*)nextobid);
+                        // this is an old version of the object (in reality, PDF:s should not have the same object defined twice; in practice, Adobe InDesign CS5.5 (7.5) happily spews out 2 (+?) copies of the same object with different versions in the same PDF (admittedly the obs are separated by %%EOF and in separate appendings, but regardless)
+                        skipObject = true;
+                    }
+                }
+                
+                if (skipObject) {
+                    // move past object
+                    PDParserPassoverObject(parser);
+                    continue;
+                } 
+                
+                return true;
+            }
+            
+            if (typeid == &PD_STARTXREF) {
+                // a trailing startxref entry
+                PDStackDestroy(stack);
+                PDScannerAssertComplex(scanner, PD_META);
+                // snip
+                PDTwinStreamDiscardContent(parser->stream);
+                continue;
+            }
+
+            PDWarn("unknown type: %s\n", *typeid);
+            PDAssert(0);
         } else {
             // we failed to get a stack which is very odd
             PDWarn("failed to pop stack from PDF stream; the unexpected string is \"%s\"\n", (char*)scanner->resultStack->info);

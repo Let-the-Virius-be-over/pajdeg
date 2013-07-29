@@ -41,6 +41,11 @@
 typedef PDInteger (*PDStreamFilterFunc)(PDStreamFilterRef filter);
 
 /**
+ Filter processing signature. Used for inverting filters currently.
+ */
+typedef PDStreamFilterRef (*PDStreamFilterPrcs)(PDStreamFilterRef filter);
+
+/**
  Dual filter construction signature. 
  
  If inputEnd is set, the reader variant is returned, otherwise the writer variant is returned.
@@ -67,6 +72,7 @@ struct PDStreamFilter {
     PDStreamFilterFunc done;            ///< Deinitialization function. Called once after last use.
     PDStreamFilterFunc process;         ///< Processing function. Called any number of times, at most once per new input buffer.
     PDStreamFilterFunc proceed;         ///< Proceed function. Called any number of times to request more output from last process call.
+    PDStreamFilterPrcs inversion;       ///< Inversion function. Returns, if possible, a filter chain that reverts the current filter.
     PDStreamFilterRef nextFilter;       ///< The next filter that should receive the output end of this filter as its input, or NULL if no such requirement exists.
     float growthHint;                   ///< The growth hint is an indicator for how the filter expects the size of its resulting data to be relative to the unfiltered data. 
     unsigned char *bufOutOwned;         ///< Internal output buffer, that will be freed on destruction. This is used internally for chained filters.
@@ -81,7 +87,7 @@ struct PDStreamFilter {
  @param process The process function; called once when new data is put into bufIn. Returns # of bytes stored into output buffer.
  @param proceed The proceed function; called repeatedly after a process call was made, until the filter returns 0 lengths. Returns # of bytes stored into output buffer.
  */
-extern PDStreamFilterRef PDStreamFilterCreate(PDStreamFilterFunc init, PDStreamFilterFunc done, PDStreamFilterFunc process, PDStreamFilterFunc proceed, PDStackRef options);
+extern PDStreamFilterRef PDStreamFilterCreate(PDStreamFilterFunc init, PDStreamFilterFunc done, PDStreamFilterFunc process, PDStreamFilterFunc proceed, PDStreamFilterPrcs inversion, PDStackRef options);
 
 /**
  Destroy a stream filter.
@@ -141,6 +147,14 @@ extern PDInteger PDStreamFilterProceed(PDStreamFilterRef filter);
  @return true on success, false on failure.
  */
 extern PDBool PDStreamFilterApply(PDStreamFilterRef filter, unsigned char *src, unsigned char **dst, PDInteger len, PDInteger *newlen);
+
+/**
+ Create the inversion of the given filter, so that [data] -> filter -> inversion == [data]
+ 
+ @param filter The filter to invert.
+ @return Inversion filter.
+ */
+extern PDStreamFilterRef PDStreamFilterCreateInversionForFilter(PDStreamFilterRef filter);
 
 /**
  Convert a PDScanner dictionary stack into a stream filter options stack.

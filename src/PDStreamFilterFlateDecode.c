@@ -16,7 +16,8 @@
 
 PDInteger fd_compress_init(PDStreamFilterRef filter)
 {
-    PDAssert(! filter->initialized);
+    if (filter->initialized)
+        return true;
     
     if (filter->options) {
         PDStackRef iter = filter->options;
@@ -60,7 +61,8 @@ PDInteger fd_compress_init(PDStreamFilterRef filter)
 
 PDInteger fd_decompress_init(PDStreamFilterRef filter)
 {
-    PDAssert(! filter->initialized);
+    if (filter->initialized)
+        return true;
     
     if (filter->options) {
         PDStackRef iter = filter->options;
@@ -138,6 +140,7 @@ PDInteger fd_compress_proceed(PDStreamFilterRef filter)
     int flush = filter->hasInput ? Z_NO_FLUSH : Z_FINISH;
     ret = deflate(stream, flush);
     if (ret < 0) { PDWarn("deflate error: %s\n", stream->msg); }
+    filter->finished = ret == Z_STREAM_END;
     assert (ret != Z_STREAM_ERROR); // crash = screwed up setup
     assert (ret != Z_BUF_ERROR);    // crash = buffer was trashed
     filter->failing = ret < 0;
@@ -164,6 +167,7 @@ PDInteger fd_decompress_proceed(PDStreamFilterRef filter)
     
     ret = inflate(stream, Z_NO_FLUSH);
     if (ret < 0) { PDWarn("inflate error: %s\n", stream->msg); }
+    filter->finished = ret == Z_STREAM_END;
     assert (ret != Z_STREAM_ERROR); // crash = screwed up setup
     assert (ret != Z_BUF_ERROR);    // crash = buffer was trashed
     switch (ret) {
@@ -206,14 +210,24 @@ PDInteger fd_decompress_process(PDStreamFilterRef filter)
     return fd_decompress_proceed(filter);
 }
 
+PDStreamFilterRef fd_compress_invert(PDStreamFilterRef filter)
+{
+    return PDStreamFilterFlateDecodeDecompressCreate(NULL);
+}
+
+PDStreamFilterRef fd_decompress_invert(PDStreamFilterRef filter)
+{
+    return PDStreamFilterFlateDecodeCompressCreate(NULL);
+}
+
 PDStreamFilterRef PDStreamFilterFlateDecodeCompressCreate(PDStackRef options)
 {
-    return PDStreamFilterCreate(fd_compress_init, fd_compress_done, fd_compress_process, fd_compress_proceed, options);
+    return PDStreamFilterCreate(fd_compress_init, fd_compress_done, fd_compress_process, fd_compress_proceed, fd_compress_invert, options);
 }
 
 PDStreamFilterRef PDStreamFilterFlateDecodeDecompressCreate(PDStackRef options)
 {
-    return PDStreamFilterCreate(fd_decompress_init, fd_decompress_done, fd_decompress_process, fd_decompress_proceed, options);
+    return PDStreamFilterCreate(fd_decompress_init, fd_decompress_done, fd_decompress_process, fd_decompress_proceed, fd_decompress_invert, options);
 }
 
 PDStreamFilterRef PDStreamFilterFlateDecodeConstructor(PDBool inputEnd, PDStackRef options)

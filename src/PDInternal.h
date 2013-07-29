@@ -168,6 +168,7 @@ struct PDParser {
     PDStackRef xstack;  // a stack of partial xref tables based on offset; see [1] below
     PDXTableRef mxt;    // master xref table, used for output
     PDXTableRef cxt;    // current input xref table
+    PDBool done;        // parser has passed the last object in the input PDF
     size_t xrefnewiter; // iterator for locating unused id's for usage in master xref table
     
     // object related

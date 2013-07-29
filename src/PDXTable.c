@@ -6,6 +6,8 @@
 //  Copyright (c) 2013 Alacrity Software. All rights reserved.
 //
 
+#include <math.h>
+
 #include "PDInternal.h"
 #include "PDParser.h"
 #include "PDTwinStream.h"
@@ -20,6 +22,25 @@
 /**
  @todo Below functions swap endianness due to the fact numbers are big-endian in binary XRefs (and, I guess, in text-form XRefs as well); if the machine running Pajdeg happens to be big-endian as well, below methods need to be #ifdef-ified to handle this (by NOT swapping every byte around in the integral representation).
  */
+
+PDXOffsetType PDXRefGetOffsetForArbitraryRepresentation(char *rep, PDInteger len)
+{
+    PDInteger i;
+    unsigned char *o = (unsigned char *)rep;
+    PDXOffsetType ot = 0;
+    PDXOffsetType shift = 0;
+    for (i = len-1; i >= 0; i--) {
+        if (shift > 8*sizeof(PDXOffsetType)) {
+            if (o[i] > 0) {
+                PDWarn("XREF offset larger than largest value containable in the offset type. This is a bug, or the PDF is bigger than %.1f GBs.\n", pow(2.0, (8.0*sizeof(PDXOffsetType))-30.0));
+            }
+        } else {
+            ot |= (o[i] << shift);
+        }
+        shift += 8;
+    }
+    return ot;
+}
 
 PDXOffsetType PDXRefGetOffsetForID(char *xrefs, PDInteger obid)
 {
@@ -45,9 +66,9 @@ struct PDXI {
     PDXTableRef pdx;
     PDParserRef parser;
     PDScannerRef scanner;
+    PDStackRef queue;
     PDStackRef stack;
     PDTwinStreamRef stream;
-    PDSize offs;
     PDReferenceRef rootRef;
     PDReferenceRef infoRef;
     PDReferenceRef encryptRef;
@@ -61,8 +82,8 @@ struct PDXI {
     parser, \
     parser->scanner, \
     NULL, \
+    NULL, \
     parser->stream, \
-    0, \
     NULL, \
     NULL, \
     NULL, \
@@ -83,7 +104,7 @@ PDBool PDXTableInsertXRef(PDParserRef parser)
     PDTwinStreamInsertContent(stream, len, obuf)
 #define twinstream_put(len, buf) \
     PDTwinStreamInsertContent(stream, len, (char*)buf);
-    char *obuf = malloc(2048);
+    char *obuf = malloc(512);
     PDInteger len;
     PDInteger i;
     PDTwinStreamRef stream = parser->stream;
@@ -94,16 +115,13 @@ PDBool PDXTableInsertXRef(PDParserRef parser)
     
     // we already have the trailer defined so we don't have to read any more from the file
     
-    // read the trailer dict
-    //PDScannerPopStack(scanner, &trailer);
-    
     // write xref header
     twinstream_printf("xref\n%d %llu\n", 0, mxt->count);
     
     // write xref table
     twinstream_put(20, "0000000000 65535 f \n");
     for (i = 1; i < mxt->count; i++) {
-        sprintf(obuf, "%010u %05d %c \n", PDXTableOffsetForID(mxt, i), *PDXTableGenForID(mxt, i), PDXTableIsIDFree(mxt, i) ? 'f' : 'n');
+        twinstream_printf("%010u %05d %c \n", PDXTableOffsetForID(mxt, i), *PDXTableGenForID(mxt, i), PDXTableIsIDFree(mxt, i) ? 'f' : 'n');
     }
     
     PDObjectRef tob = parser->trailer;
@@ -188,10 +206,6 @@ PDBool PDXTablePassoverXRefEntry(PDParserRef parser, PDStackRef stack, PDBool in
         
         PDScannerSkip(scanner, count * 20);
         PDTwinStreamDiscardContent(parser->stream);//, PDTwinStreamScannerCommitBytes(parser->stream) + count * 20);
-        //bytes = count * 20;
-        //if (bytes != PDScannerReadStream(scanner, NULL, bytes)) {
-        //    PDAssert(0);
-        //}
         
         running = PDScannerPopStack(scanner, &stack);
         if (running) PDStackAssertExpectedKey(&stack, "xref");
@@ -247,11 +261,11 @@ static inline PDBool PDXTableFindStartXRef(PDXI X)
     // this stack should start out with "xref" indicating the ob type
     PDStackAssertExpectedKey(&X->stack, "startxref");
     // next is the offset 
-    X->offs = PDStackPopSize(&X->stack);
+    PDStackPushIdentifier(&X->queue, (PDID)PDStackPopSize(&X->stack));
     PDAssert(X->stack == NULL);
     PDScannerDestroy(xrefScanner);
     
-    // we now start looping, each loop covering one xref entry, until we've jumped through all of them
+    // we're now ready to skip to the first XRef
     PDTWinStreamSetMethod(X->stream, PDTwinStreamRandomAccess);
     PDScannerContextPop();
     
@@ -338,6 +352,8 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X)
     }
         
     if (filter) {
+        /// @todo We know from 'size' exactly how many bytes we expect out of this thing, so we can set buffer to this value instead of basing it off len (compressed stream length)
+        
         PDInteger got = 0;
         PDInteger cap = len < 1024 ? 1024 : len * 4;
         buf = malloc(cap);
@@ -347,42 +363,12 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X)
         while (bytes > 0) {
             got += bytes;
             if (! filter->finished && filter->bufOutCapacity < 512) {
-                cap *= 2;
+                cap *= (cap < 8192 ? 4 : 2); // we don't want to hit caps in filters more than once or twice, but we don't want retardo-huge buffers either so we can the rapid growth to 8k and then double after that
                 buf = realloc(buf, cap);
             }
             bytes = PDScannerReadStreamNext(X->scanner, &buf[got]  , cap - got);
         }
-#if 0        
-        filter = filter->nextFilter;
-        
-        while (filter) {
-            char *buf2 = malloc(cap);
-            
-            (*fih8lter->init)(filter);
-            filter->bufIn = (unsigned char *)buf;
-            filter->bufInAvailable = got;
-            filter->bufOut = (unsigned char *)buf2;
-            filter->bufOutCapacity = cap;
-            
-            got = 0;
-            bytes = (*filter->process)(filter);
-            while (bytes > 0) {
-                got += bytes;
-                if (cap - got < 128) {
-                    cap *= 2;
-                    buf2 = realloc(buf2, cap);
-                }
-                filter->bufOut = (unsigned char *)&buf2[got];
-                filter->bufOutCapacity = cap - got;
-                bytes = (*filter->proceed)(filter);
-            }
-            free(buf);
-            buf = buf2;
-            
-            filter = filter->nextFilter;
-        }
-#endif
-        // we cannot detach from scanner until the filtering is done as it will destroy the filters recursively
+
         PDScannerDetachFilter(X->scanner);
     } else {
         buf = malloc(len);
@@ -418,12 +404,11 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X)
         
 #undef setup_align
 #define transfer_pc(dst, src, pad, shr, cap, i) \
-            memcpy(dst, src, cap); \
-            dst += cap; src += cap; \
             for (i = 0; i < pad; i++) \
                 dst[i] = 0; \
-            dst += pad; \
-            src += shr
+            memcpy(&dst[pad], src, cap); \
+            dst += pad + cap; \
+            src += shr + cap
 #define transfer_pcs(dst, src, i, suf) transfer_pc(dst, src, pad##suf, shr##suf, cap##suf, i)
     }
     
@@ -448,6 +433,7 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X)
     
     xrefs = pdx->xrefs;
     bufi = buf;
+    
     do {
         PDAssert(startob + obcount <= size);
         
@@ -460,9 +446,16 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X)
             for (i = 0; i < obcount; i++) {
                 // transfer 
                 transfer_pcs(dst, bufi, j, T);
+#ifdef DEBUG
+                PDXOffsetType mark = PDXRefGetOffsetForArbitraryRepresentation(bufi, sizeO);
+#endif
                 transfer_pcs(dst, bufi, j, O);
                 transfer_pcs(dst, bufi, j, I);
                 PDAssert(((dst - pdx->xrefs) % PDXWidth) == 0);
+#ifdef DEBUG
+                printf("force-aligned XREF entry: #%ld: %u (%d)\n", i+startob, PDXTableOffsetForID(pdx, startob+i), *PDXTableGenForID(pdx, startob+i));
+                PDAssert(mark == PDXRefGetOffsetForID(pdx->xrefs, startob+i)); // crash = transfer failure
+#endif
             }
         }
         
@@ -547,7 +540,6 @@ static inline PDBool PDXTableReadXRefContent(PDXI X)
 {
     PDSize size;
     PDInteger i;
-    char *xrefs;
     char *buf;
     char *src;
     char *dst;
@@ -571,7 +563,7 @@ static inline PDBool PDXTableReadXRefContent(PDXI X)
             if (size > pdx->cap) {
                 // we must realloc xref as it can't contain all the xrefs
                 pdx->cap = size;
-                xrefs = pdx->xrefs = pdx->xrefs ? realloc(pdx->xrefs, PDXWidth * size) : malloc(PDXWidth * size);
+                pdx->xrefs = realloc(pdx->xrefs, PDXWidth * size);
             }
         }
         
@@ -585,16 +577,26 @@ static inline PDBool PDXTableReadXRefContent(PDXI X)
         
         // convert into internal xref table
         src = buf;
-        dst = &xrefs[PDXWidth * startobid];
+        dst = &pdx->xrefs[PDXWidth * startobid];
         freeLink = NULL;
+        PDBool used;
         for (i = 0; i < count; i++) {
 #define PDXOffset(pdx)      fast_mutative_atol(pdx, 10)
 #define PDXGenId(pdx)       fast_mutative_atol(&pdx[11], 5)
 #define PDXUsed(pdx)        (pdx[17] == 'n')
             
+            // some PDF creators (determine who this is so they can contacted) incorrectly think setting generation number to 65536 is the same as setting the used character to 'f' (free) -- in order to not confuse Pajdeg, we address that here
+#ifdef DEBUG
+            if (PDXUsed(src) && PDXGenId(src) == 65536) {
+                PDWarn("warning: marking object #%ld as unused, because its generation id is 65536\n", i);
+                
+            }
+#endif
+            used = PDXUsed(src) && (PDXGenId(src) != 65536);
+            
             PDXRefSetOffsetForID(dst, i, PDXOffset(src));
 
-            if (PDXUsed(src)) {
+            if (used) {
                 *PDXRefTypeForID(dst, i) = PDXTypeUsed;
                 *PDXRefGenForID(dst, i) = PDXGenId(src);
             } else {
@@ -613,10 +615,8 @@ static inline PDBool PDXTableReadXRefContent(PDXI X)
     return true;
 }
 
-static inline PDBool PDXTableParseTrailer(PDXI X)
+static inline void PDXTableParseTrailer(PDXI X)
 {
-    PDBool running = false;
-    
     // if we have no Root or Info yet, grab them if found
     PDStackRef dictStack;
     if (X->rootRef == NULL && (dictStack = PDStackGetDictKey(X->stack, "Root", false))) {
@@ -634,11 +634,17 @@ static inline PDBool PDXTableParseTrailer(PDXI X)
     if (prev) {
         // e, Prev, 116
         char *s = prev->prev->prev->info;
-        X->offs = PDSizeFromString(s);
-        PDAssert(X->offs > 0 || !strcmp("0", s));
-
-        running = true;
+        PDStackPushIdentifier(&X->queue, (PDID)PDSizeFromString(s));
     } 
+    
+    // For 1.5+ PDF:s, an XRefStm may exist; it takes precedence over Prev, but does not override Prev
+    if ((dictStack = PDStackGetDictKey(X->stack, "XRefStm", false))) {
+        /// @todo FIND A CASE WHERE XRefStm EXISTS!
+        char *s = dictStack->prev->prev->info;
+        PDSize xrefStreamOffs = PDSizeFromString(s);
+        // X->queue is a queue of objects newer-to-older, which means pushing the XRefStm entry after pushing the Prev entry will do the right thing (XRefStm takes precedence, Prev is not skipped)
+        PDStackPushIdentifier(&X->queue, (PDID)xrefStreamOffs);
+    }
     
     // update the trailer object in case additional info is included
     // TODO: determine if spec requires this or if the last trailer is the whole truth
@@ -646,6 +652,8 @@ static inline PDBool PDXTableParseTrailer(PDXI X)
         X->trailer->obid = X->mtobid;
         X->trailer->def = X->stack;
     } else {
+        /// @todo Disabled this part; the master trailer has to contain vital stuff or Pajdeg loses it; this will e.g. put a bunch of stream related stuff into the regular trailer if a PDF has mixed XRef streams and plaintext XRefs
+#if 0
         char *key;
         char *value;
         PDStackRef iter = X->stack; 
@@ -655,10 +663,9 @@ static inline PDBool PDXTableParseTrailer(PDXI X)
             }
             free(value);
         }
+#endif
         PDStackDestroy(X->stack);
     }
-
-    return running;
 }
 
 PDBool PDXTableFetchHeaders(PDXI X)
@@ -674,12 +681,12 @@ PDBool PDXTableFetchHeaders(PDXI X)
     running = true;
     
     do {
-        // add this offset to stack
+        // pull next offset out of queue into the offsets stack and jump there
         X->tables++;
-        PDStackPushIdentifier(&osstack, (PDID)X->offs);
+        PDStackPopInto(&osstack, &X->queue);
         
         // jump to xref
-        PDTwinStreamSeek(X->stream, X->offs);
+        PDTwinStreamSeek(X->stream, (PDSize)osstack->info);
         
         // set up scanner
         X->scanner = PDScannerCreateWithState(pdfRoot);
@@ -701,14 +708,29 @@ PDBool PDXTableFetchHeaders(PDXI X)
             }
         }
         
-        running = PDXTableParseTrailer(X);
+        PDXTableParseTrailer(X);
         
         PDScannerDestroy(X->scanner);
-    } while (running);
+    } while (X->queue);
     
     X->stack = osstack;
     
     return true;
+}
+
+void PDXTablePrint(PDXTableRef pdx)
+{
+    char *xrefs = pdx->xrefs;
+    PDInteger i;
+    
+    char *types[] = {"free", "used", "compressed"};
+    
+    printf("XREF with %lld objects @ %lld:\n", pdx->count, pdx->pos);
+
+    for (i = 0; i < pdx->count; i++) {
+        PDOffset offs = PDXRefGetOffsetForID(xrefs, i);
+        printf("#%03ld: %010lld (%s)\n", i, offs, types[*PDXRefTypeForID(xrefs, i)]);
+    }
 }
 
 PDBool PDXTableFetchContent(PDXI X)
@@ -716,6 +738,7 @@ PDBool PDXTableFetchContent(PDXI X)
     char *xrefs;
     PDXTableRef *tables;
     PDSize      *offsets;
+    PDSize       offs;
     PDInteger offscount;
     PDInteger j;
     PDInteger i;
@@ -733,7 +756,7 @@ PDBool PDXTableFetchContent(PDXI X)
     offscount = 0;
     
     pdx = NULL;
-    while (0 != (X->offs = (PDSize)PDStackPopIdentifier(&osstack))) {
+    while (0 != (offs = (PDSize)PDStackPopIdentifier(&osstack))) {
         prev = pdx;
         if (pdx) {
             /// @todo CLANG doesn't like this (pdx is stored in tables, put into ctx stack, and released on PDParserDestroy)
@@ -742,6 +765,7 @@ PDBool PDXTableFetchContent(PDXI X)
             prev->next = pdx;
         } else {
             pdx = malloc(sizeof(struct PDXTable));
+            pdx->linearized = false;
             pdx->cap = 0;
             pdx->count = 0;
             pdx->next = NULL;
@@ -752,21 +776,21 @@ PDBool PDXTableFetchContent(PDXI X)
         X->pdx = pdx;
         
         // put offset in (sorted)
-        for (i = 0; i < offscount && offsets[i] < X->offs; i++) ;
+        for (i = 0; i < offscount && offsets[i] < offs; i++) ;
         for (j = i + 1; j <= offscount; j++) {
             offsets[j] = offsets[j-1];
             tables[j] = tables[j-1];
         }
-        offsets[i] = X->offs;
+        offsets[i] = offs;
         tables[i] = pdx;
         offscount++;
         
-        pdx->pos = X->offs;
+        pdx->pos = offs;
         
         xrefs = pdx->xrefs;
         
         // jump to xref
-        PDTwinStreamSeek(X->stream, X->offs);
+        PDTwinStreamSeek(X->stream, offs);
         
         // set up scanner
         X->scanner = PDScannerCreateWithState(pdfRoot);
@@ -795,10 +819,27 @@ PDBool PDXTableFetchContent(PDXI X)
     // pdx is now the complete input xref table with all offsets correct, so we use it as is for the master table
     X->parser->mxt = pdx;
     
-    // we now set up the xstack from the (byte-ordered) list of xref tables
+    // we now set up the xstack from the (byte-ordered) list of xref tables; if the PDF is or appears to be linearized, however, we flatten the stack into one entry
     X->parser->xstack = NULL;
-    for (i = X->tables - 1; i >= 0; i--) 
-        PDStackPushIdentifier(&X->parser->xstack, (PDID)tables[i]);
+    if (X->tables == 2 && pdx->pos < pdx->prev->pos) {
+        // master is before its precdecessor byte-wise, and the PDF has two XRef entries => linearized; flatten
+        pdx->linearized = true;
+        pdx->pos = pdx->prev->pos;
+        PDStackPushIdentifier(&X->parser->xstack, (PDID)pdx);
+    } else {
+        // otherwise ensure that the master xref table is last; if it isn't, Pajdeg will end parsing prematurely
+        for (i = X->tables - 1; i >= 0; i--) {
+            // if the XREF comes after the master, the PDF is broken (?), and we bump the master XREF position and skip over the XREF entirely -- this is perfectly non-destructive in terms of data; the master XREF contains the complete set of changes applied in revision order; in theory, all XREF tables could be completely ignored with no side effects aside from safety harness of the parser seeing what it expects to be seeing; the one potential problem with dropping a revision is that indirect object referenced stream lengths for deprecated objects may receive the wrong length; I'm fine with Pajdeg failing at that point
+            if (tables[i]->pos > pdx->pos) {
+                /// @todo this is not the case when XRefStm objects are included, as that puts table count > 2
+                PDWarn("Master XREF position adjusted due to bytewise successing predecessor -- this PDF is badly formed; may result in corrupted output\n");
+                pdx->pos = tables[i]->pos;
+                pdx->linearized = true;
+            } else {
+                PDStackPushIdentifier(&X->parser->xstack, (PDID)tables[i]);
+            }
+        }
+    }
     free(offsets);
     free(tables);
     
@@ -823,11 +864,6 @@ PDBool PDXTableFetchXRefs(PDParserRef parser)
     if (! PDXTableFetchContent(&X)) {
         return false;
     }
-    
-    // xstackr is now the (reversed) xstack, so we set that up
-    //parser->xstack = NULL;
-    //while (xstackr) 
-    //    PDStackPopInto(&parser->xstack, &xstackr);
     
     // and finally pull out the current table
     parser->cxt = (PDXTableRef) PDStackPopIdentifier(&parser->xstack);
