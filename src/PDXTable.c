@@ -110,11 +110,6 @@ PDBool PDXTableInsertXRef(PDParserRef parser)
     PDTwinStreamRef stream = parser->stream;
     PDXTableRef mxt = parser->mxt;
     
-    // we should now be right at the trailer
-    PDScannerAssertString(parser->scanner, "trailer");
-    
-    // we already have the trailer defined so we don't have to read any more from the file
-    
     // write xref header
     twinstream_printf("xref\n%d %llu\n", 0, mxt->count);
     
@@ -189,6 +184,8 @@ PDBool PDXTableInsert(PDParserRef parser)
     }
 }
 
+PDBool PDParserIterateXRefDomain(PDParserRef parser);
+
 PDBool PDXTablePassoverXRefEntry(PDParserRef parser, PDStackRef stack, PDBool includeTrailer)
 {
     PDInteger count;
@@ -218,8 +215,21 @@ PDBool PDXTablePassoverXRefEntry(PDParserRef parser, PDStackRef stack, PDBool in
         // read the trailer dict
         PDScannerAssertStackType(scanner);
         
-        // read startxref
+        // next is the startxref, except some PDF creators (Pages?) drop this nice burp:
+        // trailer^M<</Size 10619/Root 10086 0 R>>^Mxref^M0 1^M0000000000 65535 f
+        // trailer^M<</Size 10619/Root 10086 0 R/Info 10082 0 R/ID[<B426B7E075B899285BA9A41C8E8C22AC><AE4FA9CBEC3A42C1A878E076F8C838A9>]/Prev 4324067/XRefStm 72147>>^Mstartxref^M4536499^M%%EOF
+
         PDScannerPopStack(scanner, &stack);
+        if (stack->info == &PD_XREF) {
+            // this is an xref which means we're iterating the domain, and if we're supposed to continue reading (i.e. this was not the last entry), we loop
+            if (PDParserIterateXRefDomain(parser)) {
+                PDStackPopIdentifier(&stack);
+                return PDXTablePassoverXRefEntry(parser, stack, true);
+            }
+            return false;
+        }
+
+        // read startxref
         PDStackAssertExpectedKey(&stack, "startxref");
         PDStackDestroy(stack);
         
@@ -580,21 +590,25 @@ static inline PDBool PDXTableReadXRefContent(PDXI X)
         dst = &pdx->xrefs[PDXWidth * startobid];
         freeLink = NULL;
         PDBool used;
+        PDXOffsetType offset;
         for (i = 0; i < count; i++) {
 #define PDXOffset(pdx)      fast_mutative_atol(pdx, 10)
 #define PDXGenId(pdx)       fast_mutative_atol(&pdx[11], 5)
 #define PDXUsed(pdx)        (pdx[17] == 'n')
             
+            offset = PDXOffset(src);
+            
             // some PDF creators (determine who this is so they can contacted) incorrectly think setting generation number to 65536 is the same as setting the used character to 'f' (free) -- in order to not confuse Pajdeg, we address that here
+            // other PDF creators think dumping 000000000 00000 n (i.e. this object can be found at offset 0, and it's in use) means "this object is unused"; we address that as well
 #ifdef DEBUG
-            if (PDXUsed(src) && PDXGenId(src) == 65536) {
-                PDWarn("warning: marking object #%ld as unused, because its generation id is 65536\n", i);
+            if (PDXUsed(src) && (PDXGenId(src) == 65536 || offset == 0)) {
+                PDWarn("warning: marking object #%ld as unused, because its generation id is 65536 or its offset is 0\n", i);
                 
             }
 #endif
-            used = PDXUsed(src) && (PDXGenId(src) != 65536);
+            used = PDXUsed(src) && (PDXGenId(src) != 65536) && (offset != 0);
             
-            PDXRefSetOffsetForID(dst, i, PDXOffset(src));
+            PDXRefSetOffsetForID(dst, i, offset);
 
             if (used) {
                 *PDXRefTypeForID(dst, i) = PDXTypeUsed;

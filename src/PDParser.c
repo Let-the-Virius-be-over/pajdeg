@@ -164,9 +164,6 @@ void PDParserFetchStreamLengthFromObjectDictionary(PDParserRef parser, PDStackRe
 
 void PDParserUpdateObject(PDParserRef parser)
 {
-    if (parser->obid == 1927) {
-        printf("");
-    }
     char *string;
     PDInteger len;
 
@@ -603,9 +600,9 @@ PDBool PDParserIterate(PDParserRef parser)
             // we expect PD_XREF, PD_STARTXREF, or PD_OBJ
             
             if (typeid == &PD_XREF) {
-                // xref entry; note that we use running as the 'should consume trailer' argument to passover as the two states coincide
+                // xref entry; note that we use running as the 'should consume trailer' argument to passover as the two states coincide; we also and result to the result of passover, as it may result in an XREF iteration in some special cases (in which case it may result in PDF end)
                 running = PDParserIterateXRefDomain(parser);
-                PDXTablePassoverXRefEntry(parser, stack, running);
+                running &= PDXTablePassoverXRefEntry(parser, stack, running);
 
                 if (! running) return false;
                 

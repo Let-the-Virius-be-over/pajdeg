@@ -159,7 +159,7 @@ void PDTwinStreamGrowInputBuffer(void *_ts, PDScannerRef scanner, char **buf, PD
         pos = ts->cursor;
     } else {
         // buffer pre-existing, and its content is defined from its relative pos to the heap + its current size
-        PDAssert(ts->heap <= *buf && ts->heap + ts->size > *buf + *size); // crash = heap was moved but buffer didn't join; break in realloc point below may be an idea
+        PDAssert(ts->heap <= *buf && ts->heap + ts->size >= *buf + *size); // crash = heap was moved but buffer didn't join; break in realloc point below may be an idea
         pos = (*buf) - ts->heap;
     }
     
