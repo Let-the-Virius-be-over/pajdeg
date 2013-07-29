@@ -700,6 +700,7 @@ PDBool PDXTableFetchHeaders(PDXI X)
         PDStackPopInto(&osstack, &X->queue);
         
         // jump to xref
+        printf("offset = %lld\n", (PDSize)osstack->info);
         PDTwinStreamSeek(X->stream, (PDSize)osstack->info);
         
         // set up scanner
@@ -749,7 +750,6 @@ void PDXTablePrint(PDXTableRef pdx)
 
 PDBool PDXTableFetchContent(PDXI X)
 {
-    char *xrefs;
     PDXTableRef *tables;
     PDSize      *offsets;
     PDSize       offs;
@@ -791,7 +791,7 @@ PDBool PDXTableFetchContent(PDXI X)
         
         // put offset in (sorted)
         for (i = 0; i < offscount && offsets[i] < offs; i++) ;
-        for (j = i + 1; j <= offscount; j++) {
+        for (j = offscount; j > i; j--) {
             offsets[j] = offsets[j-1];
             tables[j] = tables[j-1];
         }
@@ -800,8 +800,6 @@ PDBool PDXTableFetchContent(PDXI X)
         offscount++;
         
         pdx->pos = offs;
-        
-        xrefs = pdx->xrefs;
         
         // jump to xref
         PDTwinStreamSeek(X->stream, offs);
