@@ -23,32 +23,27 @@
 //
 
 /**
- @defgroup STACK_GRP Stack
+ @file PDStack.h Stack header file.
+ 
+ @ingroup PDSTACK
+
+ @defgroup PDSTACK PDStack
  
  @brief Simple stack implementation tailored for Pajdeg's purposes. 
+ 
+ @ingroup PDALGO
  
  The PDStackRef works like any other stack, except it has some amount of awareness about certain object types, such as PDEnvRef instances. 
  
  @{
- */
+*/
+
 
 #ifndef INCLUDED_PDStack_h
 #define INCLUDED_PDStack_h
 
 #include <sys/types.h>
 #include "PDDefines.h"
-
-/**
- The global deallocator for stacks. Defaults to the built-in free() function, but is overridden when global preserve flag is set.
- 
- @see PDStackSetGlobalPreserveFlag
- */
-extern PDDeallocator PDStackDealloc;
-
-/**
- Deallocate something using stack deallocator.
- */
-#define PDDeallocateViaStackDealloc(ob) (*PDStackDealloc)(ob)
 
 /**
  Globally turn on or off destructive operations in stacks
@@ -65,7 +60,7 @@ extern void PDStackSetGlobalPreserveFlag(PDBool preserve);
  Push a key (a string value) onto a stack.
  
  @param stack The stack.
- @param key The key. It is copied.
+ @param key The key. It is taken as is and freed on stack destruction.
  */
 extern void PDStackPushKey(PDStackRef *stack, char *key);
 
@@ -81,7 +76,7 @@ extern void PDStackPushIdentifier(PDStackRef *stack, PDID identifier);
  Push a freeable, arbitrary object. 
  
  @param stack The stack.
- @param info The object. If the stack is destroyed, the object is freed.
+ @param info The object. Freed on stack destruction.
  */
 extern void PDStackPushFreeable(PDStackRef *stack, void *info);
 
@@ -91,7 +86,7 @@ extern void PDStackPushFreeable(PDStackRef *stack, void *info);
  @note This is not an append operation; the pushed stack becomes a single entry that is a stack.
  
  @param stack The stack.
- @param pstack The stack to push.
+ @param pstack The stack to push. It is destroyed on stack destruction.
  */
 extern void PDStackPushStack(PDStackRef *stack, PDStackRef pstack);
 
@@ -99,7 +94,7 @@ extern void PDStackPushStack(PDStackRef *stack, PDStackRef pstack);
  Push a PDEnvRef object.
  
  @param stack The stack.
- @param env The env.
+ @param env The environment. Its destroy method PDEnvDestroy() is called on stack destruction.
  */
 extern void PDStackPushEnv(PDStackRef *stack, PDEnvRef env);
 
@@ -114,7 +109,7 @@ extern void PDStackPushEnv(PDStackRef *stack, PDEnvRef env);
  @note This is only here to deal with reversed dictionaries/arrays; support for unshifting was never intended.
 
  @param stack The stack.
- @param sstack The stack to unshift.
+ @param sstack The stack to unshift. It is destroyed on stack destruction.
  */
 extern void PDStackUnshiftStack(PDStackRef *stack, PDStackRef sstack);
 
@@ -264,7 +259,7 @@ extern void PDStackReplaceInfoObject(PDStackRef stack, char type, void *info);
 /**
  Set up a stack with NULL terminated list of values, put in backward.
  
- @param values NULL terminated list of values.
+ @param defs NULL terminated list of values.
  @return Stack with each value pushed as an identifier.
  */
 extern PDStackRef PDStackCreateFromDefinition(const void **defs);
@@ -284,8 +279,20 @@ extern void PDStackPrint(PDStackRef stack);
  */
 extern void PDStackShow(PDStackRef stack);
 
+/** @} */
+
+/** @} */
+
+/**
+ The global deallocator for stacks. Defaults to the built-in free() function, but is overridden when global preserve flag is set.
+ 
+ @see PDStackSetGlobalPreserveFlag
+ */
+extern PDDeallocator PDStackDealloc;
+
+/**
+ Deallocate something using stack deallocator.
+ */
+#define PDDeallocateViaStackDealloc(ob) (*PDStackDealloc)(ob)
+
 #endif
-
-/** @} */
-
-/** @} */

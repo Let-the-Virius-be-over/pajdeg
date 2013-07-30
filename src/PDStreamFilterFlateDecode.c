@@ -190,7 +190,7 @@ PDInteger fd_decompress_proceed(PDStreamFilterRef filter)
     return outputLength;
 }
 
-PDInteger fd_compress_process(PDStreamFilterRef filter)
+PDInteger fd_compress_begin(PDStreamFilterRef filter)
 {
     z_stream *stream = filter->data;
     
@@ -200,7 +200,7 @@ PDInteger fd_compress_process(PDStreamFilterRef filter)
     return fd_compress_proceed(filter);
 }
 
-PDInteger fd_decompress_process(PDStreamFilterRef filter)
+PDInteger fd_decompress_begin(PDStreamFilterRef filter)
 {
     z_stream *stream = filter->data;
     
@@ -222,12 +222,12 @@ PDStreamFilterRef fd_decompress_invert(PDStreamFilterRef filter)
 
 PDStreamFilterRef PDStreamFilterFlateDecodeCompressCreate(PDStackRef options)
 {
-    return PDStreamFilterCreate(fd_compress_init, fd_compress_done, fd_compress_process, fd_compress_proceed, fd_compress_invert, options);
+    return PDStreamFilterCreate(fd_compress_init, fd_compress_done, fd_compress_begin, fd_compress_proceed, fd_compress_invert, options);
 }
 
 PDStreamFilterRef PDStreamFilterFlateDecodeDecompressCreate(PDStackRef options)
 {
-    return PDStreamFilterCreate(fd_decompress_init, fd_decompress_done, fd_decompress_process, fd_decompress_proceed, fd_decompress_invert, options);
+    return PDStreamFilterCreate(fd_decompress_init, fd_decompress_done, fd_decompress_begin, fd_decompress_proceed, fd_decompress_invert, options);
 }
 
 PDStreamFilterRef PDStreamFilterFlateDecodeConstructor(PDBool inputEnd, PDStackRef options)

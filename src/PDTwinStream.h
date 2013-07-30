@@ -21,9 +21,14 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 //
-
 /**
- @defgroup STREAM_GRP Streams
+ @file PDTwinStream.h
+ 
+ @ingroup PDTWINSTREAM
+
+ @defgroup PDTWINSTREAM PDTwinStream
+
+ @ingroup PDINTERNAL
  
  @brief The twin stream.
  

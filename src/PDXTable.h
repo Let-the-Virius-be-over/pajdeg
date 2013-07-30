@@ -6,6 +6,19 @@
 //  Copyright (c) 2013 Alacrity Software. All rights reserved.
 //
 
+/**
+ @file PDXTable.h PDF XRef table header.
+ 
+ @defgroup PDXTABLE PDXTable
+ 
+ @brief PDF XRef (cross reference) table.
+ 
+ @ingroup PDINTERNAL
+ 
+ @{
+ */
+
+
 #ifndef INCLUDED_PDXTable_h
 #define INCLUDED_PDXTable_h
 
@@ -37,18 +50,20 @@ typedef unsigned char PDXGenType;
 
 #define PDXWEntry       "[ 1 4 1 ]" // why can't I make this use the quoted value of the #defines above...?
 
+/**
+ PDF XRef (cross reference) table
+ */
 struct PDXTable {
-    char       *xrefs;      // xref entries stored as a chunk of memory
+    char       *xrefs;      ///< XRef entries stored as a chunk of memory
     
-    PDXFormat   format;     // format
-    PDBool      linearized; // if set, unexpected XREF entries in the PDF are silently ignored by the parser
-    PDParserRef parser;     // parser
-    PDSize      cap;        // capacity
-    PDSize      count;      // # of objects
-    PDSize      pos;        // byte-wise position in the PDF where the xref (and subsequent trailer) begins; reaching this point means the xref cease to apply
+    PDXFormat   format;     ///< Original format of this entry, which can be text (PDF 1.4-) or binary (PDF 1.5+). Internally, there is no difference to how the data is maintained, but Pajdeg will use the same format used in the original in its own output.
+    PDBool      linearized; ///< If set, unexpected XREF entries in the PDF are silently ignored by the parser.
+    PDSize      cap;        ///< Capacity of the table's xrefs buffer, in entries.
+    PDSize      count;      ///< Number of objects held by the XRef.
+    PDSize      pos;        ///< Byte-wise position in the PDF where the XRef (and subsequent trailer, if text format) begins; reaching this point means the XRef ceases to apply
     
-    PDXTableRef prev;       // previous (older) table
-    PDXTableRef next;       // next (newer) table
+    PDXTableRef prev;       ///< previous (older) table (mostly debug related)
+    PDXTableRef next;       ///< next (newer) table (mostly debug related)
 };
 
 extern PDXOffsetType PDXRefGetOffsetForID(char *xrefs, PDInteger obid);
@@ -67,16 +82,6 @@ extern void PDXRefSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offs
 #define PDXTableSetOffset(xtable, id, offs) PDXRefSetOffsetForID(xtable->xrefs, id, offs)
 #define PDXTableSetGen(xtable, id, gen)     *PDXTableGenForID(xtable, id) = gen
 
-// deprecated (plain text format versions)
-/*
-#define PDXOffset(pdx)      fast_mutative_atol(pdx, 10)
-#define PDXGenId(pdx)       fast_mutative_atol(&pdx[11], 5)
-#define PDXUsed(pdx)        (pdx[17] == 'n')
-#define PDXSetUsed(pdx,u)    pdx[17] = (u ? 'n' : 'f')
-#define PDXUndefined(pdx)   (pdx[10] != ' ') // we use the space between ob and gen as indicator for whether the PDX was defined (everything is zeroed due to realloc)
-#define PDXSetUndefined(pdx) pdx[10] = 0;
-*/
-
 extern PDBool PDXTableFetchXRefs(PDParserRef parser);
 
 extern void PDXTableDestroy(PDXTableRef xtable);
@@ -89,3 +94,5 @@ extern PDBool PDXTablePassoverXRefEntry(PDParserRef parser, PDStackRef stack, PD
 extern PDBool PDXTableInsert(PDParserRef parser);
 
 #endif
+
+/** @} */

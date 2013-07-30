@@ -61,6 +61,10 @@ void PDXRefSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offset)
 }
 
 typedef struct PDXI *PDXI;
+
+/**
+ Internal container.
+ */
 struct PDXI {
     PDInteger mtobid; // master trailer object id
     PDXTableRef pdx;

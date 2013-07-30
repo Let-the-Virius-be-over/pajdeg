@@ -23,9 +23,15 @@
 //
 
 /**
- @defgroup PIPE_GRP Pipes
+ @file PDPipe.h Pipe header file.
  
- @brief The top level constructs in Pajdeg.
+ @ingroup PDPIPE
+ 
+ @defgroup PDPIPE PDPipe
+ 
+ @brief The Pajdeg pipe.
+ 
+ @ingroup PDPIPE_CONCEPT
  
  Pipes provide functionality to define input and output files, add tasks, and start the streaming process. 
  

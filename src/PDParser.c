@@ -102,7 +102,7 @@ void PDParserDestroy(PDParserRef parser)
     PDPortableDocumentFormatStateRelease();
 }
 
-PDStackRef PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDInteger obid, PDInteger bufsize, PDBool master)
+PDStackRef PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, PDInteger obid, PDInteger bufsize, PDBool master)
 {
     char *tb;
     char *string;
@@ -135,7 +135,20 @@ PDStackRef PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDInte
     PDScannerDestroy(tmpscan);
     PDScannerContextPop();
     
+    if (stream->outgrown) {
+        // the object did not fit in our expected buffer, which means it's unusually big; we bump the buffer size to 6k if it's smaller, otherwise we consider this a failure
+        PDStackDestroy(stack);
+        stack = NULL;
+        if (bufsize < 6000)
+            return PDParserLocateAndCreateDefinitionForObjectWithSize(parser, obid, 6000, master);
+    }
+    
     return stack;
+}
+
+PDStackRef PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDInteger obid, PDBool master)
+{
+    return PDParserLocateAndCreateDefinitionForObjectWithSize(parser, obid, 512, master);
 }
 
 void PDParserFetchStreamLengthFromObjectDictionary(PDParserRef parser, PDStackRef entry)
@@ -151,7 +164,7 @@ void PDParserFetchStreamLengthFromObjectDictionary(PDParserRef parser, PDStackRe
         refid = PDStackPeekInt(entry->prev);
         PDAssert(refid < parser->cxt->cap);
         
-        stack = PDParserLocateAndCreateDefinitionForObject(parser, refid, 300, false);
+        stack = PDParserLocateAndCreateDefinitionForObject(parser, refid, false);
         parser->streamLen = PDStackPopInt(&stack);
     } else {
         char *string;
@@ -813,7 +826,7 @@ PDBool PDParserIsObjectStillMutable(PDParserRef parser, PDInteger obid)
 PDObjectRef PDParserGetRootObject(PDParserRef parser)
 {
     if (! parser->root) {
-        PDStackRef rootDef = PDParserLocateAndCreateDefinitionForObject(parser, parser->rootRef->obid, 500, true);
+        PDStackRef rootDef = PDParserLocateAndCreateDefinitionForObject(parser, parser->rootRef->obid, true);
         parser->root = PDObjectCreate(parser->rootRef->obid, parser->rootRef->genid);
         parser->root->def = rootDef;
     }

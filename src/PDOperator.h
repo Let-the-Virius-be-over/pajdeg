@@ -22,9 +22,14 @@
 //  THE SOFTWARE.
 //
 
-
 /**
- @defgroup OPERATOR_GRP Operators
+ @file PDOperator.h Operator header file.
+ 
+ @ingroup PDOPERATOR
+
+ @defgroup PDOPERATOR PDOperator
+ 
+ @ingroup PDSCANNER_CONCEPT
  
  @brief An operator for a given symbol or outcome in a state.
  

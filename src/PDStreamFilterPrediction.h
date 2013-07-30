@@ -7,12 +7,18 @@
 //
 
 /**
- @defgroup FILTER_PREDICTION_GRP Prediction Filter
+ @file PDStreamFilterPrediction.h
+ 
+ @ingroup PDSTREAMFILTERPREDICTION
+
+ @defgroup PDSTREAMFILTERPREDICTION PDStreamFilterPrediction
  
  @brief Prediction filter
  
- @see PDDefines.h
+ @ingroup PDINTERNAL
  
+ @implements PDSTREAMFILTER
+
  @{
  */
 
@@ -36,3 +42,6 @@ extern PDStreamFilterRef PDStreamFilterUnpredictionCreate(PDStackRef options);
 extern PDStreamFilterRef PDStreamFilterPredictionConstructor(PDBool inputEnd, PDStackRef options);
 
 #endif
+
+/** @} */
+

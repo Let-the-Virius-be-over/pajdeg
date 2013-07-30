@@ -21,11 +21,16 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 //
-
 /**
- @defgroup STATE_GRP States
+ @file PDState.h The state header.
  
- @brief A state. 
+ @ingroup PDSTATE
+
+ @defgroup PDSTATE PDState
+ 
+ @brief A state.
+ 
+ @ingroup PDSCANNER_CONCEPT
  
  A state in Pajdeg is a definition of a given set of conditions.
  

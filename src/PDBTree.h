@@ -23,10 +23,18 @@
 //
 
 /**
- @defgroup BTREE_GRP Binary Tree
+ @file PDBTree.h Binary tree header file.
  
- @brief The PDBTree mostly works like a normal binary tree. See notes. 
+ A simple binary tree implementation.
  
+ @ingroup PDBTREE
+ 
+ @defgroup PDBTREE PDBTree
+ 
+ @brief Binary tree implementation, mostly working like a normal binary tree.
+ 
+ @ingroup PDALGO
+
  @note This implementation currently does not balance the tree as this seemed beyond the scope of the needs.
  
  @note Keys are restricted to primitives, as this is sufficient for Pajdeg's needs. Inserting "foo" and then testing for "foo" will not be successful, unless the two strings point at the same memory address. 

@@ -21,11 +21,16 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 //
-
 /**
- @defgroup ENV_GRP Environments
+ @file PDEnv.h Environment header file.
+ 
+ @ingroup PDENV
+ 
+ @defgroup PDENV PDEnv
  
  @brief An instance of a PDState in a scanner.
+ 
+ @ingroup PDSCANNER_CONCEPT
  
  PDEnvRef objects are simple, low level instance representations of PDStateRef objects. That is to say, whenever a state is pushed onto the stack, an environment is created, wrapping that state, and the current environment is pushed onto the scanner's environment stack.
  

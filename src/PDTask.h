@@ -23,9 +23,15 @@
 //
 
 /**
- @defgroup TASK_GRP Tasks
+ @file PDTask.h Task header file.
+ 
+ @ingroup PDTASK
+ 
+ @defgroup PDTASK PDTask
  
  @brief A Pajdeg pipe task.
+ 
+ @ingroup PDPIPE_CONCEPT
  
  @{
  */

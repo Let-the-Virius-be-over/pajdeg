@@ -23,7 +23,15 @@
 //
 
 /**
- @defgroup SCANNER_GRP Scanners
+ @file PDScanner.h Scanner header file.
+ 
+ @ingroup PDSCANNER
+ 
+ @defgroup PDSCANNER PDScanner
+ 
+ @brief The generic scanner used to read symbols from a stream or arbitrary buffer.
+ 
+ @ingroup PDSCANNER_CONCEPT
  
  The Pajdeg scanner takes a PDStateRef state and optionally a PDScannerPopFunc and allows the interpretation of symbols as defined by the state and its sub-states.
  

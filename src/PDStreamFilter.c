@@ -31,7 +31,7 @@ PDStreamFilterRef PDStreamFilterObtain(const char *name, PDBool inputEnd, PDStac
     return NULL;
 }
 
-PDStreamFilterRef PDStreamFilterCreate(PDStreamFilterFunc init, PDStreamFilterFunc done, PDStreamFilterFunc process, PDStreamFilterFunc proceed, PDStreamFilterPrcs inversion, PDStackRef options)
+PDStreamFilterRef PDStreamFilterCreate(PDStreamFilterFunc init, PDStreamFilterFunc done, PDStreamFilterFunc begin, PDStreamFilterFunc proceed, PDStreamFilterPrcs inversion, PDStackRef options)
 {
     PDStreamFilterRef filter = calloc(1, sizeof(struct PDStreamFilter));
     filter->growthHint = 1.f;
@@ -39,7 +39,7 @@ PDStreamFilterRef PDStreamFilterCreate(PDStreamFilterFunc init, PDStreamFilterFu
     filter->options = options;
     filter->init = init;
     filter->done = done;
-    filter->process = process;
+    filter->begin = begin;
     filter->proceed = proceed;
     filter->inversion = inversion;
     return filter;
@@ -62,7 +62,7 @@ void PDStreamFilterDestroy(PDStreamFilterRef filter)
     free(filter);
 }
 
-PDBool PDStreamFilterApply(PDStreamFilterRef filter, unsigned char *src, unsigned char **dst, PDInteger len, PDInteger *newlen)
+PDBool PDStreamFilterApply(PDStreamFilterRef filter, unsigned char *src, unsigned char **dstPtr, PDInteger len, PDInteger *newlenPtr)
 {
     if (! filter->initialized) {
         if (! PDStreamFilterInit(filter))
@@ -79,7 +79,7 @@ PDBool PDStreamFilterApply(PDStreamFilterRef filter, unsigned char *src, unsigne
     resbuf = filter->bufOut = malloc(dstcap);
     filter->bufOutCapacity = dstcap;
     
-    PDInteger bytes = PDStreamFilterProcess(filter);
+    PDInteger bytes = PDStreamFilterBegin(filter);
     PDInteger got = 0;
     while (bytes > 0) {
         got += bytes;
@@ -92,8 +92,8 @@ PDBool PDStreamFilterApply(PDStreamFilterRef filter, unsigned char *src, unsigne
         bytes = PDStreamFilterProceed(filter);
     }
     
-    *dst = resbuf;
-    *newlen = got;
+    *dstPtr = resbuf;
+    *newlenPtr = got;
 
     return true;
 }
@@ -121,13 +121,13 @@ PDBool PDStreamFilterDone(PDStreamFilterRef filter)
     return true;
 }
 
-PDInteger PDStreamFilterProcess(PDStreamFilterRef filter)
+PDInteger PDStreamFilterBegin(PDStreamFilterRef filter)
 {
     // we set this up so that the first and last filters in the chain swap filters on entry/exit (for proceed); that will give the caller a consistent filter state which they can read from / update as they need
     PDStreamFilterRef curr, next;
     
     if (filter->nextFilter == NULL) 
-        return (*filter->process)(filter);
+        return (*filter->begin)(filter);
     
     // we pull out filter's output values
     unsigned char *bufOut = filter->bufOut;
@@ -144,7 +144,7 @@ PDInteger PDStreamFilterProcess(PDStreamFilterRef filter)
         if (cap > bufOutCapacity * 10) cap = bufOutCapacity * 10;
         curr->bufOutCapacity = curr->bufOutOwnedCapacity = cap;
         next->bufIn = curr->bufOutOwned = curr->bufOut = malloc(curr->bufOutCapacity);
-        next->bufInAvailable = 0; //(*curr->process)(curr);
+        next->bufInAvailable = 0; //(*curr->begin)(curr);
         next->needsInput = true;
         next->hasInput = true;
     }
@@ -201,7 +201,7 @@ PDInteger PDStreamFilterProceed(PDStreamFilterRef filter)
                 curr->bufOutCapacity = curr->bufOutOwnedCapacity;
             }
             
-            next->bufInAvailable += (curr->needsInput ? (*curr->process)(curr) : (*curr->proceed)(curr));
+            next->bufInAvailable += (curr->needsInput ? (*curr->begin)(curr) : (*curr->proceed)(curr));
             next->hasInput = curr->bufInAvailable > 0;
             
         } else {
@@ -209,7 +209,7 @@ PDInteger PDStreamFilterProceed(PDStreamFilterRef filter)
             // last filter, which means we plug it into the "real" output buffer
             curr->bufOut = bufOut;
             curr->bufOutCapacity = bufOutCapacity;
-            result += curr->needsInput ? (*curr->process)(curr) : (*curr->proceed)(curr);
+            result += curr->needsInput ? (*curr->begin)(curr) : (*curr->proceed)(curr);
             bufOut = curr->bufOut;
             bufOutCapacity = curr->bufOutCapacity;
         

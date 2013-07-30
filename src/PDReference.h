@@ -23,8 +23,15 @@
 //
 
 /**
- @defgroup REF_GRP References
+ @file PDReference.h Object reference header file.
+ 
+ @ingroup PDREFERENCE
+ 
+ @defgroup PDREFERENCE PDReference
+ 
  @brief A PDF object reference.
+ 
+ @ingroup PDUSER
  
  @{
  */

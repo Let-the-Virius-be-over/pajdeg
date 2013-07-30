@@ -25,6 +25,8 @@
 #ifndef INCLUDED_PDPDFPrivate_h
 #define INCLUDED_PDPDFPrivate_h
 
+#define PDDeallocateViaStackDealloc(ob) (*PDStackDealloc)(ob)
+
 #define currch  (scv->allocBuf)[scv->offs]
 #define currchi scv->left--; (scv->allocBuf)[(scv->offs)++]
 #define currstr &currch

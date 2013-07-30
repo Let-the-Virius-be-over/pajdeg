@@ -22,10 +22,17 @@
 //  THE SOFTWARE.
 //
 
+
 /**
- @defgroup PARSER_GRP Parsers
+ @file PDParser.h Parser header file.
+ 
+ @ingroup PDPARSER
+ 
+ @defgroup PDPARSER PDParser
  
  @brief Parser implementation for PDF documents.
+ 
+ @ingroup PDPIPE_CONCEPT
  
  The parser takes a PDTwinStreamRef on creation, and uses PDScannerRef instances to interpret the input PDF and to generate the output PDF document. It provides support for fetching objects from the PDF in a number of ways, inserting objects, and finding things out about the input PDF, such as encryption state, or about a given object, such as whether it is still mutable or not.
  
@@ -102,10 +109,9 @@ extern PDBool PDParserGetEncryptionState(PDParserRef parser);
  
  @param parser The parser.
  @param obid The object ID
- @param bufsize The size of the buffer to use, and the amount of bytes to read (max) from the input file. The smaller, the faster, but if the requested object exceeds the size, NULL is returned. 
  @param master If true, the master PDX ref is referenced, otherwise the current PDX ref is used. Generally speaking, you always want to use the master (non-master is used internally to determine the deprecated length of a stream for a multi-part PDF).
  */
-extern PDStackRef PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDInteger obid, PDInteger bufsize, PDBool master);
+extern PDStackRef PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDInteger obid, PDBool master);
 
 /**
  Write remaining objects, XREF table, trailer, and end fluff to output PDF.

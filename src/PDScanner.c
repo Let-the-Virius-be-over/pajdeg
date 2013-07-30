@@ -402,6 +402,7 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
                 scanner->env->state = op->pushedState;
                 scanner->env->entryOffset = scanner->boffset;
                 PDScannerScan(scanner);
+                if (scanner->failed) return;
                 break;
 
             case PDOperatorPopState:
@@ -566,6 +567,9 @@ void PDScannerScan(PDScannerRef scanner)
             resetter.type = PDOperatorPopState;
             resetter.next = NULL;
             while (scanner->env) PDScannerOperate(scanner, &resetter);
+            PDStackDestroy(scanner->resultStack);
+            scanner->resultStack = NULL;
+            scanner->failed = true;
             return;
         }
     } while (scanner->env == env && !env->state->iterates);
@@ -717,7 +721,7 @@ PDInteger PDScannerReadStream(PDScannerRef scanner, PDInteger bytes, char *dest,
         filter->bufOutCapacity = capacity;
         
         // we set bytes to the results of the filter process call, as that gives us the # of bytes stored (which is what we return too)
-        bytes = PDStreamFilterProcess(filter);
+        bytes = PDStreamFilterBegin(filter);
         
         // if filter has a next filter, we 
     } else {

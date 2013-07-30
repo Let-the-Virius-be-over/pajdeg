@@ -222,6 +222,7 @@ struct PDScanner {
     PDScannerSymbolRef sym;     // the latest symbol
     PDScannerPopFunc popFunc;   // the symbol pop function
     PDBool        fixedBuf;     // if set, the buffer is fixed (i.e. buffering function should not be called)
+    PDBool        failed;       // if set, the scanner aborted due to a failure
 };
 
 //

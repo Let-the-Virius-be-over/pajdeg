@@ -12,14 +12,13 @@
 #include "PDStreamFilterPrediction.h"
 
 typedef struct PDPredictor *PDPredictorRef;
+/**
+ Predictor settings, including options and state data for an ongoing predictor/unpredictor operation.
+ */
 struct PDPredictor {
-    unsigned char *prevRow;
-    PDInteger columns;
-    PDInteger typeWidth;
-    PDInteger offsWidth;
-    PDInteger genWidth;
-    PDInteger byteWidth;
-    PDPredictorType predictor;
+    unsigned char *prevRow;     ///< Previous row cache.
+    PDInteger columns;          ///< Columns per row.
+    PDPredictorType predictor;  ///< Predictor type (strategy)
 };
 
 PDInteger pred_init(PDStreamFilterRef filter)
@@ -51,8 +50,6 @@ PDInteger pred_init(PDStreamFilterRef filter)
         iter = iter->prev->prev;
     }
     
-    pred->byteWidth = pred->columns;
-    
     // we only support given predictors; as more are encountered, support will be added
     switch (pred->predictor) {
         case PDPredictorNone:
@@ -67,7 +64,7 @@ PDInteger pred_init(PDStreamFilterRef filter)
             return false;
     }
     
-    pred->prevRow = calloc(1, pred->byteWidth);
+    pred->prevRow = calloc(1, pred->columns);
 
     filter->initialized = true;
     
@@ -123,7 +120,7 @@ PDInteger pred_proceed(PDStreamFilterRef filter)
     unsigned char *dst = filter->bufOut;
     PDInteger avail = filter->bufInAvailable;
     PDInteger cap = filter->bufOutCapacity;
-    PDInteger bw = pred->byteWidth;
+    PDInteger bw = pred->columns;
     PDInteger rw = bw + 1;
     PDInteger i;
     
@@ -187,7 +184,7 @@ PDInteger unpred_proceed(PDStreamFilterRef filter)
     unsigned char *dst = filter->bufOut;
     PDInteger avail = filter->bufInAvailable;
     PDInteger cap = filter->bufOutCapacity;
-    PDInteger bw = pred->byteWidth;
+    PDInteger bw = pred->columns;
     PDInteger rw = bw + 1;
     PDInteger i;
     
@@ -224,12 +221,12 @@ PDInteger unpred_proceed(PDStreamFilterRef filter)
     return outputLength;
 }
 
-PDInteger pred_process(PDStreamFilterRef filter)
+PDInteger pred_begin(PDStreamFilterRef filter)
 {
     return pred_proceed(filter);
 }
 
-PDInteger unpred_process(PDStreamFilterRef filter)
+PDInteger unpred_begin(PDStreamFilterRef filter)
 {
     //if (as(PDPredictorRef, filter->data)->predictor >= 10)
     //    filter->bufInAvailable -= 10; // crc
@@ -269,12 +266,12 @@ PDStreamFilterRef unpred_invert(PDStreamFilterRef filter)
 
 PDStreamFilterRef PDStreamFilterUnpredictionCreate(PDStackRef options)
 {
-    return PDStreamFilterCreate(unpred_init, unpred_done, unpred_process, unpred_proceed, unpred_invert, options);
+    return PDStreamFilterCreate(unpred_init, unpred_done, unpred_begin, unpred_proceed, unpred_invert, options);
 }
 
 PDStreamFilterRef PDStreamFilterPredictionCreate(PDStackRef options)
 {
-    return PDStreamFilterCreate(pred_init, pred_done, pred_process, pred_proceed, pred_invert, options);
+    return PDStreamFilterCreate(pred_init, pred_done, pred_begin, pred_proceed, pred_invert, options);
 }
 
 PDStreamFilterRef PDStreamFilterPredictionConstructor(PDBool inputEnd, PDStackRef options)

@@ -111,7 +111,7 @@ extern PDStateRef xrefSeeker;
  
  @warning Destroys target stack unless preserve flag is set.
  
- @see STACK_GRP
+ @see PDSTACK
  @see PDStackSetGlobalPreserveFlag
  */
 extern char * PDStringFromComplex(PDStackRef *complex);

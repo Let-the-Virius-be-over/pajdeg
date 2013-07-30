@@ -23,9 +23,15 @@
 //
 
 /**
- @defgroup OBJECT_GRP Objects
+ @file PDObject.h PDF object header file.
+ 
+ @ingroup PDOBJECT
+
+ @defgroup PDOBJECT PDObject
  
  @brief A PDF object.
+ 
+ @ingroup PDUSER
 
  Objects in PDFs range from simple numbers indicating the length of some stream somewhere, to streams, images, and so on. In fact, the only things other than objects in a PDF, at the root level, are XREF (cross reference) tables, trailers, and the "startxref" marker.
  
