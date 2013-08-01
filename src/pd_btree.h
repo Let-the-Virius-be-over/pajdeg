@@ -1,5 +1,5 @@
 //
-//  PDBTree.h
+//  pd_btree.h
 //
 //  Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
 // 
@@ -23,13 +23,13 @@
 //
 
 /**
- @file PDBTree.h Binary tree header file.
+ @file pd_btree.h Binary tree header file.
  
  A simple binary tree implementation.
  
  @ingroup PDBTREE
  
- @defgroup PDBTREE PDBTree
+ @defgroup PDBTREE pd_btree
  
  @brief Binary tree implementation, mostly working like a normal binary tree.
  
@@ -42,8 +42,8 @@
  @{
  */
 
-#ifndef INCLUDED_PDBTree_h
-#define INCLUDED_PDBTree_h
+#ifndef INCLUDED_pd_btree_h
+#define INCLUDED_pd_btree_h
 
 #include "PDDefines.h"
 
@@ -56,7 +56,7 @@
  
  @return Whatever value the key had before the insertion.
  */
-extern void *PDBTreeInsert(PDBTreeRef *root, long key, void *value);
+extern void *pd_btree_insert(pd_btree *root, long key, void *value);
 
 /**
  Remove entry for key, returning its value (if any).
@@ -64,7 +64,7 @@ extern void *PDBTreeInsert(PDBTreeRef *root, long key, void *value);
  @param root    Pointer to the tree from which removal should be made.
  @param key     The key to remove.
  */
-extern void *PDBTreeRemove(PDBTreeRef *root, long key);
+extern void *pd_btree_remove(pd_btree *root, long key);
 
 /**
  Fetch value for an entry.
@@ -72,23 +72,23 @@ extern void *PDBTreeRemove(PDBTreeRef *root, long key);
  @param root    The tree in which the value exists.
  @param key     The key to locate.
  */
-extern void *PDBTreeFetch(PDBTreeRef root, long key);
+extern void *pd_btree_fetch(pd_btree root, long key);
 
 /**
  Dump all keys (not values) into preallocated array. 
  @return Number of keys added.
  */
-extern PDInteger PDBTreePopulateKeys(PDBTreeRef root, void **dest);
+extern PDInteger pd_btree_populate_keys(pd_btree root, void **dest);
 
 /**
  Destroy a tree, without touching value.
  */
-extern void PDBTreeDestroy(PDBTreeRef root);
+extern void pd_btree_destroy(pd_btree root);
 
 /**
  Destroy a tree, calling deallocator on the value for each element.
  */
-extern void PDBTreeDestroyWithDeallocator(PDBTreeRef root, PDDeallocator deallocator);
+extern void pd_btree_destroy_with_deallocator(pd_btree root, PDDeallocator deallocator);
 
 #endif
 

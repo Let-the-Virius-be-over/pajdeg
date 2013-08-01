@@ -43,24 +43,13 @@
 // construction
 //
 
-//extern PDPrimitiveRef PDPrimitiveCreateWithChunk(PDChunkRef chunk);
-//extern PDArrayRef PDArrayCreate();
-//extern PDArrayRef PDArrayCreateWithChunk(PDChunkRef chunk);
-//extern PDDictionaryRef PDDictionaryCreate();
-//extern PDDictionaryRef PDDictionaryCreateWithChunk(PDChunkRef chunk);
 extern PDObjectRef PDObjectCreate(PDInteger obid, PDInteger genid);
-//#define PDStringCreateWithCapacity(capacity) malloc(capacity)
-//#define PDStringDestroy(str) free(str)
 
 ////////////////////////////////////////
 //
 // destruction
 //
 
-//extern void PDChunkDestroy(PDChunkRef chunk);
-//extern void PDPrimitiveDestroy(PDPrimitiveRef primitive);
-//extern void PDArrayDestroy(PDArrayRef array);
-//extern void PDDictionaryDestroy(PDDictionaryRef dictionary);
 extern void PDParserDestroy(PDParserRef parser);
 
 ////////////////////////////////////////
@@ -69,17 +58,35 @@ extern void PDParserDestroy(PDParserRef parser);
 //
 
 //
+// type
+//
+
+#define PDTYPE_PTR_LEN  2
+union PDType {
+    struct {
+        PDInteger retainCount;
+        PDDeallocator dealloc;
+    };
+    void *align[PDTYPE_PTR_LEN];
+};
+
+extern void *PDAlloc(PDSize size, void *dealloc, PDBool zeroed);
+extern void  PDFlush(void);
+
+//
 // object
 //
 
 struct PDObject {
-    PDInteger           users;          // retain count
     PDInteger           obid;           // object id
     PDInteger           genid;          // generation id
+    PDObjectClass       obclass;        // object class (regular, compressed, or trailer)
     PDObjectType        type;           // data structure of def below
     void               *def;            // the object content
     PDBool              hasStream;      // if set, object has a stream
     PDInteger           streamLen;      // length of stream (if one exists)
+    PDInteger           extractedLen;   // length of extracted stream; -1 until stream has been fetched via the parser
+    char               *streamBuf;      // the stream, if fetched via parser, otherwise an undefined value
     PDBool              skipStream;     // if set, even if an object has a stream, the stream (including keywords) is skipped when written to output
     PDBool              skipObject;     // if set, entire object is discarded
     PDStackRef          mutations;      // key/value stack of alterations to do when writing the object
@@ -88,13 +95,41 @@ struct PDObject {
     char               *ovrDef;         // definition override
     PDInteger           ovrDefLen;      // take a wild guess
     PDBool              encryptedDoc;   // if set, the object is contained in an encrypted PDF; if false, PDObjectSetStreamEncrypted is NOP
+    char               *refString;      // reference string, cached from calls to 
 };
+
+//
+// object stream
+//
+
+typedef struct PDObjectStreamElement *PDObjectStreamElementRef;
+struct PDObjectStreamElement {
+    PDInteger obid;                     // object id of element
+    PDInteger offset;                   // offset inside object stream
+    PDInteger length;                   // length of the (stringified) definition; only valid during a commit
+    PDObjectType type;                  // element object type
+    void *def;                          // definition; NULL if a construct has been made for this element
+};
+
+struct PDObjectStream {
+    PDObjectRef ob;                     // obstream object
+    PDInteger n;                        // number of objects
+    PDInteger first;                    // first object's offset
+    PDStreamFilterRef filter;           // filter used to extract the initial raw content
+    PDObjectStreamElementRef elements;  // n sized array of elements (non-pointered!)
+    pd_btree constructs;                // instances of objects (i.e. constructs)
+};
+
+extern PDObjectStreamRef PDObjectStreamCreateWithObject(PDObjectRef object);
+extern void PDObjectStreamParseRawObjectStream(PDObjectStreamRef obstm, char *rawBuf);
+extern void PDObjectStreamParseExtractedObjectStream(PDObjectStreamRef obstm, char *rawBuf);
+extern void PDObjectStreamCommit(PDObjectStreamRef obstm);
 
 //
 // task
 //
 
-extern PDTaskFunc PDPipeAppendFilter;
+//extern PDTaskFunc PDPipeAppendFilter;
 
 //
 //  environment
@@ -112,10 +147,11 @@ struct PDEnv {
 //  b-tree
 //
 
-struct PDBTree {
+struct pd_btree {
     PDInteger key;
     void *value;
-    PDBTreeRef branch[2];
+    PDInteger balance;
+    pd_btree branch[2];
 };
 
 //
@@ -131,7 +167,6 @@ struct PDOperator {
     };
     
     PDOperatorRef    next;        // the next operator, if any
-    PDInteger        users;       // retain count, for this operator
 };
 
 //
@@ -157,6 +192,7 @@ typedef enum {
     PDParserStateBase,              // parser is in between objects
     PDParserStateObjectDefinition,  // parser is right after "1 2 obj" and right before whatever the object consists of
     PDParserStateObjectAppendix,    // parser is right after the object's content, and expects to see "endobj" or "stream" next
+    PDParserStateObjectPostStream,  // parser is right after the "endstream" keyword, at the "endobj" keyword
 } PDParserState;
 
 struct PDParser {
@@ -190,7 +226,7 @@ struct PDParser {
     
     // miscellaneous
     PDBool success;
-    PDBTreeRef skipT;   // whenever an object is ignored due to offset discrepancy, its ID is put on the skip tree; when the last object has been parsed, if the skip tree is non-empty, the parser aborts, as it means objects were lost
+    pd_btree skipT;   // whenever an object is ignored due to offset discrepancy, its ID is put on the skip tree; when the last object has been parsed, if the skip tree is non-empty, the parser aborts, as it means objects were lost
 };
 
 //
@@ -219,6 +255,7 @@ struct PDScanner {
     PDInteger     bresoffset;   // previously popped result's offset relative to buf
     PDInteger     bsize;        // buffer capacity
     PDInteger     boffset;      // buffer offset (we are at position &buf[boffset]
+    PDInteger     bmark;        // buffer mark
     PDScannerSymbolRef sym;     // the latest symbol
     PDScannerPopFunc popFunc;   // the symbol pop function
     PDBool        fixedBuf;     // if set, the buffer is fixed (i.e. buffering function should not be called)
@@ -232,7 +269,7 @@ struct PDScanner {
 #define PDSTACK_STRING  0
 #define PDSTACK_ID      1
 #define PDSTACK_STACK   2
-#define PDSTACK_ENV     3
+#define PDSTACK_PDOB    3
 #define PDSTACK_FREEABL 4
 
 struct PDStack {
@@ -258,7 +295,6 @@ struct PDState {
     PDOperatorRef  numberOp;    // number operator
     PDOperatorRef  delimiterOp; // delimiter operator
     PDOperatorRef  fallbackOp;  // fallback operator
-    PDInteger      users;       // retain count, for this state
 };
 
 //
@@ -266,7 +302,6 @@ struct PDState {
 //
 
 struct PDStaticHash {
-    PDInteger users;
     PDInteger entries;
     PDInteger mask;
     PDInteger shift;
@@ -282,7 +317,6 @@ struct PDStaticHash {
 //
 
 struct PDTask {
-    PDInteger       users;
     PDBool          isFilter;
     PDPropertyType  propertyType;
     PDInteger       value;
@@ -329,7 +363,7 @@ struct PDPipe {
     PDInteger       filterCount;
     PDTwinStreamRef stream;
     PDParserRef     parser;
-    PDBTreeRef      filter;
+    pd_btree      filter;
     PDStackRef      unfilteredTasks;
 };
 

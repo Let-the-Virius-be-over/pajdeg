@@ -30,36 +30,31 @@
 #include "PDPortableDocumentFormatState.h"
 #include "PDPDFPrivate.h"
 #include "PDStreamFilter.h"
+#include "PDObject.h"
+
+void PDObjectDestroy(PDObjectRef object)
+{
+    PDStackDestroy(object->mutations);
+    if (object->type == PDObjectTypeString)
+        free(object->def);
+    else
+        PDStackDestroy(object->def);
+    if (object->ovrDef) free(object->ovrDef);
+    if (object->ovrStream) free(object->ovrStream);
+    if (object->refString) free(object->refString);
+    if (object->extractedLen != -1) free(object->streamBuf);
+}
 
 PDObjectRef PDObjectCreate(PDInteger obid, PDInteger genid)
 {
-    PDObjectRef ob = calloc(1, sizeof(struct PDObject));
-    ob->users = 1;
+    PDObjectRef ob = PDAlloc(sizeof(struct PDObject), PDObjectDestroy, true);
+    //PDObjectRef ob = calloc(1, sizeof(struct PDObject));
     ob->obid = obid;
     ob->genid = genid;
     ob->type = PDObjectTypeUnknown;
+    ob->obclass = PDObjectClassRegular;
+    ob->extractedLen = -1;
     return ob;
-}
-
-PDObjectRef PDObjectRetain(PDObjectRef object)
-{
-    object->users++;
-    return object;
-}
-
-void PDObjectRelease(PDObjectRef object)
-{
-    object->users--;
-    if (object->users == 0) {
-        PDStackDestroy(object->mutations);
-        if (object->type == PDObjectTypeString)
-            free(object->def);
-        else
-            PDStackDestroy(object->def);
-        if (object->ovrDef) free(object->ovrDef);
-        if (object->ovrStream) free(object->ovrStream);
-        free(object);
-    }
 }
 
 PDInteger PDObjectGetObID(PDObjectRef object)
@@ -77,6 +72,17 @@ PDObjectType PDObjectGetType(PDObjectRef object)
     return object->type;
 }
 
+const char *PDObjectGetReferenceString(PDObjectRef object)
+{
+    if (object->refString)
+        return object->refString;
+    
+    char refbuf[64];
+    sprintf(refbuf, "%ld %ld R", object->obid, object->genid);
+    object->refString = strdup(refbuf);
+    return object->refString;
+}
+
 PDBool PDObjectHasStream(PDObjectRef object)
 {
     return object->hasStream;
@@ -85,6 +91,18 @@ PDBool PDObjectHasStream(PDObjectRef object)
 PDInteger PDObjectGetStreamLength(PDObjectRef object)
 {
     return object->streamLen;
+}
+
+PDInteger PDObjectGetExtractedStreamLength(PDObjectRef object)
+{
+    PDAssert(object->extractedLen != -1);
+    return object->extractedLen;
+}
+
+char *PDObjectGetStream(PDObjectRef object)
+{
+    PDAssert(object->extractedLen != -1);
+    return object->streamBuf;
 }
 
 char *PDObjectGetValue(PDObjectRef object)
@@ -513,7 +531,17 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
     PDInteger i, count;
     char *key, *val;
     PDInteger sz;
-    putfmt("%ld %ld obj\n", object->obid, object->genid);
+    switch (object->obclass) {
+        case PDObjectClassRegular:
+            putfmt("%ld %ld obj\n", object->obid, object->genid);
+            break;
+        case PDObjectClassCompressed:
+            break;
+        case PDObjectClassTrailer:
+            putstr("trailer\n", 8);
+        default:
+            PDAssert(0); // crash = undefined class which at a 99.9% accuracy means memory was trashed because that should never ever happen
+    }
     switch (object->type) {
         case PDObjectTypeDictionary:
             PDStringGrow(20);

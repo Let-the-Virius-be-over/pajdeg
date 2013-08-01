@@ -69,19 +69,19 @@ extern PDTaskRef PDTaskCreateMutator(PDTaskFunc mutatorFunc);
 extern void PDTaskAppendTask(PDTaskRef parentTask, PDTaskRef childTask);
 
 /**
+ Set the info object for a task. 
+ 
+ The info object is passed as is to the task upon execution. 
+ 
+ @param task The task.
+ @param info The info object.
+ */
+extern void PDTaskSetInfo(PDTaskRef task, void *info);
+
+/**
  Execute a task, possibly resulting in a chain of tasks executing if the task has children.
  */
 extern PDTaskResult PDTaskExec(PDTaskRef task, PDPipeRef pipe, PDObjectRef object);
-
-/**
- Retain a task.
- */
-extern PDTaskRef PDTaskRetain(PDTaskRef task);
-
-/**
- Release a task.
- */
-extern void PDTaskRelease(PDTaskRef task);
 
 ///---------------------------------------
 /// @name Convenience functions

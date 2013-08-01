@@ -94,12 +94,12 @@ void PDStackUnshiftStack(PDStackRef *stack, PDStackRef sstack)
     vtail->prev = s;
 }
 
-void PDStackPushEnv(PDStackRef *stack, PDEnvRef env)
+void PDStackPushObject(PDStackRef *stack, void *ob)
 {
     PDStackRef s = malloc(sizeof(struct PDStack));
     s->prev = *stack;
-    s->info = env;
-    s->type = PDSTACK_ENV;
+    s->info = PDRetain(ob);
+    s->type = PDSTACK_PDOB;
     *stack = s;
 }
 
@@ -203,15 +203,15 @@ PDStackRef PDStackPopStack(PDStackRef *stack)
     return pstack;
 }
 
-PDEnvRef PDStackPopEnv(PDStackRef *stack)
+void *PDStackPopObject(PDStackRef *stack)
 {
     if (*stack == NULL) return NULL;
     PDStackRef popped = *stack;
-    PDAssert(popped->type == PDSTACK_ENV);
+    PDAssert(popped->type == PDSTACK_PDOB);
     *stack = popped->prev;
-    PDEnvRef env = popped->info;
+    void *ob = popped->info;
     (*PDStackDealloc)(popped);
-    return env;
+    return PDAutorelease(ob);
 }
 
 void *PDStackPopFreeable(PDStackRef *stack)
@@ -248,8 +248,8 @@ static inline void PDStackFreeInfo(PDStackRef stack)
         case PDSTACK_STACK:
             PDStackDestroy(stack->info);
             break;
-        case PDSTACK_ENV:
-            PDEnvDestroy(stack->info);
+        case PDSTACK_PDOB:
+            PDRelease(stack->info);
             break;
     }
 }
@@ -399,8 +399,8 @@ void PDStackPrint_(PDStackRef stack, PDInteger indent)
             case PDSTACK_STACK:
                 PDStackPrint_(stack->info, cind + 2);
                 break;
-            case PDSTACK_ENV:
-                printf("%s env %s (%p)", sind, ((PDEnvRef)stack->info)->state->name, stack->info);
+            case PDSTACK_PDOB:
+                printf("%s object (%p)", sind, stack->info);
                 break;
             default:
                 printf("%s ?????? %p", sind, stack->info);
@@ -458,8 +458,8 @@ void PDStackShow_(PDStackRef stack)
                     printf(" }");
                 }
                 break;
-            case PDSTACK_ENV:
-                printf("<%s>", ((PDEnvRef)stack->info)->state->name);
+            case PDSTACK_PDOB:
+                printf("<%p>", stack->info);
                 break;
             default:
                 printf("??? %d %p ???", stack->type, stack->info);

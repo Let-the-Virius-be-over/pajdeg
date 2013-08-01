@@ -1,5 +1,5 @@
 //
-//  PDBTree.c
+//  pd_btree.c
 //
 //  Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
 // 
@@ -24,11 +24,11 @@
 
 #include "PDDefines.h"
 #include "PDInternal.h"
-#include "PDBTree.h"
+#include "pd_btree.h"
 
-void *PDBTreeInsert(PDBTreeRef *root, long key, void *value)
+void *pd_btree_insert(pd_btree *root, long key, void *value)
 {
-    PDBTreeRef parent, ref;
+    pd_btree parent, ref;
     
     parent = NULL;
     ref = *root;
@@ -43,7 +43,7 @@ void *PDBTreeInsert(PDBTreeRef *root, long key, void *value)
         return replaced;
     }
     
-    ref = malloc(sizeof(struct PDBTree));
+    ref = malloc(sizeof(struct pd_btree));
     ref->branch[0] = ref->branch[1] = NULL;
     ref->key = key;
     ref->value = value;
@@ -55,19 +55,19 @@ void *PDBTreeInsert(PDBTreeRef *root, long key, void *value)
     return NULL;
 }
 
-void *PDBTreeFetch(PDBTreeRef root, long key)
+void *pd_btree_fetch(pd_btree root, long key)
 {
     while (root && root->key != key)
         root = root->branch[root->key > key];
     return root ? root->value : NULL;
 }
 
-void *PDBTreeRemove(PDBTreeRef *root, long key)
+void *pd_btree_remove(pd_btree *root, long key)
 {
-    PDBTreeRef orphan = NULL;
-    PDBTreeRef parent = NULL;
-    PDBTreeRef ref = *root;
-    PDBTreeRef rep;
+    pd_btree orphan = NULL;
+    pd_btree parent = NULL;
+    pd_btree ref = *root;
+    pd_btree rep;
     
     while (ref && ref->key != key) {
         parent = ref;
@@ -88,7 +88,7 @@ void *PDBTreeRemove(PDBTreeRef *root, long key)
         parent = *root = rep;
     
     if (orphan) {
-        PDBTreeInsert(&parent, orphan->key, orphan->value);
+        pd_btree_insert(&parent, orphan->key, orphan->value);
         free(orphan);
     }
     
@@ -98,34 +98,34 @@ void *PDBTreeRemove(PDBTreeRef *root, long key)
     return value;
 }
 
-PDInteger PDBTreePopulateKeys(PDBTreeRef root, void **dest)
+PDInteger pd_btree_populate_keys(pd_btree root, void **dest)
 {
-    PDBTreeRef r;
+    pd_btree r;
     PDInteger i = 0;
     while (root) {
         dest[i++] = (void*)root->key;
         r = root->branch[1];
-        if (root->branch[0]) i = PDBTreePopulateKeys(root->branch[0], &dest[i]);
+        if (root->branch[0]) i = pd_btree_populate_keys(root->branch[0], &dest[i]);
         root = r;
     }
     return i;
 }
 
-void PDBTreeDestroy(PDBTreeRef root)
+void pd_btree_destroy(pd_btree root)
 {
-    PDBTreeDestroyWithDeallocator(root, NULL);
+    pd_btree_destroy_with_deallocator(root, NULL);
 }
 
-void _PDBTreeDestroy(PDBTreeRef root, PDDeallocator deallocator)
+void _pd_btree_destroy(pd_btree root, PDDeallocator deallocator)
 {
-    if (root->branch[0]) PDBTreeDestroyWithDeallocator(root->branch[0], deallocator);
-    if (root->branch[1]) PDBTreeDestroyWithDeallocator(root->branch[1], deallocator);
+    if (root->branch[0]) pd_btree_destroy_with_deallocator(root->branch[0], deallocator);
+    if (root->branch[1]) pd_btree_destroy_with_deallocator(root->branch[1], deallocator);
     if (deallocator) (*deallocator)(root->value);
     free(root);
 }
 
-void PDBTreeDestroyWithDeallocator(PDBTreeRef root, PDDeallocator deallocator)
+void pd_btree_destroy_with_deallocator(pd_btree root, PDDeallocator deallocator)
 {
     // avoid NULL crashes
-    if (root) _PDBTreeDestroy(root, deallocator);
+    if (root) _pd_btree_destroy(root, deallocator);
 }

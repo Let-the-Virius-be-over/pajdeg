@@ -30,11 +30,32 @@
 #include "PDEnv.h"
 #include "PDStack.h"
 
+void PDStateDestroy(PDStateRef state)
+{
+    PDInteger i;
+    if (state->symbols) {
+        for (i = state->symbols-1; i >= 0; i--) {
+            //printf("releasing %s :: %s (symop)\n", state->name, state->symbol[i]);
+            free(state->symbol[i]);
+            PDRelease(state->symbolOp[i]);
+        }
+        free(state->symbol);
+        free(state->symbolOp);
+    }
+    
+    if (state->symindex) 
+        free(state->symindex);
+    
+    if (state->delimiterOp) PDRelease(state->delimiterOp);
+    if (state->numberOp)    PDRelease(state->numberOp);
+    if (state->fallbackOp)  PDRelease(state->fallbackOp);
+    free(state->name);
+}
+
 PDStateRef PDStateCreate(char *name)
 {
-    PDStateRef state = calloc(1, sizeof(struct PDState));
+    PDStateRef state = PDAlloc(sizeof(struct PDState), PDStateDestroy, true);
     state->name = strdup(name);
-    state->users = 1;
     return state;
 }
 
@@ -45,25 +66,25 @@ void PDStateDefineSymbolOperator(PDStateRef state, const char *symbol, PDOperato
     state->symbol = realloc(state->symbol, sizeof(char*) * state->symbols);
     state->symbolOp = realloc(state->symbolOp, sizeof(PDOperatorRef) * state->symbols);
     state->symbol[syms] = strdup(symbol);
-    state->symbolOp[syms] = PDOperatorRetain(op);
+    state->symbolOp[syms] = PDRetain(op);
 }
 
 void PDStateDefineNumberOperator(PDStateRef state, PDOperatorRef op)
 {
-    if (state->numberOp) PDOperatorRelease(state->numberOp);
-    state->numberOp = PDOperatorRetain(op);
+    if (state->numberOp) PDRelease(state->numberOp);
+    state->numberOp = PDRetain(op);
 }
 
 void PDStateDefineDelimiterOperator(PDStateRef state, PDOperatorRef op)
 {
-    if (state->delimiterOp) PDOperatorRelease(state->delimiterOp);
-    state->delimiterOp = PDOperatorRetain(op);
+    if (state->delimiterOp) PDRelease(state->delimiterOp);
+    state->delimiterOp = PDRetain(op);
 }
 
 void PDStateDefineFallbackOperator(PDStateRef state, PDOperatorRef op)
 {
-    if (state->fallbackOp) PDOperatorRelease(state->fallbackOp);
-    state->fallbackOp = PDOperatorRetain(op);
+    if (state->fallbackOp) PDRelease(state->fallbackOp);
+    state->fallbackOp = PDRetain(op);
 }
 
 void PDStateDefineOperatorsWithDefinition(PDStateRef state, const void **defs)
@@ -92,7 +113,7 @@ void PDStateDefineOperatorsWithDefinition(PDStateRef state, const void **defs)
                 PDAssert(0); // undefined operator type
                 break;
         }
-        PDOperatorRelease(op);
+        PDRelease(op);
     }
 }
 
@@ -159,37 +180,5 @@ void PDStateCompile(PDStateRef state)
     if (state->delimiterOp) PDOperatorCompileStates(state->delimiterOp);
     if (state->fallbackOp)  PDOperatorCompileStates(state->fallbackOp);
     if (state->numberOp)    PDOperatorCompileStates(state->numberOp);
-}
-
-PDStateRef PDStateRetain(PDStateRef state)
-{
-    state->users++;
-    return state;
-}
-
-void PDStateRelease(PDStateRef state)
-{
-    PDInteger i;
-    state->users--;
-    if (state->users == 0) {
-        if (state->symbols) {
-            for (i = state->symbols-1; i >= 0; i--) {
-                //printf("releasing %s :: %s (symop)\n", state->name, state->symbol[i]);
-                free(state->symbol[i]);
-                PDOperatorRelease(state->symbolOp[i]);
-            }
-            free(state->symbol);
-            free(state->symbolOp);
-        }
-        
-        if (state->symindex) 
-            free(state->symindex);
-        
-        if (state->delimiterOp) PDOperatorRelease(state->delimiterOp);
-        if (state->numberOp)    PDOperatorRelease(state->numberOp);
-        if (state->fallbackOp)  PDOperatorRelease(state->fallbackOp);
-        free(state->name);
-        free(state);
-    }
 }
 

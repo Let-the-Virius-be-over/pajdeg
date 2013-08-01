@@ -85,8 +85,9 @@ void PDScannerAttachFixedSizeBuffer(PDScannerRef scanner, char *buf, PDInteger l
 
 void PDScannerDestroy(PDScannerRef scanner)
 {
-    if (scanner->env) 
-        PDEnvDestroy(scanner->env);
+    PDScannerDetachFilter(scanner);
+    
+    if (scanner->env) PDRelease(scanner->env);
 
     PDStackDestroy(scanner->envStack);
     PDStackDestroy(scanner->resultStack);
@@ -142,6 +143,46 @@ void PDScannerSkip(PDScannerRef scanner, PDSize bytes)
     //scanner->bsize += bytes;
     scanner->boffset += bytes;
     //scanner->btrail = scanner->boffset;
+}
+
+/*PDInteger PDScannerPassSequence(PDScannerRef scanner, char *sequence)
+{
+    char *buf;
+    PDInteger len, i, bsize, seqi, seql;
+
+    seqi = 0;
+    seql = strlen(sequence);
+    buf = scanner->buf;
+    bsize = scanner->bsize;
+    i = scanner->boffset;
+
+    len = 0;
+
+    while (seqi < seql && bsize > i) {
+        len++;
+        i++;
+        seqi = buf[i] == sequence[seqi] ? seqi + 1 : 0;
+    }
+    scanner->boffset = i;
+    return len;
+}*/
+
+PDInteger PDScannerPassSymbolCharacterType(PDScannerRef scanner, PDInteger symbolCharType)
+{
+    char *buf;
+    PDInteger len, i, bsize;
+    
+    buf = scanner->buf;
+    bsize = scanner->bsize;
+    i = scanner->boffset;
+    
+    len = 0;
+    
+    while (bsize > i && PDOperatorSymbolGlob[buf[i++]] != symbolCharType) {
+        len++;
+    }
+    scanner->boffset = i;
+    return len;
 }
 
 void PDScannerPopSymbol(PDScannerRef scanner)
@@ -397,9 +438,8 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
             case PDOperatorPushWeakState:
                 SOEnt();
                 //SOL(">>> push state #%d=%s (%p)\n", statez, op->pushedState->name, op->pushedState);
-                PDStackPushEnv(&scanner->envStack, scanner->env);
-                scanner->env = calloc(1, sizeof(struct PDEnv));
-                scanner->env->state = op->pushedState;
+                PDStackPushObject(&scanner->envStack, scanner->env);
+                scanner->env = PDEnvCreateWithState(op->pushedState);
                 scanner->env->entryOffset = scanner->boffset;
                 PDScannerScan(scanner);
                 if (scanner->failed) return;
@@ -408,8 +448,8 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
             case PDOperatorPopState:
                 SOExt();
                 //printf("<<< pop state #%d=%s (%p)\n", statez, scanner->env->state->name, scanner->env->state);
-                PDEnvDestroy(scanner->env);
-                scanner->env = PDStackPopEnv(&scanner->envStack);
+                PDRelease(scanner->env);
+                scanner->env = PDStackPopObject(&scanner->envStack);
                 break;
                 
             case PDOperatorPushEmptyString:
@@ -502,6 +542,16 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
             
             case PDOperatorReadToDelimiter:
                 PDScannerReadUntilDelimiter(scanner, false);
+                break;
+                
+            case PDOperatorMark:
+                scanner->bmark = scanner->boffset - sym->slen;
+                break;
+                
+            case PDOperatorPushMarked:
+                PDAssert(scanner->bmark < scanner->boffset);
+                PDStackPushKey(&scanner->resultStack, strndup(&scanner->buf[scanner->bmark], sym->sstart - scanner->buf - scanner->bmark + sym->slen));
+                SOShowStack("results [PUSH] > ", scanner->resultStack);
                 break;
                 
             case PDOperatorNOP:

@@ -41,8 +41,9 @@
 
  To get started with Pajdeg, you may want to 
 
- - check out the @link QUICKSTART quick start page@endlink.
- - check out the @link PDUSER user level module list@endlink.
+ - @link SETUP set it up @endlink in your project
+ - check out the @link QUICKSTART quick start page @endlink
+ - check out the @link PDUSER user level module list @endlink
  
  
  @section dependencies_sec Dependencies
@@ -58,20 +59,74 @@
  @section integrating_sec Integrating
  
  Adding Pajdeg to your project can be done by either compiling the static library using the provided Makefile, and putting the library and the .h files into your project, or by adding the .c and .h files directly. 
+ */
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ @page SETUP Setting up
+ 
+ It's arguable whether a page dedicated to setting up is even necessary, but regardless. The first sections cover general instructions, followed by specific instructions, and last is a troubleshooting section. Right now, Xcode is the only example. If you have instructions for a different environment, please contribute!
+ 
+ @section setup_sec Setting up
+ 
+ Pajdeg is meant to be included in some other project, either as a static library built e.g. using the included Makefile, or by inserting the .c and .h files directly into a project. 
+ 
+ @subsection setup_static_sec As a static library
+ 
+ - Compile the sources using the provided Makefile, by doing `make` either from the `Pajdeg` directory or the `Pajdeg/src` directory. You should get a `libpajdeg.a` file in the current directory regardless which one you use.
+ - Copy `libpajdeg.a` along with `src/\*.h` into your project
+ - Include `libpajdeg.a` when compiling code that uses the library, e.g. `gcc libpajdeg.a examples/minimal.c -o minimal` from the `Pajdeg` folder. 
+ 
+ @subsection setup_xcode_sec Xcode
+ 
+ For Xcode (4.x), dragging the Pajdeg folder as is into an existing project is all you need to do (and add the libz framework, if necessary), but if Xcode suggests adding a build phase for the included Makefiles, **you should skip that part** as the files will compile fine as is.
+ 
+ @section setup_trouble_sec Troubleshooting
+ 
+ @subsection Undefined symbols
+ 
+ If you get something like this:
+ @code 
+ Undefined symbols for architecture x86_64:
+ "_deflate", referenced from:
+ _fd_compress_proceed in libpajdeg.a(PDStreamFilterFlateDecode.o)
+ "_deflateEnd", referenced from:
+ _fd_compress_done in libpajdeg.a(PDStreamFilterFlateDecode.o)
+ "_deflateInit_", referenced from:
+ ...
+ ld: symbol(s) not found for architecture x86_64
+ collect2: ld returned 1 exit status
+ @endcode
+ 
+ you forgot to include libz (`-lz` flag for GCC/LLDB, or the libz framework in Xcode or whatever IDE you're using).
+ 
+ If the function names are prefixed with `PD` or `_PD`, however, Pajdeg itself is not being linked into your executable correctly. (This may happen when developing iOS applications, if building Pajdeg inside of or as a sub-project, and neglecting to turn off `Build Active Architecture Only` for said sub-project.)
+ 
 */
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
  @page QUICKSTART Quick Start
  
- @section setup_sec Setting up
+ This guide goes through the example code in `examples` folder. You can compile these as you go by doing 
+ 
+ @code gcc THEFILENAME -lz ../libpajdeg.a -o example @endcode
+ 
+ from within the `Pajdeg/examples` folder, presuming you've done `make` in `Pajdeg` first.
+ 
+ The quick guide goes through a number of examples of increasing complexity:
+ - @subpage minimal
+ - @subpage addmetadata
+ - @subpage replacemetadata
+ 
+ */
 
- Pajdeg is meant to be included in some other project, either as a static library built e.g. using the included Makefile, or by inserting the .c and .h files directly into a project. 
- 
- @subsection setup_xcode_sec Xcode
- 
- For Xcode (4.x), dragging the Pajdeg folder as is into an existing project is all you need to do (and add the libz framework, if necessary), but if Xcode suggests adding a build phase for the included Makefiles, you should skip that part as the files will compile fine as is.
- 
- @section minimal_sec Minimal example
+//--------------------------------------------------------------------------------
+
+/**
+ @page minimal Minimal example
  
  From @c examples/minimal.c :
  
@@ -83,13 +138,150 @@
  - PDPipeExecute() initiates the actual piping operation, which will execute all the way to the end of the input file, and
  - PDPipeDestroy() cleans up the pipe instance.
  
- @section replacemetadata_sec Replacing a PDF's metadata entry
+ Next up is @ref addmetadata "Adding metadata to a PDF"
+ 
+ */
+
+//--------------------------------------------------------------------------------
+
+/**
+ 
+ @page addmetadata Adding metadata to a PDF
+ 
+ From @c examples/add-metadata.c :
+ 
+ @dontinclude examples/add-metadata.c
+ 
+ We now want to add metadata to an existing PDF. If the PDF has metadata already, we explode, but that's fine, we'll deal with that soon. The first new thing we have to do is declare a *mutator* task function above `main`.
+ 
+ @skip needed
+ @until PDObjectRef object
+ 
+ It takes three arguments: the pipe, its owning task, and the object it's supposed to do its magic on. We'll get to its definition soon enough. We also have a scoped reference to a @link PDObjectRef @endlink here, because our task will need to refer to it.
+ 
+ The next thing we have to do is create a new object. This is actually done straight off without using tasks. It may be a little confusing, but remember that a mutator *mutates/changes* something, it never *creates* anything. 
+ 
+ In any case, to create objects, we need to introduce a new friend, the parser. In our `main()`:
+ 
+ @skip get the pipe
+ @until NewObj
+ 
+ The object has been given a unique object ID and is set up, ready to be stuffed into the output PDF as soon as we hit `execute`. We want to tweak it first, of course.
+ 
+ @skip char
+ @until SetStream
+ 
+ Note that we're `strdup()`ing the string. The object will `free()` this variable when it's destroyed, but it won't make a copy of it by itself, since streams can be enormously huge.
+ 
+ Adding a metadata object is fine and all, but it won't do any good unless we point the PDF's root object at the new metadata object. That's what our task from before is for.
+ 
+ @skip rootUpdater
+ @until ;
+ 
+ We're creating a mutator task for the "root object" property type (i.e. for all objects whose property is the root object, which is only one), and we're passing our `addMetadata` function to it. 
+ 
+ Under the hood, this sets up a filter task for the root object's object ID, and attaches a mutator task to that filter task. The filter task will be pinged every time an object passes through the pipe and if the filter encounters the object whose ID matches the root object of the PDF, it will trigger its mutator task and hand it the object in question. That mutator task is our `addMetadata` function.
+ 
+ Which we will get to very soon. Before we do, though, there are a few things left: adding our task to the pipe, 
+ 
+ @skip PDPipeAdd
+ @until ;
+ 
+ executing/destroying the pipe, 
+ 
+ @skip Exec
+ @until Destr
+ 
+ and some clean-up.
+ 
+ @skip PDTaskRel
+ @until meta
+ 
+ Caution: releasing the meta object before calling PDPipeExecute() will cause a crash, because `addMetadata` uses it and `addMetadata` is not called until PDPipeExecute() is been called.
+ 
+ The last part is the actual task callback. 
+ 
+ @skip PDTaskRes
+ @until {
+ 
+ We could blindly change the root object's Metadata key to point to our new object. We could, but it would be very bad. We would leave a potentially huge abandoned object in the resulting PDF. Even worse, a PDF would have as many metadata objects as it had gone through our pipe, since we would be adding a new one every time.
+ 
+ @until }
+ 
+ If PDObjectGetDictionaryEntry() returns a non-NULL value for the "Metadata" key, we explode. With that out of the way, setting the metadata is fairly straightforward.
+ 
+ @skip /
+ @until metaRef
+ 
+ We get the reference string for the meta object (this is why we needed it in the task, but we could have just as well set up a scoped string in `main()` if we would have liked),
+ 
+ @skip /
+ @until metaRef
+ 
+ stuff it into the root object,
+ 
+ @skip /
+ @until }
+ 
+ and return PDTaskDone to signal that we're finished.
+ 
+ Put together, this is what it all looks like:
+ 
+ @include examples/add-metadata.c
+ 
+ You can check out a dissection of a `diff` resulting from a tiny PDF when piped using this program on the @subpage addmetadatadiff "Add metadata diff example" page.
+ 
+ In the next part we'll be conditionally replacing or inserting metadata depending on whether it exists or not. There are a couple of ways of doing this, such as always deleting the current medata object and putting in a new one, but we're going to replace or insert. @ref replacemetadata "Replacing metadata"
+ 
+ */
+
+//--------------------------------------------------------------------------------
+
+/**
+ 
+ @page addmetadatadiff Add metadata diff example
+ 
+ This demonstrates what the modifications Pajdeg make to a PDF end up looking like, byte-wise. You can check this out yourself by doing `diff -a` on the original and new PDF files after using Pajdeg.
+ 
+ @dontinclude examples/output-example-add-metadata.diff
+ 
+ @until endobj
+ 
+ First off, we see a number of lines added to the new PDF that weren't in the old one. It's an object (ID 21, generation number 0) with a stream whose length is 12 bytes, and the stream itself consists of the 12 characters "Hello World!".
+ 
+ @until 209c
+ 
+ Next up we see a replaced PDF dictionary. If you look closer, you'll notice that the only change is that `/Metadata 21 0 R` was added to the new PDF.
+ 
+ @until 232c
+ 
+ At the very top, `0 21` is replaced with `0 22`. This is the XREF (cross reference) header, which is changed because the PDF has an extra object (our metadata object). This follows by a chunk of lines being replaced. These are XREF entries, and almost all of them have been updated. 
+ 
+ @until 234c
+ 
+ Next up is the *trailer object* which has been updated as well: `/Size` has been set to 22, because we now have 22 objects in the PDF.
+ 
+ That's the whole diff. Chances are you won't get quite as clean results, because the original PDF here originated from Pajdeg, which often is not the case.
+ 
+ Back to @ref addmetadata "Adding metadata to a PDF"
+ 
+ */
+
+//--------------------------------------------------------------------------------
+
+/**
+ 
+ @page replacemetadata Replacing metadata
+ 
+ The code here builds on the @ref "Adding metadata" example.
  
  From @c examples/replace-metadata.c :
  
+ @dontinclude examples/replace-metadata.c
+ 
+ We now want to add metadata to an existing PDF. If the PDF has metadata already, we explode, but that's fine, we'll deal with that soon. The first new thing we have to do is declare a *mutator* task function above `main`.
+
  @include examples/replace-metadata.c
- 
- 
  
  */
 

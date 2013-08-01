@@ -141,8 +141,8 @@ PDInteger fd_compress_proceed(PDStreamFilterRef filter)
     ret = deflate(stream, flush);
     if (ret < 0) { PDWarn("deflate error: %s\n", stream->msg); }
     filter->finished = ret == Z_STREAM_END;
-    assert (ret != Z_STREAM_ERROR); // crash = screwed up setup
-    assert (ret != Z_BUF_ERROR);    // crash = buffer was trashed
+    PDAssert (ret != Z_STREAM_ERROR); // crash = screwed up setup
+    PDAssert (ret != Z_BUF_ERROR);    // crash = buffer was trashed
     filter->failing = ret < 0;
     
     filter->bufInAvailable = stream->avail_in;
@@ -168,8 +168,8 @@ PDInteger fd_decompress_proceed(PDStreamFilterRef filter)
     ret = inflate(stream, Z_NO_FLUSH);
     if (ret < 0) { PDWarn("inflate error: %s\n", stream->msg); }
     filter->finished = ret == Z_STREAM_END;
-    assert (ret != Z_STREAM_ERROR); // crash = screwed up setup
-    assert (ret != Z_BUF_ERROR);    // crash = buffer was trashed
+    PDAssert (ret != Z_STREAM_ERROR); // crash = screwed up setup
+    PDAssert (ret != Z_BUF_ERROR);    // crash = buffer was trashed
     switch (ret) {
         case Z_NEED_DICT:
             ret = Z_DATA_ERROR;

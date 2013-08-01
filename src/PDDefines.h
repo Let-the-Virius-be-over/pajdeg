@@ -30,6 +30,8 @@
 #ifndef INCLUDED_PDDefines_h
 #define INCLUDED_PDDefines_h
 
+#include "PDType.h"
+
 /**
   Support zlib compression for filters.
   */
@@ -67,7 +69,7 @@
  
  Enables reassertions of every single object inserted into the output PDF, by seeking back to its supposed position (XREF-wise) and reading in the "num num obj" part.
  */
-//#define PD_DEBUG_TWINSTREAM_ASSERT_OBJECTS
+#define PD_DEBUG_TWINSTREAM_ASSERT_OBJECTS
 
 /**
  @def DEBUG_PARSER_PRINT_XREFS 
@@ -83,13 +85,13 @@
  
  This is done by seeking to the specified offset, reading in a chunk of data, and comparing said data to the expected object. Needless to say, expensive, but excellent starting point to determine if a PDF is broken or not (XREF table tends to break "first").
  */
-//#define DEBUG_PARSER_CHECK_XREFS
+#define DEBUG_PARSER_CHECK_XREFS
 
 /**
  @def DEBUG_SCANNER_SYMBOLS
  Prints to stdout every symbol scanned when reading input, tabbed and surrounded in asterixes (e.g. "           * startxref *").
  */
-#define DEBUG_SCANNER_SYMBOLS
+//#define DEBUG_SCANNER_SYMBOLS
 
 /**
  @defgroup CORE_GRP Core types
@@ -171,6 +173,28 @@ typedef const char         **PDID;
 /** @} // CORE_GRP */
 
 /**
+ @defgroup PDINTERNAL Internal
+ 
+ @{
+ */
+
+/**
+ Deallocation signature. 
+ 
+ When encountered, the default is usually the built-in free() method, unless otherwise stated.
+ */
+typedef void (*PDDeallocator)(void *ob);
+
+/**
+ Pajdeg type.
+ 
+ The PDType structure facilitates the retain and release layer for Pajdeg objects.
+ */
+typedef union PDType *PDTypeRef;
+
+/** @} // PDINTERNAL */
+
+/**
  @defgroup PDALGO Algorithm-related
  
  @{
@@ -199,7 +223,7 @@ typedef struct PDStaticHash *PDStaticHashRef;
  
  @ingroup PDBTREE
  */
-typedef struct PDBTree      *PDBTreeRef;
+typedef struct pd_btree *pd_btree;
 
 /** @} // PDALGO */
 
@@ -216,7 +240,14 @@ typedef struct PDBTree      *PDBTreeRef;
  
  @ingroup PDOBJECT
  */
-typedef struct PDObject     *PDObjectRef;
+typedef struct PDObject *PDObjectRef;
+
+/**
+ A PDF object.
+ 
+ @ingroup PDOBJECTSTREAM
+ */
+typedef struct PDObjectStream *PDObjectStreamRef;
 
 /**
  The type of object.
@@ -224,7 +255,7 @@ typedef struct PDObject     *PDObjectRef;
  @ingroup PDOBJECT
  
  @note This enum is matched with CGPDFObject's type enum (Core Graphics)
- @warning At the moment, PDObjectTypeString and PDObjectTypeDictionary are the only supported values.
+ @warning Not all types are currently used.
  */
 typedef enum {
     PDObjectTypeUnknown     = 1,    ///< The type of the object has not (yet) been determined
@@ -237,6 +268,17 @@ typedef enum {
     PDObjectTypeDictionary,         ///< A dictionary. Most objects are considered dictionaries.
     PDObjectTypeStream,             ///< A stream.
 } PDObjectType;
+
+/**
+ The class of an object;
+ 
+ @ingroup PDOBJECT
+ */
+typedef enum {
+    PDObjectClassRegular    = 1,    ///< A regular object in a PDF
+    PDObjectClassCompressed = 2,    ///< An object inside of an object stream
+    PDObjectClassTrailer    = 3,    ///< A trailer
+} PDObjectClass;
 
 /**
  A reference to a PDF object.
@@ -305,7 +347,7 @@ typedef enum {
  
  @ingroup PDTASK
  */
-typedef PDTaskResult (*PDTaskFunc)(PDPipeRef pipe, PDTaskRef task, PDObjectRef object);
+typedef PDTaskResult (*PDTaskFunc)(PDPipeRef pipe, PDTaskRef task, PDObjectRef object, void *info);
 
 /**
  A parser.
@@ -315,21 +357,6 @@ typedef PDTaskResult (*PDTaskFunc)(PDPipeRef pipe, PDTaskRef task, PDObjectRef o
 typedef struct PDParser     *PDParserRef;
 
 /** @} // PDUSER */
-
-/**
- @defgroup PDINTERNAL Internal
- 
- @{
- */
-
-/**
- Deallocation signature. 
- 
- When encountered, the default is usually the built-in free() method, unless otherwise stated.
- */
-typedef void (*PDDeallocator)(void *ob);
-
-/** @} // PDINTERNAL */
 
 /**
  A double-edged stream.
@@ -439,6 +466,8 @@ typedef enum {
     PDOperatorPushbackValue,    ///< Pushes the top value on the stack onto the symbols stack as if it were never read
     PDOperatorPopLine,          ///< Read to end of line
     PDOperatorReadToDelimiter,  ///< Read over symbols and whitespace until a delimiter is encountered
+    PDOperatorMark,             ///< Mark current position in buffer for popping as is into results later
+    PDOperatorPushMarked,       ///< Push everything from mark to current position in buffer as results
     PDOperatorNOP,              ///< Do nothing
     // debugging
     PDOperatorBreak,            ///< Break (presuming breakpoint is properly placed)

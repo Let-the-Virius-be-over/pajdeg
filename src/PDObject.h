@@ -87,23 +87,6 @@
 
 #include "PDDefines.h"
 
-/// @name Holding
-
-/**
- Retain an object.
- 
- @param object The object.
- @return The object.
- */
-extern PDObjectRef PDObjectRetain(PDObjectRef object);
-
-/**
- Release an object
- 
- @param object The object.
- */
-extern void PDObjectRelease(PDObjectRef object);
-
 /// @name Examining
 
 /**
@@ -119,6 +102,13 @@ extern PDInteger PDObjectGetObID(PDObjectRef object);
  @param object The object.
  */
 extern PDInteger PDObjectGetGenID(PDObjectRef object);
+
+/**
+ Get reference string for this object.
+ 
+ @param object The object.
+ */
+extern const char *PDObjectGetReferenceString(PDObjectRef object);
 
 /**
  Get type of an object.
@@ -138,11 +128,31 @@ extern PDObjectType PDObjectGetType(PDObjectRef object);
 extern PDBool PDObjectHasStream(PDObjectRef object);
 
 /**
- Determine the length of the object stream.
+ Determine the raw (unextracted) length of the object stream.
+ 
+ This can be compared to the size of a file.txt.gz.
  
  @param object The object.
  */
 extern PDInteger PDObjectGetStreamLength(PDObjectRef object);
+
+/**
+ Determine the extracted length of the previously fetched object stream. 
+ 
+ This can be compared to the size of a file.txt after decompressing a file.txt.gz.
+ 
+ @warning Assertion thrown if the object stream has not been fetched before this call.
+ 
+ @param object The object.
+ */
+extern PDInteger PDObjectGetExtractedStreamLength(PDObjectRef object);
+
+/**
+ Get the object's stream. Assertion thrown if the stream has not been fetched via PDParserFetchCurrentObjectStream() first.
+ 
+ @param object The object.
+ */
+extern char *PDObjectGetStream(PDObjectRef object);
 
 /**
  Fetch the value of the given object.
@@ -346,10 +356,10 @@ extern void PDObjectSetStreamEncrypted(PDObjectRef object, PDBool encrypted);
  
  @note This method ignores definition replacements via PDObjectReplaceWithString().
  
- @return Bytes written. 
  @param object The object.
  @param dstBuf Pointer to buffer into which definition should be written. Must be a proper allocation.
  @param capacity The number of bytes allocated into *dstBuf already.
+ @return Bytes written. 
  */
 extern PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDInteger capacity);
 

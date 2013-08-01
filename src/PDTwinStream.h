@@ -199,7 +199,7 @@ extern PDSize PDTwinStreamFetchBranch(PDTwinStreamRef ts, PDSize position, PDInt
  */
 extern void PDTwinStreamCutBranch(PDTwinStreamRef ts, char *buf);
 
-/// @name committing
+/// @name Committing
 
 // all commit operations are subject to heap realignment; any scanners except the master scanner (stream->scanner) must be discarded 
 // method must be ReadWrite; this is seldom checked; behavior is undefined if this is not the case, and the resulting PDF will most certainly not be OK

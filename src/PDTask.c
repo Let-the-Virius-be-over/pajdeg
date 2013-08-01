@@ -30,8 +30,7 @@ void PDTaskDealloc(void *ob)
 {
     PDTaskRef task = ob;
     if (task->child)  
-        PDTaskRelease(task->child);
-    free(task);
+        PDRelease(task->child);
 }
 
 PDTaskResult PDTaskExec(PDTaskRef task, PDPipeRef pipe, PDObjectRef object)
@@ -40,7 +39,7 @@ PDTaskResult PDTaskExec(PDTaskRef task, PDPipeRef pipe, PDObjectRef object)
     
     PDTaskResult res = PDTaskDone;
     
-    while (task && PDTaskDone == (res = (*task->func)(pipe, task, object))) {
+    while (task && PDTaskDone == (res = (*task->func)(pipe, task, object, task->info))) {
         parent = task;
         task = task->child;
     }
@@ -49,19 +48,22 @@ PDTaskResult PDTaskExec(PDTaskRef task, PDPipeRef pipe, PDObjectRef object)
         // we can remove this task internally
         res = task->child == NULL ? PDTaskDone : PDTaskSkipRest;
         parent->child = NULL;
-        PDTaskRelease(task);
+        PDRelease(task);
     }
     
     return res;
 }
 
+void PDTaskDestroy(PDTaskRef task)
+{
+    (*task->deallocator)(task);
+}
+
 PDTaskRef PDTaskCreateFilterWithValue(PDPropertyType propertyType, PDInteger value)
 {
-    PDTaskRef task = malloc(sizeof(struct PDTask));
+    PDTaskRef task = PDAlloc(sizeof(struct PDTask), PDTaskDestroy, false);
     task->deallocator  = &PDTaskDealloc;
-    task->users        = 1;
     task->isFilter     = 1;
-    task->func         = PDPipeAppendFilter;
     task->propertyType = propertyType;
     task->value        = value;
     task->child        = NULL;
@@ -75,26 +77,13 @@ PDTaskRef PDTaskCreateFilter(PDPropertyType propertyType)
 
 PDTaskRef PDTaskCreateMutator(PDTaskFunc mutatorFunc)
 {
-    PDTaskRef task = malloc(sizeof(struct PDTask));
+    PDTaskRef task = PDAlloc(sizeof(struct PDTask), PDTaskDestroy, false);
     task->deallocator  = &PDTaskDealloc;
-    task->users        = 1;
     task->isFilter     = 0;
     task->func         = mutatorFunc;
     task->child        = NULL;
+    task->info         = NULL;
     return task;
-}
-
-PDTaskRef PDTaskRetain(PDTaskRef task)
-{
-    task->users++;
-    return task;
-}
-
-void PDTaskRelease(PDTaskRef task)
-{
-    task->users--;
-    if (task->users == 0)
-        (*task->deallocator)(task);
 }
 
 void PDTaskAppendTask(PDTaskRef parentTask, PDTaskRef childTask)
@@ -102,7 +91,12 @@ void PDTaskAppendTask(PDTaskRef parentTask, PDTaskRef childTask)
     while (childTask->child) 
         childTask = childTask->child;
     childTask->child = parentTask->child;
-    parentTask->child = PDTaskRetain(childTask);
+    parentTask->child = PDRetain(childTask);
+}
+
+void PDTaskSetInfo(PDTaskRef task, void *info)
+{
+    task->info = info;
 }
 
 //
@@ -127,7 +121,7 @@ PDTaskRef PDTaskCreateMutatorForPropertyTypeWithValue(PDPropertyType propertyTyp
     filter = PDTaskCreateFilterWithValue(propertyType, value);
     mutator = PDTaskCreateMutator(mutatorFunc);
     PDTaskAppendTask(filter, mutator);
-    PDTaskRelease(mutator);
+    PDRelease(mutator);
     
     return filter;
 }

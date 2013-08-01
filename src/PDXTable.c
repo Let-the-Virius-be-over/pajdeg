@@ -120,13 +120,15 @@ PDBool PDXTableInsertXRef(PDParserRef parser)
     // write xref table
     twinstream_put(20, "0000000000 65535 f \n");
     for (i = 1; i < mxt->count; i++) {
-        twinstream_printf("%010u %05d %c \n", PDXTableOffsetForID(mxt, i), *PDXTableGenForID(mxt, i), PDXTableIsIDFree(mxt, i) ? 'f' : 'n');
+        twinstream_printf("%010u %05d %c \n", PDXTableGetOffsetForID(mxt, i), PDXTableGetGenForID(mxt, i), PDXTableIsIDFree(mxt, i) ? 'f' : 'n');
     }
     
     PDObjectRef tob = parser->trailer;
     
-    sprintf(obuf, "%zd", parser->mxt->count);
+    sprintf(obuf, "%llu", parser->mxt->count);
     PDObjectSetDictionaryEntry(tob, "Size", obuf);
+    PDObjectRemoveDictionaryEntry(tob, "Prev");
+    PDObjectRemoveDictionaryEntry(tob, "XRefStm");
     
     char *string = NULL;
     len = PDObjectGenerateDefinition(tob, &string, 0);
@@ -151,14 +153,15 @@ PDBool PDXTableInsertXRefStream(PDParserRef parser)
     PDXTableRef mxt = parser->mxt;
     
     PDXRefSetOffsetForID(mxt->xrefs, trailer->obid, parser->oboffset);
-    *PDXRefTypeForID(mxt->xrefs, trailer->obid) = PDXTypeUsed;
+    PDXRefSetTypeForID(mxt->xrefs, trailer->obid, PDXTypeUsed);
     
-    sprintf(obuf, "%zd", mxt->count);
+    sprintf(obuf, "%llu", mxt->count);
     PDObjectSetDictionaryEntry(trailer, "Size", obuf);
     PDObjectSetDictionaryEntry(trailer, "W", PDXWEntry);
 
     PDObjectRemoveDictionaryEntry(trailer, "Prev");
     PDObjectRemoveDictionaryEntry(trailer, "Index");
+    PDObjectRemoveDictionaryEntry(trailer, "XRefStm");
 
     // override filters/decode params always -- better than risk passing something on by mistake that makes the xref stream unreadable
     PDObjectSetFlateDecodedFlag(trailer, true);
@@ -170,7 +173,7 @@ PDBool PDXTableInsertXRefStream(PDParserRef parser)
     parser->state = PDParserStateBase;
     parser->obid = trailer->obid;
     parser->genid = trailer->genid = 0;
-    parser->construct = PDObjectRetain(trailer);
+    parser->construct = PDRetain(trailer);
 
     PDParserPassthroughObject(parser);
     
@@ -461,14 +464,14 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X)
                 // transfer 
                 transfer_pcs(dst, bufi, j, T);
 #ifdef DEBUG
-                PDXOffsetType mark = PDXRefGetOffsetForArbitraryRepresentation(bufi, sizeO);
+                //PDXOffsetType mark = PDXRefGetOffsetForArbitraryRepresentation(bufi, sizeO);
 #endif
                 transfer_pcs(dst, bufi, j, O);
                 transfer_pcs(dst, bufi, j, I);
                 PDAssert(((dst - pdx->xrefs) % PDXWidth) == 0);
 #ifdef DEBUG
-                printf("force-aligned XREF entry: #%ld: %u (%d)\n", i+startob, PDXTableOffsetForID(pdx, startob+i), *PDXTableGenForID(pdx, startob+i));
-                PDAssert(mark == PDXRefGetOffsetForID(pdx->xrefs, startob+i)); // crash = transfer failure
+                //printf("force-aligned XREF entry: #%ld: %u (%d)\n", i+startob, PDXTableOffsetForID(pdx, startob+i), *PDXTableGenForID(pdx, startob+i));
+                //PDAssert(mark == PDXRefGetOffsetForID(pdx->xrefs, startob+i)); // crash = transfer failure
 #endif
             }
         }
@@ -615,14 +618,14 @@ static inline PDBool PDXTableReadXRefContent(PDXI X)
             PDXRefSetOffsetForID(dst, i, offset);
 
             if (used) {
-                *PDXRefTypeForID(dst, i) = PDXTypeUsed;
-                *PDXRefGenForID(dst, i) = PDXGenId(src);
+                PDXRefSetTypeForID(dst, i, PDXTypeUsed);
+                PDXRefSetGenForID(dst, i, PDXGenId(src));
             } else {
                 // freed objects link to each other in obstreams
-                *PDXRefTypeForID(dst, i) = PDXTypeFreed;
+                PDXRefSetTypeForID(dst, i, PDXTypeFreed);
                 if (freeLink) 
                     *freeLink =  startobid + i;
-                freeLink = PDXRefGenForID(dst, i);
+                freeLink = (PDXGenType*)&((dst)[PDXGenAlign+i*PDXWidth]);//PDXRefGetGenForID(dst, i);
                 *freeLink = 0;
             }
             
@@ -704,7 +707,7 @@ PDBool PDXTableFetchHeaders(PDXI X)
         PDStackPopInto(&osstack, &X->queue);
         
         // jump to xref
-        printf("offset = %lld\n", (PDSize)osstack->info);
+        //printf("offset = %lld\n", (PDSize)osstack->info);
         PDTwinStreamSeek(X->stream, (PDSize)osstack->info);
         
         // set up scanner
@@ -748,7 +751,7 @@ void PDXTablePrint(PDXTableRef pdx)
 
     for (i = 0; i < pdx->count; i++) {
         PDOffset offs = PDXRefGetOffsetForID(xrefs, i);
-        printf("#%03ld: %010lld (%s)\n", i, offs, types[*PDXRefTypeForID(xrefs, i)]);
+        printf("#%03ld: %010lld (%s)\n", i, offs, types[PDXRefGetTypeForID(xrefs, i)]);
     }
 }
 
@@ -902,7 +905,7 @@ PDBool PDXTableFetchXRefs(PDParserRef parser)
            "%s", (char*)xrefs);
 #endif
     
-#define DEBUG_PARSER_CHECK_XREFS
+//#define DEBUG_PARSER_CHECK_XREFS
 #ifdef DEBUG_PARSER_CHECK_XREFS
     printf("* * * * *\nCHECKING XREFS\n* * * * * *\n");
     {
@@ -911,14 +914,14 @@ PDBool PDXTableFetchXRefs(PDParserRef parser)
         char obdef[50];
         PDInteger bufl,obdefl,i,j;
         
-        char *types[] = {"free", "used", "compressed"};
+        //char *types[] = {"free", "used", "compressed"};
         
         for (i = 0; i < parser->mxt->count; i++) {
             PDOffset offs = PDXRefGetOffsetForID(xrefs, i);
-            printf("object #%3ld: %10lld (%s)\n", i, offs, types[*PDXRefTypeForID(xrefs, i)]);
-            if (PDXTypeUsed == *PDXRefTypeForID(xrefs, i)) {
+            //printf("object #%3ld: %10lld (%s)\n", i, offs, types[PDXRefGetTypeForID(xrefs, i)]);
+            if (PDXTypeUsed == PDXRefGetTypeForID(xrefs, i)) {
                 bufl = PDTwinStreamFetchBranch(X.stream, offs, 200, &buf);
-                obdefl = sprintf(obdef, "%ld %d obj", i, *PDXRefGenForID(xrefs, i));//PDXGenId(xrefs[i]));
+                obdefl = sprintf(obdef, "%ld %d obj", i, PDXRefGetGenForID(xrefs, i));//PDXGenId(xrefs[i]));
                 if (bufl < obdefl || strncmp(obdef, buf, obdefl)) {
                     printf("ERROR: object definition did not start at %lld: instead, this was encountered: ", offs);
                     for (j = 0; j < 20 && j < bufl; j++) 

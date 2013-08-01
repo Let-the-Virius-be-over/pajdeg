@@ -92,8 +92,18 @@ extern PDObjectRef PDParserCreateNewObject(PDParserRef parser);
  
  @param parser The parser.
  */
-// create a new object that should be inserted toward the end of the PDF (recommended if object is changed often)
 extern PDObjectRef PDParserCreateAppendedObject(PDParserRef parser);
+
+/**
+ Fetch the current object's stream, reading from the input source if necessary.
+ 
+ Once fetched, this will simply return the stream buffer as is.
+ 
+ @param parser The parser.
+ @param obid The object ID of the current object. Assertion is thrown if it does not match the parser's expected ID, or if the current object is not in the original PDF (e.g. from PDParserCreateNewObject()).
+ @return Stream buffer.
+ */
+extern char *PDParserFetchCurrentObjectStream(PDParserRef parser, PDInteger obid);
 
 /**
  Determine if the PDF is encrypted or not.
@@ -134,6 +144,15 @@ extern void PDParserDone(PDParserRef parser);
 extern PDBool PDParserIsObjectStillMutable(PDParserRef parser, PDInteger obid);
 
 /**
+ Determine the object id of the object stream containing the object with the given id, if any.
+ 
+ @param parser The parser.
+ @param obid The object whose container object ID is to be determined.
+ @return -1 if the object is not inside an object stream.
+ */
+extern PDInteger PDParserGetContainerObjectIDForObject(PDParserRef parser, PDInteger obid);
+
+/**
  Get an immutable reference to the root object for the input PDF.
  
  @param parser The parser.
@@ -148,7 +167,9 @@ extern PDObjectRef PDParserGetRootObject(PDParserRef parser);
  */
 extern PDInteger PDParserGetTotalObjectCount(PDParserRef parser);
 
-/*
+/**
+ * @page XREF versioning and indirect stream lengths
+ * 
  * [1]: an intriguing problem arises with PDF's that have data appended to them, where multiple instances of the same object with the same generation ID exist, which have streams that have
  *      (inhale) lengths which are indirect references rather than sizes (exhale) -- is this accepted by the PDF spec, you wonder? Adobe InDesign does it, so I can only presume yes, but it
  *      seems rather odd; in any case, the problem is demonstrated by the following PDF fragments:

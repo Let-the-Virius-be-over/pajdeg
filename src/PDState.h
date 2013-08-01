@@ -59,20 +59,6 @@ extern PDStateRef PDStateCreate(char *name);
 extern void PDStateCompile(PDStateRef state);
 
 /**
- Retain a state.
- 
- @param state The state.
- */
-extern PDStateRef PDStateRetain(PDStateRef state);
-
-/**
- Release a state.
- 
- @param state The state.
- */
-extern void PDStateRelease(PDStateRef state);
-
-/**
  Define state operators using a PDDef definition. 
  
  @param state The state.

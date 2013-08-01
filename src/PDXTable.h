@@ -69,18 +69,19 @@ struct PDXTable {
 extern PDXOffsetType PDXRefGetOffsetForID(char *xrefs, PDInteger obid);
 extern void PDXRefSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offset);
 
-#define PDXRefTypeForID(xrefs, id)       (PDXType*)&((xrefs)[id*PDXWidth])
-//#define PDXRefOffsetForID(xrefs, id)     (PDXOffsetType*)&((xrefs)[PDXOffsAlign+id*PDXWidth])
-#define PDXRefGenForID(xrefs, id)        (PDXGenType*)&((xrefs)[PDXGenAlign+id*PDXWidth])
+#define PDXRefGetTypeForID(xrefs, id)        (PDXType)((xrefs)[id*PDXWidth])
+#define PDXRefSetTypeForID(xrefs, id, t)    *(PDXType*)&((xrefs)[id*PDXWidth]) = t
+#define PDXRefGetGenForID(xrefs, id)         (PDXGenType)((xrefs)[PDXGenAlign+id*PDXWidth])
+#define PDXRefSetGenForID(xrefs, id, gen)   *(PDXGenType*)&((xrefs)[PDXGenAlign+id*PDXWidth]) = gen
 
-#define PDXTableTypeForID(xtable, id)       PDXRefTypeForID(xtable->xrefs, id)
-#define PDXTableOffsetForID(xtable, id)     PDXRefGetOffsetForID(xtable->xrefs, id)
-#define PDXTableGenForID(xtable, id)        PDXRefGenForID(xtable->xrefs, id)
+#define PDXTableGetTypeForID(xtable, id)       PDXRefGetTypeForID(xtable->xrefs, id)
+#define PDXTableGetOffsetForID(xtable, id)     PDXRefGetOffsetForID(xtable->xrefs, id)
+#define PDXTableGetGenForID(xtable, id)        PDXRefGetGenForID(xtable->xrefs, id)
 
-#define PDXTableIsIDFree(xtable, id)        (PDXTypeFreed == *PDXTableTypeForID(xtable, id))
-#define PDXTableSetIDFree(xtable, id, isf)  *PDXTableTypeForID(xtable, id) = (isf ? PDXTypeFreed : PDXTypeUsed)
+#define PDXTableIsIDFree(xtable, id)        (PDXTypeFreed == PDXTableGetTypeForID(xtable, id))
 #define PDXTableSetOffset(xtable, id, offs) PDXRefSetOffsetForID(xtable->xrefs, id, offs)
-#define PDXTableSetGen(xtable, id, gen)     *PDXTableGenForID(xtable, id) = gen
+/*#define PDXTableSetIDFree(xtable, id, isf)  *PDXTableTypeForID(xtable, id) = (isf ? PDXTypeFreed : PDXTypeUsed)
+#define PDXTableSetGen(xtable, id, gen)     *PDXTableGenForID(xtable, id) = gen*/
 
 extern PDBool PDXTableFetchXRefs(PDParserRef parser);
 

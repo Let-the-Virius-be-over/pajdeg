@@ -34,7 +34,7 @@
 #include "PDStreamFilterPrediction.h"
 
 PDInteger users = 0;
-PDStateRef pdfRoot, xrefSeeker;
+PDStateRef pdfRoot, xrefSeeker, stringStream, arbStream;
 
 const char * PD_META       = "meta";
 const char * PD_NAME       = "name";
@@ -90,7 +90,7 @@ void PDPortableDocumentFormatStateRetain()
     
     if (users == 0) {
         
-        PDPortableDocumentFormatConversionTableRetain();
+        PDConversionTableRetain();
         
         PDOperatorSymbolGlobSetup();
 
@@ -98,6 +98,8 @@ void PDPortableDocumentFormatStateRetain()
         
         s(pdfRoot);
         s(xrefSeeker);
+        s(stringStream);
+        s(arbStream);
         
         PDStateRef s(comment_or_meta);     // %anything (comment) or %%EOF (meta)
         PDStateRef s(object_reference);    // "obid genid reftype"
@@ -192,7 +194,7 @@ void PDPortableDocumentFormatStateRetain()
                                                          and PDOperatorPopState),
                                                    "S(",
                                                    PDDef(//PDOperatorBreak,
-                                                         PDOperatorPushResult, 
+                                                         PDOperatorMark,
                                                          and PDOperatorPushState, paren,
                                                          and PDOperatorPopState),
                                                    "S[",
@@ -252,19 +254,14 @@ void PDPortableDocumentFormatStateRetain()
 
         PDStateDefineOperatorsWithDefinition(paren, 
                                              PDDef("S(", 
-                                                   PDDef(//PDOperatorBreak,
-                                                         PDOperatorAppendResult,
-                                                         and PDOperatorPushWeakState, paren,
+                                                   PDDef(PDOperatorPushWeakState, paren,
                                                          and PDOperatorPopValue),
                                                    "S)", 
-                                                   PDDef(//PDOperatorBreak,
-                                                         PDOperatorAppendResult, 
+                                                   PDDef(PDOperatorPushMarked,
                                                          and PDOperatorPopState),
                                                    "F",
-                                                   PDDef(//PDOperatorBreak,
-                                                         PDOperatorPushbackSymbol,
-                                                         and PDOperatorReadToDelimiter,
-                                                         and PDOperatorAppendResult)));
+                                                   PDDef(PDOperatorPushbackSymbol,
+                                                         and PDOperatorReadToDelimiter)));
         
         
         //
@@ -289,7 +286,7 @@ void PDPortableDocumentFormatStateRetain()
         
         PDStateDefineOperatorsWithDefinition(name_str, 
                                              PDDef("S(", 
-                                                   PDDef(PDOperatorPushResult,
+                                                   PDDef(PDOperatorMark,
                                                          and PDOperatorPushWeakState, paren,
                                                          and PDOperatorPopState),
                                                    "F",
@@ -384,6 +381,24 @@ void PDPortableDocumentFormatStateRetain()
                                              PDDef("S>",
                                                    PDDef(PDOperatorPopState)));
         
+        //
+        // STRING STREAM
+        //
+        
+        stringStream->iterates = true;
+        PDStateDefineOperatorsWithDefinition(stringStream, 
+                                             PDDef("F",
+                                                   PDDef(PDOperatorPushResult)));
+        
+        //
+        // ARBITRARY STREAM
+        //
+        
+        arbStream->iterates = true;
+        PDStateDefineOperatorsWithDefinition(arbStream, 
+                                             PDDef("F",
+                                                   PDDef(PDOperatorPushbackSymbol,
+                                                         and PDOperatorPushState, arb)));
         
         // 
         // XREF SEEKER
@@ -416,8 +431,12 @@ void PDPortableDocumentFormatStateRetain()
         
         PDStateCompile(xrefSeeker);
         
+        PDStateCompile(arbStream);
+        
+        PDStateCompile(stringStream);
+        
 #undef s
-#define s(s) PDStateRelease(s)
+#define s(s) PDRelease(s)
         s(comment_or_meta);
         s(object_reference);
         s(dict_hex);
@@ -436,13 +455,13 @@ void PDPortableDocumentFormatStateRetain()
 #if 0
         PDStackRef s = NULL;
         PDStackRef o = NULL;
-        PDBTreeRef seen = NULL;
+        pd_btree seen = NULL;
         PDStackPushIdentifier(&s, (PDID)pdfRoot);
         PDStackPushIdentifier(&s, (PDID)xrefSeeker);
         PDStateRef t;
         PDOperatorRef p;
         while (NULL != (t = (PDStateRef)PDStackPopIdentifier(&s))) {
-            PDBTreeInsert(&seen, t, t);
+            pd_btree_insert(&seen, t, t);
             printf("%s\n", t->name);
             for (PDInteger i = 0; i < t->symbols; i++)
                 PDStackPushIdentifier(&o, (PDID)t->symbolOp[i]);
@@ -454,15 +473,15 @@ void PDPortableDocumentFormatStateRetain()
                 while (p) {
                     assert(p->type < PDOperatorBreak);
                     assert(p->type > 0);
-                    if (p->type == PDOperatorPushState && ! PDBTreeFetch(seen, p->pushedState)) {
-                        PDBTreeInsert(&seen, t, t);
+                    if (p->type == PDOperatorPushState && ! pd_btree_fetch(seen, p->pushedState)) {
+                        pd_btree_insert(&seen, t, t);
                         PDStackPushIdentifier(&s, (PDID)p->pushedState);
                     }
                     p = p->next;
                 }
             }
         }
-        PDBTreeDestroy(seen);
+        pd_btree_destroy(seen);
         PDStackDestroy(s);
 #endif
     }
@@ -473,16 +492,18 @@ void PDPortableDocumentFormatStateRelease()
 {
     users--;
     if (users == 0) {
-        PDStateRelease(pdfRoot);
-        PDStateRelease(xrefSeeker);
+        PDRelease(pdfRoot);
+        PDRelease(xrefSeeker);
+        PDRelease(arbStream);
+        PDRelease(stringStream);
         
         PDOperatorSymbolGlobClear();
-        PDPortableDocumentFormatConversionTableRelease();
+        PDConversionTableRelease();
     }
 }
 
 PDInteger ctusers = 0;
-void PDPortableDocumentFormatConversionTableRetain()
+void PDConversionTableRetain()
 {
     if (ctusers == 0) {
         PDPDFSetupConverters();
@@ -490,7 +511,7 @@ void PDPortableDocumentFormatConversionTableRetain()
     ctusers++;
 }
 
-void PDPortableDocumentFormatConversionTableRelease()
+void PDConversionTableRelease()
 {
     ctusers--;
     if (ctusers == 0) { 
@@ -561,8 +582,8 @@ void PDPDFSetupConverters()
 
 void PDPDFClearConverters()
 {
-    PDStaticHashRelease(converterTable);
-    PDStaticHashRelease(typeTable);
+    PDRelease(converterTable);
+    PDRelease(typeTable);
     converterTable = NULL;
     typeTable = NULL;
 }
@@ -583,7 +604,7 @@ char *PDStringFromComplex(PDStackRef *complex)
 
 PDObjectType PDObjectTypeFromIdentifier(PDID identifier)
 {
-    PDAssert(typeTable); // crash = must PDPortableDocumentFormatConversionTableRetain() first
+    PDAssert(typeTable); // crash = must PDConversionTableRetain() first
     return PDStaticHashValueForKeyAs(typeTable, *identifier, PDObjectType);
 }
 

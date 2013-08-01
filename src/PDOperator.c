@@ -72,13 +72,28 @@ char PDOperatorSymbolGlobDefine(char *str)
             : PDOperatorSymbolGlobRegular);
 }
 
+void PDOperatorDestroy(PDOperatorRef op)
+{
+    switch (op->type) {
+        case PDOperatorPopVariable:
+            free(op->key);
+            break;
+        case PDOperatorPushState:
+            PDRelease(op->pushedState);
+        default:
+            break;
+    }
+    if (op->next) {
+        PDRelease(op->next);
+    }
+}
+
 PDOperatorRef PDOperatorCreate(PDOperatorType type)
 {
-    PDOperatorRef op = malloc(sizeof(struct PDOperator));
+    PDOperatorRef op = PDAlloc(sizeof(struct PDOperator), PDOperatorDestroy, false);
     op->type = type;
     op->next = NULL;
     op->key = NULL;
-    op->users = 1;
     return op;
 }
 
@@ -92,7 +107,7 @@ PDOperatorRef PDOperatorCreateWithKey(PDOperatorType type, const char *key)
 PDOperatorRef PDOperatorCreateWithPushedState(PDStateRef pushedState)
 {
     PDOperatorRef op = PDOperatorCreate(PDOperatorPushState);
-    op->pushedState = PDStateRetain(pushedState);
+    op->pushedState = PDRetain(pushedState);
     return op;
 }
 
@@ -103,7 +118,7 @@ void PDOperatorAppendOperator(PDOperatorRef op, PDOperatorRef next)
         op = op->next;
         PDAssert(op != next);
     }
-    op->next = PDOperatorRetain(next);
+    op->next = PDRetain(next);
 }
 
 PDOperatorRef PDOperatorCreateFromDefinition(const void **defs)
@@ -129,7 +144,7 @@ PDOperatorRef PDOperatorCreateFromDefinition(const void **defs)
                 op2 = PDOperatorCreateWithPushedState((PDStateRef)defs[i++]);
                 if (t == PDOperatorPushWeakState) {
                     op2->type = PDOperatorPushWeakState;
-                    PDStateRelease(op2->pushedState);
+                    PDRelease(op2->pushedState);
                 }
                 break;
             default:
@@ -139,40 +154,13 @@ PDOperatorRef PDOperatorCreateFromDefinition(const void **defs)
         if (op) {
             /// @todo CLANG doesn't like homemade retaining
             PDOperatorAppendOperator(op, op2);
-            PDOperatorRelease(op2);
+            PDRelease(op2);
             op = op2;
         } else {
             result = op = op2;
         }
     }
     return result;
-}
-
-PDOperatorRef PDOperatorRetain(PDOperatorRef op)
-{
-    op->users++;
-    return op;
-}
-
-void PDOperatorRelease(PDOperatorRef op)
-{
-    op->users--;
-
-    if (op->users == 0) {
-        switch (op->type) {
-            case PDOperatorPopVariable:
-                free(op->key);
-                break;
-            case PDOperatorPushState:
-                PDStateRelease(op->pushedState);
-            default:
-                break;
-        }
-        if (op->next) {
-            PDOperatorRelease(op->next);
-        }
-        free(op);
-    }
 }
 
 void PDOperatorCompileStates(PDOperatorRef op)

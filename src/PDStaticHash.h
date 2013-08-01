@@ -35,7 +35,7 @@
  
  Limited to predefined set of primitive keys on creation. \f$O(1)\f$ but triggers false positives for undefined keys.
  
- This is used as a pre-filter in the PDPipe implementation to reduce the misses for the more cumbersome PDBTree containing tasks. It is also used in the PDF spec implementation's PDStringFromComplex() function. 
+ This is used as a pre-filter in the PDPipe implementation to reduce the misses for the more cumbersome pd_btree containing tasks. It is also used in the PDF spec implementation's PDStringFromComplex() function. 
  
  The static hash generates a hash table of \f$2^n\f$ size, where \f$n\f$ is the lowest possible number where the primitive value of the range of keys produces all unique indices based on the following formula, where \f$K\f$, \f$s\f$, and \f$m\f$ are the key, shift and mask parameters
  
@@ -132,20 +132,6 @@ extern void PDStaticHashDisownKeysValues(PDStaticHashRef sh, PDBool disownKeys, 
 
 // add key/value entry to a static hash; often expensive
 //extern void PDStaticHashAdd(void *key, void *value);
-
-/**
- Retain static hash.
- 
- @param sh The static hash
- */
-extern PDStaticHashRef PDStaticHashRetain(PDStaticHashRef sh);
-
-/**
- Retain static hash.
-
- @param sh The static hash
- */
-extern void PDStaticHashRelease(PDStaticHashRef sh);
 
 /** @} */
 

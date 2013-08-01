@@ -30,12 +30,18 @@
 #include "PDStaticHash.h"
 #include "PDPDFPrivate.h"
 
+void PDStaticHashDestroy(PDStaticHashRef sh)
+{
+    free(sh->table);
+    if (! sh->leaveKeys)   free(sh->keys);
+    if (! sh->leaveValues) free(sh->values);
+}
+
 PDStaticHashRef PDStaticHashCreate(PDInteger entries, void **keys, void **values)
 {
-    PDStaticHashRef sh = malloc(sizeof(struct PDStaticHash));
+    PDStaticHashRef sh = PDAlloc(sizeof(struct PDStaticHash), PDStaticHashDestroy, false);
 #define converterTableHash(key) static_hash_idx(converterTableMask, converterTableShift, key)
     
-    sh->users = 1;
     sh->entries = entries;
     sh->keys = keys;
     sh->values = values;
@@ -89,23 +95,6 @@ PDStaticHashRef PDStaticHashCreate(PDInteger entries, void **keys, void **values
     sh->shift = converterTableShift;
     
     return sh;
-}
-
-PDStaticHashRef PDStaticHashRetain(PDStaticHashRef sh)
-{
-    sh->users++;
-    return sh;
-}
-
-void PDStaticHashRelease(PDStaticHashRef sh)
-{
-    sh->users--;
-    if (sh->users == 0) {
-        free(sh->table);
-        if (! sh->leaveKeys)   free(sh->keys);
-        if (! sh->leaveValues) free(sh->values);
-        free(sh);
-    }
 }
 
 void PDStaticHashDisownKeysValues(PDStaticHashRef sh, PDBool disownKeys, PDBool disownValues)

@@ -28,17 +28,16 @@
 
 #include "PDInternal.h"
 
-PDEnvRef PDEnvCreateWithState(PDStateRef state)
-{
-    PDEnvRef env = calloc(1, sizeof(struct PDEnv));
-    env->state = state;
-    return env;
-}
-
 void PDEnvDestroy(PDEnvRef env)
 {
     if (env->buildStack) PDStackDestroy(env->buildStack);
     if (env->varStack) PDStackDestroy(env->varStack);
-    free(env);
+}
+
+PDEnvRef PDEnvCreateWithState(PDStateRef state)
+{
+    PDEnvRef env = PDAlloc(sizeof(struct PDEnv), PDEnvDestroy, true);
+    env->state = state;
+    return env;
 }
 

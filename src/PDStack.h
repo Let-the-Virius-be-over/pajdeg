@@ -91,12 +91,12 @@ extern void PDStackPushFreeable(PDStackRef *stack, void *info);
 extern void PDStackPushStack(PDStackRef *stack, PDStackRef pstack);
 
 /**
- Push a PDEnvRef object.
+ Push a PDType object.
  
  @param stack The stack.
- @param env The environment. Its destroy method PDEnvDestroy() is called on stack destruction.
+ @param ob The object. It is retained on push and released on pop, or destroy.
  */
-extern void PDStackPushEnv(PDStackRef *stack, PDEnvRef env);
+extern void PDStackPushObject(PDStackRef *stack, void *ob);
 
 /**
  Unshift (put in from the start) a stack onto a stack.
@@ -148,11 +148,11 @@ extern PDID PDStackPopIdentifier(PDStackRef *stack);
 extern PDStackRef PDStackPopStack(PDStackRef *stack);
 
 /**
- Pop a PDEnvRef off of the stack. Throws assertion if the next item is not an environment.
+ Pop a PDType object off of the stack. Throws assertion if the next item is not a PD object.
  
  @param stack The stack.
  */
-extern PDEnvRef PDStackPopEnv(PDStackRef *stack);
+extern void *PDStackPopObject(PDStackRef *stack);
 
 /**
  Pop a freeable off of the stack. Throws assertion if the next item is not a freeable.

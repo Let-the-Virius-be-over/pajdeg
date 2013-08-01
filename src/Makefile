@@ -1,7 +1,11 @@
-CFLAGS  = -lz -I include -c -Wall
+CFLAGS  = -I include -c -Wall
 CC      = gcc
-SRC	= PDBTree.c PDEnv.c PDOperator.c PDPipe.c PDReference.c PDStack.c PDStaticHash.c PDObject.c PDParser.c PDPortableDocumentFormatState.c PDScanner.c PDState.c PDTask.c PDTwinStream.c
-HDR	= PDBTree.h PDDefines.h PDEnv.h PDInternal.h PDObject.h PDOperator.h PDPDFPrivate.h PDParser.h PDPipe.h PDPortableDocumentFormatState.h PDReference.h PDScanner.h PDStack.h PDState.h PDStaticHash.h PDTask.h PDTwinStream.h Pajdeg.h
+SRC	= *.c
+# PDBTree.c PDEnv.c PDObject.c PDOperator.c PDParser.c PDPipe.c PDPortableDocumentFormatState.c PDReference.c PDScanner.c PDStack.c PDState.c PDStaticHash.c PDStreamFilter.c PDStreamFilterFlateDecode.c PDStreamFilterPrediction.c PDTask.c PDTwinStream.c PDXTable.c
+
+# HDR	= PDBTree.h PDDefines.h PDEnv.h PDInternal.h PDObject.h PDOperator.h PDPDFPrivate.h PDParser.h PDPipe.h PDPortableDocumentFormatState.h PDReference.h PDScanner.h PDStack.h PDState.h PDStaticHash.h PDTask.h PDTwinStream.h Pajdeg.h
+HDR = *.h
+
 
 all:	pajdeg
 

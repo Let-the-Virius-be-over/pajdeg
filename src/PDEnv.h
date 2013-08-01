@@ -68,13 +68,6 @@
  */
 extern PDEnvRef PDEnvCreateWithState(PDStateRef state);
 
-/**
- Destroy an environment.
- 
- @param env The environment.
- */
-extern void PDEnvDestroy(PDEnvRef env);
-
 #endif
 
 /** @} */

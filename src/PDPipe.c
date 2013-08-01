@@ -27,17 +27,18 @@
 #include "PDInternal.h"
 #include "PDTwinStream.h"
 #include "PDReference.h"
-#include "PDBTree.h"
+#include "pd_btree.h"
 #include "PDStack.h"
 #include "PDStaticHash.h"
+#include "PDObjectStream.h"
 
-PDTaskResult PDPipeAppendFilterFunc(PDPipeRef pipe, PDTaskRef task, PDObjectRef object)
+/*PDTaskResult PDPipeAppendFilterFunc(PDPipeRef pipe, PDTaskRef task, PDObjectRef object, void *info)
 {
     PDPipeAddTask(pipe, task);
     return PDTaskSkipRest;
 }
 
-PDTaskFunc PDPipeAppendFilter = &PDPipeAppendFilterFunc;
+PDTaskFunc PDPipeAppendFilter = &PDPipeAppendFilterFunc;*/
 
 //
 //
@@ -55,10 +56,10 @@ void PDPipeDestroy(PDPipeRef pipe)
     }
     free(pipe->pi);
     free(pipe->po);
-    PDBTreeDestroyWithDeallocator(pipe->filter, (PDDeallocator)&PDTaskRelease);
+    pd_btree_destroy_with_deallocator(pipe->filter, PDRelease);
     
     while (NULL != (task = (PDTaskRef)PDStackPopIdentifier(&pipe->unfilteredTasks))) {
-        PDTaskRelease(task);
+        PDRelease(task);
     }
         
     free(pipe);
@@ -95,6 +96,39 @@ PDPipeRef PDPipeCreateWithFilePaths(const char * inputFilePath, const char * out
     return pipe;
 }
 
+PDTaskResult PDPipeObStreamMutation(PDPipeRef pipe, PDTaskRef task, PDObjectRef object, void *info)
+{
+    PDTaskRef subTask;
+    PDObjectRef ob;
+    PDObjectStreamRef obstm;
+    PDStackRef mutators;
+    PDStackRef iter;
+    char *stmbuf;
+    
+    obstm = PDObjectStreamCreateWithObject(object);
+    stmbuf = PDParserFetchCurrentObjectStream(pipe->parser, object->obid);
+    PDObjectStreamParseExtractedObjectStream(obstm, stmbuf);
+    
+    mutators = info;
+    iter = mutators;
+    
+    while (iter) {
+        // each entry is a PDTask that is a filter on a specific object, and the object is located inside of the stream
+        subTask = iter->info;
+        PDAssert(subTask->isFilter);
+        ob = PDObjectStreamGetObjectByID(obstm, subTask->value);
+        PDAssert(ob);
+        if (PDTaskFailure == PDTaskExec(subTask->child, pipe, ob)) {
+            return PDTaskFailure;
+        }
+        iter = iter->prev;
+    }
+    
+    PDObjectStreamCommit(obstm);
+    
+    return PDTaskDone;
+}
+
 void PDPipeAddTask(PDPipeRef pipe, PDTaskRef task)
 {
     long key;
@@ -122,14 +156,36 @@ void PDPipeAddTask(PDPipeRef pipe, PDTaskRef task)
                 }
                 return;*/
         }
-        PDTaskRef sibling = PDBTreeFetch(pipe->filter, key);
+        
+        if (! pipe->opened)
+            if (! PDPipePrepare(pipe)) 
+                return;
+        
+        // if this is a reference to an object inside an object stream, we have to pull that open
+        PDInteger containerOb = PDParserGetContainerObjectIDForObject(pipe->parser, key);
+        if (containerOb != -1) {
+            // force the value into the task, in case this was a root or info req
+            task->value = key;
+            PDTaskRef containerTask = pd_btree_fetch(pipe->filter, containerOb);
+            if (NULL == containerTask) {
+                // no container task yet so we set one up
+                containerTask = PDTaskCreateMutator(PDPipeObStreamMutation);
+                pipe->filterCount++;
+                pd_btree_insert(&pipe->filter, containerOb, containerTask);
+                containerTask->info = NULL;
+            }
+            PDStackPushObject((PDStackRef *)&containerTask->info, task);
+            return;
+        }
+        
+        PDTaskRef sibling = pd_btree_fetch(pipe->filter, key);
         if (sibling) {
             // same filters; merge
             PDTaskAppendTask(sibling, task->child);
         } else {
             // not same filters; include
             pipe->filterCount++;
-            PDBTreeInsert(&pipe->filter, key, PDTaskRetain(task->child));
+            pd_btree_insert(&pipe->filter, key, PDRetain(task->child));
         }
         
         if (pipe->opened && ! PDParserIsObjectStillMutable(pipe->parser, key)) {
@@ -139,14 +195,14 @@ void PDPipeAddTask(PDPipeRef pipe, PDTaskRef task)
         }
     } else {
         // task executes on every iteration
-        PDStackPushIdentifier(&pipe->unfilteredTasks, (PDID)PDTaskRetain(task));
+        PDStackPushIdentifier(&pipe->unfilteredTasks, (PDID)PDRetain(task));
 #if 0
         // task executes in root; this happens right after parser is set up and has read in things like root and info refs
         if (pipe->opened) {
             // which is now; this is odd, but let's be nice
             PDTaskExec(task, pipe, NULL);
         } else if (pipe->onPrepareTasks == NULL) {
-            pipe->onPrepareTasks = PDTaskRetain(task);
+            pipe->onPrepareTasks = PDRetain(task);
         } else {
             PDTaskAppendTask(pipe->onPrepareTasks, task);
             
@@ -157,6 +213,10 @@ void PDPipeAddTask(PDPipeRef pipe, PDTaskRef task)
 
 PDParserRef PDPipeGetParser(PDPipeRef pipe)
 {
+    if (! pipe->opened) 
+        if (! PDPipePrepare(pipe))
+            return NULL;
+    
     return pipe->parser;
 }
 
@@ -212,7 +272,7 @@ static inline PDBool PDPipeRunUnfilteredTasks(PDPipeRef pipe, PDParserRef parser
             } else {
                 // since we're dropping the top item, we've lost our iteration variable, so we recall ourselves to start over (which means continuing, as this was the first item)
                 PDStackPopIdentifier(&pipe->unfilteredTasks);
-                PDTaskRelease(task);
+                PDRelease(task);
                 
                 return PDPipeRunUnfilteredTasks(pipe, parser);
             }
@@ -230,12 +290,13 @@ PDInteger PDPipeExecute(PDPipeRef pipe)
     
     PDParserRef parser = pipe->parser;
     PDTaskRef task;
-
+    
     // at this point, we set up a static hash table for O(1) filtering before the O(n) tree fetch; the SHT implementation here triggers false positives and cannot be used on its own
     PDInteger entries = pipe->filterCount;
     void **keys = malloc(entries * sizeof(void*));
     pipe->dynamicFiltering = false;
-    PDBTreePopulateKeys(pipe->filter, keys);
+    pd_btree_populate_keys(pipe->filter, keys);
+    
     PDStaticHashRef sht = PDStaticHashCreate(entries, keys, keys);
     
     long fpos = 0;
@@ -243,6 +304,8 @@ PDInteger PDPipeExecute(PDPipeRef pipe)
     PDBool proceed = true;
     PDInteger seen = 0;
     do {
+        PDFlush();
+        
         seen++;
 
         // run unfiltered tasks
@@ -251,17 +314,17 @@ PDInteger PDPipeExecute(PDPipeRef pipe)
         
         // check filtered tasks
         if (pipe->dynamicFiltering || PDStaticHashValueForKey(sht, parser->obid)) {
-            task = PDBTreeFetch(pipe->filter, parser->obid);
+            task = pd_btree_fetch(pipe->filter, parser->obid);
             if (task) {
                 //printf("* task: object #%lu @ offset %lld *\n", parser->obid, PDTwinStreamGetInputOffset(parser->stream));
                 proceed &= PDTaskFailure != PDTaskExec(task, pipe, PDParserConstructObject(parser));
             } else fpos++;
         } else { 
             tneg++;
-            PDAssert(!PDBTreeFetch(pipe->filter, parser->obid));
+            PDAssert(!pd_btree_fetch(pipe->filter, parser->obid));
         }
     } while (proceed && PDParserIterate(parser));
-    PDStaticHashRelease(sht);
+    PDRelease(sht);
     
     proceed &= parser->success;
     

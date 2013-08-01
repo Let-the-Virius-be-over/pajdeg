@@ -84,7 +84,7 @@ PDBool PDStreamFilterApply(PDStreamFilterRef filter, unsigned char *src, unsigne
     while (bytes > 0) {
         got += bytes;
         if (! filter->finished) {
-            dstcap *= 2;
+            dstcap *= 3;
             resbuf = realloc(resbuf, dstcap);
         }
         filter->bufOut = &resbuf[got];
@@ -289,6 +289,8 @@ PDStreamFilterRef PDStreamFilterCreateInversionForFilter(PDStreamFilterRef filte
 
 PDStackRef PDStreamFilterCreateOptionsFromDictionaryStack(PDStackRef dictStack)
 {
+    if (dictStack == NULL) return NULL;
+    
     PDStackRef stack = NULL;
     PDStackRef iter = dictStack->prev->prev->info;
     PDStackRef entry;

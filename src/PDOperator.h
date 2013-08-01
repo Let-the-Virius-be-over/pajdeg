@@ -81,20 +81,6 @@ extern char PDOperatorSymbolGlobDefine(char *str);
 extern PDOperatorRef PDOperatorCreateFromDefinition(const void **defs);
 
 /**
- Retain an operator.
- 
- @param op The operator.
- */
-extern PDOperatorRef PDOperatorRetain(PDOperatorRef op);
-
-/**
- Release an operator.
- 
- @param op The operator.
- */
-extern void PDOperatorRelease(PDOperatorRef op);
-
-/**
  Compile all states referenced by the operator.
  
  @see PDStateCompile

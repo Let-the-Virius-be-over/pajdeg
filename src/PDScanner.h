@@ -135,6 +135,28 @@ extern void PDScannerAssertComplex(PDScannerRef scanner, const char *identifier)
  */
 extern void PDScannerSkip(PDScannerRef scanner, PDSize bytes);
 
+/* *
+ Skip until the given sequence is encountered, stopping after the last byte. 
+ 
+ @note Buffer growth is never done in this method, which means if the scanner's buffer is only partially complete, it may stop prematurely.
+ 
+ @param scanner The scanner.
+ @param sequence The string sequence.
+ @return The number of bytes skipped.
+ */
+//extern PDInteger PDScannerPassSequence(PDScannerRef scanner, char *sequence);
+
+/**
+ Skip until the given symbol character type is encountered, stopping after the symbol character type.
+ 
+ @note Buffer growth is never done in this method, which means if the scanner's buffer is only partially complete, it may stop prematurely.
+ 
+ @param scanner The scanner.
+ @param type The symbol character type.
+ @return The number of bytes skipped.
+ */
+extern PDInteger PDScannerPassSymbolCharacterType(PDScannerRef scanner, PDInteger symbolCharType);
+
 /**
  Attach a stream filter to the scanner. 
  

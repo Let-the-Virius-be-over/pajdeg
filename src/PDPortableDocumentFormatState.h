@@ -80,12 +80,12 @@ extern void PDPortableDocumentFormatStateRelease();
 /**
  Retain the PDF conversion table.
  */
-extern void PDPortableDocumentFormatConversionTableRetain();
+extern void PDConversionTableRetain();
 
 /**
  Release the PDF conversion table.
  */
-extern void PDPortableDocumentFormatConversionTableRelease();
+extern void PDConversionTableRelease();
 
 /**
  The root PDF state.
@@ -101,6 +101,17 @@ extern PDStateRef pdfRoot;
  The root XREF seeking state.
  */
 extern PDStateRef xrefSeeker;
+
+/**
+ String stream state. Instead of attempting to generate complex objects using definitions, this state 
+ always returns the next symbol (whitespace separated) as a string.
+ */
+extern PDStateRef stringStream;
+
+/**
+ Arbitrary object stream (e.g. object stream post-header) state.
+ */
+extern PDStateRef arbStream;
 
 /**
  Request 
