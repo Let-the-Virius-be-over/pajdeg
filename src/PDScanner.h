@@ -35,7 +35,7 @@
  
  The Pajdeg scanner takes a PDStateRef state and optionally a PDScannerPopFunc and allows the interpretation of symbols as defined by the state and its sub-states.
  
- The most public functions of the scanner are PDScannerPopString and PDScannerPopStack. The former attempts to retrieve a string from the input stream, and the other a PDStack. If the next value scanned is not the requested type, the function keeps the value around and returns falsity. It is not uncommon to attempt to pop a stack, and upon failure, to pop a string and behave accordingly.
+ The most public functions of the scanner are PDScannerPopString and PDScannerPopStack. The former attempts to retrieve a string from the input stream, and the other a pd_stack. If the next value scanned is not the requested type, the function keeps the value around and returns falsity. It is not uncommon to attempt to pop a stack, and upon failure, to pop a string and behave accordingly.
 
  @{
  */
@@ -72,13 +72,6 @@ extern PDScannerRef PDScannerCreateWithStateAndPopFunc(PDStateRef state, PDScann
  */
 extern void PDScannerAttachFixedSizeBuffer(PDScannerRef scanner, char *buf, PDInteger len);
 
-/**
- Destroy an existing scanner.
- 
- @param scanner The scanner.
- */
-extern void PDScannerDestroy(PDScannerRef scanner);
-
 /// @name Using
 
 /**
@@ -97,7 +90,7 @@ extern PDBool PDScannerPopString(PDScannerRef scanner, char **value);
  @param value Pointer to stack ref. Must be freed.
  @return true if the next value was a stack.
  */
-extern PDBool PDScannerPopStack(PDScannerRef scanner, PDStackRef *value);
+extern PDBool PDScannerPopStack(PDScannerRef scanner, pd_stack *value);
 
 /**
  Require that the next result is a string, and that it is equal to the given value, or throw assertion.

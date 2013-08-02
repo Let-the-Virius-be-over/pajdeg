@@ -21,6 +21,7 @@
 //  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 //  THE SOFTWARE.
 //
+
 /**
  @file PDEnv.h Environment header file.
  
@@ -38,7 +39,7 @@
  
  ### The build stack
  
- The build stack is a PDStackRef of objects making up a bigger object in the process of being scanned. For instance, if the scanner has just finished reading
+ The build stack is a pd_stack of objects making up a bigger object in the process of being scanned. For instance, if the scanner has just finished reading
 
  @code
     <<  /Info 1 2 R 

@@ -136,7 +136,7 @@
  
  - PDPipeCreateWithFilePaths() sets up a new pipe, ensuring that the paths are valid,
  - PDPipeExecute() initiates the actual piping operation, which will execute all the way to the end of the input file, and
- - PDPipeDestroy() cleans up the pipe instance.
+ - PDRelease() drops our reference to the pipe, so it can be cleaned up.
  
  Next up is @ref addmetadata "Adding metadata to a PDF"
  
@@ -154,10 +154,10 @@
  
  We now want to add metadata to an existing PDF. If the PDF has metadata already, we explode, but that's fine, we'll deal with that soon. The first new thing we have to do is declare a *mutator* task function above `main`.
  
- @skip needed
+ @skip PDTaskResult
  @until PDObjectRef object
  
- It takes three arguments: the pipe, its owning task, and the object it's supposed to do its magic on. We'll get to its definition soon enough. We also have a scoped reference to a @link PDObjectRef @endlink here, because our task will need to refer to it.
+ It takes four arguments: the pipe, its owning task, the object it's supposed to do its magic on, and an info object that we can use to store info in. We'll get to this function in a bit.
  
  The next thing we have to do is create a new object. This is actually done straight off without using tasks. It may be a little confusing, but remember that a mutator *mutates/changes* something, it never *creates* anything. 
  
@@ -176,9 +176,9 @@
  Adding a metadata object is fine and all, but it won't do any good unless we point the PDF's root object at the new metadata object. That's what our task from before is for.
  
  @skip rootUpdater
- @until ;
+ @until SetInfo
  
- We're creating a mutator task for the "root object" property type (i.e. for all objects whose property is the root object, which is only one), and we're passing our `addMetadata` function to it. 
+ We're creating a mutator task for the "root object" property type (i.e. for all objects whose property is the root object, which is only one), and we're passing our `addMetadata` function to it, and we're setting the `info` object to the `meta` object we made earlier. 
  
  Under the hood, this sets up a filter task for the root object's object ID, and attaches a mutator task to that filter task. The filter task will be pinged every time an object passes through the pipe and if the filter encounters the object whose ID matches the root object of the PDF, it will trigger its mutator task and hand it the object in question. That mutator task is our `addMetadata` function.
  
@@ -187,17 +187,17 @@
  @skip PDPipeAdd
  @until ;
  
- executing/destroying the pipe, 
+ executing the pipe, 
  
  @skip Exec
- @until Destr
+ @until pipe
  
  and some clean-up.
  
- @skip PDTaskRel
+ @skip PDRel
  @until meta
  
- Caution: releasing the meta object before calling PDPipeExecute() will cause a crash, because `addMetadata` uses it and `addMetadata` is not called until PDPipeExecute() is been called.
+ Caution: releasing the meta object before calling PDPipeExecute() will cause a crash, because `addMetadata` uses it and `addMetadata` is not called until PDPipeExecute() has been called.
  
  The last part is the actual task callback. 
  
@@ -213,7 +213,7 @@
  @skip /
  @until metaRef
  
- We get the reference string for the meta object (this is why we needed it in the task, but we could have just as well set up a scoped string in `main()` if we would have liked),
+ We get the reference string for the meta object,
  
  @skip /
  @until metaRef
@@ -279,9 +279,41 @@
  
  @dontinclude examples/replace-metadata.c
  
- We now want to add metadata to an existing PDF. If the PDF has metadata already, we explode, but that's fine, we'll deal with that soon. The first new thing we have to do is declare a *mutator* task function above `main`.
+ The idea is as follows: we check if there's a metadata entry; if there is, we update it, and if not, we create one and update the root object.
+ 
+ We need two tasks declared for this.
+ 
+ @skip mutator
+ @until updateMeta
+ 
+ Next, we need to do the actual conditional part in our `main()` function.
+ 
+ @skip GetRoot
+ @until updateMeta
+ 
+ First case: we have a metadata entry; we plug the `updateMetadata` task into the metadata object.
+ 
+ @until }
+ @until }
+ 
+ Second case: we do what we did before; create a metadata object, stuff it with stuff, and hook a task up to edit the root object.
+ 
+ @until Release
+ 
+ We then add the task (whichever one it was) and release it (it's retained by the PDPipe). 
+ 
+ The task for adding metadata remains the same, which leaves the task for updating it:
+ 
+ @skip updateMetadata
+ @until }
+ 
+ That all is pretty straightforward. The resulting file ends up looking like this:
 
  @include examples/replace-metadata.c
+ 
+ And this is what it looks like when used:
+ 
+ @include examples/output-example-replace-metadata.txt
  
  */
 

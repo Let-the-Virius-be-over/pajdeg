@@ -1,13 +1,29 @@
 //
 //  PDStreamFilterPrediction.c
-//  ICViewer
 //
-//  Created by Karl-Johan Alm on 7/27/13.
-//  Copyright (c) 2013 Alacrity Software. All rights reserved.
+//  Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
+// 
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+// 
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+// 
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 //
 
 #include "PDInternal.h"
-#include "PDStack.h"
+#include "pd_stack.h"
 
 #include "PDStreamFilterPrediction.h"
 
@@ -33,7 +49,7 @@ PDInteger pred_init(PDStreamFilterRef filter)
     filter->data = pred;
     
     // parse options
-    PDStackRef iter = filter->options;
+    pd_stack iter = filter->options;
     while (iter) {
         if (!strcmp(iter->info, "Columns"))         pred->columns = PDIntegerFromString(iter->prev->info);
         else if (!strcmp(iter->info, "Predictor"))  pred->predictor = PDIntegerFromString(iter->prev->info);
@@ -241,13 +257,13 @@ PDStreamFilterRef pred_invert_with_options(PDStreamFilterRef filter, PDBool inpu
     sprintf(colstr, "%ld", pred->columns);
     sprintf(predstr, "%d", pred->predictor);
     
-    PDStackRef opts = NULL;
-    PDStackPushKey(&opts, strdup(colstr));
-    PDStackPushKey(&opts, strdup("Columns"));
-    PDStackPushKey(&opts, strdup(predstr));
-    PDStackPushKey(&opts, strdup("Predictor"));
+    pd_stack opts = NULL;
+    pd_stack_push_key(&opts, strdup(colstr));
+    pd_stack_push_key(&opts, strdup("Columns"));
+    pd_stack_push_key(&opts, strdup(predstr));
+    pd_stack_push_key(&opts, strdup("Predictor"));
     
-    /*PDStackRef opts = (PDStackCreateFromDefinition
+    /*pd_stack opts = (pd_stack_create_from_definition
                        (PDDef(colstr, "Columns",
                               predstr, "Predictor")));
     */
@@ -264,17 +280,17 @@ PDStreamFilterRef unpred_invert(PDStreamFilterRef filter)
     return pred_invert_with_options(filter, false);
 }
 
-PDStreamFilterRef PDStreamFilterUnpredictionCreate(PDStackRef options)
+PDStreamFilterRef PDStreamFilterUnpredictionCreate(pd_stack options)
 {
     return PDStreamFilterCreate(unpred_init, unpred_done, unpred_begin, unpred_proceed, unpred_invert, options);
 }
 
-PDStreamFilterRef PDStreamFilterPredictionCreate(PDStackRef options)
+PDStreamFilterRef PDStreamFilterPredictionCreate(pd_stack options)
 {
     return PDStreamFilterCreate(pred_init, pred_done, pred_begin, pred_proceed, pred_invert, options);
 }
 
-PDStreamFilterRef PDStreamFilterPredictionConstructor(PDBool inputEnd, PDStackRef options)
+PDStreamFilterRef PDStreamFilterPredictionConstructor(PDBool inputEnd, pd_stack options)
 {
     return (inputEnd
             ? PDStreamFilterUnpredictionCreate(options)

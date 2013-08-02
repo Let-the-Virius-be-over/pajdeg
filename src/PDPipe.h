@@ -136,13 +136,6 @@ extern PDObjectRef PDPipeGetRootObject(PDPipeRef pipe);
 extern PDInteger PDPipeExecute(PDPipeRef pipe);
 
 /**
- Destroy a pipe.
- 
- @param pipe The pipe. 
- */
-extern void PDPipeDestroy(PDPipeRef pipe);
-
-/**
  Get pipe input file path.
  
  @param pipe The pipe.

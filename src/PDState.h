@@ -34,7 +34,7 @@
  
  A state in Pajdeg is a definition of a given set of conditions.
  
- @see PDPortableDocumentFormatState.h
+ @see pd_pdf_implementation.h
  
  @{
  */

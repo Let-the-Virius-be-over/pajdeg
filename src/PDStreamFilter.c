@@ -1,27 +1,43 @@
 //
 //  PDStreamFilter.c
-//  ICViewer
 //
-//  Created by Karl-Johan Alm on 7/26/13.
-//  Copyright (c) 2013 Alacrity Software. All rights reserved.
+//  Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
+// 
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+// 
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+// 
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 //
 
 #include "PDInternal.h"
 #include "PDStreamFilter.h"
-#include "PDStack.h"
-#include "PDPortableDocumentFormatState.h"
+#include "pd_stack.h"
+#include "pd_pdf_implementation.h"
 
-static PDStackRef filterRegistry = NULL;
+static pd_stack filterRegistry = NULL;
 
 void PDStreamFilterRegisterDualFilter(const char *name, PDStreamDualFilterConstr constr)
 {
-    PDStackPushIdentifier(&filterRegistry, (PDID)constr);
-    PDStackPushIdentifier(&filterRegistry, (PDID)name);
+    pd_stack_push_identifier(&filterRegistry, (PDID)constr);
+    pd_stack_push_identifier(&filterRegistry, (PDID)name);
 }
 
-PDStreamFilterRef PDStreamFilterObtain(const char *name, PDBool inputEnd, PDStackRef options)
+PDStreamFilterRef PDStreamFilterObtain(const char *name, PDBool inputEnd, pd_stack options)
 {
-    PDStackRef iter = filterRegistry;
+    pd_stack iter = filterRegistry;
     while (iter && strcmp(iter->info, name)) iter = iter->prev->prev;
     if (iter) {
         PDStreamDualFilterConstr constr = iter->prev->info;
@@ -31,9 +47,28 @@ PDStreamFilterRef PDStreamFilterObtain(const char *name, PDBool inputEnd, PDStac
     return NULL;
 }
 
-PDStreamFilterRef PDStreamFilterCreate(PDStreamFilterFunc init, PDStreamFilterFunc done, PDStreamFilterFunc begin, PDStreamFilterFunc proceed, PDStreamFilterPrcs inversion, PDStackRef options)
+void PDStreamFilterDestroy(PDStreamFilterRef filter)
 {
-    PDStreamFilterRef filter = calloc(1, sizeof(struct PDStreamFilter));
+    if (filter->initialized) 
+        (*filter->done)(filter);
+    
+    pd_stack_destroy(filter->options);
+    filter->options = NULL;
+    
+    if (filter->bufOutOwned)
+        free(filter->bufOutOwned);
+    
+    PDRelease(filter->nextFilter);
+}
+
+PDStreamFilterRef PDStreamFilterAlloc(void)
+{
+    return PDAlloc(sizeof(struct PDStreamFilter), PDStreamFilterDestroy, false);
+}
+
+PDStreamFilterRef PDStreamFilterCreate(PDStreamFilterFunc init, PDStreamFilterFunc done, PDStreamFilterFunc begin, PDStreamFilterFunc proceed, PDStreamFilterPrcs createInversion, pd_stack options)
+{
+    PDStreamFilterRef filter = PDAlloc(sizeof(struct PDStreamFilter), PDStreamFilterDestroy, true);
     filter->growthHint = 1.f;
     filter->compatible = true;
     filter->options = options;
@@ -41,25 +76,14 @@ PDStreamFilterRef PDStreamFilterCreate(PDStreamFilterFunc init, PDStreamFilterFu
     filter->done = done;
     filter->begin = begin;
     filter->proceed = proceed;
-    filter->inversion = inversion;
+    filter->createInversion = createInversion;
     return filter;
 }
 
-void PDStreamFilterDestroy(PDStreamFilterRef filter)
+void PDStreamFilterAppendFilter(PDStreamFilterRef filter, PDStreamFilterRef next)
 {
-    if (filter->initialized) 
-        (*filter->done)(filter);
-
-    PDStackDestroy(filter->options);
-    filter->options = NULL;
-    
-    if (filter->bufOutOwned)
-        free(filter->bufOutOwned);
-    
-    if (filter->nextFilter)
-        PDStreamFilterDestroy(filter->nextFilter);
-    
-    free(filter);
+    while (filter->nextFilter) filter = filter->nextFilter;
+    filter->nextFilter = PDRetain(next);
 }
 
 PDBool PDStreamFilterApply(PDStreamFilterRef filter, unsigned char *src, unsigned char **dstPtr, PDInteger len, PDInteger *newlenPtr)
@@ -257,16 +281,16 @@ PDStreamFilterRef PDStreamFilterCreateInversionForFilter(PDStreamFilterRef filte
     
     if (! filter->initialized) (*filter->init)(filter);
     
-    if (filter->inversion == NULL) return NULL;
+    if (filter->createInversion == NULL) return NULL;
     
     if (filter->nextFilter) {
-        if (filter->nextFilter->inversion) 
-            inversionParent = (*filter->nextFilter->inversion)(filter);
+        if (filter->nextFilter->createInversion) 
+            inversionParent = (*filter->nextFilter->createInversion)(filter);
         if (inversionParent == NULL) 
             return NULL;
     }
     
-    PDStreamFilterRef inversion = (*filter->inversion)(filter);
+    PDStreamFilterRef inversion = (*filter->createInversion)(filter);
     if (! inversionParent) {
         return inversion;
     }
@@ -287,24 +311,24 @@ PDStreamFilterRef PDStreamFilterCreateInversionForFilter(PDStreamFilterRef filte
     return result;
 }
 
-PDStackRef PDStreamFilterCreateOptionsFromDictionaryStack(PDStackRef dictStack)
+pd_stack PDStreamFilterGenerateOptionsFromDictionaryStack(pd_stack dictStack)
 {
     if (dictStack == NULL) return NULL;
     
-    PDStackRef stack = NULL;
-    PDStackRef iter = dictStack->prev->prev->info;
-    PDStackRef entry;
-    PDStackSetGlobalPreserveFlag(true);
+    pd_stack stack = NULL;
+    pd_stack iter = dictStack->prev->prev->info;
+    pd_stack entry;
+    pd_stack_set_global_preserve_flag(true);
     while (iter) {
         entry = iter->info;
-        char *value = (entry->prev->prev->type == PDSTACK_STACK 
+        char *value = (entry->prev->prev->type == pd_stack_STACK 
                        ? PDStringFromComplex(entry->prev->prev->info)
                        : strdup(entry->prev->prev->info));
-        PDStackPushKey(&stack, value);
-        PDStackPushKey(&stack, strdup(entry->prev->info));
+        pd_stack_push_key(&stack, value);
+        pd_stack_push_key(&stack, strdup(entry->prev->info));
         iter = iter->prev;
     }
-    PDStackSetGlobalPreserveFlag(false);
+    pd_stack_set_global_preserve_flag(false);
     return stack;
 }
 /*

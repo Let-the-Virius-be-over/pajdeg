@@ -24,14 +24,14 @@
 
 #include "Pajdeg.h"
 #include "PDEnv.h"
-#include "PDStack.h"
+#include "pd_stack.h"
 
 #include "PDInternal.h"
 
 void PDEnvDestroy(PDEnvRef env)
 {
-    if (env->buildStack) PDStackDestroy(env->buildStack);
-    if (env->varStack) PDStackDestroy(env->varStack);
+    if (env->buildStack) pd_stack_destroy(env->buildStack);
+    if (env->varStack) pd_stack_destroy(env->varStack);
 }
 
 PDEnvRef PDEnvCreateWithState(PDStateRef state)

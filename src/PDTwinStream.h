@@ -61,13 +61,6 @@
  */
 extern PDTwinStreamRef PDTwinStreamCreate(FILE *fi, FILE *fo);
 
-/**
- Destroy a stream.
- 
- @param stream The stream.
- */
-extern void PDTwinStreamDestroy(PDTwinStreamRef stream);
-
 /// @name Configuring / querying
 
 /**

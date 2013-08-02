@@ -48,7 +48,7 @@
  
  @param stack The dictionary or reference stack.
  */
-extern PDReferenceRef PDReferenceCreateFromStackDictEntry(PDStackRef stack);
+extern PDReferenceRef PDReferenceCreateFromStackDictEntry(pd_stack stack);
 
 /**
  Create a reference for the given object ID and generation number.
@@ -57,13 +57,6 @@ extern PDReferenceRef PDReferenceCreateFromStackDictEntry(PDStackRef stack);
  @param genid Generation number.
  */
 extern PDReferenceRef PDReferenceCreate(PDInteger obid, PDInteger genid);
-
-/**
- Destroy an existing reference.
- 
- @param reference The reference.
- */
-extern void PDReferenceDestroy(PDReferenceRef reference);
 
 /**
  Get the object ID for the reference.

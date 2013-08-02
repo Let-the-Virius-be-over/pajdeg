@@ -1,5 +1,5 @@
 //
-//  PDPDFPrivate.h
+//  pd_pdf_private.h
 //
 //  Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
 // 
@@ -22,10 +22,10 @@
 //  THE SOFTWARE.
 //
 
-#ifndef INCLUDED_PDPDFPrivate_h
-#define INCLUDED_PDPDFPrivate_h
+#ifndef INCLUDED_pd_pdf_private_h
+#define INCLUDED_pd_pdf_private_h
 
-#define PDDeallocateViaStackDealloc(ob) (*PDStackDealloc)(ob)
+#define PDDeallocateViaStackDealloc(ob) (*pd_stack_dealloc)(ob)
 
 #define currch  (scv->allocBuf)[scv->offs]
 #define currchi scv->left--; (scv->allocBuf)[(scv->offs)++]
@@ -47,8 +47,8 @@
     }
 
 #define PDStringFromObRef(ref, reflen) \
-    PDInteger obid = PDStackPopInt(s); \
-    PDInteger genid = PDStackPopInt(s); \
+    PDInteger obid = pd_stack_pop_int(s); \
+    PDInteger genid = pd_stack_pop_int(s); \
     PDInteger sz;\
     \
     char req = 5 + reflen + 2; \
@@ -59,14 +59,14 @@
 
 // get primitive if primtiive, otherwise delegate to arbitrary func
 #define PDStringFromAnything() \
-    if ((*s)->type == PDSTACK_STRING) {\
-        char *str = PDStackPopKey(s);\
+    if ((*s)->type == pd_stack_STRING) {\
+        char *str = pd_stack_pop_key(s);\
         PDInteger len = strlen(str);\
         PDStringGrow(len);\
         putstr(str, len);\
         PDDeallocateViaStackDealloc(str); \
     } else {\
-        PDStackRef co = PDStackPopStack(s); \
+        pd_stack co = pd_stack_pop_stack(s); \
         PDStringFromArbitrary(&co, scv);\
     }
 

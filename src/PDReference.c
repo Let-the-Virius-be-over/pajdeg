@@ -24,12 +24,16 @@
 
 #include "PDReference.h"
 #include "PDInternal.h"
-#include "PDStack.h"
-#include "PDPortableDocumentFormatState.h"
+#include "pd_stack.h"
+#include "pd_pdf_implementation.h"
 
-PDReferenceRef PDReferenceCreateFromStackDictEntry(PDStackRef stack)
+void PDReferenceDestroy(PDReferenceRef reference)
 {
-    PDReferenceRef ref = malloc(sizeof(struct PDReference));
+}
+
+PDReferenceRef PDReferenceCreateFromStackDictEntry(pd_stack stack)
+{
+    PDReferenceRef ref = PDAlloc(sizeof(struct PDReference), PDReferenceDestroy, false);
     
     // ("de"), <key>, {ref, 789, 0}
     if (PDIdentifies(stack->info, PD_DE))
@@ -43,13 +47,8 @@ PDReferenceRef PDReferenceCreateFromStackDictEntry(PDStackRef stack)
 
 PDReferenceRef PDReferenceCreate(PDInteger obid, PDInteger genid)
 {
-    PDReferenceRef ref = malloc(sizeof(struct PDReference));
+    PDReferenceRef ref = PDAlloc(sizeof(struct PDReference), PDReferenceDestroy, false);
     ref->obid = obid;
     ref->genid = genid;
     return ref;
-}
-
-void PDReferenceDestroy(PDReferenceRef reference)
-{
-    free(reference);
 }

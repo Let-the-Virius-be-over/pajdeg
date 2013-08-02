@@ -69,7 +69,7 @@
  
  Enables reassertions of every single object inserted into the output PDF, by seeking back to its supposed position (XREF-wise) and reading in the "num num obj" part.
  */
-#define PD_DEBUG_TWINSTREAM_ASSERT_OBJECTS
+//#define PD_DEBUG_TWINSTREAM_ASSERT_OBJECTS
 
 /**
  @def DEBUG_PARSER_PRINT_XREFS 
@@ -85,13 +85,21 @@
  
  This is done by seeking to the specified offset, reading in a chunk of data, and comparing said data to the expected object. Needless to say, expensive, but excellent starting point to determine if a PDF is broken or not (XREF table tends to break "first").
  */
-#define DEBUG_PARSER_CHECK_XREFS
+//#define DEBUG_PARSER_CHECK_XREFS
 
 /**
  @def DEBUG_SCANNER_SYMBOLS
  Prints to stdout every symbol scanned when reading input, tabbed and surrounded in asterixes (e.g. "           * startxref *").
  */
 //#define DEBUG_SCANNER_SYMBOLS
+
+/**
+ @def DEBUG_PDTYPES
+ Adds header to all PDType objects and asserts that an object is a real PDType when retained/released.
+ 
+ Keeping this enabled is recommended even for production code.
+ */
+#define DEBUG_PDTYPES
 
 /**
  @defgroup CORE_GRP Core types
@@ -163,10 +171,10 @@ typedef long long            PDOffset;
  
  Wherever used, the PDID implies that its content is "protected" and should never be modified, such as freed.
  
- The PDStack implementation adheres this convention in most cases, but some debug related functions, such as PDStackPrint, will assume that a PDID is of the latter
+ The pd_stack implementation adheres this convention in most cases, but some debug related functions, such as pd_stack_print, will assume that a PDID is of the latter
  type, and will attempt to print out the string pointed to in parentheses. 
  
- PDIDs are used extensively in the PDF specification implementation definitions located in PDPortableDocumentFormatState.h
+ PDIDs are used extensively in the PDF specification implementation definitions located in pd_pdf_implementation.h
  */
 typedef const char         **PDID;
 
@@ -203,11 +211,11 @@ typedef union PDType *PDTypeRef;
 /**
  A simple stack implementation.
  
- @ingroup PDSTACK
+ @ingroup pd_stack
  
- The PDStack is tailored to handle some common types used in Pajdeg.
+ The pd_stack is tailored to handle some common types used in Pajdeg.
  */
-typedef struct PDStack      *PDStackRef;
+typedef struct pd_stack      *pd_stack;
 
 /**
  A (very) simple hash table implementation.
@@ -420,7 +428,7 @@ typedef struct PDStreamFilter *PDStreamFilterRef;
  
  A state in Pajdeg is a definition of a given set of conditions.
  
- @see PDPortableDocumentFormatState.h
+ @see pd_pdf_implementation.h
  */
 typedef struct PDState      *PDStateRef;
 
@@ -447,7 +455,7 @@ typedef struct PDOperator   *PDOperatorRef;
  
  Pajdeg's internal parser is configured using a set of states and operators. Operators are defined using a PDOperatorType, and an appropriate unioned argument.
  
- @see PDPortableDocumentFormatState.h
+ @see pd_pdf_implementation.h
  */
 typedef enum {
     PDOperatorPushState = 1,    ///< Pushes another state; e.g. "<" pushes dict_hex, which on seeing "<" pushes "dict"
@@ -457,8 +465,8 @@ typedef enum {
     PDOperatorPopValue,         ///< Pops entry off of results stack and stores in variable stack, without including a variable name
     PDOperatorPushEmptyString,  ///< Pushes an empty string onto the results stack
     PDOperatorPushResult,       ///< Pushes current symbol onto results stack
-    PDOperatorAppendResult,     ///< Appends current symbol to last result on stack
-    PDOperatorPushContent,      ///< Pushes everything from the point where the state was entered to current offset to results
+    //PDOperatorAppendResult,     ///< Appends current symbol to last result on stack
+    //PDOperatorPushContent,      ///< Pushes everything from the point where the state was entered to current offset to results
     PDOperatorPushComplex,      ///< Pushes object of type description "key" with variables (if any) as attributes onto results stack
     PDOperatorStoveComplex,     ///< Pushes a complex onto build stack rather than results stack (for popping as a chunk of objects later)
     PDOperatorPullBuildVariable,///< Takes build stack as is, and stores it as if it was a popped variable

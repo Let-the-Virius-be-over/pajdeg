@@ -26,9 +26,9 @@
 #include "PDDefines.h"
 #include "PDScanner.h"
 #include "PDOperator.h"
-#include "PDStack.h"
+#include "pd_stack.h"
 #include "PDStaticHash.h"
-#include "PDPDFPrivate.h"
+#include "pd_pdf_private.h"
 
 void PDStaticHashDestroy(PDStaticHashRef sh)
 {

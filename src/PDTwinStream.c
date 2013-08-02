@@ -32,24 +32,23 @@
 
 void PDTwinStreamRealign(PDTwinStreamRef ts);
 
+void PDTwinStreamDestroy(PDTwinStreamRef ts)
+{
+    PDScannerContextPop();
+    
+    PDRelease(ts->scanner);
+    if (ts->sidebuf) free(ts->sidebuf);
+    free(ts->heap);
+}
+
 PDTwinStreamRef PDTwinStreamCreate(FILE *fi, FILE *fo)
 {
-    PDTwinStreamRef ts = calloc(1, sizeof(struct PDTwinStream));
+    PDTwinStreamRef ts = PDAlloc(sizeof(struct PDTwinStream), PDTwinStreamDestroy, true);
     ts->fi = fi;
     ts->fo = fo;
     
     PDScannerContextPush(ts, &PDTwinStreamGrowInputBuffer);
     return ts;
-}
-
-void PDTwinStreamDestroy(PDTwinStreamRef ts)
-{
-    PDScannerContextPop();
-    
-    if (ts->scanner) PDScannerDestroy(ts->scanner);
-    if (ts->sidebuf) free(ts->sidebuf);
-    free(ts->heap);
-    free(ts);
 }
 
 //
@@ -63,7 +62,7 @@ PDScannerRef PDTwinStreamGetScanner(PDTwinStreamRef ts)
 
 PDScannerRef PDTwinStreamSetupScannerWithState(PDTwinStreamRef ts, PDStateRef state)
 {
-    if (ts->scanner) PDScannerDestroy(ts->scanner);
+    PDRelease(ts->scanner);
     ts->scanner = PDScannerCreateWithState(state);
     return ts->scanner;
 }
@@ -362,7 +361,7 @@ void PDTwinStreamReassert(PDTwinStreamRef ts, PDOffset offset, char *expect, PDI
     if (read != len || strncmp(tmpbuf, expect, len)) {
         tmpbuf[len] = 0;
         if (read != len) {
-            fprintf(stderr, "* twin stream assertion : expected \"%s\" at %lld but output truncates at %zd of %ld bytes *\n", expect, offset, read, len);
+            fprintf(stderr, "* twin stream assertion : expected \"%s\" at %lld but output truncates at %lld of %ld bytes *\n", expect, offset, read, len);
         } else {
             fprintf(stderr, "* twin stream assertion : expected \"%s\" at %lld but got \"%s\" *\n", expect, offset, tmpbuf);
         }

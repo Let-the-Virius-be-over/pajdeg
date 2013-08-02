@@ -29,8 +29,8 @@
 #include "PDObjectStream.h"
 #include "PDInternal.h"
 #include "PDState.h"
-#include "PDPortableDocumentFormatState.h"
-#include "PDStack.h"
+#include "pd_pdf_implementation.h"
+#include "pd_stack.h"
 #include "PDTwinStream.h"
 #include "PDReference.h"
 #include "pd_btree.h"
@@ -39,11 +39,36 @@
 
 #include "PDScanner.h"
 
+void PDParserDestroy(PDParserRef parser)
+{
+    printf("xrefs:\n");
+    printf("- mxt = %p: %ld\n", parser->mxt, ((PDTypeRef)parser->mxt - 1)->retainCount);
+    printf("- cxt = %p: %ld\n", parser->cxt, ((PDTypeRef)parser->cxt - 1)->retainCount);
+    for (pd_stack t = parser->xstack; t; t = t->prev)
+        printf("- [-]: %ld\n", ((PDTypeRef)t->info - 1)->retainCount);
+    
+    PDRelease(parser->construct);
+    PDRelease(parser->root);
+    PDRelease(parser->encrypt);
+    PDRelease(parser->rootRef);
+    PDRelease(parser->infoRef);
+    PDRelease(parser->encryptRef);
+    PDRelease(parser->trailer);
+    pd_btree_destroy(parser->skipT);
+    pd_stack_destroy(parser->appends);
+    
+    PDRelease(parser->mxt);
+    PDRelease(parser->cxt);
+    pd_stack_destroy(parser->xstack);
+    
+    pd_pdf_implementation_discard();
+}
+
 PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
 {
-    PDPortableDocumentFormatStateRetain();
+    pd_pdf_implementation_use();
     
-    PDParserRef parser = calloc(1, sizeof(struct PDParser));
+    PDParserRef parser = PDAlloc(sizeof(struct PDParser), PDParserDestroy, true);
     parser->stream = stream;
     parser->state = PDParserStateBase;
     parser->success = true;
@@ -52,7 +77,7 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
         PDWarn("PDF is invalid or in an unsupported format.");
         //PDAssert(0); // the PDF is invalid or in a format that isn't supported
         free(parser);
-        PDPortableDocumentFormatStateRelease();
+        pd_pdf_implementation_discard();
         return NULL;
     }
     
@@ -70,8 +95,8 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
         // oboffset indicates the position in the PDF where the object begins; we need to pass that through
         PDObjectRef first = PDParserConstructObject(parser);
         if (first->type == PDObjectTypeDictionary) {
-            PDStackRef linearizedKey = PDStackGetDictKey(first->def, "Linearized", true);
-            PDStackDestroy(linearizedKey);
+            pd_stack linearizedKey = pd_stack_get_dict_key(first->def, "Linearized", true);
+            pd_stack_destroy(linearizedKey);
         }
     }
     
@@ -80,36 +105,12 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
     return parser;
 }
 
-void PDParserDestroy(PDParserRef parser)
-{
-    if (parser->construct) PDRelease(parser->construct);
-    if (parser->root) PDRelease(parser->root);
-    if (parser->encrypt) PDRelease(parser->encrypt);
-    if (parser->rootRef) PDReferenceDestroy(parser->rootRef);
-    if (parser->infoRef) PDReferenceDestroy(parser->infoRef);
-    if (parser->encryptRef) PDReferenceDestroy(parser->encryptRef);
-    if (parser->trailer) PDRelease(parser->trailer);
-    if (parser->skipT) pd_btree_destroy(parser->skipT);
-    while (parser->appends) {
-        PDObjectRef ob = (PDObjectRef)PDStackPopIdentifier(&parser->appends);
-        PDRelease(ob);
-    }
-    while (parser->cxt) {
-        PDXTableDestroy(parser->cxt);
-        parser->cxt = (PDXTableRef) PDStackPopIdentifier(&parser->xstack);
-    }
-    //free(parser->xrefs);
-    free(parser);
-
-    PDPortableDocumentFormatStateRelease();
-}
-
-PDStackRef PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, PDInteger obid, PDInteger bufsize, PDBool master, PDXOffsetType *outOffset)
+pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, PDInteger obid, PDInteger bufsize, PDBool master, PDXOffsetType *outOffset)
 {
     char *tb;
     char *string;
     PDTwinStreamRef stream;
-    PDStackRef stack;
+    pd_stack stack;
     PDXTableRef xrefTable;
     
     stream = parser->stream;
@@ -123,11 +124,11 @@ PDStackRef PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser
         PDXOffsetType containerOffset;
         PDInteger index = PDXRefGetGenForID(xrefTable->xrefs, obid);
         
-        PDStackRef containerDef = PDParserLocateAndCreateDefinitionForObjectWithSize(parser, PDXTableGetOffsetForID(xrefTable, obid), bufsize, master, &containerOffset);
+        pd_stack containerDef = PDParserLocateAndCreateDefinitionForObjectWithSize(parser, PDXTableGetOffsetForID(xrefTable, obid), bufsize, master, &containerOffset);
         PDAssert(containerDef);
         PDObjectRef obstmObject = PDObjectCreate(0, 0);
         obstmObject->def = containerDef;
-        obstmObject->streamLen = len = PDStackPeekInt(PDStackGetDictKey(containerDef, "Length", false)->prev->prev);
+        obstmObject->streamLen = len = pd_stack_peek_int(pd_stack_get_dict_key(containerDef, "Length", false)->prev->prev);
         
         PDTwinStreamFetchBranch(stream, containerOffset, len + 20, &tb);
         PDScannerRef streamrdr = PDScannerCreateWithState(pdfRoot);
@@ -139,7 +140,7 @@ PDStackRef PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser
         char *rawBuf = malloc(len);
         PDScannerAssertString(streamrdr, "stream");
         PDScannerReadStream(streamrdr, len, rawBuf, len);
-        PDScannerDestroy(streamrdr);
+        PDRelease(streamrdr);
         PDTwinStreamCutBranch(stream, tb);
         PDScannerContextPop();
         
@@ -149,7 +150,7 @@ PDStackRef PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser
         PDObjectStreamParseRawObjectStream(obstm, rawBuf);
         if (obstm->elements[index].type == PDObjectTypeString) {
             stack = NULL;
-            PDStackPushKey(&stack, obstm->elements[index].def);
+            pd_stack_push_key(&stack, obstm->elements[index].def);
         } else {
             stack = obstm->elements[index].def;
             obstm->elements[index].def = NULL;
@@ -173,16 +174,16 @@ PDStackRef PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser
     
     if (PDScannerPopStack(tmpscan, &stack)) {
         if (! stream->outgrown) {
-            PDStackAssertExpectedKey(&stack, "obj");
-            PDStackAssertExpectedInt(&stack, obid);
+            pd_stack_assert_expected_key(&stack, "obj");
+            pd_stack_assert_expected_int(&stack, obid);
         }
-        PDStackDestroy(stack);
+        pd_stack_destroy(stack);
     }
     
     stack = NULL;
     if (! PDScannerPopStack(tmpscan, &stack)) {
         if (PDScannerPopString(tmpscan, &string)) {
-            PDStackPushKey(&stack, string);
+            pd_stack_push_key(&stack, string);
         }
     }
     
@@ -190,12 +191,12 @@ PDStackRef PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser
     
     PDTwinStreamCutBranch(parser->stream, tb);
 
-    PDScannerDestroy(tmpscan);
+    PDRelease(tmpscan);
     PDScannerContextPop();
     
     if (stream->outgrown) {
         // the object did not fit in our expected buffer, which means it's unusually big; we bump the buffer size to 6k if it's smaller, otherwise we consider this a failure
-        PDStackDestroy(stack);
+        pd_stack_destroy(stack);
         stack = NULL;
         if (bufsize < 6000)
             return PDParserLocateAndCreateDefinitionForObjectWithSize(parser, obid, 6000, master, outOffset);
@@ -204,26 +205,26 @@ PDStackRef PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser
     return stack;
 }
 
-PDStackRef PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDInteger obid, PDBool master)
+pd_stack PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDInteger obid, PDBool master)
 {
     return PDParserLocateAndCreateDefinitionForObjectWithSize(parser, obid, 512, master, NULL);
 }
 
-void PDParserFetchStreamLengthFromObjectDictionary(PDParserRef parser, PDStackRef entry)
+void PDParserFetchStreamLengthFromObjectDictionary(PDParserRef parser, pd_stack entry)
 {
     entry = entry->prev->prev;
-    if (entry->type == PDSTACK_STACK) {
+    if (entry->type == pd_stack_STACK) {
         PDInteger refid;
-        PDStackRef stack;
+        pd_stack stack;
         // this is a reference length
         // e, Length, { ref, 1, 2 }
         entry = entry->info;
         PDAssert(PDIdentifies(entry->info, PD_REF));
-        refid = PDStackPeekInt(entry->prev);
+        refid = pd_stack_peek_int(entry->prev);
         PDAssert(refid < parser->cxt->cap);
         
         stack = PDParserLocateAndCreateDefinitionForObject(parser, refid, false);
-        parser->streamLen = PDStackPopInt(&stack);
+        parser->streamLen = pd_stack_pop_int(&stack);
     } else {
         char *string;
         // e, Length, 116
@@ -256,15 +257,15 @@ char *PDParserFetchCurrentObjectStream(PDParserRef parser, PDInteger obid)
     
     if (filterName) {
         filterName = &filterName[1];
-        PDStackRef filterOpts = PDStackGetDictKey(ob->def, "DecodeParms", false);
+        pd_stack filterOpts = pd_stack_get_dict_key(ob->def, "DecodeParms", false);
         if (filterOpts) 
-            filterOpts = PDStreamFilterCreateOptionsFromDictionaryStack(filterOpts->prev->prev->info);
+            filterOpts = PDStreamFilterGenerateOptionsFromDictionaryStack(filterOpts->prev->prev->info);
         PDStreamFilterRef filter = PDStreamFilterObtain(filterName, true, filterOpts);
         char *extractedBuf;
         PDStreamFilterApply(filter, (unsigned char *)rawBuf, (unsigned char **)&extractedBuf, len, &len);
         free(rawBuf);
         rawBuf = extractedBuf;
-        PDStreamFilterDestroy(filter);
+        PDRelease(filter);
     }
     
     ob->extractedLen = len;
@@ -437,7 +438,7 @@ void PDParserPassoverObject(PDParserRef parser);
 void PDParserPassthroughObject(PDParserRef parser)
 {
     char *string;
-    PDStackRef stack, entry;
+    pd_stack stack, entry;
     PDScannerRef scanner;
     
     // update xref entry; we do this even if this ends up being an xref; if it's an old xref, it will be removed anyway, and if it's the master, it will have its offset set at the end anyway
@@ -465,19 +466,19 @@ void PDParserPassthroughObject(PDParserRef parser)
                 if (parser->encryptRef && parser->obid == parser->encryptRef->obid) {
                     // this is an encryption dictionary; those have a Length field that is not the length of the object stream
                 } else {
-                    entry = PDStackGetDictKey(stack, "Length", false);
+                    entry = pd_stack_get_dict_key(stack, "Length", false);
                     if (entry) {
                         PDParserFetchStreamLengthFromObjectDictionary(parser, entry);
                     }
                 }
 
                 // this may be an xref object stream; we can those; if it is the master object, it will be appended to the end of the stream regardless
-                entry = PDStackGetDictKey(stack, "Type", false);
+                entry = pd_stack_get_dict_key(stack, "Type", false);
                 if (entry) {
                     entry = entry->prev->prev->info; // entry value is a stack (a name stack)
                     PDAssert(PDIdentifies(entry->info, PD_NAME));
                     if (!strcmp("XRef", entry->prev->info)) {
-                        PDStackDestroy(stack);
+                        pd_stack_destroy(stack);
                         PDXRefSetTypeForID(parser->mxt->xrefs, parser->obid, PDXTypeFreed);
                         parser->state = PDParserStateObjectAppendix;
                         PDParserPassoverObject(parser);
@@ -490,17 +491,17 @@ void PDParserPassthroughObject(PDParserRef parser)
                             if (PDIdentifies(stack->info, PD_META)) {
                                 // yeh
                                 PDTwinStreamDiscardContent(parser->stream);
-                                PDStackDestroy(stack);
+                                pd_stack_destroy(stack);
                             } else {
                                 // whoops, no
-                                PDStackPushStack(&scanner->resultStack, stack);
+                                pd_stack_push_stack(&scanner->resultStack, stack);
                             } 
                         }
 #endif
                         return;
                     }
                 }
-                PDStackDestroy(stack);
+                pd_stack_destroy(stack);
             } else {
                 PDScannerPopString(scanner, &string);
                 free(string);
@@ -554,7 +555,7 @@ void PDParserPassthroughObject(PDParserRef parser)
 void PDParserPassoverObject(PDParserRef parser)
 {
     char *string;
-    PDStackRef stack, entry;
+    pd_stack stack, entry;
     PDScannerRef scanner;
     
     scanner = parser->scanner;
@@ -565,12 +566,12 @@ void PDParserPassoverObject(PDParserRef parser)
                 if (parser->encryptRef && parser->obid == parser->encryptRef->obid) {
                     // this is an encryption dictionary; those have a Length field that is not the length of the object stream
                 } else {
-                    entry = PDStackGetDictKey(stack, "Length", false);
+                    entry = pd_stack_get_dict_key(stack, "Length", false);
                     if (entry) {
                         PDParserFetchStreamLengthFromObjectDictionary(parser, entry);
                     }
                 }
-                PDStackDestroy(stack);
+                pd_stack_destroy(stack);
             } else {
                 PDScannerPopString(scanner, &string);
                 free(string);
@@ -620,7 +621,7 @@ void PDParserAppendObjects(PDParserRef parser)
         PDParserPassthroughObject(parser);
     
     while (parser->appends) {
-        obj = parser->construct = (PDObjectRef)PDStackPopIdentifier(&parser->appends);
+        obj = parser->construct = pd_stack_pop_object(&parser->appends);
         parser->obid = obj->obid;
         parser->genid = obj->genid;
         parser->streamLen = obj->streamLen;
@@ -639,17 +640,16 @@ PDBool PDParserIterateXRefDomain(PDParserRef parser)
         parser->done = true;
         
         PDParserAppendObjects(parser);
-        PDAssert(NULL == parser->xstack); // crash = we missed an xref table in the PDF; that's very not good
         PDAssert(NULL == parser->skipT); // crash = we lost objects
         parser->success &= NULL == parser->xstack && NULL == parser->skipT;
         return false;
     }
     
-    PDXTableRef next = (PDXTableRef) PDStackPopIdentifier(&parser->xstack);
+    PDXTableRef next = pd_stack_pop_object(&parser->xstack);
     
     PDBool retval = true;
     if (parser->cxt != parser->mxt) {
-        PDXTableDestroy(parser->cxt);
+        PDRelease(parser->cxt);
         parser->cxt = next;
 
         if (parser->cxt->pos < PDTwinStreamGetInputOffset(parser->stream)) 
@@ -657,7 +657,7 @@ PDBool PDParserIterateXRefDomain(PDParserRef parser)
     } else {
         if (next->pos < PDTwinStreamGetInputOffset(parser->stream)) 
             retval = PDParserIterateXRefDomain(parser);
-        PDXTableDestroy(next);
+        PDRelease(next);
     }
     
     return retval;
@@ -668,7 +668,7 @@ PDBool PDParserIterate(PDParserRef parser)
 {
     PDBool running;
     PDBool skipObject;
-    PDStackRef stack;
+    pd_stack stack;
     PDID typeid;
     PDScannerRef scanner = parser->scanner;
     char *mxrefs = parser->mxt->xrefs;
@@ -710,14 +710,14 @@ PDBool PDParserIterate(PDParserRef parser)
             
             // first is the type, returned as an identifier
             
-            typeid = PDStackPopIdentifier(&stack);
+            typeid = pd_stack_pop_identifier(&stack);
 
             // we expect PD_XREF, PD_STARTXREF, or PD_OBJ
             
             if (typeid == &PD_XREF) {
                 // xref entry; note that we use running as the 'should consume trailer' argument to passover as the two states coincide; we also and result to the result of passover, as it may result in an XREF iteration in some special cases (in which case it may result in PDF end)
                 running = PDParserIterateXRefDomain(parser);
-                running &= PDXTablePassoverXRefEntry(parser, stack, running);
+                running &= PDXTablePassoverXRefEntry(parser, stack, running); // if !running, will all compilers enter PDXTablePassover...()? if not, this is bad
 
                 if (! running) return false;
                 
@@ -726,10 +726,10 @@ PDBool PDParserIterate(PDParserRef parser)
             
             if (typeid == &PD_OBJ) {
                 // object definition; this is what we're after, unless this object is deprecated
-                parser->obid = nextobid = PDStackPopInt(&stack);
+                parser->obid = nextobid = pd_stack_pop_int(&stack);
                 PDAssert(nextobid < parser->mxt->cap);
-                parser->genid = nextgenid = PDStackPopInt(&stack);
-                PDStackDestroy(stack);
+                parser->genid = nextgenid = pd_stack_pop_int(&stack);
+                pd_stack_destroy(stack);
                 
                 skipObject = false;
                 parser->state = PDParserStateObjectDefinition;
@@ -745,7 +745,7 @@ PDBool PDParserIterate(PDParserRef parser)
                         // okay, getting a slight bit out of hand here, but when we run into a bad offset, it sometimes is because someone screwed up and gave us:
                         // \r     \r\n1753 0 obj\r<</DecodeParm....... and claimed that the starting offset for 1753 0 was at the first \r, which it of course is not, it's 7 bytes later
                         PDInteger wsi = 0;
-                        while (offset < 0 && PDOperatorSymbolGlob[parser->stream->heap[parser->stream->cursor+(wsi++)]] == PDOperatorSymbolGlobWhitespace) 
+                        while (offset < 0 && PDOperatorSymbolGlob[(unsigned char)parser->stream->heap[parser->stream->cursor+(wsi++)]] == PDOperatorSymbolGlobWhitespace) 
                             offset++;
                         /*wsi = 1;
                         while (offset > 0 && PDOperatorSymbolGlob[parser->stream->heap[parser->stream->cursor-(wsi++)]] == PDOperatorSymbolGlobWhitespace) 
@@ -773,7 +773,7 @@ PDBool PDParserIterate(PDParserRef parser)
             
             if (typeid == &PD_STARTXREF) {
                 // a trailing startxref entry
-                PDStackDestroy(stack);
+                pd_stack_destroy(stack);
                 PDScannerAssertComplex(scanner, PD_META);
                 // snip
                 PDTwinStreamDiscardContent(parser->stream);
@@ -833,7 +833,9 @@ PDObjectRef PDParserCreateNewObject(PDParserRef parser)
 PDObjectRef PDParserCreateAppendedObject(PDParserRef parser)
 {
     PDObjectRef object = PDParserCreateNewObject(parser);
-    PDStackPushIdentifier(&parser->appends, (PDID)object);
+    pd_stack_push_object(&parser->appends, object);
+
+    // PDParserCreateNewObject retains the resulting object twice; once for Create, and once for parser->construct, but we are niling parser->construct here and instead putting the object into the appends stack (which retains too), so we release once before returning
     parser->construct = NULL;
     return object;
 }
@@ -851,7 +853,7 @@ PDObjectRef PDParserConstructObject(PDParserRef parser)
     object->encryptedDoc = PDParserGetEncryptionState(parser);
 
     char *string;
-    PDStackRef stack;
+    pd_stack stack;
     
     PDScannerRef scanner = parser->scanner;
     
@@ -863,7 +865,7 @@ PDObjectRef PDParserConstructObject(PDParserRef parser)
             // this is an encryption dictionary; those have a Length field that is not the length of the object stream
             parser->streamLen = 0;
         } else {
-            if ((stack = PDStackGetDictKey(stack, "Length", false))) {
+            if ((stack = pd_stack_get_dict_key(stack, "Length", false))) {
                 PDParserFetchStreamLengthFromObjectDictionary(parser, stack);
                 object->streamLen = parser->streamLen;
             } else {
@@ -946,7 +948,7 @@ PDBool PDParserIsObjectStillMutable(PDParserRef parser, PDInteger obid)
 PDObjectRef PDParserGetRootObject(PDParserRef parser)
 {
     if (! parser->root) {
-        PDStackRef rootDef = PDParserLocateAndCreateDefinitionForObject(parser, parser->rootRef->obid, true);
+        pd_stack rootDef = PDParserLocateAndCreateDefinitionForObject(parser, parser->rootRef->obid, true);
         parser->root = PDObjectCreate(parser->rootRef->obid, parser->rootRef->genid);
         parser->root->def = rootDef;
     }

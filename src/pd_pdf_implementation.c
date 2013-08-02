@@ -1,5 +1,5 @@
 //
-//  PDPortableDocumentFormatState.c
+//  pd_pdf_implementation.c
 //
 //  Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
 // 
@@ -26,9 +26,9 @@
 #include "PDDefines.h"
 #include "PDScanner.h"
 #include "PDOperator.h"
-#include "PDStack.h"
-#include "PDPortableDocumentFormatState.h"
-#include "PDPDFPrivate.h"
+#include "pd_stack.h"
+#include "pd_pdf_implementation.h"
+#include "pd_pdf_private.h"
 #include "PDStaticHash.h"
 #include "PDStreamFilterFlateDecode.h"
 #include "PDStreamFilterPrediction.h"
@@ -55,17 +55,17 @@ const char * PD_ENDSTREAM  = "endstream";
 // PDF complex object conversion
 //
 
-typedef void (*PDStringConverter)(PDStackRef*, PDStringConvRef);
-void PDStringFromMeta(PDStackRef *s, PDStringConvRef scv);
-void PDStringFromObj(PDStackRef *s, PDStringConvRef scv);
-void PDStringFromRef(PDStackRef *s, PDStringConvRef scv);
-void PDStringFromHexString(PDStackRef *s, PDStringConvRef scv);
-void PDStringFromDict(PDStackRef *s, PDStringConvRef scv);
-void PDStringFromDictEntry(PDStackRef *s, PDStringConvRef scv);
-void PDStringFromArray(PDStackRef *s, PDStringConvRef scv);
-void PDStringFromArrayEntry(PDStackRef *s, PDStringConvRef scv);
-void PDStringFromArbitrary(PDStackRef *s, PDStringConvRef scv);
-void PDStringFromName(PDStackRef *s, PDStringConvRef scv);
+typedef void (*PDStringConverter)(pd_stack*, PDStringConvRef);
+void PDStringFromMeta(pd_stack *s, PDStringConvRef scv);
+void PDStringFromObj(pd_stack *s, PDStringConvRef scv);
+void PDStringFromRef(pd_stack *s, PDStringConvRef scv);
+void PDStringFromHexString(pd_stack *s, PDStringConvRef scv);
+void PDStringFromDict(pd_stack *s, PDStringConvRef scv);
+void PDStringFromDictEntry(pd_stack *s, PDStringConvRef scv);
+void PDStringFromArray(pd_stack *s, PDStringConvRef scv);
+void PDStringFromArrayEntry(pd_stack *s, PDStringConvRef scv);
+void PDStringFromArbitrary(pd_stack *s, PDStringConvRef scv);
+void PDStringFromName(pd_stack *s, PDStringConvRef scv);
 
 void PDPDFSetupConverters();
 void PDPDFClearConverters();
@@ -75,7 +75,7 @@ void PDPDFClearConverters();
 // PDF parsing
 //
 
-void PDPortableDocumentFormatStateRetain()
+void pd_pdf_implementation_use()
 {
     static PDBool first = true;
     if (first) {
@@ -90,7 +90,7 @@ void PDPortableDocumentFormatStateRetain()
     
     if (users == 0) {
         
-        PDConversionTableRetain();
+        pd_pdf_conversion_use();
         
         PDOperatorSymbolGlobSetup();
 
@@ -453,42 +453,42 @@ void PDPortableDocumentFormatStateRetain()
         s(end_numeric);
         
 #if 0
-        PDStackRef s = NULL;
-        PDStackRef o = NULL;
+        pd_stack s = NULL;
+        pd_stack o = NULL;
         pd_btree seen = NULL;
-        PDStackPushIdentifier(&s, (PDID)pdfRoot);
-        PDStackPushIdentifier(&s, (PDID)xrefSeeker);
+        pd_stack_push_identifier(&s, (PDID)pdfRoot);
+        pd_stack_push_identifier(&s, (PDID)xrefSeeker);
         PDStateRef t;
         PDOperatorRef p;
-        while (NULL != (t = (PDStateRef)PDStackPopIdentifier(&s))) {
+        while (NULL != (t = (PDStateRef)pd_stack_pop_identifier(&s))) {
             pd_btree_insert(&seen, t, t);
             printf("%s\n", t->name);
             for (PDInteger i = 0; i < t->symbols; i++)
-                PDStackPushIdentifier(&o, (PDID)t->symbolOp[i]);
-            if (t->numberOp) PDStackPushIdentifier(&o, (PDID)t->numberOp);
-            if (t->delimiterOp) PDStackPushIdentifier(&o, (PDID)t->delimiterOp);
-            if (t->fallbackOp) PDStackPushIdentifier(&o, (PDID)t->fallbackOp);
+                pd_stack_push_identifier(&o, (PDID)t->symbolOp[i]);
+            if (t->numberOp) pd_stack_push_identifier(&o, (PDID)t->numberOp);
+            if (t->delimiterOp) pd_stack_push_identifier(&o, (PDID)t->delimiterOp);
+            if (t->fallbackOp) pd_stack_push_identifier(&o, (PDID)t->fallbackOp);
 
-            while (NULL != (p = (PDOperatorRef)PDStackPopIdentifier(&o))) {
+            while (NULL != (p = (PDOperatorRef)pd_stack_pop_identifier(&o))) {
                 while (p) {
                     assert(p->type < PDOperatorBreak);
                     assert(p->type > 0);
                     if (p->type == PDOperatorPushState && ! pd_btree_fetch(seen, p->pushedState)) {
                         pd_btree_insert(&seen, t, t);
-                        PDStackPushIdentifier(&s, (PDID)p->pushedState);
+                        pd_stack_push_identifier(&s, (PDID)p->pushedState);
                     }
                     p = p->next;
                 }
             }
         }
         pd_btree_destroy(seen);
-        PDStackDestroy(s);
+        pd_stack_destroy(s);
 #endif
     }
     users++;
 }
 
-void PDPortableDocumentFormatStateRelease()
+void pd_pdf_implementation_discard()
 {
     users--;
     if (users == 0) {
@@ -498,12 +498,12 @@ void PDPortableDocumentFormatStateRelease()
         PDRelease(stringStream);
         
         PDOperatorSymbolGlobClear();
-        PDConversionTableRelease();
+        pd_pdf_conversion_discard();
     }
 }
 
 PDInteger ctusers = 0;
-void PDConversionTableRetain()
+void pd_pdf_conversion_use()
 {
     if (ctusers == 0) {
         PDPDFSetupConverters();
@@ -511,7 +511,7 @@ void PDConversionTableRetain()
     ctusers++;
 }
 
-void PDConversionTableRelease()
+void pd_pdf_conversion_discard()
 {
     ctusers--;
     if (ctusers == 0) { 
@@ -588,7 +588,7 @@ void PDPDFClearConverters()
     typeTable = NULL;
 }
 
-char *PDStringFromComplex(PDStackRef *complex)
+char *PDStringFromComplex(pd_stack *complex)
 {
     struct PDStringConv scv = (struct PDStringConv) {malloc(30), 0, 30};
     
@@ -604,7 +604,7 @@ char *PDStringFromComplex(PDStackRef *complex)
 
 PDObjectType PDObjectTypeFromIdentifier(PDID identifier)
 {
-    PDAssert(typeTable); // crash = must PDConversionTableRetain() first
+    PDAssert(typeTable); // crash = must pd_pdf_conversion_use() first
     return PDStaticHashValueForKeyAs(typeTable, *identifier, PDObjectType);
 }
 
@@ -613,42 +613,44 @@ PDObjectType PDObjectTypeFromIdentifier(PDID identifier)
 // PDF converter functions
 //
 
-void PDStringFromMeta(PDStackRef *s, PDStringConvRef scv)
+void PDStringFromMeta(pd_stack *s, PDStringConvRef scv)
 {}
 
-void PDStringFromObj(PDStackRef *s, PDStringConvRef scv)
+void PDStringFromObj(pd_stack *s, PDStringConvRef scv)
 {
     PDStringFromObRef("obj", 3);
 }
 
-void PDStringFromRef(PDStackRef *s, PDStringConvRef scv)
+void PDStringFromRef(pd_stack *s, PDStringConvRef scv)
 {
     PDStringFromObRef("R", 1);
 }
 
-void PDStringFromName(PDStackRef *s, PDStringConvRef scv)
+void PDStringFromName(pd_stack *s, PDStringConvRef scv)
 {
-    char *namestr = PDStackPopKey(s);
+    char *namestr = pd_stack_pop_key(s);
     PDInteger len = strlen(namestr);
     PDStringGrow(len + 2);
     currchi = '/';
     putstr(namestr, len);
+    free(namestr);
 }
 
-void PDStringFromHexString(PDStackRef *s, PDStringConvRef scv)
+void PDStringFromHexString(pd_stack *s, PDStringConvRef scv)
 {
-    char *hexstr = PDStackPopKey(s);
+    char *hexstr = pd_stack_pop_key(s);
     PDInteger len = strlen(hexstr);
     PDStringGrow(2 + len);
     currchi = '<';
     putstr(hexstr, len);
     currchi = '>';
+    free(hexstr);
 }
 
-void PDStringFromDict(PDStackRef *s, PDStringConvRef scv)
+void PDStringFromDict(pd_stack *s, PDStringConvRef scv)
 {
-    PDStackRef entries;
-    PDStackRef entry;
+    pd_stack entries;
+    pd_stack entry;
 
     PDStringGrow(30);
     
@@ -656,9 +658,9 @@ void PDStringFromDict(PDStackRef *s, PDStringConvRef scv)
     currchi = '<';
     currchi = ' ';
     
-    PDStackAssertExpectedKey(s, PD_ENTRIES);
-    entries = PDStackPopStack(s);
-    for (entry = PDStackPopStack(&entries); entry; entry = PDStackPopStack(&entries)) {
+    pd_stack_assert_expected_key(s, PD_ENTRIES);
+    entries = pd_stack_pop_stack(s);
+    for (entry = pd_stack_pop_stack(&entries); entry; entry = pd_stack_pop_stack(&entries)) {
         PDStringFromDictEntry(&entry, scv);
         PDStringGrow(3);
         currchi = ' ';
@@ -668,14 +670,14 @@ void PDStringFromDict(PDStackRef *s, PDStringConvRef scv)
     currchi = '>';
 }
 
-void PDStringFromDictEntry(PDStackRef *s, PDStringConvRef scv)
+void PDStringFromDictEntry(pd_stack *s, PDStringConvRef scv)
 {
     char *key;
     PDInteger req = 30;
     PDInteger len;
     
-    PDStackAssertExpectedKey(s, PD_DE);
-    key = PDStackPopKey(s);
+    pd_stack_assert_expected_key(s, PD_DE);
+    key = pd_stack_pop_key(s);
     len = strlen(key);
     req = 10 + len;
     PDStringGrow(req);
@@ -683,22 +685,23 @@ void PDStringFromDictEntry(PDStackRef *s, PDStringConvRef scv)
     putstr(key, len);
     currchi = ' ';
     PDStringFromAnything();
+    free(key);
 }
 
-void PDStringFromArray(PDStackRef *s, PDStringConvRef scv)
+void PDStringFromArray(pd_stack *s, PDStringConvRef scv)
 {
-    PDStackRef entries;
-    PDStackRef entry;
+    pd_stack entries;
+    pd_stack entry;
 
     PDStringGrow(10);
     
     currchi = '[';
     currchi = ' ';
     
-    PDStackAssertExpectedKey(s, PD_ENTRIES);
-    entries = PDStackPopStack(s);
+    pd_stack_assert_expected_key(s, PD_ENTRIES);
+    entries = pd_stack_pop_stack(s);
     
-    for (entry = PDStackPopStack(&entries); entry; entry = PDStackPopStack(&entries)) {
+    for (entry = pd_stack_pop_stack(&entries); entry; entry = pd_stack_pop_stack(&entries)) {
         PDStringFromArrayEntry(&entry, scv);
         PDStringGrow(2);
         currchi = ' ';
@@ -707,15 +710,15 @@ void PDStringFromArray(PDStackRef *s, PDStringConvRef scv)
     currchi = ']';
 }
 
-void PDStringFromArrayEntry(PDStackRef *s, PDStringConvRef scv)
+void PDStringFromArrayEntry(pd_stack *s, PDStringConvRef scv)
 {
-    PDStackAssertExpectedKey(s, PD_AE);
+    pd_stack_assert_expected_key(s, PD_AE);
     PDStringFromAnything();
 }
 
-void PDStringFromArbitrary(PDStackRef *s, PDStringConvRef scv)
+void PDStringFromArbitrary(pd_stack *s, PDStringConvRef scv)
 {
-    PDID type = PDStackPopIdentifier(s);
+    PDID type = pd_stack_pop_identifier(s);
     PDInteger hash = PDStaticHashIdx(converterTable, *type);
     (*as(PDStringConverter, PDStaticHashValueForHash(converterTable, hash)))(s, scv);
 }

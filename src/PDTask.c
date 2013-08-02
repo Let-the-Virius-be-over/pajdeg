@@ -29,8 +29,7 @@
 void PDTaskDealloc(void *ob)
 {
     PDTaskRef task = ob;
-    if (task->child)  
-        PDRelease(task->child);
+    PDRelease(task->child);
 }
 
 PDTaskResult PDTaskExec(PDTaskRef task, PDPipeRef pipe, PDObjectRef object)
@@ -96,6 +95,8 @@ void PDTaskAppendTask(PDTaskRef parentTask, PDTaskRef childTask)
 
 void PDTaskSetInfo(PDTaskRef task, void *info)
 {
+    if (task->isFilter)
+        task = task->child;
     task->info = info;
 }
 

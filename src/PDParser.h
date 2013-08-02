@@ -53,13 +53,6 @@
 extern PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream);
 
 /**
- Destroy a parser.
- 
- @param parser The parser.
- */
-extern void PDParserDestroy(PDParserRef parser);
-
-/**
  Iterate to the next (living) object.
  
  @param parser The parser.
@@ -113,7 +106,7 @@ extern char *PDParserFetchCurrentObjectStream(PDParserRef parser, PDInteger obid
 extern PDBool PDParserGetEncryptionState(PDParserRef parser);
 
 /**
- Fetch the definition (as a PDStackRef) of the object with the given id.
+ Fetch the definition (as a pd_stack) of the object with the given id.
  
  @warning This is an expensive operation that requires setting up a temporary buffer of sufficiently big size, seeking to the object in the input file, reading the definition, then seeking back.
  
@@ -121,7 +114,7 @@ extern PDBool PDParserGetEncryptionState(PDParserRef parser);
  @param obid The object ID
  @param master If true, the master PDX ref is referenced, otherwise the current PDX ref is used. Generally speaking, you always want to use the master (non-master is used internally to determine the deprecated length of a stream for a multi-part PDF).
  */
-extern PDStackRef PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDInteger obid, PDBool master);
+extern pd_stack PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDInteger obid, PDBool master);
 
 /**
  Write remaining objects, XREF table, trailer, and end fluff to output PDF.

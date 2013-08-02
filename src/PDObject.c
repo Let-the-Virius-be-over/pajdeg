@@ -25,20 +25,20 @@
 #include "Pajdeg.h"
 
 #include "PDInternal.h"
-#include "PDStack.h"
+#include "pd_stack.h"
 #include "PDScanner.h"
-#include "PDPortableDocumentFormatState.h"
-#include "PDPDFPrivate.h"
+#include "pd_pdf_implementation.h"
+#include "pd_pdf_private.h"
 #include "PDStreamFilter.h"
 #include "PDObject.h"
 
 void PDObjectDestroy(PDObjectRef object)
 {
-    PDStackDestroy(object->mutations);
+    pd_stack_destroy(object->mutations);
     if (object->type == PDObjectTypeString)
         free(object->def);
     else
-        PDStackDestroy(object->def);
+        pd_stack_destroy(object->def);
     if (object->ovrDef) free(object->ovrDef);
     if (object->ovrStream) free(object->ovrStream);
     if (object->refString) free(object->refString);
@@ -110,11 +110,11 @@ char *PDObjectGetValue(PDObjectRef object)
     return object->def;
 }
 
-PDStackRef lastKeyContainer;
+pd_stack lastKeyContainer;
 const char *PDObjectGetDictionaryEntry(PDObjectRef object, const char *key)
 {
     // check mutations dict if we have this one already
-    PDStackRef entry, field;
+    pd_stack entry, field;
     for (entry = object->mutations; entry; entry = entry->prev->prev) {
         if (!strcmp((char*)entry->info, key)) {
             lastKeyContainer = entry;
@@ -123,30 +123,30 @@ const char *PDObjectGetDictionaryEntry(PDObjectRef object, const char *key)
     }
     
     char *value;
-    entry = PDStackGetDictKey(object->def, key, true);
+    entry = pd_stack_get_dict_key(object->def, key, true);
     if (! entry) return NULL;
     
     // entry = e, ID, field
-    PDStackAssertExpectedKey(&entry, PD_DE);
-    PDStackAssertExpectedKey(&entry, key);
+    pd_stack_assert_expected_key(&entry, PD_DE);
+    pd_stack_assert_expected_key(&entry, key);
     // so we see if type is primitive or not
-    if (entry->type == PDSTACK_STACK) {
+    if (entry->type == pd_stack_STACK) {
         // it's not primitive, so we set the preserve flag and stringify
-        field = PDStackPopStack(&entry);
+        field = pd_stack_pop_stack(&entry);
         value = PDStringFromComplex(&field);
     } else {
         // it is primitive (we presume)
-        PDAssert(entry->type == PDSTACK_STRING);
-        value = PDStackPopKey(&entry);
+        PDAssert(entry->type == pd_stack_STRING);
+        value = pd_stack_pop_key(&entry);
     }
     
     // add this to mutations, as we keep everything simplified (and STRINGified) there
-    PDStackPushKey(&object->mutations, value);
-    PDStackPushKey(&object->mutations, strdup(key));
+    pd_stack_push_key(&object->mutations, value);
+    pd_stack_push_key(&object->mutations, strdup(key));
     lastKeyContainer = object->mutations;
 
     // destroy entry, as it's been detached since we removed it
-    PDStackDestroy(entry);
+    pd_stack_destroy(entry);
     
     return value;
 }
@@ -165,39 +165,39 @@ void PDObjectSetDictionaryEntry(PDObjectRef object, const char *key, const char 
     }
     
     // we didn't so we add
-    PDStackPushKey(&object->mutations, strdup(value));
-    PDStackPushKey(&object->mutations, strdup(key));
+    pd_stack_push_key(&object->mutations, strdup(value));
+    pd_stack_push_key(&object->mutations, strdup(key));
 
 }
 
 void PDObjectRemoveDictionaryEntry(PDObjectRef object, const char *key)
 {
     // check mutations dict as well
-    PDStackRef entry, prev;
+    pd_stack entry, prev;
     prev = NULL;
     for (entry = object->mutations; entry; entry = entry->prev->prev) {
         if (!strcmp((char*)entry->info, key)) {
             if (prev) {
                 prev->prev->prev = entry->prev->prev;
                 entry->prev->prev = NULL;
-                PDStackDestroy(entry);
+                pd_stack_destroy(entry);
             } else {
                 prev = object->mutations;
                 object->mutations = entry->prev->prev;
                 prev->prev->prev = NULL;
-                PDStackDestroy(prev);
+                pd_stack_destroy(prev);
             }
             return;
         }
         prev = entry;
     }
 
-    PDStackRef ks = PDStackGetDictKey(object->def, key, true);
-    PDStackDestroy(ks);
+    pd_stack ks = pd_stack_get_dict_key(object->def, key, true);
+    pd_stack_destroy(ks);
 }
 
 #define PDArraySetEntries(ob,v)  ob->mutations->info = as(void*, v)
-#define PDArrayGetEntries(ob)    as(PDStackRef *, ob->mutations->info)
+#define PDArrayGetEntries(ob)    as(pd_stack *, ob->mutations->info)
 
 #define PDArraySetCount(ob,v)    ob->mutations->prev->info = as(void*, v)
 #define PDArrayGetCount(ob)      as(PDInteger, ob->mutations->prev->info)
@@ -232,25 +232,25 @@ stack<0x10c1c0bb0> {
      */
     
     PDInteger count = 0;
-    PDStackRef iter;
-    PDStackRef ref = as(PDStackRef, as(PDStackRef, object->def)->prev->prev->info);
+    pd_stack iter;
+    pd_stack ref = as(pd_stack, as(pd_stack, object->def)->prev->prev->info);
     for (iter = ref; iter; iter = iter->prev) 
         count++;
-    PDStackRef *els = count < 1 ? NULL : malloc(count * sizeof(PDStackRef));
+    pd_stack *els = count < 1 ? NULL : malloc(count * sizeof(pd_stack));
     
     count = 0;
     for (iter = ref; iter; iter = iter->prev) {
-        els[count++] = as(PDStackRef, iter->info)->prev;
+        els[count++] = as(pd_stack, iter->info)->prev;
     }
         
     // third entry is the capacity of the array
-    PDStackPushIdentifier(&object->mutations, (PDID)count);
+    pd_stack_push_identifier(&object->mutations, (PDID)count);
 
     // second entry in the mutations is the length of the array
-    PDStackPushIdentifier(&object->mutations, (PDID)count);
+    pd_stack_push_identifier(&object->mutations, (PDID)count);
     
     // first entry is the array
-    PDStackPushFreeable(&object->mutations, els);
+    pd_stack_push_freeable(&object->mutations, els);
 }
 
 PDInteger PDObjectGetArrayCount(PDObjectRef object)
@@ -268,16 +268,16 @@ const char *PDObjectGetArrayElementAtIndex(PDObjectRef object, PDInteger index)
     
     PDAssert(PDArrayGetCount(object) > index);  // crash = attempt to get element beyond count
 
-    PDStackRef *array = PDArrayGetEntries(object);
-    PDStackRef entry = array[index];
-    if (entry->type != PDSTACK_STRING) {
+    pd_stack *array = PDArrayGetEntries(object);
+    pd_stack entry = array[index];
+    if (entry->type != pd_stack_STRING) {
         char *value;
         // to-string elements on demand
-        PDStackSetGlobalPreserveFlag(true);
-        entry = (PDStackRef)entry->info;
+        pd_stack_set_global_preserve_flag(true);
+        entry = (pd_stack)entry->info;
         value = PDStringFromComplex(&entry);
-        PDStackSetGlobalPreserveFlag(false);
-        PDStackReplaceInfoObject(entry, PDSTACK_STRING, value);
+        pd_stack_set_global_preserve_flag(false);
+        pd_stack_replace_info_object(entry, pd_stack_STRING, value);
     }
     
     return as(const char *, entry->info);
@@ -288,13 +288,13 @@ void PDObjectAddArrayElement(PDObjectRef object, const char *value)
     if (NULL == object->mutations)
         PDObjectInstantiateArray(object);
     
-    PDStackRef *els = PDArrayGetEntries(object);
+    pd_stack *els = PDArrayGetEntries(object);
     PDInteger count = PDArrayGetCount(object);
     PDInteger cap   = PDArrayGetCapacity(object);
     
     if (cap == count) {
         cap += 1 + cap;
-        els = PDArraySetEntries(object, realloc(els, cap * sizeof(PDStackRef)));
+        els = PDArraySetEntries(object, realloc(els, cap * sizeof(pd_stack)));
         PDArraySetCapacity(object, cap);
     }
 
@@ -302,7 +302,7 @@ void PDObjectAddArrayElement(PDObjectRef object, const char *value)
     // therefore we must shift the new entry into the defs stack's entries, which is easiest done by putting a new
     // entry in at the end and setting prev for the last entry (els[count-1]) to the new entry
     els[count] = NULL;
-    PDStackPushKey(&els[count], (char *)value);
+    pd_stack_push_key(&els[count], (char *)value);
 
     // we don't currently have a method for adding to an empty array; if an example PDF with an empty array is encountered, give me or patch code and give me!
     PDAssert(count > 0);
@@ -322,12 +322,12 @@ void PDObjectRemoveArrayElementAtIndex(PDObjectRef object, PDInteger index)
     if (NULL == object->mutations) 
         PDObjectInstantiateArray(object);
         
-    PDStackRef *array = PDArrayGetEntries(object);
+    pd_stack *array = PDArrayGetEntries(object);
     PDInteger count = PDArrayGetCount(object);
     
     PDAssert(count > index);  // crash = attempt to get element beyond count
 
-    PDStackRef entry = array[index];
+    pd_stack entry = array[index];
     
     // we don't support EMPTYING arrays
     PDAssert(count > 0);
@@ -338,7 +338,7 @@ void PDObjectRemoveArrayElementAtIndex(PDObjectRef object, PDInteger index)
     array[index]->prev = entry->prev;
     entry->prev = NULL;
     
-    PDStackDestroy(entry);
+    pd_stack_destroy(entry);
     PDArraySetCount(object, count-1);
 }
 
@@ -356,11 +356,11 @@ void PDObjectSetArrayElement(PDObjectRef object, PDInteger index, const char *va
     
     PDAssert(PDArrayGetCount(object) > index);  // crash = attempt to get element beyond count
     
-    PDStackRef *array = PDArrayGetEntries(object);
-    PDStackRef entry = array[index];
+    pd_stack *array = PDArrayGetEntries(object);
+    pd_stack entry = array[index];
     
-    if (entry->type != PDSTACK_STRING) {
-        PDStackReplaceInfoObject(entry, PDSTACK_STRING, strdup(value));
+    if (entry->type != pd_stack_STRING) {
+        pd_stack_replace_info_object(entry, pd_stack_STRING, strdup(value));
     } else {
         free(entry->info);
         entry->info = strdup(value);
@@ -402,30 +402,30 @@ PDBool PDObjectSetStreamFiltered(PDObjectRef object, const char *str, PDInteger 
 
     const char *decodeParms = PDObjectGetDictionaryEntry(object, "DecodeParms");
     
-    PDStackRef options = NULL;
+    pd_stack options = NULL;
     if (NULL != decodeParms) {
         /// @todo At some point this (all values as strings) should not be as roundabout as it is but it will do for now.
         
         PDScannerRef scanner = PDScannerCreateWithState(pdfRoot);
         PDScannerAttachFixedSizeBuffer(scanner, (char*)decodeParms, strlen(decodeParms));
-        PDStackRef optsDict;
+        pd_stack optsDict;
         if (! PDScannerPopStack(scanner, &optsDict)) {
             PDWarn("Unable to pop dictionary stack from decode parameters: %s", decodeParms);
             PDAssert(0);
             optsDict = NULL;
         }
         if (optsDict) {
-            options = PDStreamFilterCreateOptionsFromDictionaryStack(optsDict);
-            PDStackDestroy(optsDict);
+            options = PDStreamFilterGenerateOptionsFromDictionaryStack(optsDict);
+            pd_stack_destroy(optsDict);
         }
-        PDScannerDestroy(scanner);
+        PDRelease(scanner);
     }
     
     PDBool success = true;
     PDStreamFilterRef sf = PDStreamFilterObtain(filter, false, options);
     if (NULL == sf) {
         // we don't support this filter, at all
-        PDStackDestroy(options);
+        pd_stack_destroy(options);
         success = false;
     } 
     
@@ -440,7 +440,7 @@ PDBool PDObjectSetStreamFiltered(PDObjectRef object, const char *str, PDInteger 
     if (success) success = PDStreamFilterApply(sf, (unsigned char *)str, (unsigned char **)&filtered, len, &flen);
     // if !success, filter did not apply to input data successfully
 
-    if (sf) PDStreamFilterDestroy(sf);
+    PDRelease(sf);
     
     if (success) PDObjectSetStream(object, filtered, flen, true);
     
@@ -466,17 +466,17 @@ PDBool PDObjectSetStreamFiltered(PDObjectRef object, const char *str, PDInteger 
         
         PDBool isString;
         char      *string;
-        PDStackRef key;
-        PDStackRef stack;
-        PDStackRef options = NULL;
+        pd_stack key;
+        pd_stack stack;
+        pd_stack options = NULL;
         while (PDScannerPopStack(scanner, &key)) {
             if (! (isString = PDScannerPopString(scanner, &string))) PDScannerPopStack(scanner, &stack);
                 
             if (isString) {
                 char *keyString = strdup(key->prev->info);
                 
-            } else PDStackDestroy(stack);
-            PDStackDestroy(key);
+            } else pd_stack_destroy(stack);
+            pd_stack_destroy(key);
         }
 #endif
 
@@ -526,8 +526,8 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
     //if (scv.left < 1) scv.allocBuf = realloc(scv.allocBuf, scv.offs + 1);
     //scv.allocBuf[scv.offs] = 0;
     
-    PDStackRef stack;
-    PDStackRef *array;
+    pd_stack stack;
+    pd_stack *array;
     PDInteger i, count;
     char *key, *val;
     PDInteger sz;
@@ -553,7 +553,7 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
             }
             // then write out unmodified entries
             stack = object->def;
-            while (PDStackGetNextDictKey(&stack, &key, &val)) {
+            while (pd_stack_get_next_dict_key(&stack, &key, &val)) {
                 PDStringGrow(4 + strlen(key) + strlen(val));
                 putfmt("/%s %s ", key, val);
                 free(val);
@@ -565,10 +565,10 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
         case PDObjectTypeArray:
             if (NULL == object->mutations) {
                 // no mutations means we can just to-string it right away
-                PDStackSetGlobalPreserveFlag(true);
+                pd_stack_set_global_preserve_flag(true);
                 stack = object->def;
                 val = PDStringFromComplex(&stack);
-                PDStackSetGlobalPreserveFlag(false);
+                pd_stack_set_global_preserve_flag(false);
                 PDStringGrow(1 + strlen(val));
                 putfmt("%s", val);
                 break;
@@ -580,21 +580,21 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
                 
             array = PDArrayGetEntries(object);
             count = PDArrayGetCount(object);
-            PDStackSetGlobalPreserveFlag(true);
+            pd_stack_set_global_preserve_flag(true);
             for (i = 0; i < count; i++) {
-                if (array[i]->type == PDSTACK_STRING) {
+                if (array[i]->type == pd_stack_STRING) {
                     val = array[i]->info;
                 } else {
-                    stack = (PDStackRef)array[i]->info;
+                    stack = (pd_stack)array[i]->info;
                     val = PDStringFromComplex(&stack);
                 }
                 PDStringGrow(2 + strlen(val));
                 putfmt(" %s", val);
                 
-                if (array[i]->type != PDSTACK_STRING) 
+                if (array[i]->type != pd_stack_STRING) 
                     free(val);
             }
-            PDStackSetGlobalPreserveFlag(false);
+            pd_stack_set_global_preserve_flag(false);
             
             PDStringGrow(3);
             currchi = ' ';
@@ -606,10 +606,10 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
             break;
             
         default:
-            PDStackSetGlobalPreserveFlag(true);
+            pd_stack_set_global_preserve_flag(true);
             stack = object->def;
             val = PDStringFromComplex(&stack);
-            PDStackSetGlobalPreserveFlag(false);
+            pd_stack_set_global_preserve_flag(false);
             PDStringGrow(1 + strlen(val));
             putfmt("%s", val);
             break;

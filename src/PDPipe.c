@@ -28,7 +28,7 @@
 #include "PDTwinStream.h"
 #include "PDReference.h"
 #include "pd_btree.h"
-#include "PDStack.h"
+#include "pd_stack.h"
 #include "PDStaticHash.h"
 #include "PDObjectStream.h"
 
@@ -51,18 +51,16 @@ void PDPipeDestroy(PDPipeRef pipe)
     if (pipe->opened) {
         fclose(pipe->fi);
         fclose(pipe->fo);
-        PDTwinStreamDestroy(pipe->stream);
-        PDParserDestroy(pipe->parser);
+        PDRelease(pipe->stream);
+        PDRelease(pipe->parser);
     }
     free(pipe->pi);
     free(pipe->po);
     pd_btree_destroy_with_deallocator(pipe->filter, PDRelease);
     
-    while (NULL != (task = (PDTaskRef)PDStackPopIdentifier(&pipe->unfilteredTasks))) {
+    while (NULL != (task = (PDTaskRef)pd_stack_pop_identifier(&pipe->unfilteredTasks))) {
         PDRelease(task);
     }
-        
-    free(pipe);
 }
 
 PDPipeRef PDPipeCreateWithFilePaths(const char * inputFilePath, const char * outputFilePath)
@@ -90,7 +88,7 @@ PDPipeRef PDPipeCreateWithFilePaths(const char * inputFilePath, const char * out
     fclose(fi);
     fclose(fo);
     
-    PDPipeRef pipe = calloc(1, sizeof(struct PDPipe));
+    PDPipeRef pipe = PDAlloc(sizeof(struct PDPipe), PDPipeDestroy, true);
     pipe->pi = strdup(inputFilePath);
     pipe->po = strdup(outputFilePath);
     return pipe;
@@ -101,8 +99,8 @@ PDTaskResult PDPipeObStreamMutation(PDPipeRef pipe, PDTaskRef task, PDObjectRef 
     PDTaskRef subTask;
     PDObjectRef ob;
     PDObjectStreamRef obstm;
-    PDStackRef mutators;
-    PDStackRef iter;
+    pd_stack mutators;
+    pd_stack iter;
     char *stmbuf;
     
     obstm = PDObjectStreamCreateWithObject(object);
@@ -174,7 +172,7 @@ void PDPipeAddTask(PDPipeRef pipe, PDTaskRef task)
                 pd_btree_insert(&pipe->filter, containerOb, containerTask);
                 containerTask->info = NULL;
             }
-            PDStackPushObject((PDStackRef *)&containerTask->info, task);
+            pd_stack_push_object((pd_stack *)&containerTask->info, PDRetain(task));
             return;
         }
         
@@ -195,7 +193,7 @@ void PDPipeAddTask(PDPipeRef pipe, PDTaskRef task)
         }
     } else {
         // task executes on every iteration
-        PDStackPushIdentifier(&pipe->unfilteredTasks, (PDID)PDRetain(task));
+        pd_stack_push_identifier(&pipe->unfilteredTasks, (PDID)PDRetain(task));
 #if 0
         // task executes in root; this happens right after parser is set up and has read in things like root and info refs
         if (pipe->opened) {
@@ -255,10 +253,10 @@ static inline PDBool PDPipeRunUnfilteredTasks(PDPipeRef pipe, PDParserRef parser
 {
     PDTaskRef task;
     PDTaskResult result;
-    PDStackRef unfilteredIter;
-    PDStackRef prevStack = NULL;
+    pd_stack unfilteredIter;
+    pd_stack prevStack = NULL;
 
-    PDStackForEach(pipe->unfilteredTasks, unfilteredIter) {
+    pd_stack_forEach(pipe->unfilteredTasks, unfilteredIter) {
         task = unfilteredIter->info;
         result = PDTaskExec(task, pipe, PDParserConstructObject(parser));
         if (PDTaskFailure == result) return false;
@@ -267,11 +265,11 @@ static inline PDBool PDPipeRunUnfilteredTasks(PDPipeRef pipe, PDParserRef parser
             if (prevStack) {
                 prevStack->prev = unfilteredIter->prev;
                 unfilteredIter->prev = NULL;
-                PDStackDestroy(unfilteredIter);
+                pd_stack_destroy(unfilteredIter);
                 unfilteredIter = prevStack;
             } else {
                 // since we're dropping the top item, we've lost our iteration variable, so we recall ourselves to start over (which means continuing, as this was the first item)
-                PDStackPopIdentifier(&pipe->unfilteredTasks);
+                pd_stack_pop_identifier(&pipe->unfilteredTasks);
                 PDRelease(task);
                 
                 return PDPipeRunUnfilteredTasks(pipe, parser);
@@ -325,6 +323,7 @@ PDInteger PDPipeExecute(PDPipeRef pipe)
         }
     } while (proceed && PDParserIterate(parser));
     PDRelease(sht);
+    PDFlush();
     
     proceed &= parser->success;
     
@@ -334,9 +333,9 @@ PDInteger PDPipeExecute(PDPipeRef pipe)
     if (proceed) 
         PDParserDone(parser);
     
-    PDParserDestroy(parser);
+    PDRelease(parser);
     pipe->parser = NULL;
-    PDTwinStreamDestroy(pipe->stream);
+    PDRelease(pipe->stream);
     pipe->stream = NULL;
     
     fclose(pipe->fi);

@@ -47,13 +47,6 @@ extern PDObjectRef PDObjectCreate(PDInteger obid, PDInteger genid);
 
 ////////////////////////////////////////
 //
-// destruction
-//
-
-extern void PDParserDestroy(PDParserRef parser);
-
-////////////////////////////////////////
-//
 // structs that should remain private
 //
 
@@ -61,9 +54,17 @@ extern void PDParserDestroy(PDParserRef parser);
 // type
 //
 
+#ifdef DEBUG_PDTYPES
+#define PDTYPE_PTR_LEN  3
+#else
 #define PDTYPE_PTR_LEN  2
+#endif
+
 union PDType {
     struct {
+#ifdef DEBUG_PDTYPES
+        char *pdc;
+#endif
         PDInteger retainCount;
         PDDeallocator dealloc;
     };
@@ -89,7 +90,7 @@ struct PDObject {
     char               *streamBuf;      // the stream, if fetched via parser, otherwise an undefined value
     PDBool              skipStream;     // if set, even if an object has a stream, the stream (including keywords) is skipped when written to output
     PDBool              skipObject;     // if set, entire object is discarded
-    PDStackRef          mutations;      // key/value stack of alterations to do when writing the object
+    pd_stack          mutations;      // key/value stack of alterations to do when writing the object
     char               *ovrStream;      // stream override
     PDInteger           ovrStreamLen;   // length of ^
     char               *ovrDef;         // definition override
@@ -137,8 +138,8 @@ extern void PDObjectStreamCommit(PDObjectStreamRef obstm);
 
 struct PDEnv {
     PDStateRef    state;
-    PDStackRef    buildStack;
-    PDStackRef    varStack;
+    pd_stack      buildStack;
+    pd_stack      varStack;
     PDOperatorRef op;
     PDInteger     entryOffset;
 };
@@ -201,14 +202,14 @@ struct PDParser {
     PDParserState state;
     
     // xref related
-    PDStackRef xstack;  // a stack of partial xref tables based on offset; see [1] below
+    pd_stack xstack;  // a stack of partial xref tables based on offset; see [1] below
     PDXTableRef mxt;    // master xref table, used for output
     PDXTableRef cxt;    // current input xref table
     PDBool done;        // parser has passed the last object in the input PDF
     size_t xrefnewiter; // iterator for locating unused id's for usage in master xref table
     
     // object related
-    PDStackRef appends; // stack of objects that are meant to be appended at the end of the PDF
+    pd_stack appends; // stack of objects that are meant to be appended at the end of the PDF
     PDObjectRef construct; // cannot be relied on to contain anything; is used to hold constructed objects until iteration (at which point they're released)
     size_t streamLen;
     size_t obid;
@@ -244,10 +245,10 @@ struct PDScannerSymbol {
 struct PDScanner {
     PDEnvRef   env;
     
-    PDStackRef envStack;        // environment stack; e.g. root -> arb -> array -> arb -> ...
-    PDStackRef resultStack;     // results stack
-    PDStackRef symbolStack;     // symbols stack; used to "rewind" when misinterpretations occur (e.g. for "number_or_obref" when one or two numbers)
-    PDStackRef garbageStack;    // temporary allocations; only used in operator function when a symbol is regenerated from a malloc()'d string
+    pd_stack envStack;        // environment stack; e.g. root -> arb -> array -> arb -> ...
+    pd_stack resultStack;     // results stack
+    pd_stack symbolStack;     // symbols stack; used to "rewind" when misinterpretations occur (e.g. for "number_or_obref" when one or two numbers)
+    pd_stack garbageStack;    // temporary allocations; only used in operator function when a symbol is regenerated from a malloc()'d string
     
     PDStreamFilterRef filter;   // filter, if any
     
@@ -266,14 +267,14 @@ struct PDScanner {
 //  Stack
 //
 
-#define PDSTACK_STRING  0
-#define PDSTACK_ID      1
-#define PDSTACK_STACK   2
-#define PDSTACK_PDOB    3
-#define PDSTACK_FREEABL 4
+#define pd_stack_STRING  0
+#define pd_stack_ID      1
+#define pd_stack_STACK   2
+#define pd_stack_PDOB    3
+#define pd_stack_FREEABL 4
 
-struct PDStack {
-    PDStackRef prev;
+struct pd_stack {
+    pd_stack prev;
     char       type;
     void      *info;
 };
@@ -364,7 +365,7 @@ struct PDPipe {
     PDTwinStreamRef stream;
     PDParserRef     parser;
     pd_btree      filter;
-    PDStackRef      unfilteredTasks;
+    pd_stack      unfilteredTasks;
 };
 
 //

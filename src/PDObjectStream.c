@@ -1,19 +1,35 @@
 //
 //  PDObjectStream.c
-//  ICViewer
 //
-//  Created by Karl-Johan Alm on 8/1/13.
-//  Copyright (c) 2013 Alacrity Software. All rights reserved.
+//  Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
+// 
+//  Permission is hereby granted, free of charge, to any person obtaining a copy
+//  of this software and associated documentation files (the "Software"), to deal
+//  in the Software without restriction, including without limitation the rights
+//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//  copies of the Software, and to permit persons to whom the Software is
+//  furnished to do so, subject to the following conditions:
+// 
+//  The above copyright notice and this permission notice shall be included in
+//  all copies or substantial portions of the Software.
+// 
+//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//  THE SOFTWARE.
 //
 
 #include "Pajdeg.h"
 
 #include "PDOperator.h"
 #include "PDInternal.h"
-#include "PDStack.h"
+#include "pd_stack.h"
 #include "PDScanner.h"
-#include "PDPortableDocumentFormatState.h"
-#include "PDPDFPrivate.h"
+#include "pd_pdf_implementation.h"
+#include "pd_pdf_private.h"
 #include "PDStreamFilter.h"
 #include "PDObjectStream.h"
 #include "pd_btree.h"
@@ -34,10 +50,9 @@ void PDObjectStreamDestroy(PDObjectStreamRef obstm)
         if (elements[i].type == PDObjectTypeString)
             free(elements[i].def);
         else
-            PDStackDestroy(elements[i].def);
+            pd_stack_destroy(elements[i].def);
     free(elements);
-    if (obstm->filter) 
-        PDStreamFilterDestroy(obstm->filter);
+    PDRelease(obstm->filter);
     if (obstm->constructs) {
         pd_btree_destroy_with_deallocator(obstm->constructs, PDRelease);
     }
@@ -54,9 +69,9 @@ PDObjectStreamRef PDObjectStreamCreateWithObject(PDObjectRef object)
     const char *filterName = PDObjectGetDictionaryEntry(object, "Filter");
     if (filterName) {
         filterName = &filterName[1]; // get rid of name slash
-        PDStackRef decodeParms = PDStackGetDictKey(object->def, "DecodeParms", false);
+        pd_stack decodeParms = pd_stack_get_dict_key(object->def, "DecodeParms", false);
         if (decodeParms) 
-            decodeParms = PDStreamFilterCreateOptionsFromDictionaryStack(decodeParms);
+            decodeParms = PDStreamFilterGenerateOptionsFromDictionaryStack(decodeParms);
         obstm->filter = PDStreamFilterObtain(filterName, true, decodeParms);
     } else {
         obstm->filter = NULL;
@@ -119,15 +134,15 @@ void PDObjectStreamParseExtractedObjectStream(PDObjectStreamRef obstm, char *raw
     
     // read definitions 
     for (i = 0; i < n; i++) {
-        if (PDScannerPopStack(osScanner, (PDStackRef *)&elements[i].def)) {
-            elements[i].type = PDObjectTypeFromIdentifier(as(PDStackRef, elements[i].def)->info);
+        if (PDScannerPopStack(osScanner, (pd_stack *)&elements[i].def)) {
+            elements[i].type = PDObjectTypeFromIdentifier(as(pd_stack, elements[i].def)->info);
         } else {
             elements[i].type = PDObjectTypeString;
             PDScannerPopString(osScanner, (char **)&elements[i].def);
         }
     }
     
-    PDScannerDestroy(osScanner);
+    PDRelease(osScanner);
 }
 
 PDObjectRef PDObjectStreamGetObjectByID(PDObjectStreamRef obstm, PDInteger obid)
@@ -203,7 +218,7 @@ void PDObjectStreamCommit(PDObjectStreamRef obstm)
             len = PDObjectGenerateDefinition(ob, (char**)&elements[i].def, 0);
             len--; // objects add \n after def; don't want two \n's
         } else {
-            PDStackRef def = elements[i].def;
+            pd_stack def = elements[i].def;
             elements[i].def = PDStringFromComplex(&def);
             len = strlen(elements[i].def);
         }
@@ -250,7 +265,7 @@ void PDObjectStreamCommit(PDObjectStreamRef obstm)
             PDWarn("PDStreamFilterApply failed!\n");
             PDAssert(0);
         }
-        PDStreamFilterDestroy(inversionFilter);
+        PDRelease(inversionFilter);
         free(content);
         content = filteredBuf;
     }

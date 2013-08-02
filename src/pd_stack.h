@@ -1,5 +1,5 @@
 //
-//  PDStack.h
+//  pd_stack.h
 //
 //  Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
 // 
@@ -23,24 +23,24 @@
 //
 
 /**
- @file PDStack.h Stack header file.
+ @file pd_stack.h Stack header file.
  
- @ingroup PDSTACK
+ @ingroup pd_stack
 
- @defgroup PDSTACK PDStack
+ @defgroup pd_stack pd_stack
  
  @brief Simple stack implementation tailored for Pajdeg's purposes. 
  
  @ingroup PDALGO
  
- The PDStackRef works like any other stack, except it has some amount of awareness about certain object types, such as PDEnvRef instances. 
+ The pd_stack works like any other stack, except it has some amount of awareness about certain object types, such as PDEnvRef instances. 
  
  @{
 */
 
 
-#ifndef INCLUDED_PDStack_h
-#define INCLUDED_PDStack_h
+#ifndef INCLUDED_pd_stack_h
+#define INCLUDED_pd_stack_h
 
 #include <sys/types.h>
 #include "PDDefines.h"
@@ -52,7 +52,7 @@
  
  @note Nests truths.
  */
-extern void PDStackSetGlobalPreserveFlag(PDBool preserve);
+extern void pd_stack_set_global_preserve_flag(PDBool preserve);
 
 /// @name Pushing onto stack
 
@@ -62,7 +62,7 @@ extern void PDStackSetGlobalPreserveFlag(PDBool preserve);
  @param stack The stack.
  @param key The key. It is taken as is and freed on stack destruction.
  */
-extern void PDStackPushKey(PDStackRef *stack, char *key);
+extern void pd_stack_push_key(pd_stack *stack, char *key);
 
 /**
  Push an identifier onto a stack.
@@ -70,7 +70,7 @@ extern void PDStackPushKey(PDStackRef *stack, char *key);
  @param stack The stack.
  @param identifier The identifier. Can be anything. Never touched.
  */
-extern void PDStackPushIdentifier(PDStackRef *stack, PDID identifier);
+extern void pd_stack_push_identifier(pd_stack *stack, PDID identifier);
 
 /**
  Push a freeable, arbitrary object. 
@@ -78,7 +78,7 @@ extern void PDStackPushIdentifier(PDStackRef *stack, PDID identifier);
  @param stack The stack.
  @param info The object. Freed on stack destruction.
  */
-extern void PDStackPushFreeable(PDStackRef *stack, void *info);
+extern void pd_stack_push_freeable(pd_stack *stack, void *info);
 
 /**
  Push a stack onto the stack. 
@@ -88,7 +88,7 @@ extern void PDStackPushFreeable(PDStackRef *stack, void *info);
  @param stack The stack.
  @param pstack The stack to push. It is destroyed on stack destruction.
  */
-extern void PDStackPushStack(PDStackRef *stack, PDStackRef pstack);
+extern void pd_stack_push_stack(pd_stack *stack, pd_stack pstack);
 
 /**
  Push a PDType object.
@@ -96,7 +96,7 @@ extern void PDStackPushStack(PDStackRef *stack, PDStackRef pstack);
  @param stack The stack.
  @param ob The object. It is retained on push and released on pop, or destroy.
  */
-extern void PDStackPushObject(PDStackRef *stack, void *ob);
+extern void pd_stack_push_object(pd_stack *stack, void *ob);
 
 /**
  Unshift (put in from the start) a stack onto a stack.
@@ -111,7 +111,7 @@ extern void PDStackPushObject(PDStackRef *stack, void *ob);
  @param stack The stack.
  @param sstack The stack to unshift. It is destroyed on stack destruction.
  */
-extern void PDStackUnshiftStack(PDStackRef *stack, PDStackRef sstack);
+extern void pd_stack_unshift_stack(pd_stack *stack, pd_stack sstack);
 
 
 
@@ -124,56 +124,56 @@ extern void PDStackUnshiftStack(PDStackRef *stack, PDStackRef sstack);
  
  @param stack The stack.
  */
-extern void PDStackDestroy(PDStackRef stack);
+extern void pd_stack_destroy(pd_stack stack);
 
 /**
  Pop a key off of the stack. Throws assertion if the next item is not a key.
  
  @param stack The stack.
  */
-extern char *PDStackPopKey(PDStackRef *stack);
+extern char *pd_stack_pop_key(pd_stack *stack);
 
 /**
  Pop an identifier off of the stack. Throws assertion if the next item is not an identifier.
  
  @param stack The stack.
  */
-extern PDID PDStackPopIdentifier(PDStackRef *stack);
+extern PDID pd_stack_pop_identifier(pd_stack *stack);
 
 /**
  Pop a stack off of the stack. Throws assertion if the next item is not a stack.
  
  @param stack The stack.
  */
-extern PDStackRef PDStackPopStack(PDStackRef *stack);
+extern pd_stack pd_stack_pop_stack(pd_stack *stack);
 
 /**
  Pop a PDType object off of the stack. Throws assertion if the next item is not a PD object.
  
  @param stack The stack.
  */
-extern void *PDStackPopObject(PDStackRef *stack);
+extern void *pd_stack_pop_object(pd_stack *stack);
 
 /**
  Pop a freeable off of the stack. Throws assertion if the next item is not a freeable.
  
  @param stack The stack.
  */
-extern void *PDStackPopFreeable(PDStackRef *stack);
+extern void *pd_stack_pop_freeable(pd_stack *stack);
 
 /**
  Pop and convert key into a size_t value. Throws assertion if the next item is not a key.
  
  @param stack The stack.
  */
-extern PDSize PDStackPopSize(PDStackRef *stack);
+extern PDSize pd_stack_pop_size(pd_stack *stack);
 
 /**
  Pop and convert key into an PDInteger value. Throws assertion if the next item is not a key.
  
  @param stack The stack.
  */
-extern PDInteger PDStackPopInt(PDStackRef *stack);
+extern PDInteger pd_stack_pop_int(pd_stack *stack);
 
 /**
  Pop the next key, verify that it is equal to the given key, and then discard it. 
@@ -183,7 +183,7 @@ extern PDInteger PDStackPopInt(PDStackRef *stack);
  @param stack The stack.
  @param key Expected key.
  */
-extern void   PDStackAssertExpectedKey(PDStackRef *stack, const char *key);
+extern void   pd_stack_assert_expected_key(pd_stack *stack, const char *key);
 
 /**
  Pop the next key, verify that its integer value is equal to the given integer, and then discard it. 
@@ -193,14 +193,14 @@ extern void   PDStackAssertExpectedKey(PDStackRef *stack, const char *key);
  @param stack The stack.
  @param i Expected integer value.
  */
-extern void   PDStackAssertExpectedInt(PDStackRef *stack, PDInteger i);
+extern void   pd_stack_assert_expected_int(pd_stack *stack, PDInteger i);
 
 /**
  Look at the next PDInteger on the stack without popping it. Throws assertion if the next item is not a key.
  
  @param stack The stack.
  */
-extern PDInteger PDStackPeekInt(PDStackRef stack);
+extern PDInteger pd_stack_peek_int(pd_stack stack);
 
 /// @name Convenience features
 
@@ -210,17 +210,17 @@ extern PDInteger PDStackPeekInt(PDStackRef stack);
  @param dest The destination stack.
  @param source The source stack. Must not be NULL.
  */
-extern void PDStackPopInto(PDStackRef *dest, PDStackRef *source);
+extern void pd_stack_pop_into(pd_stack *dest, pd_stack *source);
 
 /**
  Non-destructive stack iteration.
  
- This simply constructs a for loop that iterates over and puts the PDStackRef entries of the stack into the iter stack one at a time.
+ This simply constructs a for loop that iterates over and puts the pd_stack entries of the stack into the iter stack one at a time.
  
  @param stack The stack to iterate.
- @param iter  The iteration PDStackRef variable.
+ @param iter  The iteration pd_stack variable.
  */
-#define PDStackForEach(stack, iter) for (iter = stack; iter; iter = iter->prev)
+#define pd_stack_forEach(stack, iter) for (iter = stack; iter; iter = iter->prev)
 
 /**
  Non-destructive dictionary get function.
@@ -229,14 +229,14 @@ extern void PDStackPopInto(PDStackRef *dest, PDStackRef *source);
  @param key The key.
  @param remove If true, the entry for the key is removed from the dictionary stack.
  */
-extern PDStackRef PDStackGetDictKey(PDStackRef dictStack, const char *key, PDBool remove);
+extern pd_stack pd_stack_get_dict_key(pd_stack dictStack, const char *key, PDBool remove);
 
 /**
  Non-destructive stack iteration.
  
  Converts the value of the dictionary entry into a string representation.
  
- @warning In order to use this function, a supplementary PDStackRef must be set to the dictionary stack, and then used as the iterStack argument. Passing the master dictionary will result in the (memory / information) loss of the stack.
+ @warning In order to use this function, a supplementary pd_stack must be set to the dictionary stack, and then used as the iterStack argument. Passing the master dictionary will result in the (memory / information) loss of the stack.
  
  @note Value must be freed, key must not.
  
@@ -245,7 +245,7 @@ extern PDStackRef PDStackGetDictKey(PDStackRef dictStack, const char *key, PDBoo
  @param value Pointer to the value string. Must not be pre-allocated. Must be freed.
  @return true if key and value were set, false if not.
  */
-extern PDBool PDStackGetNextDictKey(PDStackRef *iterStack, char **key, char **value);
+extern PDBool pd_stack_get_next_dict_key(pd_stack *iterStack, char **key, char **value);
 
 /**
  Replace info object in stack object with a new info object of the given type.
@@ -254,7 +254,7 @@ extern PDBool PDStackGetNextDictKey(PDStackRef *iterStack, char **key, char **va
  @param type The new type.
  @param info The new info object.
  */
-extern void PDStackReplaceInfoObject(PDStackRef stack, char type, void *info);
+extern void pd_stack_replace_info_object(pd_stack stack, char type, void *info);
 
 /**
  Set up a stack with NULL terminated list of values, put in backward.
@@ -262,7 +262,7 @@ extern void PDStackReplaceInfoObject(PDStackRef stack, char type, void *info);
  @param defs NULL terminated list of values.
  @return Stack with each value pushed as an identifier.
  */
-extern PDStackRef PDStackCreateFromDefinition(const void **defs);
+extern pd_stack pd_stack_create_from_definition(const void **defs);
 
 /// @name Debugging
 
@@ -271,13 +271,13 @@ extern PDStackRef PDStackCreateFromDefinition(const void **defs);
  
  @param stack The stack.
  */
-extern void PDStackPrint(PDStackRef stack);
+extern void pd_stack_print(pd_stack stack);
 /**
  Show a stack (like printing, but in a more overviewable format).
  
  @param stack The stack.
  */
-extern void PDStackShow(PDStackRef stack);
+extern void pd_stack_show(pd_stack stack);
 
 /** @} */
 
@@ -286,13 +286,13 @@ extern void PDStackShow(PDStackRef stack);
 /**
  The global deallocator for stacks. Defaults to the built-in free() function, but is overridden when global preserve flag is set.
  
- @see PDStackSetGlobalPreserveFlag
+ @see pd_stack_set_global_preserve_flag
  */
-extern PDDeallocator PDStackDealloc;
+extern PDDeallocator pd_stack_dealloc;
 
 /**
  Deallocate something using stack deallocator.
  */
-#define PDDeallocateViaStackDealloc(ob) (*PDStackDealloc)(ob)
+#define PDDeallocateViaStackDealloc(ob) (*pd_stack_dealloc)(ob)
 
 #endif

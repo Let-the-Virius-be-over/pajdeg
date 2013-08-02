@@ -28,7 +28,7 @@
 #include "PDState.h"
 #include "PDInternal.h"
 #include "PDEnv.h"
-#include "PDStack.h"
+#include "pd_stack.h"
 
 void PDStateDestroy(PDStateRef state)
 {
@@ -46,9 +46,9 @@ void PDStateDestroy(PDStateRef state)
     if (state->symindex) 
         free(state->symindex);
     
-    if (state->delimiterOp) PDRelease(state->delimiterOp);
-    if (state->numberOp)    PDRelease(state->numberOp);
-    if (state->fallbackOp)  PDRelease(state->fallbackOp);
+    PDRelease(state->delimiterOp);
+    PDRelease(state->numberOp);
+    PDRelease(state->fallbackOp);
     free(state->name);
 }
 

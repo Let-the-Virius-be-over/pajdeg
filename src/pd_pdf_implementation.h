@@ -1,5 +1,5 @@
 //
-//  PDPortableDocumentFormatState.h
+//  pd_pdf_implementation.h
 //
 //  Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
 // 
@@ -40,11 +40,11 @@
  */
 
 /**
- @file PDPortableDocumentFormatState.h
+ @file pd_pdf_implementation.h
  */
 
-#ifndef INCLUDED_PDPortableDocumentFormatState_h
-#define INCLUDED_PDPortableDocumentFormatState_h
+#ifndef INCLUDED_pd_pdf_implementation_h
+#define INCLUDED_pd_pdf_implementation_h
 
 #include "PDState.h"
 
@@ -70,22 +70,22 @@ extern const char * PD_ENDSTREAM;       ///< the "endstream" symbol
 /**
  Retain (constructing, if no previous retains were made) the PDF implementation.
  */
-extern void PDPortableDocumentFormatStateRetain();
+extern void pd_pdf_implementation_use();
 
 /**
  Release (destructing, if no other retains remain) the PDF implementation.
  */
-extern void PDPortableDocumentFormatStateRelease();
+extern void pd_pdf_implementation_discard();
 
 /**
  Retain the PDF conversion table.
  */
-extern void PDConversionTableRetain();
+extern void pd_pdf_conversion_use();
 
 /**
  Release the PDF conversion table.
  */
-extern void PDConversionTableRelease();
+extern void pd_pdf_conversion_discard();
 
 /**
  The root PDF state.
@@ -122,10 +122,10 @@ extern PDStateRef arbStream;
  
  @warning Destroys target stack unless preserve flag is set.
  
- @see PDSTACK
- @see PDStackSetGlobalPreserveFlag
+ @see pd_stack
+ @see pd_stack_set_global_preserve_flag
  */
-extern char * PDStringFromComplex(PDStackRef *complex);
+extern char * PDStringFromComplex(pd_stack *complex);
 
 /**
  Determine object type from identifier.
