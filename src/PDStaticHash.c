@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 //
 
-#include "PDInternal.h"
+#include "pd_internal.h"
 #include "PDDefines.h"
 #include "PDScanner.h"
 #include "PDOperator.h"

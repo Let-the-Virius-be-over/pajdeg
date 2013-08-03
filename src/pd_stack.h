@@ -33,7 +33,7 @@
  
  @ingroup PDALGO
  
- The pd_stack works like any other stack, except it has some amount of awareness about certain object types, such as PDEnvRef instances. 
+ The pd_stack works like any other stack, except it has some amount of awareness about certain object types. 
  
  @{
 */

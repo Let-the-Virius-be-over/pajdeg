@@ -26,7 +26,7 @@
 #include "PDTwinStream.h"
 #include "PDScanner.h"
 
-#include "PDInternal.h"
+#include "pd_internal.h"
 
 #define PIO_CHUNK_SIZE  512
 

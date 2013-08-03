@@ -27,7 +27,7 @@
 
 #include "PDOperator.h"
 #include "PDObjectStream.h"
-#include "PDInternal.h"
+#include "pd_internal.h"
 #include "PDState.h"
 #include "pd_pdf_implementation.h"
 #include "pd_stack.h"
@@ -41,11 +41,11 @@
 
 void PDParserDestroy(PDParserRef parser)
 {
-    printf("xrefs:\n");
+    /*printf("xrefs:\n");
     printf("- mxt = %p: %ld\n", parser->mxt, ((PDTypeRef)parser->mxt - 1)->retainCount);
     printf("- cxt = %p: %ld\n", parser->cxt, ((PDTypeRef)parser->cxt - 1)->retainCount);
     for (pd_stack t = parser->xstack; t; t = t->prev)
-        printf("- [-]: %ld\n", ((PDTypeRef)t->info - 1)->retainCount);
+        printf("- [-]: %ld\n", ((PDTypeRef)t->info - 1)->retainCount);*/
     
     PDRelease(parser->construct);
     PDRelease(parser->root);

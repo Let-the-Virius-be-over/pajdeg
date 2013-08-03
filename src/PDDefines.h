@@ -97,7 +97,7 @@
  @def DEBUG_PDTYPES
  Adds header to all PDType objects and asserts that an object is a real PDType when retained/released.
  
- Keeping this enabled is recommended even for production code.
+ Keeping this enabled is recommended, even for production code, unless it's very stable.
  */
 #define DEBUG_PDTYPES
 
@@ -422,6 +422,15 @@ typedef struct PDStreamFilter *PDStreamFilterRef;
  */
 
 /**
+ An environment. 
+ 
+ @ingroup PDENV
+ 
+ Environments are instances of states. 
+ */
+typedef struct pd_env        *pd_env;
+
+/**
  A state. 
  
  @ingroup PDSTATE
@@ -431,15 +440,6 @@ typedef struct PDStreamFilter *PDStreamFilterRef;
  @see pd_pdf_implementation.h
  */
 typedef struct PDState      *PDStateRef;
-
-/**
- An environment. 
- 
- @ingroup PDENV
- 
- Environments are instances of states. 
- */
-typedef struct PDEnv        *PDEnvRef;
 
 /**
  An operator. 

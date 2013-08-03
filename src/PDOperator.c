@@ -26,7 +26,7 @@
 #include "PDOperator.h"
 #include "PDState.h"
 
-#include "PDInternal.h"
+#include "pd_internal.h"
 
 char *PDOperatorSymbolsWhitespace = "\x00\x09\x0A\x0C\x0D ";    // 0, 9, 10, 12, 13, 32 (character codes)
 char *PDOperatorSymbolsDelimiters = "()<>[]{}/%";               // (, ), <, >, [, ], {, }, /, % (characters)

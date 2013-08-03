@@ -29,6 +29,8 @@
  
  Pajdeg is a C library for modifying existing PDF documents by passing them through a stream with tasks assigned based on object ID's.
  
+ @note Unless you need to, using a @link WRAPPERS wrapper @endlink is recommended, as the core C library is fairly low level.
+ 
  Typical usage involves three things:
  
  - Setting up a PDPipe with in- and out paths.
@@ -64,6 +66,26 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /**
+ @page WRAPPERS Pajdeg Wrappers
+ 
+ As Pajdeg is still fairly new (to the public), there's only one wrapper available. If you write one (even for a language already listed) please let me know so I can add it to this list!
+ 
+ - @link PDOBC PDObC @endlink (Objective-C)
+ */
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ @page PDOBC PDObC (Objective-C Wrapper)
+ 
+ The Objective-C wrapper has its own documentation set for Xcode, as well as its own GitHub repository at 
+ 
+ http://github.com/kallewoof/PDObC
+ */
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
  @page SETUP Setting up
  
  It's arguable whether a page dedicated to setting up is even necessary, but regardless. The first sections cover general instructions, followed by specific instructions, and last is a troubleshooting section. Right now, Xcode is the only example. If you have instructions for a different environment, please contribute!
@@ -75,8 +97,8 @@
  @subsection setup_static_sec As a static library
  
  - Compile the sources using the provided Makefile, by doing `make` either from the `Pajdeg` directory or the `Pajdeg/src` directory. You should get a `libpajdeg.a` file in the current directory regardless which one you use.
- - Copy `libpajdeg.a` along with `src/\*.h` into your project
- - Include `libpajdeg.a` when compiling code that uses the library, e.g. `gcc libpajdeg.a examples/minimal.c -o minimal` from the `Pajdeg` folder. 
+ - Copy `libpajdeg.a` along with `*.h` from `src/` into your project
+ - Include `libpajdeg.a` when compiling code that uses the library, e.g. `gcc minimal.c -lz ../libpajdeg.a -o minimal` from the `Pajdeg/examples` folder. 
  
  @subsection setup_xcode_sec Xcode
  
@@ -84,7 +106,7 @@
  
  @section setup_trouble_sec Troubleshooting
  
- @subsection Undefined symbols
+ @subsection setup_trouble_undefined_symbols_sec Undefined symbols
  
  If you get something like this:
  @code 
@@ -159,26 +181,26 @@
  
  It takes four arguments: the pipe, its owning task, the object it's supposed to do its magic on, and an info object that we can use to store info in. We'll get to this function in a bit.
  
- The next thing we have to do is create a new object. This is actually done straight off without using tasks. It may be a little confusing, but remember that a mutator *mutates/changes* something, it never *creates* anything. 
+ The next thing we have to do is create a new object. This is actually done straight off without using tasks. It may be a little confusing at first, but a mutator *mutates/changes* something, it never *creates* anything. 
  
  In any case, to create objects, we need to introduce a new friend, the parser. In our `main()`:
  
  @skip get the pipe
  @until NewObj
  
- The object has been given a unique object ID and is set up, ready to be stuffed into the output PDF as soon as we hit `execute`. We want to tweak it first, of course.
+ The object has been given a unique object ID and is set up, ready to be stuffed into the output PDF as soon as we hit `execute`. 
+ 
+ We want to tweak it first, of course. Here, we're setting the metadata to our own string. The two flags at the end are used to tell the object if we want it to set the Length property using our provided length, and whether the passed buffer needs to be freed after the object is finished using it. If you `strdup()`'d a string and passed it in, you would give `true` as the last argument, unless you planned to `free()` it yourself once you knew the object was done with it.
  
  @skip char
  @until SetStream
- 
- Note that we're `strdup()`ing the string. The object will `free()` this variable when it's destroyed, but it won't make a copy of it by itself, since streams can be enormously huge.
  
  Adding a metadata object is fine and all, but it won't do any good unless we point the PDF's root object at the new metadata object. That's what our task from before is for.
  
  @skip rootUpdater
  @until SetInfo
  
- We're creating a mutator task for the "root object" property type (i.e. for all objects whose property is the root object, which is only one), and we're passing our `addMetadata` function to it, and we're setting the `info` object to the `meta` object we made earlier. 
+ We're creating a mutator task for the "root object" property type (i.e. the root object of the PDF), and we're passing our `addMetadata` function to it, and finally we're setting the `info` object to the `meta` object we made earlier. 
  
  Under the hood, this sets up a filter task for the root object's object ID, and attaches a mutator task to that filter task. The filter task will be pinged every time an object passes through the pipe and if the filter encounters the object whose ID matches the root object of the PDF, it will trigger its mutator task and hand it the object in question. That mutator task is our `addMetadata` function.
  
@@ -190,7 +212,7 @@
  executing the pipe, 
  
  @skip Exec
- @until pipe
+ @until processed
  
  and some clean-up.
  
@@ -209,10 +231,7 @@
  @until }
  
  If PDObjectGetDictionaryEntry() returns a non-NULL value for the "Metadata" key, we explode. With that out of the way, setting the metadata is fairly straightforward.
- 
- @skip /
- @until metaRef
- 
+
  We get the reference string for the meta object,
  
  @skip /
@@ -220,10 +239,13 @@
  
  stuff it into the root object,
  
- @skip /
- @until }
+ @skip SetDict
+ @until metaRef
  
- and return PDTaskDone to signal that we're finished.
+ and return PDTaskDone to signal that we're finished:
+ 
+ @skip return
+ @until }
  
  Put together, this is what it all looks like:
  
@@ -231,7 +253,9 @@
  
  You can check out a dissection of a `diff` resulting from a tiny PDF when piped using this program on the @subpage addmetadatadiff "Add metadata diff example" page.
  
- In the next part we'll be conditionally replacing or inserting metadata depending on whether it exists or not. There are a couple of ways of doing this, such as always deleting the current medata object and putting in a new one, but we're going to replace or insert. @ref replacemetadata "Replacing metadata"
+ In the next part we'll be conditionally replacing or inserting metadata depending on whether it exists or not. There are a couple of ways of doing this, such as always deleting the current medata object and putting in a new one, but we're going to replace or insert. 
+ 
+ Next up: @ref replacemetadata "Replacing metadata"
  
  */
 
@@ -273,7 +297,7 @@
  
  @page replacemetadata Replacing metadata
  
- The code here builds on the @ref "Adding metadata" example.
+ The code here builds on the @ref addmetadata "Adding metadata" example.
  
  From @c examples/replace-metadata.c :
  
@@ -289,25 +313,28 @@
  Next, we need to do the actual conditional part in our `main()` function.
  
  @skip GetRoot
- @until updateMeta
+ @until mutator
  
  First case: we have a metadata entry; we plug the `updateMetadata` task into the metadata object.
  
+ @until updateMeta
+ 
+ Second case: we do what we did before; create a metadata object, stuff it with stuff, and hook a task up to edit the root object. We're using a different method for creating the object here. You may run into reasons for choosing one over the other one day.
+ 
  @until }
  @until }
- 
- Second case: we do what we did before; create a metadata object, stuff it with stuff, and hook a task up to edit the root object.
- 
- @until Release
  
  We then add the task (whichever one it was) and release it (it's retained by the PDPipe). 
+ 
+ @skip AddT
+ @until Release
  
  The task for adding metadata remains the same, which leaves the task for updating it:
  
  @skip updateMetadata
  @until }
  
- That all is pretty straightforward. The resulting file ends up looking like this:
+ The resulting file ends up looking like this:
 
  @include examples/replace-metadata.c
  

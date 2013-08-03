@@ -25,7 +25,7 @@
 #include "Pajdeg.h"
 
 #include "PDOperator.h"
-#include "PDInternal.h"
+#include "pd_internal.h"
 #include "pd_stack.h"
 #include "PDScanner.h"
 #include "pd_pdf_implementation.h"
@@ -104,7 +104,7 @@ void PDObjectStreamParseRawObjectStream(PDObjectStreamRef obstm, char *rawBuf)
     PDObjectStreamParseExtractedObjectStream(obstm, rawBuf);
 }
 
-void PDObjectStreamParseExtractedObjectStream(PDObjectStreamRef obstm, char *rawBuf)
+void PDObjectStreamParseExtractedObjectStream(PDObjectStreamRef obstm, char *buf)
 {
     PDInteger i, n, len;
     n = obstm->n;
@@ -115,7 +115,7 @@ void PDObjectStreamParseExtractedObjectStream(PDObjectStreamRef obstm, char *raw
     len = obstm->ob->extractedLen;
     
     PDScannerRef osScanner = PDScannerCreateWithState(arbStream);
-    osScanner->buf = rawBuf;
+    osScanner->buf = buf;
     osScanner->fixedBuf = true;
     osScanner->boffset = 0;
     osScanner->bsize = len;
@@ -271,5 +271,5 @@ void PDObjectStreamCommit(PDObjectStreamRef obstm)
     }
     
     // update object stream
-    PDObjectSetStream(streamOb, content, len, true);
+    PDObjectSetStream(streamOb, content, len, true, true);
 }

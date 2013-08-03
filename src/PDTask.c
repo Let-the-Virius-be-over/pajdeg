@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 //
 
-#include "PDInternal.h"
+#include "pd_internal.h"
 
 #include "PDTask.h"
 

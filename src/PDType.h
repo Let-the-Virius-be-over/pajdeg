@@ -100,24 +100,6 @@ extern void *PDRetain(void *pajdegObject);
  */
 extern void *PDAutorelease(void *pajdegObject);
 
-/**
- A strong reference. 
- 
- @warning Unused. Plan to use for weak and strong references to strings, in particular, for object streams.
- 
- @param ref Allocated reference that should be freed when the strong reference is discarded by all referrers.
- */
-extern void *PDCreateStrongRef(void *ref);
-
-/**
- A weak reference. 
- 
- @warning Unused. Plan to use for weak and strong references to strings, in particular, for object streams.
-
- @param ref Non-allocated reference that should be left alone even after the weak reference has been discarded by its last referrer.
- */
-extern void *PDCreateWeakRef(void *ref);
-
 #endif
 
 /** @} */

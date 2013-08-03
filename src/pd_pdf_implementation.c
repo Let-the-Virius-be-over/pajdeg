@@ -22,7 +22,7 @@
 //  THE SOFTWARE.
 //
 
-#include "PDInternal.h"
+#include "pd_internal.h"
 #include "PDDefines.h"
 #include "PDScanner.h"
 #include "PDOperator.h"
@@ -633,7 +633,7 @@ void PDStringFromName(pd_stack *s, PDStringConvRef scv)
     PDStringGrow(len + 2);
     currchi = '/';
     putstr(namestr, len);
-    free(namestr);
+    PDDeallocateViaStackDealloc(namestr);
 }
 
 void PDStringFromHexString(pd_stack *s, PDStringConvRef scv)
@@ -644,7 +644,7 @@ void PDStringFromHexString(pd_stack *s, PDStringConvRef scv)
     currchi = '<';
     putstr(hexstr, len);
     currchi = '>';
-    free(hexstr);
+    PDDeallocateViaStackDealloc(hexstr);
 }
 
 void PDStringFromDict(pd_stack *s, PDStringConvRef scv)
@@ -685,7 +685,7 @@ void PDStringFromDictEntry(pd_stack *s, PDStringConvRef scv)
     putstr(key, len);
     currchi = ' ';
     PDStringFromAnything();
-    free(key);
+    PDDeallocateViaStackDealloc(key);
 }
 
 void PDStringFromArray(pd_stack *s, PDStringConvRef scv)

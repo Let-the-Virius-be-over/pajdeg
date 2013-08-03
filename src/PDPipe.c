@@ -24,7 +24,7 @@
 
 #include "Pajdeg.h"
 
-#include "PDInternal.h"
+#include "pd_internal.h"
 #include "PDTwinStream.h"
 #include "PDReference.h"
 #include "pd_btree.h"

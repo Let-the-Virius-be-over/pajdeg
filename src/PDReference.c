@@ -23,7 +23,7 @@
 //
 
 #include "PDReference.h"
-#include "PDInternal.h"
+#include "pd_internal.h"
 #include "pd_stack.h"
 #include "pd_pdf_implementation.h"
 

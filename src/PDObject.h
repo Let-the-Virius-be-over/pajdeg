@@ -286,14 +286,15 @@ extern void PDObjectSkipStream(PDObjectRef object);
  
  @note The stream is inserted as is, with no filtering applied to it whatsoever. To insert a filtered stream, e.g. FlateDecoded, use PDObjectSetStreamFiltered() instead.
  
- @warning str is freed on destruction.
+ @warning The stream data is untouched by default. Allocated buffers must be wrapped in PDRetained() or they will be leaked.
  
  @param object The object.
  @param str The stream data.
  @param len The length of the stream data.
  @param includeLength Whether the object's /Length entry should be updated to reflect the new stream content length.
+ @param allocated Whether str should be free()d after the object is done using it.
  */
-extern void PDObjectSetStream(PDObjectRef object, char *str, PDInteger len, PDBool includeLength);
+extern void PDObjectSetStream(PDObjectRef object, char *str, PDInteger len, PDBool includeLength, PDBool allocated);
 
 /**
  Replaces the stream with given data, filtered according to the object's /Filter and /DecodeParams settings.
@@ -311,7 +312,7 @@ extern void PDObjectSetStream(PDObjectRef object, char *str, PDInteger len, PDBo
  @param len The length of the stream data.
  @return Success value. If false is returned, the stream remains unset.
  */
-extern PDBool PDObjectSetStreamFiltered(PDObjectRef object, const char *str, PDInteger len);
+extern PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len);
 
 /**
  Enable or disable compression (FlateDecode) filter flag for the object stream.

@@ -1,5 +1,5 @@
 //
-//  PDEnv.c
+//  pd_env.c
 //
 //  Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
 // 
@@ -23,20 +23,21 @@
 //
 
 #include "Pajdeg.h"
-#include "PDEnv.h"
+#include "pd_env.h"
 #include "pd_stack.h"
 
-#include "PDInternal.h"
+#include "pd_internal.h"
 
-void PDEnvDestroy(PDEnvRef env)
+void pd_env_destroy(pd_env env)
 {
     if (env->buildStack) pd_stack_destroy(env->buildStack);
     if (env->varStack) pd_stack_destroy(env->varStack);
+    free(env);
 }
 
-PDEnvRef PDEnvCreateWithState(PDStateRef state)
+pd_env pd_env_create(PDStateRef state)
 {
-    PDEnvRef env = PDAlloc(sizeof(struct PDEnv), PDEnvDestroy, true);
+    pd_env env = calloc(1, sizeof(struct pd_env));
     env->state = state;
     return env;
 }

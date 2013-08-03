@@ -23,8 +23,8 @@
 //
 
 #include "pd_stack.h"
-#include "PDInternal.h"
-#include "PDEnv.h"
+#include "pd_internal.h"
+#include "pd_env.h"
 #include "PDState.h"
 #include "pd_pdf_implementation.h"
 
@@ -96,6 +96,7 @@ void pd_stack_unshift_stack(pd_stack *stack, pd_stack sstack)
 
 void pd_stack_push_object(pd_stack *stack, void *ob)
 {
+    PDTYPE_ASSERT(ob);
     pd_stack s = malloc(sizeof(struct pd_stack));
     s->prev = *stack;
     s->info = ob; //PDRetain(ob);

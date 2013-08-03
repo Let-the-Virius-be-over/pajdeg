@@ -24,7 +24,7 @@
 
 #include "Pajdeg.h"
 
-#include "PDInternal.h"
+#include "pd_internal.h"
 #include "pd_stack.h"
 #include "PDScanner.h"
 #include "pd_pdf_implementation.h"
@@ -40,7 +40,8 @@ void PDObjectDestroy(PDObjectRef object)
     else
         pd_stack_destroy(object->def);
     if (object->ovrDef) free(object->ovrDef);
-    if (object->ovrStream) free(object->ovrStream);
+    if (object->ovrStream && object->ovrStreamAlloc)
+        free(object->ovrStream);
     if (object->refString) free(object->refString);
     if (object->extractedLen != -1) free(object->streamBuf);
 }
@@ -378,10 +379,11 @@ void PDObjectSkipStream(PDObjectRef object)
     object->skipStream = true;
 }
 
-void PDObjectSetStream(PDObjectRef object, char *str, PDInteger len, PDBool includeLength)
+void PDObjectSetStream(PDObjectRef object, char *str, PDInteger len, PDBool includeLength, PDBool allocated)
 {
     object->ovrStream = str;
     object->ovrStreamLen = len;
+    object->ovrStreamAlloc = allocated;
     if (includeLength)  {
         char *lenstr = malloc(30);
         sprintf(lenstr, "%ld", len);
@@ -390,7 +392,7 @@ void PDObjectSetStream(PDObjectRef object, char *str, PDInteger len, PDBool incl
     }
 }
 
-PDBool PDObjectSetStreamFiltered(PDObjectRef object, const char *str, PDInteger len)
+PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len)
 {
     // Need to get /Filter and /DecodeParms
     const char *filter = PDObjectGetDictionaryEntry(object, "Filter");
@@ -442,43 +444,10 @@ PDBool PDObjectSetStreamFiltered(PDObjectRef object, const char *str, PDInteger 
 
     PDRelease(sf);
     
-    if (success) PDObjectSetStream(object, filtered, flen, true);
+    if (success) PDObjectSetStream(object, filtered, flen, true, true);
     
     return success;
 }
-
-#if 0
-        // we want to chop off << and >> from decodeParms or pdfArrayRoot will see it as one single dictionary entry
-        PDInteger start = 0;
-        PDInteger len = strlen(decodeParms);
-        PDInteger x = 0;
-        while (x < 2 && start < len) {
-            x = decodeParms[start++] == '<' ? x + 1 : 0;
-            len--;
-        }
-        x = 0;
-        while (x < 2 && len > start) {
-            x = decodeParms[start+(len--)] == '>' ? x + 1 : 0;
-        }
-        
-        PDScannerRef scanner = PDScannerCreateWithState(pdfArrayRoot);
-        PDScannerAttachFixedSizeBuffer(scanner, (char*)&decodeParms[start], len);
-        
-        PDBool isString;
-        char      *string;
-        pd_stack key;
-        pd_stack stack;
-        pd_stack options = NULL;
-        while (PDScannerPopStack(scanner, &key)) {
-            if (! (isString = PDScannerPopString(scanner, &string))) PDScannerPopStack(scanner, &stack);
-                
-            if (isString) {
-                char *keyString = strdup(key->prev->info);
-                
-            } else pd_stack_destroy(stack);
-            pd_stack_destroy(key);
-        }
-#endif
 
 void PDObjectSetFlateDecodedFlag(PDObjectRef object, PDBool state)
 {
@@ -553,7 +522,7 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
             }
             // then write out unmodified entries
             stack = object->def;
-            while (pd_stack_get_next_dict_key(&stack, &key, &val)) {
+            while (pd_stack_get_next_dict_key(&stack, &key, &val)) { // <-- sploff upon generating << /Marked true >>
                 PDStringGrow(4 + strlen(key) + strlen(val));
                 putfmt("/%s %s ", key, val);
                 free(val);

@@ -26,8 +26,8 @@
 #include "PDScanner.h"
 #include "PDOperator.h"
 #include "PDState.h"
-#include "PDInternal.h"
-#include "PDEnv.h"
+#include "pd_internal.h"
+#include "pd_env.h"
 #include "pd_stack.h"
 
 void PDStateDestroy(PDStateRef state)

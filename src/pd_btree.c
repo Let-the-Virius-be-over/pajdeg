@@ -23,7 +23,7 @@
 //
 
 #include "PDDefines.h"
-#include "PDInternal.h"
+#include "pd_internal.h"
 #include "pd_btree.h"
 
 void *pd_btree_insert(pd_btree *root, long key, void *value)

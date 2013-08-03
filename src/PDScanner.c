@@ -26,8 +26,8 @@
 #include "PDScanner.h"
 #include "PDOperator.h"
 #include "PDState.h"
-#include "PDInternal.h"
-#include "PDEnv.h"
+#include "pd_internal.h"
+#include "pd_env.h"
 #include "pd_stack.h"
 #include "PDStreamFilter.h"
 #include "pd_pdf_implementation.h" // <-- not ideal
@@ -65,9 +65,12 @@ void PDScannerDestroy(PDScannerRef scanner)
 {
     PDScannerDetachFilter(scanner);
     
-    if (scanner->env) PDRelease(scanner->env);
+    if (scanner->env) pd_env_destroy(scanner->env);
     
-    pd_stack_destroy(scanner->envStack);
+    while (scanner->envStack) {
+        pd_env_destroy((pd_env)pd_stack_pop_identifier(&scanner->envStack));
+    }
+    
     pd_stack_destroy(scanner->resultStack);
     pd_stack_destroy(scanner->symbolStack);
     pd_stack_destroy(scanner->garbageStack);
@@ -78,7 +81,7 @@ void PDScannerDestroy(PDScannerRef scanner)
 PDScannerRef PDScannerCreateWithStateAndPopFunc(PDStateRef state, PDScannerPopFunc popFunc)
 {
     PDScannerRef scanner = PDAlloc(sizeof(struct PDScanner), PDScannerDestroy, true);
-    scanner->env = PDEnvCreateWithState(state);
+    scanner->env = pd_env_create(state);
     scanner->popFunc = popFunc;
     return scanner;
 }
@@ -436,9 +439,9 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
             case PDOperatorPushWeakState:
                 SOEnt();
                 //SOL(">>> push state #%d=%s (%p)\n", statez, op->pushedState->name, op->pushedState);
-                pd_stack_push_object(&scanner->envStack, scanner->env);
-                scanner->env = PDEnvCreateWithState(op->pushedState);
-                scanner->env->entryOffset = scanner->boffset;
+                pd_stack_push_identifier(&scanner->envStack, (PDID)scanner->env);
+                scanner->env = pd_env_create(op->pushedState);
+                //scanner->env->entryOffset = scanner->boffset;
                 PDScannerScan(scanner);
                 if (scanner->failed) return;
                 break;
@@ -446,8 +449,8 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
             case PDOperatorPopState:
                 SOExt();
                 //printf("<<< pop state #%d=%s (%p)\n", statez, scanner->env->state->name, scanner->env->state);
-                PDRelease(scanner->env);
-                scanner->env = pd_stack_pop_object(&scanner->envStack);
+                pd_env_destroy(scanner->env);
+                scanner->env = (pd_env)pd_stack_pop_identifier(&scanner->envStack);
                 break;
                 
             case PDOperatorPushEmptyString:
@@ -570,7 +573,7 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
 
 void PDScannerScan(PDScannerRef scanner)
 {
-    PDEnvRef env;
+    pd_env env;
     PDStateRef state;
     PDScannerSymbolRef sym;
     PDOperatorRef op;
@@ -802,5 +805,5 @@ void PDScannerPrintStateTrace(PDScannerRef scanner)
     if (scanner->env) 
         printf("#0: %s\n", scanner->env->state->name);
     for (s = scanner->envStack; s; i++, s = s->prev) 
-        printf("#%ld: %s\n", i, as(PDEnvRef, s->info)->state->name);
+        printf("#%ld: %s\n", i, as(pd_env, s->info)->state->name);
 }

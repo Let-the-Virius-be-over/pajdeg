@@ -24,7 +24,7 @@
 
 #include <math.h>
 
-#include "PDInternal.h"
+#include "pd_internal.h"
 #include "PDParser.h"
 #include "PDTwinStream.h"
 #include "PDScanner.h"
@@ -35,7 +35,7 @@
 #include "PDStreamFilter.h"
 #include "pd_pdf_implementation.h"
 
-/**
+/*
  @todo Below functions swap endianness due to the fact numbers are big-endian in binary XRefs (and, I guess, in text-form XRefs as well); if the machine running Pajdeg happens to be big-endian as well, below methods need to be #ifdef-ified to handle this (by NOT swapping every byte around in the integral representation).
  */
 
@@ -78,7 +78,7 @@ void PDXRefSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offset)
 
 typedef struct PDXI *PDXI;
 
-/**
+/*
  Internal container.
  */
 struct PDXI {
@@ -195,7 +195,7 @@ PDBool PDXTableInsertXRefStream(PDParserRef parser)
     PDObjectSetFlateDecodedFlag(trailer, true);
     PDObjectSetPredictionStrategy(trailer, PDPredictorPNG_UP, 6);
     
-    PDObjectSetStreamFiltered(trailer, (const char *)mxt->xrefs, PDXWidth * mxt->count);
+    PDObjectSetStreamFiltered(trailer, (char *)mxt->xrefs, PDXWidth * mxt->count);
 
     // now chuck this through via parser
     parser->state = PDParserStateBase;
@@ -234,7 +234,6 @@ PDBool PDXTablePassoverXRefEntry(PDParserRef parser, pd_stack stack, PDBool incl
         count = pd_stack_pop_int(&stack);
         
         // we know the # of bytes to skip over, so we discard right away
-        ////scanner->btrail = scanner->boffset;
         
         PDScannerSkip(scanner, count * 20);
         PDTwinStreamDiscardContent(parser->stream);//, PDTwinStreamScannerCommitBytes(parser->stream) + count * 20);
@@ -274,9 +273,6 @@ PDBool PDXTablePassoverXRefEntry(PDParserRef parser, pd_stack stack, PDBool incl
         pd_stack_assert_expected_key(&stack, "meta");
         pd_stack_assert_expected_key(&stack, "EOF");
         
-        // set trail and discard the content
-        ////scanner->btrail = scanner->boffset;
-        
         PDTwinStreamDiscardContent(parser->stream);//, PDTwinStreamScannerCommitBytes(parser->stream));
     }
     
@@ -297,7 +293,7 @@ static inline PDBool PDXTableFindStartXRef(PDXI X)
     
     // we expect a stack, because it should have skipped until it found startxref
 
-    /// @todo If this is a corrupt PDF, or not a PDF at all, the scanner may end up scanning forever so we put a cap on # of loops -- 100 is overkill but who knows what crazy footers PDFs out there may have (the spec probably disallows that, though, so this should be investigated and truncated at some point)
+    // @todo If this is a corrupt PDF, or not a PDF at all, the scanner may end up scanning forever so we put a cap on # of loops -- 100 is overkill but who knows what crazy footers PDFs out there may have (the spec probably disallows that, though, so this should be investigated and truncated at some point)
     PDScannerSetLoopCap(100);
     if (! PDScannerPopStack(xrefScanner, &X->stack)) {
         PDScannerContextPop();
@@ -391,14 +387,14 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X)
     if (size > pdx->count) {
         pdx->count = size;
         if (size > pdx->cap) {
-            /// @todo this size is known beforehand, or can be known beforehand, in pass 1; xrefs should never have to be reallocated, except for the initial setup
+            // @todo this size is known beforehand, or can be known beforehand, in pass 1; xrefs should never have to be reallocated, except for the initial setup
             pdx->cap = size;
             pdx->xrefs = realloc(pdx->xrefs, PDXWidth * size);
         }
     }
         
     if (filter) {
-        /// @todo We know from 'size' exactly how many bytes we expect out of this thing, so we can set buffer to this value instead of basing it off len (compressed stream length)
+        // @todo We know from 'size' exactly how many bytes we expect out of this thing, so we can set buffer to this value instead of basing it off len (compressed stream length)
         
         PDInteger got = 0;
         PDInteger cap = len < 1024 ? 1024 : len * 4;
@@ -691,7 +687,7 @@ static inline void PDXTableParseTrailer(PDXI X)
     
     // For 1.5+ PDF:s, an XRefStm may exist; it takes precedence over Prev, but does not override Prev
     if ((dictStack = pd_stack_get_dict_key(X->stack, "XRefStm", false))) {
-        /// @todo FIND A CASE WHERE XRefStm EXISTS!
+        // @todo FIND A CASE WHERE XRefStm EXISTS!
         char *s = dictStack->prev->prev->info;
         PDSize xrefStreamOffs = PDSizeFromString(s);
         // X->queue is a queue of objects newer-to-older, which means pushing the XRefStm entry after pushing the Prev entry will do the right thing (XRefStm takes precedence, Prev is not skipped)
@@ -704,7 +700,7 @@ static inline void PDXTableParseTrailer(PDXI X)
         X->trailer->obid = X->mtobid;
         X->trailer->def = X->stack;
     } else {
-        /// @todo Disabled this part; the master trailer has to contain vital stuff or Pajdeg loses it; this will e.g. put a bunch of stream related stuff into the regular trailer if a PDF has mixed XRef streams and plaintext XRefs
+        // @todo Disabled this part; the master trailer has to contain vital stuff or Pajdeg loses it; this will e.g. put a bunch of stream related stuff into the regular trailer if a PDF has mixed XRef streams and plaintext XRefs
 #if 0
         char *key;
         char *value;
@@ -871,7 +867,7 @@ PDBool PDXTableFetchContent(PDXI X)
         for (i = X->tables - 1; i >= 0; i--) {
             // if the XREF comes after the master, the PDF is broken (?), and we bump the master XREF position and skip over the XREF entirely -- this is perfectly non-destructive in terms of data; the master XREF contains the complete set of changes applied in revision order; in theory, all XREF tables could be completely ignored with no side effects aside from safety harness of the parser seeing what it expects to be seeing; the one potential problem with dropping a revision is that indirect object referenced stream lengths for deprecated objects may receive the wrong length; I'm fine with Pajdeg failing at that point
             if (tables[i]->pos > pdx->pos) {
-                /// @todo this is not the case when XRefStm objects are included, as that puts table count > 2
+                // @todo this is not the case when XRefStm objects are included, as that puts table count > 2
                 PDWarn("Master XREF position adjusted due to bytewise successing predecessor -- this PDF is badly formed; may result in corrupted output\n");
                 pdx->pos = tables[i]->pos;
                 pdx->linearized = true;
@@ -909,11 +905,11 @@ PDBool PDXTableFetchXRefs(PDParserRef parser)
     // and finally pull out the current table
     parser->cxt = pd_stack_pop_object(&parser->xstack);
     
-    printf("xrefs:\n");
+    /*printf("xrefs:\n");
     printf("- mxt = %p: %ld\n", parser->mxt, ((PDTypeRef)parser->mxt - 1)->retainCount);
     printf("- cxt = %p: %ld\n", parser->cxt, ((PDTypeRef)parser->cxt - 1)->retainCount);
     for (pd_stack t = parser->xstack; t; t = t->prev)
-        printf("- [-]: %ld\n", ((PDTypeRef)t->info - 1)->retainCount);
+        printf("- [-]: %ld\n", ((PDTypeRef)t->info - 1)->retainCount);*/
     
     parser->xrefnewiter = 1;
     

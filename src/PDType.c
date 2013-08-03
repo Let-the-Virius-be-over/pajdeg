@@ -23,16 +23,16 @@
 //
 
 #include "PDDefines.h"
-#include "PDInternal.h"
+#include "pd_internal.h"
 #include "PDType.h"
 #include "pd_stack.h"
 
 static pd_stack arp = NULL;
 
 #ifdef DEBUG_PDTYPES
-static char *PDC = "PAJDEG";
+char *PDC = "PAJDEG";
 
-#define PDTypeCheck(cmd) if (type->pdc != PDC) { fprintf(stderr, "*** error : object being " cmd " is not a valid PDType instance : %p ***\n", pajdegObject); assert(0); }
+#define PDTypeCheck(cmd) if (type->pdc != PDC) { fprintf(stderr, "*** error : object being " cmd " is not a valid PDType instance : %p ***\n", pajdegObject); PDAssert(0); }
 
 #else
 #define PDTypeCheck(cmd) 
@@ -41,9 +41,7 @@ static char *PDC = "PAJDEG";
 void *PDAlloc(PDSize size, void *dealloc, PDBool zeroed)
 {
     PDTypeRef chunk = (zeroed ? calloc(1, sizeof(union PDType) + size) : malloc(sizeof(union PDType) + size));
-#ifdef DEBUG_PDTYPES
     chunk->pdc = PDC;
-#endif
     chunk->retainCount = 1;
     chunk->dealloc = dealloc;
     return chunk + 1;
@@ -85,20 +83,4 @@ void PDFlush(void)
     while ((obj = pd_stack_pop_identifier(&arp))) {
         PDRelease(obj);
     }
-}
-
-void PDWeakDealloc(void *data) {}
-
-void *PDCreateStrongRef(void *ref)
-{
-    void *pdRef = PDAlloc(sizeof(void*), free, false);
-    pdRef = ref;
-    return pdRef;
-}
-
-extern void *PDCreateWeakRef(void *ref)
-{
-    void *pdRef = PDAlloc(sizeof(void*), PDWeakDealloc, false);
-    pdRef = ref;
-    return pdRef;
 }
