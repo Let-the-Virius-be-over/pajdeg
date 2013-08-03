@@ -80,23 +80,29 @@ extern PDObjectRef PDObjectCreate(PDInteger obid, PDInteger genid);
 #define PDTYPE_PTR_LEN  2
 #endif
 
-/**
+/*
+ @cond IGNORE
+ 
  The PDType union. 
  
  It is force-aligned to the given size using PDTYPE_PTR_LEN.
  
  @todo Determine: Is the align done correctly? Is it even necessary?
+ 
+ (Note: this is purposefully not doxygenified as Doxygen bugs out over the layout.)
  */
 union PDType {
     struct {
 #ifdef DEBUG_PDTYPES
-        char *pdc;                  ///< Pajdeg signature
+        char *pdc;                  // Pajdeg signature
 #endif
-        PDInteger retainCount;      ///< Retain count. If the retain count of an object hits zero, the object is disposed of.
-        PDDeallocator dealloc;      ///< Deallocation method.
+        PDInteger retainCount;      // Retain count. If the retain count of an object hits zero, the object is disposed of.
+        PDDeallocator dealloc;      // Deallocation method.
     };
-    void *align[PDTYPE_PTR_LEN];    ///< Force-align. 
+    void *align[PDTYPE_PTR_LEN];    // Force-align. 
 };
+
+/** @endcond // IGNORE */
 
 /**
  Allocate a new PDType object, with given size and deallocator.
@@ -128,6 +134,8 @@ extern char *PDC;
 
 /**
  Object internal structure
+ 
+ @ingroup PDOBJECT
  */
 
 struct PDObject {
@@ -156,12 +164,19 @@ struct PDObject {
 // object stream
 //
 
+typedef struct PDObjectStreamElement *PDObjectStreamElementRef;
+
+/**
+ @addtogroup PDOBJECTSTREAM
+
+ @{ 
+ */
+
 /**
  Object stream element structure
  
  This is a wrapper around an object inside of an object stream.
  */
-typedef struct PDObjectStreamElement *PDObjectStreamElementRef;
 struct PDObjectStreamElement {
     PDInteger obid;                     ///< object id of element
     PDInteger offset;                   ///< offset inside object stream
@@ -218,6 +233,8 @@ extern void PDObjectStreamParseExtractedObjectStream(PDObjectStreamRef obstm, ch
  */
 extern void PDObjectStreamCommit(PDObjectStreamRef obstm);
 
+/** @} */
+
 /// @name Environment
 
 /**
@@ -267,24 +284,10 @@ struct PDOperator {
 };
 
 /**
- Fast mutative atoXXX inline function generation macro.
+ PDXTable
  
- @param x Function return type.
- @param ato Method
+ @ingroup PDXTABLE
  */
-#define fmatox(x, ato) \
-static inline x fast_mutative_##ato(char *str, PDInteger len) \
-{ \
-char t = str[len]; \
-str[len] = 0; \
-x l = ato(str); \
-str[len] = t; \
-return l; \
-}
-
-fmatox(long long, atoll)
-fmatox(long, atol)
-
 typedef struct PDXTable *PDXTableRef;
 
 /**
@@ -292,9 +295,9 @@ typedef struct PDXTable *PDXTableRef;
  */
 typedef enum {
     PDParserStateBase,              ///< parser is in between objects
-    PDParserStateObjectDefinition,  ///< parser is right after "1 2 obj" and right before whatever the object consists of
-    PDParserStateObjectAppendix,    ///< parser is right after the object's content, and expects to see "endobj" or "stream" next
-    PDParserStateObjectPostStream,  ///< parser is right after the "endstream" keyword, at the "endobj" keyword
+    PDParserStateObjectDefinition,  ///< parser is right after 1 2 obj and right before whatever the object consists of
+    PDParserStateObjectAppendix,    ///< parser is right after the object's content, and expects to see endobj or stream next
+    PDParserStateObjectPostStream,  ///< parser is right after the endstream keyword, at the endobj keyword
 } PDParserState;
 
 /**
@@ -397,10 +400,10 @@ struct PDState {
     PDBool         iterates;    ///< if true, scanner will stop while in this state, after reading one entry
     char          *name;        ///< name of the state
     char         **symbol;      ///< symbol strings
-    PDInteger      symbols;     ///< # of symbols in total
+    PDInteger      symbols;     ///< number of symbols in total
     
     PDInteger     *symindex;    ///< symbol indices (for hash)
-    short          symindices;  ///< # of index slots in total (not = `symbols', often bigger)
+    short          symindices;  ///< number of index slots in total (not = `symbols`, often bigger)
     
     PDOperatorRef *symbolOp;    ///< symbol operators
     PDOperatorRef  numberOp;    ///< number operator
@@ -464,7 +467,9 @@ struct PDTwinStream {
 };
 
 /**
- Pipe
+ Internal structure.
+ 
+ @ingroup PDPIPE
  */
 struct PDPipe {
     PDBool          opened;             ///< Whether pipe has been opened or not.
@@ -484,6 +489,8 @@ struct PDPipe {
 
 /**
  Internal reference structure
+ 
+ @ingroup PDREFERENCE
  */
 struct PDReference {
     PDInteger obid;         ///< The object ID
@@ -577,5 +584,26 @@ assert(args); \
  @param ts The twin stream.
  */
 extern void PDTwinStreamAsserts(PDTwinStreamRef ts);
+
+/**
+ @def fmatox(x, ato)
+ 
+ Fast mutative atoXXX inline function generation macro.
+ 
+ @param x Function return type.
+ @param ato Method
+ */
+#define fmatox(x, ato) \
+static inline x fast_mutative_##ato(char *str, PDInteger len) \
+{ \
+    char t = str[len]; \
+    str[len] = 0; \
+    x l = ato(str); \
+    str[len] = t; \
+    return l; \
+}
+
+fmatox(long long, atoll)
+fmatox(long, atol)
 
 #endif

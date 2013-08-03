@@ -31,11 +31,13 @@
  
  @brief The Pajdeg pipe.
  
+ @memberof PDTYPE
+ 
  @ingroup PDPIPE_CONCEPT
  
  Pipes provide functionality to define input and output files, add tasks, and start the streaming process. 
  
- Pipes contain a PDParserRef instance, accessible through the PDPipeGetParser() function, and any number of PDTaskRef instances. It also maintains a PDTwinStream instance, along with file pointers for the input and output files.
+ Pipes contain a @link PDPARSER PDParser @endlink instance, accessible through the PDPipeGetParser() function, and any number of @link PDTASK PDTask @endlink instances. It also maintains a @link PDTWINSTREAM PDTwinStream @endlink instance, along with file pointers for the input and output files.
  
  The life cycle of a pipe that does not encounter any errors is made up of these 6 steps:
  

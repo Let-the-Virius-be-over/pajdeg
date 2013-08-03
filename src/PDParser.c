@@ -122,7 +122,7 @@ pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, 
         PDInteger len;
         PDObjectStreamRef obstm;
         PDXOffsetType containerOffset;
-        PDInteger index = PDXRefGetGenForID(xrefTable->xrefs, obid);
+        PDInteger index = PDXGetGenForID(xrefTable->xrefs, obid);
         
         pd_stack containerDef = PDParserLocateAndCreateDefinitionForObjectWithSize(parser, PDXTableGetOffsetForID(xrefTable, obid), bufsize, master, &containerOffset);
         PDAssert(containerDef);
@@ -479,7 +479,7 @@ void PDParserPassthroughObject(PDParserRef parser)
                     PDAssert(PDIdentifies(entry->info, PD_NAME));
                     if (!strcmp("XRef", entry->prev->info)) {
                         pd_stack_destroy(stack);
-                        PDXRefSetTypeForID(parser->mxt->xrefs, parser->obid, PDXTypeFreed);
+                        PDXSetTypeForID(parser->mxt->xrefs, parser->obid, PDXTypeFreed);
                         parser->state = PDParserStateObjectAppendix;
                         PDParserPassoverObject(parser);
                         // we also have a startxref (apparently not always)
@@ -736,11 +736,11 @@ PDBool PDParserIterate(PDParserRef parser)
                 
                 //printf("object %zd (genid = %zd)\n", nextobid, nextgenid);
                 
-                if (nextgenid != PDXRefGetGenForID(mxrefs, nextobid)) {
+                if (nextgenid != PDXGetGenForID(mxrefs, nextobid)) {
                     // this is the wrong object
                     skipObject = true;
                 } else {
-                    long long offset = scanner->bresoffset + PDTwinStreamGetInputOffset(parser->stream) - PDXRefGetOffsetForID(mxrefs, nextobid); // PDXOffset(mxrefs[nextobid]);
+                    long long offset = scanner->bresoffset + PDTwinStreamGetInputOffset(parser->stream) - PDXGetOffsetForID(mxrefs, nextobid); // PDXOffset(mxrefs[nextobid]);
                     if (offset != 0) {
                         // okay, getting a slight bit out of hand here, but when we run into a bad offset, it sometimes is because someone screwed up and gave us:
                         // \r     \r\n1753 0 obj\r<</DecodeParm....... and claimed that the starting offset for 1753 0 was at the first \r, which it of course is not, it's 7 bytes later
@@ -807,15 +807,15 @@ PDObjectRef PDParserCreateNewObject(PDParserRef parser)
     cap = parser->mxt->cap;
     xrefs = parser->mxt->xrefs;
     
-    while (newiter < count && PDXTypeFreed != PDXRefGetTypeForID(xrefs, newiter)) //PDXUsed(xrefs[newiter]))
+    while (newiter < count && PDXTypeFreed != PDXGetTypeForID(xrefs, newiter)) //PDXUsed(xrefs[newiter]))
         newiter++;
     if (newiter == cap) {
         // we must realloc xref as it can't contain all the xrefs
         parser->mxt->cap = parser->mxt->count = cap = cap + 1;
         xrefs = parser->mxt->xrefs = realloc(parser->mxt->xrefs, PDXWidth * cap);
     }
-    PDXRefSetTypeForID(xrefs, newiter, PDXTypeUsed);
-    PDXRefSetGenForID(xrefs, newiter, 0);
+    PDXSetTypeForID(xrefs, newiter, PDXTypeUsed);
+    PDXSetGenForID(xrefs, newiter, 0);
 
     parser->xrefnewiter = newiter;
     

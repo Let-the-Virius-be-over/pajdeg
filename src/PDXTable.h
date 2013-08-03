@@ -25,6 +25,8 @@
 /**
  @file PDXTable.h PDF XRef table header.
  
+ @ingroup PDXTABLE
+ 
  @defgroup PDXTABLE PDXTable
  
  @brief PDF XRef (cross reference) table.
@@ -69,12 +71,12 @@ enum {
     PDXTypeComp     = 2,    ///< Compressed object (no text format equivalent)
 };
 
-typedef unsigned char PDXType;
-typedef u_int32_t PDXOffsetType;
-typedef unsigned char PDXGenType;
+typedef unsigned char PDXType;      ///< The type representation of an XREF entry.
+typedef u_int32_t PDXOffsetType;    ///< The offset representation of an XREF entry.
+typedef unsigned char PDXGenType;   ///< The generation / index representation of an XREF entry.
 
 #define PDXTypeSize     1   ///< The size of the XREF type. Note: this must not be changed
-#define PDXOffsSize     4   ///< The size of the offset type. Note: changing this requires updating PDXRefGet/SetOffsetForID
+#define PDXOffsSize     4   ///< The size of the offset type. Note: changing this requires updating PDXGet/SetOffsetForID
 #define PDXGenSize      1   ///< The generation number / object index type size. Note: this must not be changed
 
 #define PDXTypeAlign    0                               ///< The alignment of the XREF type inside its XREF field
@@ -109,7 +111,7 @@ struct PDXTable {
  @param xrefs The XREF buffer. 
  @param obid The object ID.
  */
-extern PDXOffsetType PDXRefGetOffsetForID(char *xrefs, PDInteger obid);
+extern PDXOffsetType PDXGetOffsetForID(char *xrefs, PDInteger obid);
 
 /**
  Set the offset for the object with the given ID to the given offset in the XREF buffer.
@@ -120,7 +122,7 @@ extern PDXOffsetType PDXRefGetOffsetForID(char *xrefs, PDInteger obid);
  @param obid The object ID.
  @param offset The new offset.
  */
-extern void PDXRefSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offset);
+extern void PDXSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offset);
 
 /**
  Get the type for the given object.
@@ -128,7 +130,7 @@ extern void PDXRefSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offs
  @param xrefs The XREF buffer
  @param id The object ID.
  */
-#define PDXRefGetTypeForID(xrefs, id)        (PDXType)((xrefs)[id*PDXWidth])
+#define PDXGetTypeForID(xrefs, id)        (PDXType)((xrefs)[id*PDXWidth])
 
 /**
  Set the type for the given object.
@@ -137,7 +139,7 @@ extern void PDXRefSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offs
  @param id The object ID.
  @param t The new type.
  */
-#define PDXRefSetTypeForID(xrefs, id, t)    *(PDXType*)&((xrefs)[id*PDXWidth]) = t
+#define PDXSetTypeForID(xrefs, id, t)    *(PDXType*)&((xrefs)[id*PDXWidth]) = t
 
 /**
  Get the generation number or object stream index for the given object.
@@ -145,7 +147,7 @@ extern void PDXRefSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offs
  @param xrefs The XREF buffer
  @param id The object ID.
  */
-#define PDXRefGetGenForID(xrefs, id)         (PDXGenType)((xrefs)[PDXGenAlign+id*PDXWidth])
+#define PDXGetGenForID(xrefs, id)         (PDXGenType)((xrefs)[PDXGenAlign+id*PDXWidth])
 
 /**
  Set the generation number / object stream index for the given object.
@@ -154,7 +156,7 @@ extern void PDXRefSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offs
  @param id The object ID.
  @param gen The new value.
  */
-#define PDXRefSetGenForID(xrefs, id, gen)   *(PDXGenType*)&((xrefs)[PDXGenAlign+id*PDXWidth]) = gen
+#define PDXSetGenForID(xrefs, id, gen)   *(PDXGenType*)&((xrefs)[PDXGenAlign+id*PDXWidth]) = gen
 
 
 /**
@@ -163,7 +165,7 @@ extern void PDXRefSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offs
  @param xtable The PDXTableRef instance
  @param id The object ID.
  */
-#define PDXTableGetTypeForID(xtable, id)       PDXRefGetTypeForID(xtable->xrefs, id)
+#define PDXTableGetTypeForID(xtable, id)       PDXGetTypeForID(xtable->xrefs, id)
 
 /**
  Get the offset for the given object in the table.
@@ -171,7 +173,7 @@ extern void PDXRefSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offs
  @param xtable The PDXTableRef instance
  @param id The object ID.
  */
-#define PDXTableGetOffsetForID(xtable, id)     PDXRefGetOffsetForID(xtable->xrefs, id)
+#define PDXTableGetOffsetForID(xtable, id)     PDXGetOffsetForID(xtable->xrefs, id)
 
 /**
  Get the generation number or object stream index for the given object in the table.
@@ -179,7 +181,7 @@ extern void PDXRefSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offs
  @param xtable The PDXTableRef instance
  @param id The object ID.
  */
-#define PDXTableGetGenForID(xtable, id)        PDXRefGetGenForID(xtable->xrefs, id)
+#define PDXTableGetGenForID(xtable, id)        PDXGetGenForID(xtable->xrefs, id)
 
 /**
  Determine if the object with given ID is free.
@@ -193,10 +195,10 @@ extern void PDXRefSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offs
  Set the offset for the object with the given ID to the given offset in the XREF table.
  
  @param xtable The PDX table instance.
- @param obid The object ID.
- @param offset The new offset.
+ @param id The object ID.
+ @param offs The new offset.
  */
-#define PDXTableSetOffset(xtable, id, offs) PDXRefSetOffsetForID(xtable->xrefs, id, offs)
+#define PDXTableSetOffset(xtable, id, offs) PDXSetOffsetForID(xtable->xrefs, id, offs)
 
 /**
  Read a PDFs XREF data by jumping to the end of the file, reading in the startxref value and jumping to every

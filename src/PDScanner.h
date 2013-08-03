@@ -145,7 +145,7 @@ extern void PDScannerSkip(PDScannerRef scanner, PDSize bytes);
  @note Buffer growth is never done in this method, which means if the scanner's buffer is only partially complete, it may stop prematurely.
  
  @param scanner The scanner.
- @param type The symbol character type.
+ @param symbolCharType The symbol character type.
  @return The number of bytes skipped.
  */
 extern PDInteger PDScannerPassSymbolCharacterType(PDScannerRef scanner, PDInteger symbolCharType);
