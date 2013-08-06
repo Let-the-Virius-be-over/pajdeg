@@ -231,7 +231,7 @@ void PDObjectStreamCommit(PDObjectStreamRef obstm)
     
     // update keys
     sprintf(hbuf, "%ld", headerlen);
-    PDObjectSetDictionaryEntry(streamOb, "First", strdup(hbuf));
+    PDObjectSetDictionaryEntry(streamOb, "First", hbuf);
     
     // generate stream
     len = headerlen + offs;

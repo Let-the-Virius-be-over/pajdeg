@@ -942,7 +942,7 @@ PDInteger PDParserGetContainerObjectIDForObject(PDParserRef parser, PDInteger ob
 
 PDBool PDParserIsObjectStillMutable(PDParserRef parser, PDInteger obid)
 {
-    return (PDTwinStreamGetOutputOffset(parser->stream) < PDXTableGetOffsetForID(parser->mxt, obid)); // PDXOffset(parser->mxt->fields[obid]));
+    return (PDTwinStreamGetInputOffset(parser->stream) < PDXTableGetOffsetForID(parser->mxt, obid)); // PDXOffset(parser->mxt->fields[obid]));
 }
 
 PDObjectRef PDParserGetRootObject(PDParserRef parser)
