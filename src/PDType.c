@@ -29,10 +29,32 @@
 
 static pd_stack arp = NULL;
 
+// if you are having issues with a non-PDTypeRef being mistaken for a PDTypeRef, you can enable DEBUG_PDTYPES_BREAK to stop the assertion from happening and instead returning a NULL value (for the value-returning functions)
+//#define DEBUG_PDTYPES_BREAK
+
 #ifdef DEBUG_PDTYPES
 char *PDC = "PAJDEG";
 
-#define PDTypeCheck(cmd) if (type->pdc != PDC) { fprintf(stderr, "*** error : object being " cmd " is not a valid PDType instance : %p ***\n", pajdegObject); PDAssert(0); }
+#ifdef DEBUG_PDTYPES_BREAK
+
+void breakHere()
+{
+    printf("");
+}
+
+#define PDTypeCheckFailed(err_ret) breakHere(); return err_ret
+
+#else
+
+#define PDTypeCheckFailed(err_ret) PDAssert(0)
+
+#endif
+
+#define PDTypeCheck(cmd, err_ret) \
+    if (type->pdc != PDC) { \
+        fprintf(stderr, "*** error : object being " cmd " is not a valid PDType instance : %p ***\n", pajdegObject); \
+        PDTypeCheckFailed(err_ret); \
+    }
 
 #else
 #define PDTypeCheck(cmd) 
@@ -51,7 +73,7 @@ void PDRelease(void *pajdegObject)
 {
     if (NULL == pajdegObject) return;
     PDTypeRef type = (PDTypeRef)pajdegObject - 1;
-    PDTypeCheck("released");
+    PDTypeCheck("released", /* void */);
     type->retainCount--;
     if (type->retainCount == 0) {
         (*type->dealloc)(pajdegObject);
@@ -62,16 +84,16 @@ void PDRelease(void *pajdegObject)
 void *PDRetain(void *pajdegObject)
 {
     PDTypeRef type = (PDTypeRef)pajdegObject - 1;
-    PDTypeCheck("retained");
+    PDTypeCheck("retained", NULL);
     type->retainCount++;
     return pajdegObject;
 }
 
 void *PDAutorelease(void *pajdegObject)
 {
-#ifdef DEBUG_PTYPES
+#ifdef DEBUG_PDTYPES
     PDTypeRef type = (PDTypeRef)pajdegObject - 1;
-    PDTypeCheck("autoreleased");
+    PDTypeCheck("autoreleased", NULL);
 #endif
     pd_stack_push_identifier(&arp, pajdegObject);
     return pajdegObject;
