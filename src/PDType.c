@@ -99,6 +99,13 @@ void *PDAutorelease(void *pajdegObject)
     return pajdegObject;
 }
 
+PDInteger PDGetRetainCount(void *pajdegObject)
+{
+    PDTypeRef type = (PDTypeRef)pajdegObject - 1;
+    PDTypeCheck("GetRetainCounted", -1);
+    return type->retainCount;
+}
+
 void PDFlush(void)
 {
     void *obj;

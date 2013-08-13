@@ -46,7 +46,7 @@
 #define INCLUDED_pd_btree_h
 
 #include "PDDefines.h"
-
+#if 0
 /**
  Inserts entry for key. 
  
@@ -93,3 +93,4 @@ extern void pd_btree_destroy_with_deallocator(pd_btree root, PDDeallocator deall
 #endif
 
 /* @} */
+#endif

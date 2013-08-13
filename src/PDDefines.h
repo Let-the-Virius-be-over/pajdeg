@@ -53,7 +53,7 @@
  
  The PD_WARNINGS directive turns on printing of warnings to stderr. Enabled implicitly if DEBUG is defined.
  */
-//#define PD_WARNINGS
+#define PD_WARNINGS
 
 /**
  @def PD_ASSERTS
@@ -61,7 +61,7 @@
  
  The PD_ASSERTS directive turns on assertions. If something is misbehaving, turning this on is a good idea as it provides a crash point and/or clue as to what's not going right. Enabled implicitly if DEBUG is defined.
  */
-//#define PD_ASSERTS
+#define PD_ASSERTS
 
 /**
  @def PD_DEBUG_TWINSTREAM_ASSERT_OBJECTS 
@@ -231,7 +231,8 @@ typedef struct PDStaticHash *PDStaticHashRef;
  
  @ingroup PDBTREE
  */
-typedef struct pd_btree *pd_btree;
+//typedef struct pd_btree *pd_btree;
+typedef struct PDBTree *PDBTreeRef;
 
 /** @} // PDALGO */
 
@@ -328,7 +329,7 @@ typedef enum {
     PDPropertyInfoObject,       ///< triggered when info object is encountered
     
     // *** planned ***
-    //PDPropertyPage,             ///< value = number; if 0, triggers for every page
+    PDPropertyPage,             ///< value = page number; if 0, triggers for every page
 } PDPropertyType;
 
 /**

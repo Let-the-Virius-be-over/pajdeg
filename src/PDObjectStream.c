@@ -32,7 +32,7 @@
 #include "pd_pdf_private.h"
 #include "PDStreamFilter.h"
 #include "PDObjectStream.h"
-#include "pd_btree.h"
+#include "PDBTree.h"
 
 /*struct PDObjectStream {
     PDObjectRef ob;                     // obstream object
@@ -54,7 +54,8 @@ void PDObjectStreamDestroy(PDObjectStreamRef obstm)
     free(elements);
     PDRelease(obstm->filter);
     if (obstm->constructs) {
-        pd_btree_destroy_with_deallocator(obstm->constructs, PDRelease);
+        PDRelease(obstm->constructs);
+        //pd_btree_destroy_with_deallocator(obstm->constructs, PDRelease);
     }
     PDRelease(obstm->ob);
 }
@@ -65,6 +66,7 @@ PDObjectStreamRef PDObjectStreamCreateWithObject(PDObjectRef object)
     obstm->ob = PDRetain(object);
     obstm->n = PDIntegerFromString(PDObjectGetDictionaryEntry(object, "N"));
     obstm->first = PDIntegerFromString(PDObjectGetDictionaryEntry(object, "First"));
+    obstm->constructs = PDBTreeCreate(PDRelease, obstm->first, obstm->first + obstm->n, obstm->n/3);
     
     const char *filterName = PDObjectGetDictionaryEntry(object, "Filter");
     if (filterName) {
@@ -150,7 +152,8 @@ PDObjectRef PDObjectStreamGetObjectByID(PDObjectStreamRef obstm, PDInteger obid)
     PDInteger i, n;
     PDObjectStreamElementRef elements;
     
-    PDObjectRef ob = pd_btree_fetch(obstm->constructs, obid);
+    PDObjectRef ob = PDBTreeGet(obstm->constructs, obid);
+    //pd_btree_fetch(obstm->constructs, obid);
     if (ob) return ob;
 
     n = obstm->n;
@@ -162,7 +165,8 @@ PDObjectRef PDObjectStreamGetObjectByID(PDObjectStreamRef obstm, PDInteger obid)
             ob->def = elements[i].def;
             ob->type = elements[i].type;
             elements[i].def = NULL;
-            pd_btree_insert(&obstm->constructs, obid, ob);
+            PDBTreeInsert(obstm->constructs, obid, ob);
+            //pd_btree_insert(&obstm->constructs, obid, ob);
             return ob;
         }
     }
@@ -184,11 +188,13 @@ PDObjectRef PDObjectStreamGetObjectAtIndex(PDObjectStreamRef obstm, PDInteger in
         ob->def = elements[index].def;
         ob->type = elements[index].type;
         elements[index].def = NULL;
-        pd_btree_insert(&obstm->constructs, elements[index].obid, ob);
+        PDBTreeInsert(obstm->constructs, elements[index].obid, ob);
+        //pd_btree_insert(&obstm->constructs, elements[index].obid, ob);
         return ob;
     }
     
-    return pd_btree_fetch(obstm->constructs, elements[index].obid);
+    return PDBTreeGet(obstm->constructs, elements[index].obid);
+    //pd_btree_fetch(obstm->constructs, elements[index].obid);
 }
 
 void PDObjectStreamCommit(PDObjectStreamRef obstm)
@@ -214,7 +220,8 @@ void PDObjectStreamCommit(PDObjectStreamRef obstm)
     // stringify and update offsets
     for (i = 0; i < n; i++) {
         if (elements[i].def == NULL) {
-            PDObjectRef ob = pd_btree_fetch(obstm->constructs, elements[i].obid);
+            PDObjectRef ob = PDBTreeGet(obstm->constructs, elements[i].obid);
+            //pd_btree_fetch(obstm->constructs, elements[i].obid);
             len = PDObjectGenerateDefinition(ob, (char**)&elements[i].def, 0);
             len--; // objects add \n after def; don't want two \n's
         } else {

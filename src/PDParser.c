@@ -33,7 +33,7 @@
 #include "pd_stack.h"
 #include "PDTwinStream.h"
 #include "PDReference.h"
-#include "pd_btree.h"
+#include "PDBTree.h"
 #include "PDStreamFilter.h"
 #include "PDXTable.h"
 
@@ -54,7 +54,8 @@ void PDParserDestroy(PDParserRef parser)
     PDRelease(parser->infoRef);
     PDRelease(parser->encryptRef);
     PDRelease(parser->trailer);
-    pd_btree_destroy(parser->skipT);
+    //pd_btree_destroy(parser->skipT);
+    PDRelease(parser->skipT);
     pd_stack_destroy(parser->appends);
     
     PDRelease(parser->mxt);
@@ -80,6 +81,8 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
         pd_pdf_implementation_discard();
         return NULL;
     }
+
+    parser->skipT = PDBTreeCreate(PDDeallocatorNull, 1, parser->mxt->count, 3);
     
     PDTwinStreamAsserts(parser->stream);
 
@@ -640,8 +643,8 @@ PDBool PDParserIterateXRefDomain(PDParserRef parser)
         parser->done = true;
         
         PDParserAppendObjects(parser);
-        PDAssert(NULL == parser->skipT); // crash = we lost objects
-        parser->success &= NULL == parser->xstack && NULL == parser->skipT;
+        PDAssert(0 == PDBTreeGetCount(parser->skipT)); // crash = we lost objects
+        parser->success &= NULL == parser->xstack && 0 == PDBTreeGetCount(parser->skipT);
         return false;
     }
     
@@ -753,10 +756,12 @@ PDBool PDParserIterate(PDParserRef parser)
                     }
                     //printf("offset = %lld\n", offset);
                     if (offset < 2 && offset > -2) {
-                        pd_btree_remove(&parser->skipT, nextobid);
+                        PDBTreeDelete(parser->skipT, nextobid);
+                        //pd_btree_remove(&parser->skipT, nextobid);
                     } else {
                         //printf("offset mismatch for object %zd\n", nextobid);
-                        pd_btree_insert(&parser->skipT, nextobid, (void*)nextobid);
+                        PDBTreeInsert(parser->skipT, nextobid, (void*)nextobid);
+                        //pd_btree_insert(&parser->skipT, nextobid, (void*)nextobid);
                         // this is an old version of the object (in reality, PDF:s should not have the same object defined twice; in practice, Adobe InDesign CS5.5 (7.5) happily spews out 2 (+?) copies of the same object with different versions in the same PDF (admittedly the obs are separated by %%EOF and in separate appendings, but regardless)
                         skipObject = true;
                     }
@@ -959,3 +964,52 @@ PDInteger PDParserGetTotalObjectCount(PDParserRef parser)
 {
     return parser->mxt->count;
 }
+
+PDInteger PDParserDetermineObjectIDForPageNumber(PDParserRef parser, PDInteger pageNumber)
+{
+    // TRAILER  #18     #10     #17     #1      #4      #7
+    // Root 18 0 R
+    //          <</Type /Catalog /Pages 10 0 R ...>
+    //                  <</Type /Pages /Resources 17 0 R /MediaBox ... /Kids [ 1 0 R 4 0 R 7 0 R ] /Count 3>>
+    //                          <</Font.. /ProcSet..>>
+    //                                  <</Type/Page/Parent 10 0 R/Resources 17 0 R/MediaBox[0 0 595 842]/Group<</S/Transparency/CS/DeviceRGB/I true>>/Contents 2 0 R>>
+    //                                          <</Type/Page/Parent 10 0 R/Resources 17 0 R/MediaBox[0 0 595 842]/Group<</S/Transparency/CS/DeviceRGB/I true>>/Contents 5 0 R>>
+    //                                                  <</Type/Page/Parent 10 0 R/Resources 17 0 R/MediaBox[0 0 595 842]/Group<</S/Transparency/CS/DeviceRGB/I true>>/Contents 8 0 R>>
+    
+    // TRAILER  #2      #4      #5      #6518   #6520
+    // Root 2 0 R
+    //          <</Pages 4 0 R /Outlines 6516 0 R /StructTreeRoot 6517 0 R /PageLabels 6518 0 R /Type /Catalog...>>
+    //                  <</Type /Pages /Kids [5 0 R 6 0 R 7 0 R ... ... ... ... ... ... 1053 0 R ] /Count 314>>
+    //                          <<.../Type /Page ...>>
+    //                                  <</Nums [0 6520 0 R 1 6521 0 R 13 6522 0 R ]>>
+    //                                          <</P (^^U^Wj<4.1<A8><FC><F8>8<BE><F7><C5>X<AA><94><83>^E4>cO^Q<C8>.^_yG<90>W)>>
+    
+    // get root if we don't have it yet
+    PDObjectRef root = PDParserGetRootObject(parser);
+    const char *pagesVal = PDObjectGetDictionaryEntry(root, "Pages");
+    PDInteger pagesID = PDIntegerFromString(pagesVal);
+    pd_stack def = PDParserLocateAndCreateDefinitionForObject(parser, pagesID, true);
+    pd_stack kids = pd_stack_get_dict_key(def, "Kids", false);
+    PDAssert(kids);
+
+    // kids = &DE, ID, [&array, &entries, [&AE, entry, ...]]
+    kids = as(pd_stack, kids->prev->prev->info)->prev->prev->info;
+    
+    //startob = PDIntegerFromString(as(pd_stack, index->info)->prev->info); \
+    //obcount = PDIntegerFromString(as(pd_stack, index->prev->info)->prev->info); \
+    //index = index->prev->prev
+    
+    // jump to the page in question
+    while (pageNumber > 0 && kids) {
+        pageNumber--;
+        kids = kids->prev;
+    }
+    
+    if (kids) {
+        return PDIntegerFromString(as(pd_stack, kids->info)->prev->info);
+    }
+    
+    return 0;
+}
+
+

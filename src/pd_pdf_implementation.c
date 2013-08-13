@@ -33,6 +33,8 @@
 #include "PDStreamFilterFlateDecode.h"
 #include "PDStreamFilterPrediction.h"
 
+void PDDeallocatorNullFunc(void *ob) {}
+
 PDInteger users = 0;
 PDStateRef pdfRoot, xrefSeeker, stringStream, arbStream;
 
@@ -86,6 +88,8 @@ void pd_pdf_implementation_use()
         // register FlateDecode handler
         PDStreamFilterRegisterDualFilter("FlateDecode", PDStreamFilterFlateDecodeConstructor);
 #endif
+        // set null deallocator
+        PDDeallocatorNull = PDDeallocatorNullFunc;
     }
     
     if (users == 0) {
@@ -722,3 +726,5 @@ void PDStringFromArbitrary(pd_stack *s, PDStringConvRef scv)
     PDInteger hash = PDStaticHashIdx(converterTable, *type);
     (*as(PDStringConverter, PDStaticHashValueForHash(converterTable, hash)))(s, scv);
 }
+
+PDDeallocator PDDeallocatorNull;

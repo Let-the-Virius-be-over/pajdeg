@@ -485,10 +485,10 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X)
         PDAssert(startob + obcount <= size);
         
         if (aligned) {
-            memcpy(&pdx->xrefs[startob * PDXWidth], bufi, obcount * PDXWidth);
+            memcpy(&xrefs[startob * PDXWidth], bufi, obcount * PDXWidth);
             bufi += obcount * PDXWidth;
         } else {
-            char *dst = &pdx->xrefs[startob * PDXWidth];
+            char *dst = &xrefs[startob * PDXWidth];
             
             for (i = 0; i < obcount; i++) {
                 // transfer 
@@ -498,7 +498,7 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X)
 #endif
                 transfer_pcs(dst, bufi, j, O);
                 transfer_pcs(dst, bufi, j, I);
-                PDAssert(((dst - pdx->xrefs) % PDXWidth) == 0);
+                PDAssert(((dst - xrefs) % PDXWidth) == 0);
 #ifdef DEBUG
                 //printf("force-aligned XREF entry: #%ld: %u (%d)\n", i+startob, PDXTableOffsetForID(pdx, startob+i), *PDXTableGenForID(pdx, startob+i));
                 //PDAssert(mark == PDXGetOffsetForID(pdx->xrefs, startob+i)); // crash = transfer failure
@@ -731,7 +731,6 @@ PDBool PDXTableFetchHeaders(PDXI X)
     X->trailer = X->parser->trailer = PDObjectCreate(0, 0);
     
     osstack = NULL;
-    running = true;
     
     do {
         // pull next offset out of queue into the offsets stack and jump there
@@ -840,13 +839,13 @@ PDBool PDXTableFetchContent(PDXI X)
             if (PDIdentifies(X->stack->info, PD_OBJ)) {
                 if (! PDXTableReadXRefStreamContent(X)) {
                     PDWarn("Failed to read XRef stream header.");
-                    return false;
+                    continue;
                 }
             } else {
                 // this is a regular old xref table with a trailer at the end
                 if (! PDXTableReadXRefContent(X)) {
                     PDWarn("Failed to read XRef header.");
-                    return false;
+                    continue;
                 }
             }
         }

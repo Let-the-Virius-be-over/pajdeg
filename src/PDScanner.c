@@ -635,7 +635,7 @@ PDBool PDScannerPollType(PDScannerRef scanner, char type)
 {
     pd_stack_destroy(scanner->garbageStack);
     scanner->garbageStack = NULL;
-    while (scanner->env && !scanner->resultStack) {
+    while (!scanner->failed && scanner->env && !scanner->resultStack) {
         if (PDScannerScanAttemptCap > -1 && PDScannerScanAttemptCap-- == 0) 
             return false;
         PDScannerScan(scanner);
@@ -643,7 +643,7 @@ PDBool PDScannerPollType(PDScannerRef scanner, char type)
     
     PDScannerScanAttemptCap = -1;
     
-    return (scanner->resultStack && scanner->resultStack->type == type);
+    return (!scanner->failed && scanner->resultStack && scanner->resultStack->type == type);
 }
 
 PDBool PDScannerPopString(PDScannerRef scanner, char **value)
@@ -670,6 +670,7 @@ void PDScannerAssertString(PDScannerRef scanner, char *value)
     if (! PDScannerPopString(scanner, &result)) {
         fprintf(stderr, "* scanner assertion : next entry must be, but was not, a string *\n");
         PDAssert(0);
+        return;
     }
     if (strcmp(result, value)) {
         fprintf(stderr, "* scanner assertion : (input) \"%s\" != (expected) \"%s\" *\n", result, value);

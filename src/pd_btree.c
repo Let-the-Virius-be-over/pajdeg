@@ -25,6 +25,7 @@
 #include "PDDefines.h"
 #include "pd_internal.h"
 #include "pd_btree.h"
+#if 0
 
 void *pd_btree_insert(pd_btree *root, long key, void *value)
 {
@@ -105,7 +106,7 @@ PDInteger pd_btree_populate_keys(pd_btree root, void **dest)
     while (root) {
         dest[i++] = (void*)root->key;
         r = root->branch[1];
-        if (root->branch[0]) i = pd_btree_populate_keys(root->branch[0], &dest[i]);
+        if (root->branch[0]) i += pd_btree_populate_keys(root->branch[0], &dest[i]);
         root = r;
     }
     return i;
@@ -129,3 +130,4 @@ void pd_btree_destroy_with_deallocator(pd_btree root, PDDeallocator deallocator)
     // avoid NULL crashes
     if (root) _pd_btree_destroy(root, deallocator);
 }
+#endif

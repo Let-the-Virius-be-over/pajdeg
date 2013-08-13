@@ -134,6 +134,12 @@ extern char * PDStringFromComplex(pd_stack *complex);
  */
 extern PDObjectType PDObjectTypeFromIdentifier(PDID identifier);
 
+/**
+ A generic null deallocator.
+ */
+extern PDDeallocator PDDeallocatorNull;
+
+
 #endif
 
 /** @} */

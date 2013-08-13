@@ -154,6 +154,15 @@ extern PDInteger PDParserGetContainerObjectIDForObject(PDParserRef parser, PDInt
 extern PDObjectRef PDParserGetRootObject(PDParserRef parser);
 
 /**
+ Determine the object ID for the given page number.
+ 
+ @param parser The parser.
+ @param pageNumber The page number of the object to be determined.
+ @return The object ID or 0 if no object represents the given page number.
+ */
+extern PDInteger PDParserDetermineObjectIDForPageNumber(PDParserRef parser, PDInteger pageNumber);
+
+/**
  Get the total number of objects in the input stream.
  
  @param parser The parser.

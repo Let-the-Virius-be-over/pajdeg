@@ -196,7 +196,7 @@ struct PDObjectStream {
     PDInteger first;                    ///< first object's offset
     PDStreamFilterRef filter;           ///< filter used to extract the initial raw content
     PDObjectStreamElementRef elements;  ///< n sized array of elements (non-pointered!)
-    pd_btree constructs;                ///< instances of objects (i.e. constructs)
+    PDBTreeRef constructs;              ///< instances of objects (i.e. constructs)
 };
 
 /**
@@ -263,7 +263,7 @@ struct pd_btree {
     PDInteger key;                  ///< The (primitive) key.
     void *value;                    ///< The value.
     //PDInteger balance;              
-    pd_btree branch[2];             ///< The left and right branches of the tree.
+    PDBTreeRef branch[2];           ///< The left and right branches of the tree.
 };
 
 /// @name Operator
@@ -333,7 +333,7 @@ struct PDParser {
     
     // miscellaneous
     PDBool success;                 ///< if true, the parser has so far succeeded at parsing the input file
-    pd_btree skipT;                 ///< whenever an object is ignored due to offset discrepancy, its ID is put on the skip tree; when the last object has been parsed, if the skip tree is non-empty, the parser aborts, as it means objects were lost
+    PDBTreeRef skipT;               ///< whenever an object is ignored due to offset discrepancy, its ID is put on the skip tree; when the last object has been parsed, if the skip tree is non-empty, the parser aborts, as it means objects were lost
 };
 
 /// @name Scanner
@@ -481,7 +481,7 @@ struct PDPipe {
     PDInteger       filterCount;        ///< Number of filters in the pipe
     PDTwinStreamRef stream;             ///< The pipe stream
     PDParserRef     parser;             ///< The parser
-    pd_btree        filter;             ///< The filters, in a tree with the object ID as key
+    PDBTreeRef      filter;             ///< The filters, in a tree with the object ID as key
     pd_stack        unfilteredTasks;    ///< Tasks which run on every single object iterated (i.e. unfiltered).
 };
 
@@ -533,9 +533,10 @@ struct PDStringConv {
 #   if defined(DEBUG) || defined(PD_WARNINGS)
 #       define PD_WARNINGS
 #       define PDWarn(args...) do { \
-fprintf(stderr, "%s:%d - ", __FILE__,__LINE__); \
-fprintf(stderr, args); \
-} while (0)
+            fprintf(stderr, "%s:%d - ", __FILE__,__LINE__); \
+            fprintf(stderr, args); \
+            fprintf(stderr, "\n"); \
+        } while (0)
 #   else
 #       define PDWarn(args...) 
 #   endif

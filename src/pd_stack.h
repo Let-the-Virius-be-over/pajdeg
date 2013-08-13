@@ -220,7 +220,7 @@ extern void pd_stack_pop_into(pd_stack *dest, pd_stack *source);
  @param stack The stack to iterate.
  @param iter  The iteration pd_stack variable.
  */
-#define pd_stack_forEach(stack, iter) for (iter = stack; iter; iter = iter->prev)
+#define pd_stack_for_each(stack, iter) for (iter = stack; iter; iter = iter->prev)
 
 /**
  Non-destructive dictionary get function.
