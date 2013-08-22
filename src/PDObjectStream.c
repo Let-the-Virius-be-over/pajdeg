@@ -80,7 +80,6 @@ PDObjectStreamRef PDObjectStreamCreateWithObject(PDObjectRef object)
     }
     
     obstm->elements = NULL;
-    obstm->constructs = NULL;
     
     return obstm;
 }
