@@ -144,9 +144,11 @@ void PDTwinStreamGrowInputBuffer(void *_ts, PDScannerRef scanner, char **buf, PD
     
     PDAssert(*size > -1);
     
+#ifdef DEBUG
     if (req > 70000) {
         printf("huge request: %ldb\n", req);
     }
+#endif
     
     PDTwinStreamRef ts = _ts;
     PDSize pos, capacity;
