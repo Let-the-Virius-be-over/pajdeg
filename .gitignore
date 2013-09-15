@@ -16,3 +16,9 @@
 *.out
 *.app
 html/
+
+.DS_Store
+cli
+docs/up-xcode.scpt
+examples
+man
