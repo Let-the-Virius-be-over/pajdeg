@@ -30,6 +30,8 @@
 #ifndef INCLUDED_PDDefines_h
 #define INCLUDED_PDDefines_h
 
+#include <sys/types.h>
+
 #include "PDType.h"
 
 /**
@@ -147,12 +149,12 @@ typedef unsigned char        PDBool;
 /**
  Size type (unsigned).
  */
-typedef unsigned long long   PDSize;
+typedef size_t               PDSize;
 
 /**
  C atoXX function matching PDSize
  */
-#define PDSizeFromString(s) atoll(s)
+#define PDSizeFromString(s) atol(s)
 
 /**
  Offset type (signed).

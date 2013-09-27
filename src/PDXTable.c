@@ -148,7 +148,7 @@ PDBool PDXTableInsertXRef(PDParserRef parser)
     PDXTableRef mxt = parser->mxt;
     
     // write xref header
-    twinstream_printf("xref\n%d %llu\n", 0, mxt->count);
+    twinstream_printf("xref\n%d %lu\n", 0, mxt->count);
     
     // write xref table
     twinstream_put(20, "0000000000 65535 f \n");
@@ -158,7 +158,7 @@ PDBool PDXTableInsertXRef(PDParserRef parser)
     
     PDObjectRef tob = parser->trailer;
     
-    sprintf(obuf, "%llu", parser->mxt->count);
+    sprintf(obuf, "%lu", parser->mxt->count);
     PDObjectSetDictionaryEntry(tob, "Size", obuf);
     PDObjectRemoveDictionaryEntry(tob, "Prev");
     PDObjectRemoveDictionaryEntry(tob, "XRefStm");
@@ -188,7 +188,7 @@ PDBool PDXTableInsertXRefStream(PDParserRef parser)
     PDXSetOffsetForID(mxt->xrefs, trailer->obid, parser->oboffset);
     PDXSetTypeForID(mxt->xrefs, trailer->obid, PDXTypeUsed);
     
-    sprintf(obuf, "%llu", mxt->count);
+    sprintf(obuf, "%lu", mxt->count);
     PDObjectSetDictionaryEntry(trailer, "Size", obuf);
     PDObjectSetDictionaryEntry(trailer, "W", PDXWEntry);
 
@@ -723,7 +723,7 @@ static inline void PDXTableParseTrailer(PDXI X)
 
 PDBool PDXTableFetchHeaders(PDXI X)
 {
-    PDBool running;
+//    PDBool running;
     pd_stack osstack;
     
     X->tables = 0;
@@ -778,7 +778,7 @@ void PDXTablePrint(PDXTableRef pdx)
     
     char *types[] = {"free", "used", "compressed"};
     
-    printf("XREF with %lld objects @ %lld:\n", pdx->count, pdx->pos);
+    printf("XREF with %ld objects @ %ld:\n", pdx->count, pdx->pos);
 
     for (i = 0; i < pdx->count; i++) {
         PDOffset offs = PDXGetOffsetForID(xrefs, i);
@@ -854,8 +854,8 @@ PDBool PDXTableFetchContent(PDXI X)
         pd_stack_destroy(X->stack);
     }
     
-    // pdx is now the complete input xref table with all offsets correct, so we use it as is for the master table
-    X->parser->mxt = PDRetain(pdx);
+    // pdx is now the complete input xref table with all offsets correct, so we use it as the base for the master table
+    X->parser->mxt = PDXTableCreate(pdx);
     
     // we now set up the xstack from the (byte-ordered) list of xref tables; if the PDF is or appears to be linearized, however, we flatten the stack into one entry
     X->parser->xstack = NULL;

@@ -313,15 +313,15 @@ struct PDParser {
     PDXTableRef mxt;                ///< master xref table, used for output
     PDXTableRef cxt;                ///< current input xref table
     PDBool done;                    ///< parser has passed the last object in the input PDF
-    size_t xrefnewiter;             ///< iterator for locating unused id's for usage in master xref table
+    PDSize xrefnewiter;             ///< iterator for locating unused id's for usage in master xref table
     
     // object related
     pd_stack appends;               ///< stack of objects that are meant to be appended at the end of the PDF
     PDObjectRef construct;          ///< cannot be relied on to contain anything; is used to hold constructed objects until iteration (at which point they're released)
-    size_t streamLen;               ///< stream length of the current object
-    size_t obid;                    ///< object ID of the current object
-    size_t genid;                   ///< generation number of the current object
-    size_t oboffset;                ///< offset of the current object
+    PDSize streamLen;               ///< stream length of the current object
+    PDSize obid;                    ///< object ID of the current object
+    PDSize genid;                   ///< generation number of the current object
+    PDSize oboffset;                ///< offset of the current object
     
     // document-wide stuff
     PDObjectRef trailer;            ///< the trailer object

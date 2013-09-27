@@ -258,7 +258,7 @@ void PDTwinStreamGrowInputBufferReversed(void *_ts, PDScannerRef scanner, char *
     
     // tweak request to not result in negative position in file
     if (req > ts->offsi) 
-        req = ts->offsi;
+        req = (PDInteger)ts->offsi;
     
     // grow heap if necessary
     if (req > capacity) {
@@ -283,7 +283,7 @@ void PDTwinStreamGrowInputBufferReversed(void *_ts, PDScannerRef scanner, char *
     PDAssert(ts->offsi >= req); // crash = somebody is trying to read beyond the first character of the file
     ts->offsi -= req;
     ts->holds += req;
-    fseek(ts->fi, ts->offsi, SEEK_SET);
+    fseek(ts->fi, (long)ts->offsi, SEEK_SET);
     fread(&ts->heap[ts->size - ts->holds], 1, req, ts->fi);
     *size = ts->holds;
     *buf = ts->heap + ts->size - ts->holds;
@@ -299,14 +299,14 @@ void PDTwinStreamDisallowGrowth(void *ts, PDScannerRef scanner, char **buf, PDIn
 
 void PDTwinStreamAdvance(PDTwinStreamRef ts, PDSize bytes)
 {
-    PDTwinStreamSeek(ts, ts->offsi + bytes);
+    PDTwinStreamSeek(ts, (PDSize)ts->offsi + bytes);
 }
 
 void PDTwinStreamSeek(PDTwinStreamRef ts, PDSize position)
 {
     PDAssert(ts->method == PDTwinStreamRandomAccess);
     if (ts->offsi <= position && ts->offsi + ts->holds > position) {
-        ts->cursor = position - ts->offsi;
+        ts->cursor = position - (PDSize)ts->offsi;
         return;
     } 
     
@@ -345,7 +345,7 @@ PDSize PDTwinStreamFetchBranch(PDTwinStreamRef ts, PDSize position, PDInteger by
     fseek(ts->fi, position, SEEK_SET);
     *buf = ts->sidebuf = malloc(bytes);
     PDSize read = fread(ts->sidebuf, 1, bytes, ts->fi);
-    fseek(ts->fi, cpos, SEEK_SET);
+    fseek(ts->fi, (long)cpos, SEEK_SET);
     return read;
 }
 
@@ -363,7 +363,7 @@ void PDTwinStreamReassert(PDTwinStreamRef ts, PDOffset offset, char *expect, PDI
     if (read != len || strncmp(tmpbuf, expect, len)) {
         tmpbuf[len] = 0;
         if (read != len) {
-            fprintf(stderr, "* twin stream assertion : expected \"%s\" at %lld but output truncates at %lld of %ld bytes *\n", expect, offset, read, len);
+            fprintf(stderr, "* twin stream assertion : expected \"%s\" at %lld but output truncates at %zu of %ld bytes *\n", expect, offset, read, len);
         } else {
             fprintf(stderr, "* twin stream assertion : expected \"%s\" at %lld but got \"%s\" *\n", expect, offset, tmpbuf);
         }
@@ -457,12 +457,12 @@ void PDTwinStreamOperateOnContent(PDTwinStreamRef ts, PDOffset bytes, void(*op)(
         if (bytes > 0) {
             if (op == &PDTwinStreamOperatorDiscard) {
                 // the discard operator is NOP, so there's no point reading and discarding anything
-                fseek(ts->fi, bytes, SEEK_CUR);
+                fseek(ts->fi, (long)bytes, SEEK_CUR);
             } else {
                 // use the heap as a shuttle for remaining content
                 PDSize req, read;
                 while (bytes > 0) {
-                    req = bytes < ts->size ? bytes : ts->size;
+                    req = bytes < ts->size ? (PDInteger)bytes : ts->size;
                     read = fread(ts->heap, 1, req, ts->fi);
                     (*op)(ts, ts->heap, read);
                     bytes -= read;
@@ -481,7 +481,7 @@ void PDTwinStreamOperateOnContent(PDTwinStreamRef ts, PDOffset bytes, void(*op)(
 
     // operate on content out of heap, iterate cursor and trim scanner
     PDSLog(bytes, "(in-heap)\n");
-    (*op)(ts, &ts->heap[ts->cursor], bytes);
+    (*op)(ts, &ts->heap[ts->cursor], (PDSize)bytes);
     ts->cursor += bytes;
     PDScannerTrim(ts->scanner, bytes);
     PDTwinStreamAsserts(ts);

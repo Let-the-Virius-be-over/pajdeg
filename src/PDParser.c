@@ -457,7 +457,7 @@ void PDParserPassthroughObject(PDParserRef parser)
         PDInteger len = sprintf(expect, "%zd %zd obj", parser->obid, parser->genid);
         PDTwinStreamReassert(parser->stream, parser->oboffset, expect, len);
 #endif
-        parser->oboffset = PDTwinStreamGetOutputOffset(parser->stream);
+        parser->oboffset = (PDSize)PDTwinStreamGetOutputOffset(parser->stream);
         return;
     }
     
@@ -551,7 +551,7 @@ void PDParserPassthroughObject(PDParserRef parser)
     
     parser->state = PDParserStateBase;
     
-    parser->oboffset = PDTwinStreamGetOutputOffset(parser->stream);
+    parser->oboffset = (PDSize)PDTwinStreamGetOutputOffset(parser->stream);
     PDTwinStreamAsserts(parser->stream);
 }
 
@@ -707,7 +707,7 @@ PDBool PDParserIterate(PDParserRef parser)
         
         if (PDScannerPopStack(scanner, &stack)) {
             // mark output position
-            parser->oboffset = scanner->bresoffset + PDTwinStreamGetOutputOffset(parser->stream);
+            parser->oboffset = scanner->bresoffset + (PDSize)PDTwinStreamGetOutputOffset(parser->stream);
             
             PDTwinStreamAsserts(parser->stream);
             
@@ -926,13 +926,13 @@ void PDParserDone(PDParserRef parser)
     while (PDParserIterate(parser));
     
     // the output offset is our new startxref entry
-    PDSize startxref = PDTwinStreamGetOutputOffset(parser->stream);
+    PDSize startxref = (PDSize)PDTwinStreamGetOutputOffset(parser->stream);
     
     // write XREF table and trailer
     PDXTableInsert(parser);
     
     // write startxref entry
-    twinstream_printf("startxref\n%llu\n%%%%EOF\n", startxref);
+    twinstream_printf("startxref\n%zu\n%%%%EOF\n", startxref);
     
     free(obuf);
 }

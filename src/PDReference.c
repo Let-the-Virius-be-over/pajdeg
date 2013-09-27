@@ -40,8 +40,8 @@ PDReferenceRef PDReferenceCreateFromStackDictEntry(pd_stack stack)
         stack = stack->prev->prev->info;
     
     // ref, 789, 0
-    ref->obid = atoll(stack->prev->info);
-    ref->genid = atoll(stack->prev->prev->info);
+    ref->obid = PDIntegerFromString(stack->prev->info);
+    ref->genid = PDIntegerFromString(stack->prev->prev->info);
     return ref;
 }
 
