@@ -178,6 +178,13 @@ PDInteger fd_decompress_proceed(PDStreamFilterRef filter)
     
     z_stream *stream = filter->data;
     
+    if (filter->bufInAvailable == 0) {
+        // we are being asked to decompress but we haven't gotten any data; this indicates the input source is broken so we're going to just fail silently here
+        // this is opposed to crashing hard at the Z_BUF_ERROR that occurs otherwise, below
+        filter->finished = true;
+        return 0;
+    }
+    
     stream->avail_out = filter->bufOutCapacity;
     stream->next_out = filter->bufOut;
     
