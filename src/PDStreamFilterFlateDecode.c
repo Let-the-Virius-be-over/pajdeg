@@ -149,7 +149,7 @@ PDInteger fd_compress_proceed(PDStreamFilterRef filter)
 
     z_stream *stream = filter->data;
 
-    stream->avail_out = filter->bufOutCapacity;
+    stream->avail_out = (uInt)filter->bufOutCapacity;
     stream->next_out = filter->bufOut;
     
     // we flush stream, if we have no more input
@@ -185,7 +185,7 @@ PDInteger fd_decompress_proceed(PDStreamFilterRef filter)
         return 0;
     }
     
-    stream->avail_out = filter->bufOutCapacity;
+    stream->avail_out = (uInt)filter->bufOutCapacity;
     stream->next_out = filter->bufOut;
     
     ret = inflate(stream, Z_NO_FLUSH);
@@ -216,7 +216,7 @@ PDInteger fd_compress_begin(PDStreamFilterRef filter)
 {
     z_stream *stream = filter->data;
     
-    stream->avail_in = filter->bufInAvailable;
+    stream->avail_in = (uInt)filter->bufInAvailable;
     stream->next_in = filter->bufIn;
     
     return fd_compress_proceed(filter);
@@ -226,7 +226,7 @@ PDInteger fd_decompress_begin(PDStreamFilterRef filter)
 {
     z_stream *stream = filter->data;
     
-    stream->avail_in = filter->bufInAvailable;
+    stream->avail_in = (uInt)filter->bufInAvailable;
     stream->next_in = filter->bufIn;
 
     return fd_decompress_proceed(filter);

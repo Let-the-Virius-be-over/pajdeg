@@ -198,7 +198,7 @@ extern void PDXSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offset)
  @param id The object ID.
  @param offs The new offset.
  */
-#define PDXTableSetOffset(xtable, id, offs) PDXSetOffsetForID(xtable->xrefs, id, offs)
+#define PDXTableSetOffset(xtable, id, offs) PDXSetOffsetForID(xtable->xrefs, id, (PDXOffsetType)offs)
 
 /**
  Read a PDFs XREF data by jumping to the end of the file, reading in the startxref value and jumping to every

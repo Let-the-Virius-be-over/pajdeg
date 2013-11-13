@@ -185,7 +185,7 @@ PDBool PDXTableInsertXRefStream(PDParserRef parser)
     PDObjectRef trailer = parser->trailer;
     PDXTableRef mxt = parser->mxt;
     
-    PDXSetOffsetForID(mxt->xrefs, trailer->obid, parser->oboffset);
+    PDXSetOffsetForID(mxt->xrefs, trailer->obid, (PDXOffsetType)parser->oboffset);
     PDXSetTypeForID(mxt->xrefs, trailer->obid, PDXTypeUsed);
     
     sprintf(obuf, "%lu", mxt->count);
@@ -633,7 +633,7 @@ static inline PDBool PDXTableReadXRefContent(PDXI X)
 #define PDXGenId(pdx)       fast_mutative_atol(&pdx[11], 5)
 #define PDXUsed(pdx)        (pdx[17] == 'n')
             
-            offset = PDXOffset(src);
+            offset = (PDXOffsetType)PDXOffset(src);
             
             // some PDF creators (determine who this is so they can contacted) incorrectly think setting generation number to 65536 is the same as setting the used character to 'f' (free) -- in order to not confuse Pajdeg, we address that here
             // other PDF creators think dumping 000000000 00000 n (i.e. this object can be found at offset 0, and it's in use) means "this object is unused"; we address that as well

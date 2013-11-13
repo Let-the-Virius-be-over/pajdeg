@@ -52,7 +52,7 @@ PDInteger pred_init(PDStreamFilterRef filter)
     pd_stack iter = filter->options;
     while (iter) {
         if (!strcmp(iter->info, "Columns"))         pred->columns = PDIntegerFromString(iter->prev->info);
-        else if (!strcmp(iter->info, "Predictor"))  pred->predictor = PDIntegerFromString(iter->prev->info);
+        else if (!strcmp(iter->info, "Predictor"))  pred->predictor = (PDPredictorType)PDIntegerFromString(iter->prev->info);
         /*else if (!strcmp(iter->info, "Widths")) {
          PDInteger *widths = iter->prev->info;
          pred->byteWidth  = (pred->typeWidth = widths[0]);

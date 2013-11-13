@@ -131,7 +131,7 @@ void PDObjectStreamParseExtractedObjectStream(PDObjectStreamRef obstm, char *buf
     }
     
     // we should now be at the first object's definition, but we can't presume whitespace will be exact so we += 1 byte
-    PDAssert(abs(obstm->first - osScanner->boffset) < 2);
+    PDAssert(labs(obstm->first - osScanner->boffset) < 2);
     
     // read definitions 
     for (i = 0; i < n; i++) {
