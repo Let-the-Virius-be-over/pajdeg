@@ -1,25 +1,20 @@
 //
-//  PDParser.c
+// PDParser.c
 //
-//  Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
+// Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
 // 
-//  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files (the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-//  copies of the Software, and to permit persons to whom the Software is
-//  furnished to do so, subject to the following conditions:
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 // 
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 // 
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-//  THE SOFTWARE.
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
 #include "Pajdeg.h"
@@ -319,7 +314,7 @@ void PDParserUpdateObject(PDParserRef parser)
     PDTwinStreamDiscardContent(parser->stream);//, PDTwinStreamScannerCommitBytes(parser->stream));
     
     // old (input)              new (output)
-    //                          >>>>>>>>>>>>>>>>>>>>
+    //                         >>>>>>>>>>>>>>>>>>>>
     // 1 2 obj                  1 2 obj
     // << old definition >>     << new definition >>
     // stream                   stream
@@ -343,7 +338,7 @@ void PDParserUpdateObject(PDParserRef parser)
         // old (input)              new (output)
         // 1 2 obj                  1 2 obj
         // << old definition >>     << new definition >>
-        //                          >>>>>>>>>>>>>>>>>>>>
+        //                         >>>>>>>>>>>>>>>>>>>>
         // stream                   stream
         // <<<<<<<<<<<<<<<<<<<<     
         // [*]old stream content    new stream content
@@ -392,7 +387,7 @@ void PDParserUpdateObject(PDParserRef parser)
 
         // 1 2 obj                  1 2 obj
         // << old definition >>     << new definition >>
-        //                          >>>>>>>>>>>>>>>>>>>>
+        //                         >>>>>>>>>>>>>>>>>>>>
         // stream                   stream
         // [*]old stream content    new stream content
         // endstream                endstream
@@ -404,10 +399,10 @@ void PDParserUpdateObject(PDParserRef parser)
             if (ob->ovrStream) {
                 // discard old and write new
                 PDTwinStreamDiscardContent(parser->stream);//, PDTwinStreamScannerCommitBytes(parser->stream));
-                //                                             012345 6
+                //                                            012345 6
                 PDTwinStreamInsertContent(parser->stream, 7, "stream\n");
                 PDTwinStreamInsertContent(parser->stream, ob->ovrStreamLen, ob->ovrStream);
-                //                                              0123456789 0123456 7
+                //                                             0123456789 0123456 7
                 PDTwinStreamInsertContent(parser->stream, 18, "\nendstream\nendobj\n");
             } else {
                 // pass through endstream and endobj
@@ -969,20 +964,20 @@ PDInteger PDParserDetermineObjectIDForPageNumber(PDParserRef parser, PDInteger p
 {
     // TRAILER  #18     #10     #17     #1      #4      #7
     // Root 18 0 R
-    //          <</Type /Catalog /Pages 10 0 R ...>
-    //                  <</Type /Pages /Resources 17 0 R /MediaBox ... /Kids [ 1 0 R 4 0 R 7 0 R ] /Count 3>>
-    //                          <</Font.. /ProcSet..>>
-    //                                  <</Type/Page/Parent 10 0 R/Resources 17 0 R/MediaBox[0 0 595 842]/Group<</S/Transparency/CS/DeviceRGB/I true>>/Contents 2 0 R>>
-    //                                          <</Type/Page/Parent 10 0 R/Resources 17 0 R/MediaBox[0 0 595 842]/Group<</S/Transparency/CS/DeviceRGB/I true>>/Contents 5 0 R>>
-    //                                                  <</Type/Page/Parent 10 0 R/Resources 17 0 R/MediaBox[0 0 595 842]/Group<</S/Transparency/CS/DeviceRGB/I true>>/Contents 8 0 R>>
+    //         <</Type /Catalog /Pages 10 0 R ...>
+    //                 <</Type /Pages /Resources 17 0 R /MediaBox ... /Kids [ 1 0 R 4 0 R 7 0 R ] /Count 3>>
+    //                         <</Font.. /ProcSet..>>
+    //                                 <</Type/Page/Parent 10 0 R/Resources 17 0 R/MediaBox[0 0 595 842]/Group<</S/Transparency/CS/DeviceRGB/I true>>/Contents 2 0 R>>
+    //                                         <</Type/Page/Parent 10 0 R/Resources 17 0 R/MediaBox[0 0 595 842]/Group<</S/Transparency/CS/DeviceRGB/I true>>/Contents 5 0 R>>
+    //                                                 <</Type/Page/Parent 10 0 R/Resources 17 0 R/MediaBox[0 0 595 842]/Group<</S/Transparency/CS/DeviceRGB/I true>>/Contents 8 0 R>>
     
     // TRAILER  #2      #4      #5      #6518   #6520
     // Root 2 0 R
-    //          <</Pages 4 0 R /Outlines 6516 0 R /StructTreeRoot 6517 0 R /PageLabels 6518 0 R /Type /Catalog...>>
-    //                  <</Type /Pages /Kids [5 0 R 6 0 R 7 0 R ... ... ... ... ... ... 1053 0 R ] /Count 314>>
-    //                          <<.../Type /Page ...>>
-    //                                  <</Nums [0 6520 0 R 1 6521 0 R 13 6522 0 R ]>>
-    //                                          <</P (^^U^Wj<4.1<A8><FC><F8>8<BE><F7><C5>X<AA><94><83>^E4>cO^Q<C8>.^_yG<90>W)>>
+    //         <</Pages 4 0 R /Outlines 6516 0 R /StructTreeRoot 6517 0 R /PageLabels 6518 0 R /Type /Catalog...>>
+    //                 <</Type /Pages /Kids [5 0 R 6 0 R 7 0 R ... ... ... ... ... ... 1053 0 R ] /Count 314>>
+    //                         <<.../Type /Page ...>>
+    //                                 <</Nums [0 6520 0 R 1 6521 0 R 13 6522 0 R ]>>
+    //                                         <</P (^^U^Wj<4.1<A8><FC><F8>8<BE><F7><C5>X<AA><94><83>^E4>cO^Q<C8>.^_yG<90>W)>>
     
     // get root if we don't have it yet
     PDObjectRef root = PDParserGetRootObject(parser);

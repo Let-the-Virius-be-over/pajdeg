@@ -1,25 +1,20 @@
 //
-//  PDStreamFilter.c
+// PDStreamFilter.c
 //
-//  Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
+// Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
 // 
-//  Permission is hereby granted, free of charge, to any person obtaining a copy
-//  of this software and associated documentation files (the "Software"), to deal
-//  in the Software without restriction, including without limitation the rights
-//  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-//  copies of the Software, and to permit persons to whom the Software is
-//  furnished to do so, subject to the following conditions:
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 // 
-//  The above copyright notice and this permission notice shall be included in
-//  all copies or substantial portions of the Software.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 // 
-//  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-//  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-//  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-//  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-//  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-//  THE SOFTWARE.
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
 #include "pd_internal.h"
@@ -296,12 +291,12 @@ PDStreamFilterRef PDStreamFilterCreateInversionForFilter(PDStreamFilterRef filte
     }
     
     // we went from  [1] ->  [2] ->  [3] to 
-    //                       [2] ->  [3] to
-    //                              ~[3] to
-    //                      ~[3] -> ~[2]
+    //                      [2] ->  [3] to
+    //                             ~[3] to
+    //                     ~[3] -> ~[2]
     // and we keep getting the "super parent" back each time, so we have to step down
     // to the last child and put us below that, in order to get
-    //              ~[3] -> ~[2] -> ~[1]
+    //             ~[3] -> ~[2] -> ~[1]
     // which is the only proper inversion (~ is not the proper sign for inversion, but ^-1 looks ugly)
     
     PDStreamFilterRef result = inversionParent;
