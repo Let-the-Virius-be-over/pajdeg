@@ -128,11 +128,6 @@ typedef float                PDReal;
 #define PDRealFromString atof
 
 /**
- PDF object identifier type in Pajdeg. Together with a generation number, an object ID uniquely identifies an object in a PDF.
- */
-typedef PDInteger            PDObjectID;
-
-/**
  PDF boolean identifier.
  */
 #ifdef bool
@@ -149,7 +144,7 @@ typedef size_t               PDSize;
 /**
  C atoXX function matching PDSize
  */
-#define PDSizeFromString(s) atol(s)
+#define PDSizeFromString     atol
 
 /**
  Offset type (signed).
@@ -159,7 +154,7 @@ typedef long long            PDOffset;
 /**
  C atoXX function matching PDOffset
  */
-#define PDOffsetFromString atoll
+#define PDOffsetFromString   atoll
 
 /**
  Identifier type.
@@ -426,7 +421,7 @@ typedef struct PDStreamFilter *PDStreamFilterRef;
  
  Environments are instances of states. 
  */
-typedef struct pd_env        *pd_env;
+typedef struct PDEnv        *PDEnvRef;
 
 /**
  A state. 

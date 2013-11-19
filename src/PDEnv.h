@@ -1,5 +1,5 @@
 //
-// pd_env.h
+// PDEnv.h
 //
 // Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
 // 
@@ -18,17 +18,17 @@
 //
 
 /**
- @file pd_env.h Environment header file.
+ @file PDEnv.h Environment header file.
  
  @ingroup PDENV
  
- @defgroup PDENV pd_env
+ @defgroup PDENV PDEnv
  
  @brief An instance of a PDState in a scanner.
  
  @ingroup PDSCANNER_CONCEPT
  
- pd_env objects are simple, low level instance representations of PDStateRef objects. That is to say, whenever a state is pushed onto the stack, an environment is created, wrapping that state, and the current environment is pushed onto the scanner's environment stack.
+ PDEnv objects are simple, low level instance representations of PDStateRef objects. That is to say, whenever a state is pushed onto the stack, an environment is created, wrapping that state, and the current environment is pushed onto the scanner's environment stack.
  
  In practice, environments also keep track of the build and var stacks.
  
@@ -51,8 +51,8 @@
  @{
  */
 
-#ifndef INCLUDED_pd_env_h
-#define INCLUDED_pd_env_h
+#ifndef INCLUDED_PDENV_h
+#define INCLUDED_PDENV_h
 
 #include "PDDefines.h"
 
@@ -62,7 +62,7 @@
  @param state The state.
  @return The environment.
  */
-extern pd_env pd_env_create(PDStateRef state);
+extern PDEnvRef PDEnvCreate(PDStateRef state);
 
 #endif
 

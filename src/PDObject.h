@@ -257,7 +257,9 @@ extern void PDObjectSetArrayElement(PDObjectRef object, PDInteger index, const c
  @code
     endstream
  @endcode
- right after the stream length (extraneous whitespace is allowed between the content's last byte and the 'endstream' keyword's beginning) also note that filters and encodings are often used, but not required.
+ right after the stream length (extraneous whitespace is allowed between the content's last byte and the 'endstream' keyword's beginning).
+ 
+ Also note that filters and encodings are often used, but not required.
  
  @param object The object.
  @param str The replacement string.
@@ -280,8 +282,6 @@ extern void PDObjectSkipStream(PDObjectRef object);
  Replaces the stream with given data.
  
  @note The stream is inserted as is, with no filtering applied to it whatsoever. To insert a filtered stream, e.g. FlateDecoded, use PDObjectSetStreamFiltered() instead.
- 
- @warning The stream data is untouched by default. Allocated buffers must be wrapped in PDRetained() or they will be leaked.
  
  @param object The object.
  @param str The stream data.

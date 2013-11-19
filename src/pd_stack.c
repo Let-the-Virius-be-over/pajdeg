@@ -19,7 +19,7 @@
 
 #include "pd_stack.h"
 #include "pd_internal.h"
-#include "pd_env.h"
+#include "PDEnv.h"
 #include "PDState.h"
 #include "pd_pdf_implementation.h"
 

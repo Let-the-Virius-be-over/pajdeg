@@ -24,7 +24,7 @@
  
  States in Pajdeg are constant definitions for given states in the input file, and operators are chained together actions to take based on some given input to a state.
  
- There are two root states in the implementation: pdfRoot, for parsing PDF content as normal, and xrefSeeker, for locating the starting byte offset of the primary XREF table. 
+ There are two main root states in the implementation: pdfRoot, for parsing PDF content as normal, and xrefSeeker, for locating the starting byte offset of the primary XREF table. There are a few additional root states, stringStream (currently unused) and arbStream (used to parse object streams).
  
  These states are made up of operators which chain states together to form the complete specification implementation.
  

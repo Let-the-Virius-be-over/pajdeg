@@ -42,6 +42,16 @@
  - check out the @link QUICKSTART quick start page @endlink
  - check out the @link PDUSER user level module list @endlink
  
+ @section helping_out Helping out
+ 
+ One of the design goals with Pajdeg is that it should have minimal dependencies and be as broadly available as possible. As a consequence of this, some core components have been implemented in a rather crude form and are in desperate need of optimizing, in particular
+ 
+ - the binary tree implementation is not balanced (pd_btree)
+ - the static hash implementation is a bit of a hack
+ 
+ Beyond the gorey detail stuff, there's also a big need for more, better and/or improved wrappers for other languages!
+ 
+ And finally, especially if you're not technically inclined but still want to help out, throwing lots and lots of different PDF's at the library and making sure it does the right thing is crucial to taking it to the next step, ensuring it is 100% compatible and functional with all well-formed (and some malformed) PDF's out there.
  
  @section dependencies_sec Dependencies
  
@@ -56,12 +66,6 @@
  @section integrating_sec Integrating
  
  Adding Pajdeg to your project can be done by either compiling the static library using the provided Makefile, and putting the library and the .h files into your project, or by adding the .c and .h files directly. 
- 
- @section Helping out
- 
- One of the design goals with Pajdeg is that it should have minimal dependencies and be as broadly available as possible. As a consequence of this, some core components have been implemented in a rather crude form and are in desperate need of optimizing, in particular
- 
- - the binary tree implementation is not balanced (pd_btree)
  */
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -235,7 +235,7 @@ extern void PDObjectStreamCommit(PDObjectStreamRef obstm);
 /**
  PDState wrapping structure
  */
-struct pd_env {
+struct PDEnv {
     PDStateRef    state;            ///< The wrapped state.
     pd_stack      buildStack;       ///< Build stack (for sub-components)
     pd_stack      varStack;         ///< Variable stack (for incomplete components)
@@ -247,7 +247,7 @@ struct pd_env {
  
  @param env The environment
  */
-extern void pd_env_destroy(pd_env env);
+extern void PDEnvDestroy(PDEnvRef env);
 
 /// @name Binary tree
 
@@ -349,7 +349,7 @@ struct PDScannerSymbol {
  The internal scanner structure.
  */
 struct PDScanner {
-    pd_env   env;               ///< the current environment
+    PDEnvRef   env;               ///< the current environment
     
     pd_stack envStack;          ///< environment stack; e.g. root -> arb -> array -> arb -> ...
     pd_stack resultStack;       ///< results stack
