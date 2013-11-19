@@ -67,7 +67,7 @@ PDPipeRef PDPipeCreateWithFilePaths(const char * inputFilePath, const char * out
 
     // input must be set
     if (inputFilePath == NULL) return NULL;
-    // we do want to support NULL output for 'readonly mode' but we don't, now
+    // we do want to support NULL output for 'readonly mode' but we don't, now; NIX users can pass "/dev/null" to get this behavior
     if (outputFilePath == NULL) return NULL;
     
     // files must not be the same

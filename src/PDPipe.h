@@ -79,7 +79,7 @@
  Create a pipe with an input PDF file and an output PDF file.
  
  @param inputFilePath   The input PDF file (must be readable and exist).
- @param outputFilePath  The output PDF file (must be readwritable). If the file exists, it is overwritten. The file may not be the same as inputFilePath. 
+ @param outputFilePath  The output PDF file (must be readwritable). If the file exists, it is overwritten. The file may not be the same as inputFilePath. On most operating systems, "/dev/null" can be passed to provide a readonly session (not MS Windows), but this must be explicitly passed, and NULL will result in failure.
  @return The PDPipeRef instance, or NULL if the pipe cannot be set up.
  */
 extern PDPipeRef PDPipeCreateWithFilePaths(const char * inputFilePath, const char * outputFilePath);

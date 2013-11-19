@@ -349,13 +349,13 @@
  
  */
 
-#ifndef INCLUDED_Pajdeg_h
-    #define INCLUDED_Pajdeg_h
+#ifndef INCLUDED_PAJDEG_H
+#   define INCLUDED_PAJDEG_H
 
-    #include "PDPipe.h"
-    #include "PDObject.h"
-    #include "PDTask.h"
-    #include "PDParser.h"
-    #include "PDReference.h"
-    #include "PDScanner.h"
+#   include "PDPipe.h"
+#   include "PDObject.h"
+#   include "PDTask.h"
+#   include "PDParser.h"
+#   include "PDReference.h"
+#   include "PDScanner.h"
 #endif
