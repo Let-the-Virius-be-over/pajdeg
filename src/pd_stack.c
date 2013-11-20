@@ -50,7 +50,7 @@ void pd_stack_push_key(pd_stack *stack, char *key)
     pd_stack s = malloc(sizeof(struct pd_stack));
     s->prev = *stack;
     s->info = key;//strdup(key); free(key);
-    s->type = pd_stack_STRING;
+    s->type = PD_STACK_STRING;
     *stack = s;
 }
 
@@ -115,10 +115,10 @@ void pd_stack_assert_expected_key(pd_stack *stack, const char *key)
     PDAssert(*stack != NULL);
     
     pd_stack popped = *stack;
-    PDAssert(popped->type == pd_stack_STRING || popped->type == pd_stack_ID);
+    PDAssert(popped->type == PD_STACK_STRING || popped->type == pd_stack_ID);
 
     char *got = popped->info;
-    if (popped->type == pd_stack_STRING) {
+    if (popped->type == PD_STACK_STRING) {
         PDAssert(got == key || !strcmp(got, key));
         (*pd_stack_dealloc)(got);
     } else {
@@ -134,7 +134,7 @@ void pd_stack_assert_expected_int(pd_stack *stack, PDInteger i)
     PDAssert(*stack != NULL);
     
     pd_stack popped = *stack;
-    PDAssert(popped->type == pd_stack_STRING);
+    PDAssert(popped->type == PD_STACK_STRING);
     
     char *got = popped->info;
     PDAssert(i == atoi(got));
@@ -148,7 +148,7 @@ PDSize pd_stack_pop_size(pd_stack *stack)
 {
     if (*stack == NULL) return 0;
     pd_stack popped = *stack;
-    PDAssert(popped->type == pd_stack_STRING);
+    PDAssert(popped->type == PD_STACK_STRING);
     *stack = popped->prev;
     char *key = popped->info;
     PDSize st = atol(key);
@@ -161,7 +161,7 @@ PDInteger pd_stack_pop_int(pd_stack *stack)
 {
     if (*stack == NULL) return 0;
     pd_stack popped = *stack;
-    PDAssert(popped->type == pd_stack_STRING);
+    PDAssert(popped->type == PD_STACK_STRING);
     *stack = popped->prev;
     char *key = popped->info;
     PDInteger st = atol(key);
@@ -173,7 +173,7 @@ PDInteger pd_stack_pop_int(pd_stack *stack)
 PDInteger pd_stack_peek_int(pd_stack popped)
 {
     if (popped == NULL) return 0;
-    PDAssert(popped->type == pd_stack_STRING);
+    PDAssert(popped->type == PD_STACK_STRING);
     return PDIntegerFromString(popped->info);
 }
 
@@ -181,7 +181,7 @@ char *pd_stack_pop_key(pd_stack *stack)
 {
     if (*stack == NULL) return NULL;
     pd_stack popped = *stack;
-    PDAssert(popped->type == pd_stack_STRING);
+    PDAssert(popped->type == PD_STACK_STRING);
     *stack = popped->prev;
     char *key = popped->info;
     (*pd_stack_dealloc)(popped);
@@ -237,7 +237,7 @@ void pd_stack_pop_into(pd_stack *dest, pd_stack *source)
 static inline void pd_stack_free_info(pd_stack stack)
 {
     switch (stack->type) {
-        case pd_stack_STRING:
+        case PD_STACK_STRING:
         case pd_stack_FREEABL:
             free(stack->info);
             break;
@@ -344,13 +344,112 @@ PDBool pd_stack_get_next_dict_key(pd_stack *iterStack, char **key, char **value)
         pd_stack_set_global_preserve_flag(false);
     } else {
         // it is primitive (we presume)
-        PDAssert(entry->type == pd_stack_STRING);
+        PDAssert(entry->type == PD_STACK_STRING);
         *value = strdup((char*)entry->info);
     }
     
     *iterStack = stack->prev;
     
     return true;
+}
+
+/*
+ stack<0x1136ba20> {
+   0x3f9998 ("de")
+   Kids
+    stack<0x11368f20> {
+       0x3f999c ("array")
+       0x3f9990 ("entries")
+        stack<0x113ea650> {
+            stack<0x113c5c10> {
+               0x3f99a0 ("ae")
+                stack<0x113532b0> {
+                   0x3f9988 ("ref")
+                   557
+                   0
+                }
+            }
+            stack<0x113d49b0> {
+               0x3f99a0 ("ae")
+                stack<0x113efa50> {
+                   0x3f9988 ("ref")
+                   558
+                   0
+                }
+            }
+            stack<0x113f3c40> {
+               0x3f99a0 ("ae")
+                stack<0x1136df80> {
+                   0x3f9988 ("ref")
+                   559
+                   0
+                }
+            }
+            stack<0x113585b0> {
+               0x3f99a0 ("ae")
+                stack<0x11368e30> {
+                   0x3f9988 ("ref")
+                   560
+                   0
+                }
+            }
+            stack<0x1135df20> {
+               0x3f99a0 ("ae")
+                stack<0x113f3470> {
+                   0x3f9988 ("ref")
+                   1670
+                   0
+                }
+            }
+        }
+    }
+}
+ */
+
+PDInteger pd_stack_get_count(pd_stack stack)
+{
+    PDInteger count;
+    for (count = 0; stack; count++) 
+        stack = stack->prev;
+    return count;
+}
+
+pd_stack pd_stack_get_arr(pd_stack arrStack)
+{
+    pd_stack stack = arrStack;
+    
+    // often, arrStack is a dictionary entry
+    if (stack && PDIdentifies(stack->info, PD_DE)) {
+        stack = stack->prev->prev->info;
+    }
+    if (! stack) return NULL;
+    
+    /* arrays have 
+       0x3f999c ("array")
+       0x3f9990 ("entries")
+        stack<0x113ea650> {
+     and we want to move beyond first 2, and step into the 3rd which has a series of
+            stack<0x113c5c10> {
+               0x3f99a0 ("ae")
+                stack<0x113532b0> {
+                   0x3f9988 ("ref")
+                   557
+                   0
+                }
+            }
+            stack<0x113d49b0> {
+               0x3f99a0 ("ae")
+                stack<0x113efa50> {
+                   0x3f9988 ("ref")
+                   558
+                   0
+                }
+            }
+     */
+    stack = stack->prev->prev->info;
+    
+    // on this level, each stack entry is one element, which is what we want
+    return stack;
 }
 
 pd_stack pd_stack_create_from_definition(const void **defs)
@@ -386,7 +485,7 @@ void pd_stack_print_(pd_stack stack, PDInteger indent)
             case pd_stack_ID:
                 printf("%s %p (\"%s\")\n", sind, stack->info, *(char **)stack->info);
                 break;
-            case pd_stack_STRING:
+            case PD_STACK_STRING:
                 printf("%s %s\n", sind, (char*)stack->info);
                 break;
             case pd_stack_FREEABL:
@@ -434,7 +533,7 @@ void pd_stack_show_(pd_stack stack)
             case pd_stack_ID:
                 printf("@%s", *(char **)stack->info);
                 break;
-            case pd_stack_STRING:
+            case PD_STACK_STRING:
                 printf("\"%s\"", (char*)stack->info);
                 break;
             case pd_stack_FREEABL:

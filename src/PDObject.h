@@ -82,6 +82,18 @@
 
 #include "PDDefines.h"
 
+/// @name Creating
+
+/**
+ Create an object from a definitions stack (e.g. fetched via PDParserLocateAndCreateDefinitionForObject()).
+ 
+ @warning The object is always immutable.
+ 
+ @param defs The definitions for the object.
+ @return An immutable object instance based on the defs.
+ */
+extern PDObjectRef PDObjectCreateFromDefinitionsStack(pd_stack defs);
+
 /// @name Examining
 
 /**

@@ -459,7 +459,7 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
                 break;
 
             /*case PDOperatorAppendResult:    // append to top result on stack, which is expected to be a string symbol
-                PDAssert(scanner->resultStack->type == pd_stack_STRING);
+                PDAssert(scanner->resultStack->type == PD_STACK_STRING);
                 buf = scanner->resultStack->info;
                 len = strlen(buf);
                 /// @todo CLANG doesn't like complex logic that prevents a condition from occurring due to a specification; however, this may very well happen for seriously broken (or odd) PDFs and should be plugged
@@ -499,7 +499,7 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
                 if (NULL == scanner->sym) 
                     scanner->sym = malloc(sizeof(struct PDScannerSymbol));
                 sym = scanner->sym;
-                if (scanner->resultStack->type == pd_stack_STRING) {
+                if (scanner->resultStack->type == PD_STACK_STRING) {
                     sym->sstart = pd_stack_pop_key(&scanner->resultStack);
                     //printf("pushing %p onto garbage stack (%s)\n", sym->sstart, sym->sstart);
                     pd_stack_push_key(&scanner->garbageStack, sym->sstart); // string will leak if we don't keep it around, as sym always refers directly into buf except here
@@ -643,7 +643,7 @@ PDBool PDScannerPollType(PDScannerRef scanner, char type)
 
 PDBool PDScannerPopString(PDScannerRef scanner, char **value)
 {
-    if (PDScannerPollType(scanner, pd_stack_STRING)) {
+    if (PDScannerPollType(scanner, PD_STACK_STRING)) {
         *value = pd_stack_pop_key(&scanner->resultStack);
         return true;
     }

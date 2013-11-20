@@ -54,7 +54,7 @@
 
 // get primitive if primtiive, otherwise delegate to arbitrary func
 #define PDStringFromAnything() \
-    if ((*s)->type == pd_stack_STRING) {\
+    if ((*s)->type == PD_STACK_STRING) {\
         char *str = pd_stack_pop_key(s);\
         PDInteger len = strlen(str);\
         PDStringGrow(len);\

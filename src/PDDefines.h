@@ -66,7 +66,7 @@
  
  Enables reassertions of every single object inserted into the output PDF, by seeking back to its supposed position (XREF-wise) and reading in the "num num obj" part.
  */
-//#define PD_DEBUG_TWINSTREAM_ASSERT_OBJECTS
+#define PD_DEBUG_TWINSTREAM_ASSERT_OBJECTS
 
 /**
  @def DEBUG_PARSER_PRINT_XREFS 
@@ -82,13 +82,13 @@
  
  This is done by seeking to the specified offset, reading in a chunk of data, and comparing said data to the expected object. Needless to say, expensive, but excellent starting point to determine if a PDF is broken or not (XREF table tends to break "first").
  */
-//#define DEBUG_PARSER_CHECK_XREFS
+#define DEBUG_PARSER_CHECK_XREFS
 
 /**
  @def DEBUG_SCANNER_SYMBOLS
  Prints to stdout every symbol scanned when reading input, tabbed and surrounded in asterixes (e.g. "           * startxref *").
  */
-//#define DEBUG_SCANNER_SYMBOLS
+#define DEBUG_SCANNER_SYMBOLS
 
 /**
  @def DEBUG_PDTYPES
@@ -155,6 +155,22 @@ typedef long long            PDOffset;
  C atoXX function matching PDOffset
  */
 #define PDOffsetFromString   atoll
+
+/**
+ A point with x and y coordinates.
+ */
+typedef struct PDPoint       PDPoint;
+struct PDPoint {
+    PDReal x, y;
+};
+
+/**
+ A rectangle made up of two PDPoint structures.
+ */
+typedef struct PDRect        PDRect;
+struct PDRect {
+    PDPoint a, b;
+};
 
 /**
  Identifier type.
@@ -309,19 +325,41 @@ typedef struct PDPipe       *PDPipeRef;
 typedef struct PDTask       *PDTaskRef;
 
 /**
+ PDF object types.
+ 
+ @note If this is modified, typeHash in PDPipe.c must be updated accordingly.
+ 
+ @ingroup PDTASK
+ */
+typedef enum {
+    PDFTypePage = 1,            ///< all page objects
+    PDFTypePages,               ///< all pages objects; pages objects are dictionaries with arrays of page objects (the "Kids")
+    PDFTypeCatalog,             ///< all catalog objects; normally, the Root object is the only catalog in a PDF
+    PDFTypeAnnot,               ///< all annotation objects, such as links
+    PDFTypeFont,                ///< font objects
+    PDFTypeFontDescriptor,      ///< font descriptor objects
+    PDFTypeAction,              ///< action objects; usually associated with a link annotation
+    
+    _PDFTypeCount,              ///< enum item count
+} PDFType;
+
+/**
+ Link between numeric PDFType enumerator (used for PDTask values which are restricted to integers) and the actual string to look for in the PDF data.
+ */
+#define kPDFTypeStrings \
+    NULL, "/Page", "/Pages", "/Catalog", "/Annot", "/Font", "/FontDescriptor", "/Action"
+
+/**
  Task filter property type.
  
  @ingroup PDTASK
- 
- @todo Implement PDPropertyPage support.
  */
 typedef enum {
     PDPropertyObjectId      = 1,///< value = object ID; only called for the live object, even if multiple copies exist
     PDPropertyRootObject,       ///< triggered when root object is encountered
     PDPropertyInfoObject,       ///< triggered when info object is encountered
-    
-    // *** planned ***
-    PDPropertyPage,             ///< value = page number; if 0, triggers for every page
+    PDPropertyPDFType,          ///< triggered for each object of the given PDFType value
+    PDPropertyPage,             ///< value = page number
 } PDPropertyType;
 
 /**
@@ -356,6 +394,13 @@ typedef PDTaskResult (*PDTaskFunc)(PDPipeRef pipe, PDTaskRef task, PDObjectRef o
  @ingroup PDPARSER
  */
 typedef struct PDParser     *PDParserRef;
+
+/**
+ A catalog object.
+ 
+ @ingroup PDCATALOG
+ */
+typedef struct PDCatalog    *PDCatalogRef;
 
 /** @} // PDUSER */
 

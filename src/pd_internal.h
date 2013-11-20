@@ -278,6 +278,8 @@ struct PDOperator {
     PDOperatorRef    next;          ///< the next operator, if any
 };
 
+/// @name Parser
+
 /**
  PDXTable
  
@@ -319,16 +321,48 @@ struct PDParser {
     PDSize oboffset;                ///< offset of the current object
     
     // document-wide stuff
-    PDObjectRef trailer;            ///< the trailer object
-    PDObjectRef root;               ///< the root object, if instantiated
-    PDObjectRef encrypt;            ///< the encrypt object, if instantiated
     PDReferenceRef rootRef;         ///< reference to the root object
     PDReferenceRef infoRef;         ///< reference to the info object
     PDReferenceRef encryptRef;      ///< reference to the encrypt object
+    PDObjectRef trailer;            ///< the trailer object
+    PDObjectRef root;               ///< the root object, if instantiated
+    PDObjectRef encrypt;            ///< the encrypt object, if instantiated
+    PDCatalogRef catalog;           ///< the root catalog, if instantiated
     
     // miscellaneous
     PDBool success;                 ///< if true, the parser has so far succeeded at parsing the input file
     PDBTreeRef skipT;               ///< whenever an object is ignored due to offset discrepancy, its ID is put on the skip tree; when the last object has been parsed, if the skip tree is non-empty, the parser aborts, as it means objects were lost
+};
+
+/**
+ The PDPage internal structure.
+ */
+typedef struct PDPage PDPage;
+struct PDPage {
+    PDBool collection;              ///< If set, this is a /Type /Pages object, which is a group of page and pages references
+    union {
+        struct {
+            PDInteger count;        ///< Number of entries
+            PDPage *kids;           ///< Kids
+        };
+        struct {
+            PDInteger obid;         ///< The object ID
+            PDInteger genid;        ///< The generation ID
+        };
+    };
+};
+
+/**
+ The PDCatalog internal structure.
+ */
+struct PDCatalog {
+    PDParserRef parser;             ///< The parser owning the catalog
+    PDObjectRef object;             ///< The object representation of the catalog
+    PDRect mediaBox;                ///< The media box of the catalog object
+    PDPage pages;                   ///< The root pages
+    PDInteger count;                ///< Number of pages (in total)
+    PDInteger capacity;             ///< Size of kids array.
+    PDInteger *kids;                ///< Array of object IDs for all pages
 };
 
 /// @name Scanner
@@ -371,7 +405,7 @@ struct PDScanner {
 
 /// @name Stack
 
-#define pd_stack_STRING  0      ///< Stack string type
+#define PD_STACK_STRING  0      ///< Stack string type
 #define pd_stack_ID      1      ///< Stack identifier type
 #define pd_stack_STACK   2      ///< Stack stack type
 #define pd_stack_PDOB    3      ///< Stack object (PDTypeRef managed) type
@@ -469,6 +503,7 @@ struct PDTwinStream {
 struct PDPipe {
     PDBool          opened;             ///< Whether pipe has been opened or not.
     PDBool          dynamicFiltering;   ///< Whether dynamic filtering is necessary; if set, the static hash filtering of filters is skipped and filters are checked for all objects.
+    PDBool          typedTasks;         ///< Whether type tasks (excluding unfiltered tasks) are activated; activation results in a slight decrease in performance due to all dictionary objects needing to be resolved in order to check their Type dictionary key
     char           *pi;                 ///< The path of the input file.
     char           *po;                 ///< The path of the output file.
     FILE           *fi;                 ///< Reader
@@ -477,7 +512,8 @@ struct PDPipe {
     PDTwinStreamRef stream;             ///< The pipe stream
     PDParserRef     parser;             ///< The parser
     PDBTreeRef      filter;             ///< The filters, in a tree with the object ID as key
-    pd_stack        unfilteredTasks;    ///< Tasks which run on every single object iterated (i.e. unfiltered).
+    pd_stack
+    typeTasks[_PDFTypeCount];           ///< Tasks which run depending on all objects of the given type; the 0'th element (type NULL) is triggered for all objects, and not just objects without a /Type dictionary key
 };
 
 /// @name Reference

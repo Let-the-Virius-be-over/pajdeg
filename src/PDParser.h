@@ -97,6 +97,7 @@ extern char *PDParserFetchCurrentObjectStream(PDParserRef parser, PDInteger obid
  Determine if the PDF is encrypted or not.
  
  @param parser The parser.
+ @return true if encrypted, false if unencrypted.
  */
 extern PDBool PDParserGetEncryptionState(PDParserRef parser);
 
@@ -145,17 +146,15 @@ extern PDInteger PDParserGetContainerObjectIDForObject(PDParserRef parser, PDInt
  
  @param parser The parser.
  */
-// get the root object
 extern PDObjectRef PDParserGetRootObject(PDParserRef parser);
 
 /**
- Determine the object ID for the given page number.
+ Set up (if necessary) and return the PDCatalog object for the current PDF.
  
  @param parser The parser.
- @param pageNumber The page number of the object to be determined.
- @return The object ID or 0 if no object represents the given page number.
+ @return The catalog containing information about the pages in the PDF.
  */
-extern PDInteger PDParserDetermineObjectIDForPageNumber(PDParserRef parser, PDInteger pageNumber);
+extern PDCatalogRef PDParserGetCatalog(PDParserRef parser);
 
 /**
  Get the total number of objects in the input stream.

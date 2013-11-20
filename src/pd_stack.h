@@ -200,6 +200,14 @@ extern PDInteger pd_stack_peek_int(pd_stack stack);
 /// @name Convenience features
 
 /**
+ Get the number of elements in the stack.
+ 
+ @param stack The stack.
+ @return Element count.
+ */
+extern PDInteger pd_stack_get_count(pd_stack stack);
+
+/**
  Pop a value off of source and push it onto dest.
  
  @param dest The destination stack.
@@ -218,11 +226,12 @@ extern void pd_stack_pop_into(pd_stack *dest, pd_stack *source);
 #define pd_stack_for_each(stack, iter) for (iter = stack; iter; iter = iter->prev)
 
 /**
- Non-destructive dictionary get function.
+ Dictionary get function.
  
  @param dictStack The dictionary stack.
  @param key The key.
  @param remove If true, the entry for the key is removed from the dictionary stack.
+ @return The pd_stack for the given dictionary entry.
  */
 extern pd_stack pd_stack_get_dict_key(pd_stack dictStack, const char *key, PDBool remove);
 
@@ -241,6 +250,18 @@ extern pd_stack pd_stack_get_dict_key(pd_stack dictStack, const char *key, PDBoo
  @return true if key and value were set, false if not.
  */
 extern PDBool pd_stack_get_next_dict_key(pd_stack *iterStack, char **key, char **value);
+
+/**
+ Convert a complex array stack or a dictionary entry containing a complex array object into a simple array stack.
+ 
+ @note Arrays are most often listed in reverse order in stacks.
+ 
+ @warning The returned stack must not be modified or destroyed. It is still a part of arrStack.
+ 
+ @param arrStack The array stack or DE.
+ @return A simplified array stack, where each entry is a stack containing an (AE) identifier followed by the entry.
+ */
+extern pd_stack pd_stack_get_arr(pd_stack arrStack);
 
 /**
  Replace info object in stack object with a new info object of the given type.

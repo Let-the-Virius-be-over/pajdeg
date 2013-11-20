@@ -53,6 +53,13 @@ PDObjectRef PDObjectCreate(PDInteger obid, PDInteger genid)
     return ob;
 }
 
+PDObjectRef PDObjectCreateFromDefinitionsStack(pd_stack defs)
+{
+    PDObjectRef ob = PDObjectCreate(0, 0);
+    ob->def = defs;
+    return ob;
+}
+
 PDInteger PDObjectGetObID(PDObjectRef object)
 {
     return object->obid;
@@ -132,7 +139,7 @@ const char *PDObjectGetDictionaryEntry(PDObjectRef object, const char *key)
         value = PDStringFromComplex(&field);
     } else {
         // it is primitive (we presume)
-        PDAssert(entry->type == pd_stack_STRING);
+        PDAssert(entry->type == PD_STACK_STRING);
         value = pd_stack_pop_key(&entry);
     }
     
@@ -266,14 +273,14 @@ const char *PDObjectGetArrayElementAtIndex(PDObjectRef object, PDInteger index)
 
     pd_stack *array = PDArrayGetEntries(object);
     pd_stack entry = array[index];
-    if (entry->type != pd_stack_STRING) {
+    if (entry->type != PD_STACK_STRING) {
         char *value;
         // to-string elements on demand
         pd_stack_set_global_preserve_flag(true);
         entry = (pd_stack)entry->info;
         value = PDStringFromComplex(&entry);
         pd_stack_set_global_preserve_flag(false);
-        pd_stack_replace_info_object(entry, pd_stack_STRING, value);
+        pd_stack_replace_info_object(entry, PD_STACK_STRING, value);
     }
     
     return as(const char *, entry->info);
@@ -355,8 +362,8 @@ void PDObjectSetArrayElement(PDObjectRef object, PDInteger index, const char *va
     pd_stack *array = PDArrayGetEntries(object);
     pd_stack entry = array[index];
     
-    if (entry->type != pd_stack_STRING) {
-        pd_stack_replace_info_object(entry, pd_stack_STRING, strdup(value));
+    if (entry->type != PD_STACK_STRING) {
+        pd_stack_replace_info_object(entry, PD_STACK_STRING, strdup(value));
     } else {
         free(entry->info);
         entry->info = strdup(value);
@@ -546,7 +553,7 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
             count = PDArrayGetCount(object);
             pd_stack_set_global_preserve_flag(true);
             for (i = 0; i < count; i++) {
-                if (array[i]->type == pd_stack_STRING) {
+                if (array[i]->type == PD_STACK_STRING) {
                     val = array[i]->info;
                 } else {
                     stack = (pd_stack)array[i]->info;
@@ -555,7 +562,7 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
                 PDStringGrow(2 + strlen(val));
                 putfmt(" %s", val);
                 
-                if (array[i]->type != pd_stack_STRING) 
+                if (array[i]->type != PD_STACK_STRING) 
                     free(val);
             }
             pd_stack_set_global_preserve_flag(false);

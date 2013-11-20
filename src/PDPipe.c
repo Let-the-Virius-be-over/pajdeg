@@ -24,9 +24,12 @@
 #include "PDReference.h"
 #include "PDBTree.h"
 #include "pd_stack.h"
+#include "PDCatalog.h"
 #include "PDStaticHash.h"
 #include "PDObjectStream.h"
 #include "PDXTable.h"
+
+static char *PDFTypeStrings[_PDFTypeCount] = {kPDFTypeStrings};
 
 /*PDTaskResult PDPipeAppendFilterFunc(PDPipeRef pipe, PDTaskRef task, PDObjectRef object, void *info)
 {
@@ -55,8 +58,11 @@ void PDPipeDestroy(PDPipeRef pipe)
     PDRelease(pipe->filter);
     //pd_btree_destroy_with_deallocator(pipe->filter, PDRelease);
     
-    while (NULL != (task = (PDTaskRef)pd_stack_pop_identifier(&pipe->unfilteredTasks))) {
-        PDRelease(task);
+    for (int i = 0; i < _PDFTypeCount; i++) {
+        pd_stack stack = pipe->typeTasks[i];
+        while (NULL != (task = (PDTaskRef)pd_stack_pop_identifier(&stack))) {
+            PDRelease(task);
+        }
     }
 }
 
@@ -126,38 +132,42 @@ PDTaskResult PDPipeObStreamMutation(PDPipeRef pipe, PDTaskRef task, PDObjectRef 
 
 void PDPipeAddTask(PDPipeRef pipe, PDTaskRef task)
 {
+    PDCatalogRef catalog;
     long key;
     
     if (task->isFilter) {
         PDAssert(task->child);
         pipe->dynamicFiltering = true;
+        
+        if (! pipe->opened && ! PDPipePrepare(pipe)) 
+            return;
+        
         switch (task->propertyType) {
             case PDPropertyObjectId:
                 key = task->value;
                 break;
+                
             case PDPropertyInfoObject:
-                if (pipe->opened == false) PDPipePrepare(pipe);
                 key = pipe->parser->infoRef ? pipe->parser->infoRef->obid : -1;
                 break;
+            
             case PDPropertyRootObject:
-                if (pipe->opened == false) PDPipePrepare(pipe);
                 key = pipe->parser->rootRef ? pipe->parser->rootRef->obid : -1;
                 break;
+            
             case PDPropertyPage:
-                if (pipe->opened == false) PDPipePrepare(pipe);
+                catalog = PDParserGetCatalog(pipe->parser);
+                key = PDCatalogGetObjectIDForPage(catalog, task->value);
+                break;
                 
-            /*case PDPropertyLate:
-                if (pipe->onEndOfObjectsTask == NULL) {
-                    pipe->onEndOfObjectsTask = PDTaskRetain(task->child);
-                } else {
-                    PDTaskAppendTask(pipe->onEndOfObjectsTask, task->child);
-                }
-                return;*/
-        }
-        
-        if (! pipe->opened)
-            if (! PDPipePrepare(pipe)) 
+            case PDPropertyPDFType:
+                pipe->typedTasks = true;
+                PDAssert(task->value > 0 && task->value < _PDFTypeCount); // crash = value out of range; must be set to a PDFType!
+                
+                // task executes on every object of the given type
+                pd_stack_push_identifier(&pipe->typeTasks[task->value], (PDID)PDRetain(task->child));
                 return;
+        }
         
         // if this is a reference to an object inside an object stream, we have to pull that open
         PDInteger containerOb = PDParserGetContainerObjectIDForObject(pipe->parser, key);
@@ -197,19 +207,7 @@ void PDPipeAddTask(PDPipeRef pipe, PDTaskRef task)
         }
     } else {
         // task executes on every iteration
-        pd_stack_push_identifier(&pipe->unfilteredTasks, (PDID)PDRetain(task));
-#if 0
-        // task executes in root; this happens right after parser is set up and has read in things like root and info refs
-        if (pipe->opened) {
-            // which is now; this is odd, but let's be nice
-            PDTaskExec(task, pipe, NULL);
-        } else if (pipe->onPrepareTasks == NULL) {
-            pipe->onPrepareTasks = PDRetain(task);
-        } else {
-            PDTaskAppendTask(pipe->onPrepareTasks, task);
-            
-        }
-#endif
+        pd_stack_push_identifier(&pipe->typeTasks[0], (PDID)PDRetain(task));
     }
 }
 
@@ -255,33 +253,34 @@ PDBool PDPipePrepare(PDPipeRef pipe)
     return pipe->stream && pipe->parser;
 }
 
-static inline PDBool PDPipeRunUnfilteredTasks(PDPipeRef pipe, PDParserRef parser)
+static inline PDBool PDPipeRunStackedTasks(PDPipeRef pipe, PDParserRef parser, pd_stack *stack)
 {
     PDTaskRef task;
     PDTaskResult result;
-    pd_stack unfilteredIter;
+    pd_stack iter;
     pd_stack prevStack = NULL;
 
-    pd_stack_for_each(pipe->unfilteredTasks, unfilteredIter) {
-        task = unfilteredIter->info;
+    pd_stack_for_each(*stack, iter) {
+        task = iter->info;
         result = PDTaskExec(task, pipe, PDParserConstructObject(parser));
         if (PDTaskFailure == result) return false;
         if (PDTaskUnload == result) {
-            // note that task unloading only reaches PDPipe for unfiltered tasks; filtered task unloading is always caught by the PDTask implementation
+            // note that task unloading only reaches PDPipe for stacked tasks; regular filtered task unloading is always caught by the PDTask implementation
             if (prevStack) {
-                prevStack->prev = unfilteredIter->prev;
-                unfilteredIter->prev = NULL;
-                pd_stack_destroy(unfilteredIter);
-                unfilteredIter = prevStack;
+                prevStack->prev = iter->prev;
+                iter->prev = NULL;
+                pd_stack_destroy(iter);
+                iter = prevStack;
             } else {
                 // since we're dropping the top item, we've lost our iteration variable, so we recall ourselves to start over (which means continuing, as this was the first item)
-                pd_stack_pop_identifier(&pipe->unfilteredTasks);
+                pd_stack_pop_identifier(stack);//&pipe->typeTasks[0]);
                 PDRelease(task);
                 
-                return PDPipeRunUnfilteredTasks(pipe, parser);
+                return PDPipeRunStackedTasks(pipe, parser, stack);
+                //PDPipeRunUnfilteredTasks(pipe, parser);
             }
         }
-        prevStack = unfilteredIter;
+        prevStack = iter;
     }
     return true;
 }
@@ -292,20 +291,27 @@ PDInteger PDPipeExecute(PDPipeRef pipe)
     if (! pipe->opened && ! PDPipePrepare(pipe)) 
         return -1;
     
+    PDStaticHashRef sht = NULL;
     PDParserRef parser = pipe->parser;
     PDTaskRef task;
+    PDObjectRef obj;
+    const char *pt;
+    int pti;
     
     // at this point, we set up a static hash table for O(1) filtering before the O(n) tree fetch; the SHT implementation here triggers false positives and cannot be used on its own
-    PDInteger entries = pipe->filterCount;
-    void **keys = malloc(entries * sizeof(void*));
-    pipe->dynamicFiltering = false;
-    PDBTreePopulateKeys(pipe->filter, (PDInteger*)keys);
-    //pd_btree_populate_keys(pipe->filter, keys);
+    pipe->dynamicFiltering = pipe->typedTasks;
     
-    PDStaticHashRef sht = PDStaticHashCreate(entries, keys, keys);
+    if (! pipe->dynamicFiltering) {
+        PDInteger entries = pipe->filterCount;
+        void **keys = malloc(entries * sizeof(void*));
+        PDBTreePopulateKeys(pipe->filter, (PDInteger*)keys);
+        //pd_btree_populate_keys(pipe->filter, keys);
     
-    long fpos = 0;
-    long tneg = 0;
+        sht = PDStaticHashCreate(entries, keys, keys);
+    }
+    
+    //long fpos = 0;
+    //long tneg = 0;
     PDBool proceed = true;
     PDInteger seen = 0;
     do {
@@ -314,21 +320,37 @@ PDInteger PDPipeExecute(PDPipeRef pipe)
         seen++;
 
         // run unfiltered tasks
-        if (! (proceed &= PDPipeRunUnfilteredTasks(pipe, parser))) 
-            break;
+        if (! (proceed &= PDPipeRunStackedTasks(pipe, parser, &pipe->typeTasks[0]))) break;
         
         // check filtered tasks
         if (pipe->dynamicFiltering || PDStaticHashValueForKey(sht, parser->obid)) {
+
+            // by object id
             task = PDBTreeGet(pipe->filter, parser->obid);
-            //pd_btree_fetch(pipe->filter, parser->obid);
-            if (task) {
+            if (task) 
                 //printf("* task: object #%lu @ offset %lld *\n", parser->obid, PDTwinStreamGetInputOffset(parser->stream));
-                proceed &= PDTaskFailure != PDTaskExec(task, pipe, PDParserConstructObject(parser));
-            } else fpos++;
+                if (! (proceed &= PDTaskFailure != PDTaskExec(task, pipe, PDParserConstructObject(parser)))) break;
+            
+            // by type
+            if (proceed && pipe->typedTasks) {
+                // @todo this really needs to be streamlined; for starters, a PDState object could be used to set up types instead of O(n)'ing
+                obj = PDParserConstructObject(parser);
+                if (PDObjectTypeDictionary == PDObjectGetType(obj)) {
+                    pt = PDObjectGetDictionaryEntry(obj, "Type");
+                    if (pt) {
+                        printf("pt = %s\n", pt);
+                        for (pti = 1; pti < _PDFTypeCount; pti++) // not = 0, because 0 = NULL and is reserved for 'unfiltered'
+                            if (0 == strcmp(pt, PDFTypeStrings[pti])) break;
+                        
+                        if (pti < _PDFTypeCount) 
+                            proceed &= PDPipeRunStackedTasks(pipe, parser, &pipe->typeTasks[pti]);
+                    }
+                }
+            }
+
         } else { 
-            tneg++;
+            //tneg++;
             PDAssert(!PDBTreeGet(pipe->filter, parser->obid));
-                     //pd_btree_fetch(pipe->filter, parser->obid));
         }
     } while (proceed && PDParserIterate(parser));
     PDRelease(sht);

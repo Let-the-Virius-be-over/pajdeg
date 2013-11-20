@@ -57,6 +57,7 @@ extern const char * PD_XREF;            ///< an XREF
 extern const char * PD_STARTXREF;       ///< the "startxref" symbol
 extern const char * PD_ENDSTREAM;       ///< the "endstream" symbol
 
+
 /**
  Convenience macro for comparing a given value to one of the PD_ entries.
  */
@@ -120,7 +121,7 @@ extern PDStateRef arbStream;
  @see pd_stack
  @see pd_stack_set_global_preserve_flag
  */
-extern char * PDStringFromComplex(pd_stack *complex);
+extern char *PDStringFromComplex(pd_stack *complex);
 
 /**
  Determine object type from identifier.
