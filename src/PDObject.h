@@ -111,6 +111,16 @@ extern PDInteger PDObjectGetObID(PDObjectRef object);
 extern PDInteger PDObjectGetGenID(PDObjectRef object);
 
 /**
+ Get the obstream-flag for this object.
+ 
+ The obstream-flag is true for objects which are embedded inside of other objects, as a part of an object stream.
+ 
+ @param object The object.
+ @return true if the object is in an object stream.
+ */
+extern PDBool PDObjectGetObStreamFlag(PDObjectRef object);
+
+/**
  Get reference string for this object.
  
  @param object The object.

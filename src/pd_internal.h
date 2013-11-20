@@ -136,6 +136,7 @@ extern char *PDC;
 struct PDObject {
     PDInteger           obid;           ///< object id
     PDInteger           genid;          ///< generation id
+    PDBool              obstreamed;     ///< set if object is inside of an object stream
     PDObjectClass       obclass;        ///< object class (regular, compressed, or trailer)
     PDObjectType        type;           ///< data structure of def below
     void               *def;            ///< the object content

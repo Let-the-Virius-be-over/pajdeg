@@ -66,7 +66,7 @@
  
  Enables reassertions of every single object inserted into the output PDF, by seeking back to its supposed position (XREF-wise) and reading in the "num num obj" part.
  */
-#define PD_DEBUG_TWINSTREAM_ASSERT_OBJECTS
+//#define PD_DEBUG_TWINSTREAM_ASSERT_OBJECTS
 
 /**
  @def DEBUG_PARSER_PRINT_XREFS 
@@ -82,13 +82,13 @@
  
  This is done by seeking to the specified offset, reading in a chunk of data, and comparing said data to the expected object. Needless to say, expensive, but excellent starting point to determine if a PDF is broken or not (XREF table tends to break "first").
  */
-#define DEBUG_PARSER_CHECK_XREFS
+//#define DEBUG_PARSER_CHECK_XREFS
 
 /**
  @def DEBUG_SCANNER_SYMBOLS
  Prints to stdout every symbol scanned when reading input, tabbed and surrounded in asterixes (e.g. "           * startxref *").
  */
-#define DEBUG_SCANNER_SYMBOLS
+//#define DEBUG_SCANNER_SYMBOLS
 
 /**
  @def DEBUG_PDTYPES

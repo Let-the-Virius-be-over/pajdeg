@@ -70,6 +70,11 @@ PDInteger PDObjectGetGenID(PDObjectRef object)
     return object->genid;
 }
 
+PDBool PDObjectGetObStreamFlag(PDObjectRef object)
+{
+    return object->obstreamed;
+}
+
 PDObjectType PDObjectGetType(PDObjectRef object)
 {
     return object->type;
@@ -573,6 +578,7 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
             break;
             
         case PDObjectTypeString:
+            PDStringGrow(1 + strlen((char*)object->def));
             putfmt("%s\n", (char*)object->def);
             break;
             

@@ -323,14 +323,14 @@ PDSize PDTwinStreamFetchBranch(PDTwinStreamRef ts, PDSize position, PDInteger by
     PDInteger alignment = (PDInteger)(position - ts->offsi);
     PDInteger covered = (PDInteger)(ts->holds - alignment);
     
-    // is position within reasonable distance from heap?
-    if (alignment >= 0 && covered > 0 && covered + 4 * PIO_CHUNK_SIZE > bytes) {
+    // is position within heap?
+    if (alignment >= 0 && covered > 0 && covered >= bytes) {
         // it is, so we point buf
         *buf = ts->heap + alignment;
-        if (covered < bytes) {
+        /*if (covered < bytes) {
             // not stretched enough, but we'll make it so
             PDTwinStreamGrowInputBuffer(ts, NULL, buf, &covered, bytes - covered);
-        }
+        }*/
         return bytes;
     }
     
