@@ -25,15 +25,6 @@
 #include "pd_internal.h"
 #include "pd_stack.h"
 
-/*
-struct PDCatalog {
-    PDParserRef parser;             ///< The parser owning the catalog
-    PDObjectRef object;             ///< The object representation of the catalog
-    PDRect mediaBox;                ///< The media box of the catalog object
-    pd_stack kids;                  ///< Ordered (descending) stack of pages so that first element is the last page
-};
- */
-
 void PDPageDestroy(PDPage * page)
 {
     if (page->collection) {

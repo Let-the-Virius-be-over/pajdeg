@@ -82,7 +82,7 @@
 
 #include "PDDefines.h"
 
-/// @name Creating
+/// @name Creating and deleting
 
 /**
  Create an object from a definitions stack (e.g. fetched via PDParserLocateAndCreateDefinitionForObject()).
@@ -92,7 +92,14 @@
  @param defs The definitions for the object.
  @return An immutable object instance based on the defs.
  */
-extern PDObjectRef PDObjectCreateFromDefinitionsStack(pd_stack defs);
+extern PDObjectRef PDObjectCreateFromDefinitionsStack(PDInteger obid, pd_stack defs);
+
+/**
+ Delete this object, thus excluding it from the output PDF file, and marking it as freed in the XREF table.
+ 
+ @param object The object to remove.
+ */
+extern void PDObjectDelete(PDObjectRef object);
 
 /// @name Examining
 
@@ -180,6 +187,16 @@ extern char *PDObjectGetStream(PDObjectRef object);
  @return The value of the primitive (string, integer, real, ...) object. 
  */
 extern char *PDObjectGetValue(PDObjectRef object);
+
+/**
+ Set the value of the given object.
+ 
+ @note If object is non-primitive (e.g. dictionary), this operation will at best leak memory and at worst crash.
+ 
+ @param object The object.
+ @param The new value of the primitive (string, integer, real, ...) object. 
+ */
+extern void PDObjectSetValue(PDObjectRef object, const char *value);
 
 /// @name Dictionary objects
 

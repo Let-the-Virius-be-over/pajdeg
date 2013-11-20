@@ -158,10 +158,8 @@ PDObjectRef PDObjectStreamGetObjectByID(PDObjectStreamRef obstm, PDInteger obid)
             ob->obclass = PDObjectClassCompressed;
             ob->def = elements[i].def;
             ob->type = elements[i].type;
-            ob->obstreamed = true;
             elements[i].def = NULL;
             PDBTreeInsert(obstm->constructs, obid, ob);
-            //pd_btree_insert(&obstm->constructs, obid, ob);
             return ob;
         }
     }

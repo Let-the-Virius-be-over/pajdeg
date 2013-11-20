@@ -136,7 +136,6 @@ extern char *PDC;
 struct PDObject {
     PDInteger           obid;           ///< object id
     PDInteger           genid;          ///< generation id
-    PDBool              obstreamed;     ///< set if object is inside of an object stream
     PDObjectClass       obclass;        ///< object class (regular, compressed, or trailer)
     PDObjectType        type;           ///< data structure of def below
     void               *def;            ///< the object content
@@ -146,6 +145,7 @@ struct PDObject {
     char               *streamBuf;      ///< the stream, if fetched via parser, otherwise an undefined value
     PDBool              skipStream;     ///< if set, even if an object has a stream, the stream (including keywords) is skipped when written to output
     PDBool              skipObject;     ///< if set, entire object is discarded
+    PDBool              deleteObject;   ///< if set, the object's XREF table slot is marked as free
     pd_stack            mutations;      ///< key/value stack of alterations to do when writing the object
     char               *ovrStream;      ///< stream override
     PDInteger           ovrStreamLen;   ///< length of ^
@@ -359,11 +359,34 @@ struct PDPage {
 struct PDCatalog {
     PDParserRef parser;             ///< The parser owning the catalog
     PDObjectRef object;             ///< The object representation of the catalog
-    PDRect mediaBox;                ///< The media box of the catalog object
-    PDPage pages;                   ///< The root pages
-    PDInteger count;                ///< Number of pages (in total)
-    PDInteger capacity;             ///< Size of kids array.
-    PDInteger *kids;                ///< Array of object IDs for all pages
+    PDRect      mediaBox;           ///< The media box of the catalog object
+    PDPage      pages;              ///< The root pages
+    PDInteger   count;              ///< Number of pages (in total)
+    PDInteger   capacity;           ///< Size of kids array.
+    PDInteger  *kids;               ///< Array of object IDs for all pages
+};
+
+/**
+ The annotations array.
+ */
+struct PDAnnotsGroup {
+    PDParserRef parser;             ///< The parser owning the annotations array.
+    PDObjectRef object;             ///< The object associated with the annotations.
+    PDInteger   count;              ///< Number of annotations.
+    PDInteger   capacity;           ///< Size of annots array.
+    PDAnnotRef *annots;             ///< Array of annotations.
+};
+
+/**
+ The annotation object.
+ */
+struct PDAnnot {
+    PDAnnotsGroupRef annots;        ///< Annots object containing the annotation.
+    PDObjectRef      object;        ///< Annot object
+    PDObjectRef      a;             ///< Action object, if any
+    PDObjectRef      uri;           ///< URI object, if any
+    char            *subtype;       ///< Subtype, e.g. "Link"
+    PDRect           rect;          ///< Rectangle
 };
 
 /// @name Scanner

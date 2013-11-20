@@ -163,6 +163,15 @@ extern void PDXSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offset)
 #define PDXTableGetTypeForID(xtable, id)       PDXGetTypeForID(xtable->xrefs, id)
 
 /**
+ Set the type for the given object in the table.
+ 
+ @param xtable The PDXTableRef instance
+ @param id The object ID.
+ @param t The new type.
+ */
+#define PDXTableSetTypeForID(xtable, id, t)     PDXSetTypeForID(xtable->xrefs, id, t)
+
+/**
  Get the offset for the given object in the table.
  
  @param xtable The PDXTableRef instance

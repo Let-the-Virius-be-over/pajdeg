@@ -53,11 +53,20 @@ PDObjectRef PDObjectCreate(PDInteger obid, PDInteger genid)
     return ob;
 }
 
-PDObjectRef PDObjectCreateFromDefinitionsStack(pd_stack defs)
+PDObjectRef PDObjectCreateFromDefinitionsStack(PDInteger obid, pd_stack defs)
 {
-    PDObjectRef ob = PDObjectCreate(0, 0);
+    PDObjectRef ob = PDObjectCreate(obid, 0);
     ob->def = defs;
     return ob;
+}
+
+void PDObjectDelete(PDObjectRef object)
+{
+    if (object->obclass != PDObjectClassCompressed) {
+        object->skipObject = object->deleteObject = true;
+    } else {
+        fprintf(stderr, "*** Pajdeg notice *** objects inside of object streams cannot be deleted");
+    }
 }
 
 PDInteger PDObjectGetObID(PDObjectRef object)
@@ -72,7 +81,7 @@ PDInteger PDObjectGetGenID(PDObjectRef object)
 
 PDBool PDObjectGetObStreamFlag(PDObjectRef object)
 {
-    return object->obstreamed;
+    return object->obclass == PDObjectClassCompressed;
 }
 
 PDObjectType PDObjectGetType(PDObjectRef object)
@@ -116,6 +125,14 @@ char *PDObjectGetStream(PDObjectRef object)
 char *PDObjectGetValue(PDObjectRef object)
 {
     return object->def;
+}
+
+void PDObjectSetValue(PDObjectRef object, const char *value)
+{
+    PDAssert(object->type == PDObjectTypeString);
+    if (object->def) 
+        free(object->def);
+    object->def = strdup(value);
 }
 
 pd_stack lastKeyContainer;

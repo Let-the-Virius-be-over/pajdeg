@@ -293,6 +293,12 @@ void PDParserUpdateObject(PDParserRef parser)
     
     PDScannerRef scanner = parser->scanner;
     PDObjectRef ob = parser->construct;
+    
+    if (ob->deleteObject) {
+        ob->skipObject = true;
+        PDXTableSetTypeForID(parser->mxt, ob->obid, PDXTypeFreed);
+    }
+    
     ob->skipStream |= ob->skipObject; // simplify by always killing entire object including stream, if object is skipped
     
     // we discard old definition first; if object has a stream but wants it nixed, we iterate beyond that before discarding; we may have passed beyond the appendix already, in which case we do nothing (we're already done)
@@ -837,7 +843,6 @@ PDObjectRef PDParserCreateAppendedObject(PDParserRef parser)
     PDObjectRef object = PDParserCreateNewObject(parser);
     pd_stack_push_object(&parser->appends, object);
 
-    // PDParserCreateNewObject retains the resulting object twice; once for Create, and once for parser->construct, but we are niling parser->construct here and instead putting the object into the appends stack (which retains too), so we release once before returning
     parser->construct = NULL;
     return object;
 }

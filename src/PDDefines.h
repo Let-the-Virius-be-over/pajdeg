@@ -173,6 +173,32 @@ struct PDRect {
 };
 
 /**
+ Convert from an origin-size rect (e.g. CGRect) to a tl-br rect (PDRect).
+ 
+ @param osr The rect structured as { {origin x, origin y}, {width, height} }. 
+ @return PDRect version.
+ */
+#define PDRectFromOSRect(osr) (PDRect) {{osr.origin.x, osr.origin.y}, {osr.origin.x+osr.size.width, osr.origin.y+osr.size.height}}
+
+/**
+ Convert to an origin-size rect (e.g. CGRect) from a tl-br rect (PDRect).
+ 
+ @param rect PDRect version.
+ @return The rect structured as { {origin x, origin y}, {width, height} }. 
+ */
+#define PDRectToOSRect(rect) {{rect.a.x, rect.a.y}, {rect.b.x-rect.a.x, rect.b.y-rect.a.y}}
+
+/**
+ Convert an array string [a b c d] into a PDRect.
+ */
+#define PDRectReadFromArrayString(rect, str) sscanf(str, "[%f %f %f %f]", &rect.a.x, &rect.a.y, &rect.b.x, &rect.b.y)
+
+/**
+ Convert a PDRect into an [a b c d] array string.
+ */
+#define PDRectWriteToArrayString(rect, str) sprintf(str, "[%f %f %f %f]", rect.a.x, rect.a.y, rect.b.x, rect.b.y)
+
+/**
  Identifier type.
  
  The PDID type in Pajdeg has two purposes: it works like a container for generic data of unknown origin, and it is a numeric pointer to a string identifier. 
@@ -401,6 +427,20 @@ typedef struct PDParser     *PDParserRef;
  @ingroup PDCATALOG
  */
 typedef struct PDCatalog    *PDCatalogRef;
+
+/**
+ An annotations object (an array of annotation objects, essentially).
+ 
+ @ingroup PDANNOTS
+ */
+typedef struct PDAnnotsGroup     *PDAnnotsGroupRef;
+
+/**
+ An annotation.
+ 
+ @ingroup PDANNOT
+ */
+typedef struct PDAnnot      *PDAnnotRef;
 
 /** @} // PDUSER */
 
