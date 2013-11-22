@@ -26,6 +26,7 @@
 #include "pd_pdf_private.h"
 #include "PDStreamFilter.h"
 #include "PDObject.h"
+#include "pd_array.h"
 
 void PDObjectDestroy(PDObjectRef object)
 {
@@ -60,6 +61,12 @@ PDObjectRef PDObjectCreateFromDefinitionsStack(PDInteger obid, pd_stack defs)
     return ob;
 }
 
+void PDObjectSetSynchronizationCallback(PDObjectRef object, PDSynchronizer callback, const void *syncInfo)
+{
+    object->synchronizer = callback;
+    object->syncInfo = syncInfo;
+}
+
 void PDObjectDelete(PDObjectRef object)
 {
     if (object->obclass != PDObjectClassCompressed) {
@@ -86,6 +93,21 @@ PDBool PDObjectGetObStreamFlag(PDObjectRef object)
 
 PDObjectType PDObjectGetType(PDObjectRef object)
 {
+    return object->type;
+}
+
+PDObjectType PDObjectDetermineType(PDObjectRef object)
+{
+    pd_stack st = object->def;
+    if (st == NULL) return object->type;
+    
+    PDID stid = st->info;
+    if (PDIdentifies(stid, PD_ARRAY))
+        object->type = PDObjectTypeArray;
+    else if (PDIdentifies(stid, PD_DICT))
+        object->type = PDObjectTypeDictionary;
+    else if (PDIdentifies(stid, PD_NAME))
+        object->type = PDObjectTypeString; // todo: make use of more types
     return object->type;
 }
 
@@ -156,7 +178,7 @@ const char *PDObjectGetDictionaryEntry(PDObjectRef object, const char *key)
     pd_stack_assert_expected_key(&entry, key);
     // so we see if type is primitive or not
     if (entry->type == pd_stack_STACK) {
-        // it's not primitive, so we set the preserve flag and stringify
+        // it's not primitive, so we stringify
         field = pd_stack_pop_stack(&entry);
         value = PDStringFromComplex(&field);
     } else {
@@ -221,14 +243,14 @@ void PDObjectRemoveDictionaryEntry(PDObjectRef object, const char *key)
     pd_stack_destroy(ks);
 }
 
-#define PDArraySetEntries(ob,v)  ob->mutations->info = as(void*, v)
+/*#define PDArraySetEntries(ob,v)  ob->mutations->info = as(void*, v)
 #define PDArrayGetEntries(ob)    as(pd_stack *, ob->mutations->info)
 
 #define PDArraySetCount(ob,v)    ob->mutations->prev->info = as(void*, v)
 #define PDArrayGetCount(ob)      as(PDInteger, ob->mutations->prev->info)
 
 #define PDArraySetCapacity(ob,v) ob->mutations->prev->prev->info = as(void*, v)
-#define PDArrayGetCapacity(ob)   as(PDInteger, ob->mutations->prev->prev->info)
+#define PDArrayGetCapacity(ob)   as(PDInteger, ob->mutations->prev->prev->info)*/
 
 void PDObjectInstantiateArray(PDObjectRef object)
 {
@@ -255,7 +277,12 @@ stack<0x10c1c0bb0> {
     }
 }
      */
+    if (object->array != NULL) {
+        pd_array_destroy(object->array);
+    }
+    object->array = pd_array_from_pdf_array_stack(object->def);
     
+#if 0
     PDInteger count = 0;
     pd_stack iter;
     pd_stack ref = as(pd_stack, as(pd_stack, object->def)->prev->prev->info);
@@ -276,21 +303,29 @@ stack<0x10c1c0bb0> {
     
     // first entry is the array
     pd_stack_push_freeable(&object->mutations, els);
+#endif
+
+    // set the object type as we're now defined to be an array
+    object->type = PDObjectTypeArray;
 }
 
 PDInteger PDObjectGetArrayCount(PDObjectRef object)
 {
-    if (NULL == object->mutations)
+    if (NULL == object->array)
         PDObjectInstantiateArray(object);
     
-    return PDArrayGetCount(object);
+    return pd_array_get_count(object->array);
+    
+    //return PDArrayGetCount(object);
 }
 
 const char *PDObjectGetArrayElementAtIndex(PDObjectRef object, PDInteger index)
 {
-    if (NULL == object->mutations) 
+    if (NULL == object->array) 
         PDObjectInstantiateArray(object);
     
+    return pd_array_get_at_index(object->array, index);
+#if 0
     PDAssert(PDArrayGetCount(object) > index);  // crash = attempt to get element beyond count
 
     pd_stack *array = PDArrayGetEntries(object);
@@ -301,18 +336,22 @@ const char *PDObjectGetArrayElementAtIndex(PDObjectRef object, PDInteger index)
         pd_stack_set_global_preserve_flag(true);
         entry = (pd_stack)entry->info;
         value = PDStringFromComplex(&entry);
+        entry = array[index];
         pd_stack_set_global_preserve_flag(false);
         pd_stack_replace_info_object(entry, PD_STACK_STRING, value);
     }
     
     return as(const char *, entry->info);
+#endif
 }
 
 void PDObjectAddArrayElement(PDObjectRef object, const char *value)
 {
-    if (NULL == object->mutations)
+    if (NULL == object->array)
         PDObjectInstantiateArray(object);
     
+    pd_array_append(object->array, value);
+#if 0
     pd_stack *els = PDArrayGetEntries(object);
     PDInteger count = PDArrayGetCount(object);
     PDInteger cap   = PDArrayGetCapacity(object);
@@ -327,13 +366,14 @@ void PDObjectAddArrayElement(PDObjectRef object, const char *value)
     // therefore we must shift the new entry into the defs stack's entries, which is easiest done by putting a new
     // entry in at the end and setting prev for the last entry (els[count-1]) to the new entry
     els[count] = NULL;
-    pd_stack_push_key(&els[count], (char *)value);
+    pd_stack_push_key(&els[count], strdup(value));
 
     // we don't currently have a method for adding to an empty array; if an example PDF with an empty array is encountered, give me or patch code and give me!
     PDAssert(count > 0);
     els[count-1]->prev = els[count];
     
     PDArraySetCount(object, count + 1);
+#endif
 }
 
 /**
@@ -344,9 +384,11 @@ void PDObjectAddArrayElement(PDObjectRef object, const char *value)
  */
 void PDObjectRemoveArrayElementAtIndex(PDObjectRef object, PDInteger index)
 {
-    if (NULL == object->mutations) 
+    if (NULL == object->array) 
         PDObjectInstantiateArray(object);
-        
+    
+    pd_array_remove_at_index(object->array, index);
+#if 0
     pd_stack *array = PDArrayGetEntries(object);
     PDInteger count = PDArrayGetCount(object);
     
@@ -360,11 +402,12 @@ void PDObjectRemoveArrayElementAtIndex(PDObjectRef object, PDInteger index)
     for (index++; index < count; index++) 
         array[index-1] = array[index];
     
-    array[index]->prev = entry->prev;
+    //array[index]->prev = entry->prev;
     entry->prev = NULL;
     
     pd_stack_destroy(entry);
     PDArraySetCount(object, count-1);
+#endif
 }
 
 /**
@@ -376,9 +419,11 @@ void PDObjectRemoveArrayElementAtIndex(PDObjectRef object, PDInteger index)
  */
 void PDObjectSetArrayElement(PDObjectRef object, PDInteger index, const char *value)
 {
-    if (NULL == object->mutations) 
+    if (NULL == object->array) 
         PDObjectInstantiateArray(object);
     
+    pd_array_replace_at_index(object->array, index, value);
+#if 0
     PDAssert(PDArrayGetCount(object) > index);  // crash = attempt to get element beyond count
     
     pd_stack *array = PDArrayGetEntries(object);
@@ -390,6 +435,7 @@ void PDObjectSetArrayElement(PDObjectRef object, PDInteger index, const char *va
         free(entry->info);
         entry->info = strdup(value);
     }
+#endif
 }
 
 void PDObjectReplaceWithString(PDObjectRef object, char *str, PDInteger len)
@@ -556,8 +602,8 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
             break;
             
         case PDObjectTypeArray:
-            if (NULL == object->mutations) {
-                // no mutations means we can just to-string it right away
+            if (NULL == object->array) {
+                // no array means we can just to-string it right away
                 pd_stack_set_global_preserve_flag(true);
                 stack = object->def;
                 val = PDStringFromComplex(&stack);
@@ -566,11 +612,16 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
                 putfmt("%s", val);
                 break;
             }
-
+            
+            char *arrstr = pd_array_to_string(object->array);
+            i = strlen(arrstr);
+            PDStringGrow(1 + i);
+            putstr(arrstr, i);
+#if 0
             PDStringGrow(10);
             currchi = '[';
-            PDObjectInstantiateArray(object);
-                
+            //PDObjectInstantiateArray(object);
+            
             array = PDArrayGetEntries(object);
             count = PDArrayGetCount(object);
             pd_stack_set_global_preserve_flag(true);
@@ -592,6 +643,7 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
             PDStringGrow(3);
             currchi = ' ';
             currchi = ']';
+#endif
             break;
             
         case PDObjectTypeString:
@@ -602,6 +654,7 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
         default:
             pd_stack_set_global_preserve_flag(true);
             stack = object->def;
+            PDAssert(stack); // crash = an object was appended or created, but it was not set to any value; this is not legal in PDFs; objects must contain something
             val = PDStringFromComplex(&stack);
             pd_stack_set_global_preserve_flag(false);
             PDStringGrow(1 + strlen(val));

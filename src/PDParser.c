@@ -294,6 +294,8 @@ void PDParserUpdateObject(PDParserRef parser)
     PDScannerRef scanner = parser->scanner;
     PDObjectRef ob = parser->construct;
     
+    if (ob->synchronizer) (*ob->synchronizer)(parser, ob, ob->syncInfo);
+    
     if (ob->deleteObject) {
         ob->skipObject = true;
         PDXTableSetTypeForID(parser->mxt, ob->obid, PDXTypeFreed);

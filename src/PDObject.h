@@ -95,6 +95,17 @@
 extern PDObjectRef PDObjectCreateFromDefinitionsStack(PDInteger obid, pd_stack defs);
 
 /**
+ Set the synchronization callback, called right before the parser serializes the object and writes it to the output stream.
+ 
+ @note Only one callback is supported.
+ 
+ @param object The object.
+ @param callback The synchronization callback.
+ @param syncInfo The user info object to be passed as the final parameter to the callback.
+ */
+extern void PDObjectSetSynchronizationCallback(PDObjectRef object, PDSynchronizer callback, const void *syncInfo);
+
+/**
  Delete this object, thus excluding it from the output PDF file, and marking it as freed in the XREF table.
  
  @param object The object to remove.
@@ -143,6 +154,11 @@ extern const char *PDObjectGetReferenceString(PDObjectRef object);
  @note Types are restricted to PDObjectTypeUnknown, PDObjectTypeDictionary, and PDObjectTypeString in the current implementation.
  */
 extern PDObjectType PDObjectGetType(PDObjectRef object);
+
+/**
+ Attempt to determinee the type of the object based on its definitions stack.
+ */
+extern PDObjectType PDObjectDetermineType(PDObjectRef object);
 
 /**
  Determine if the object has a stream or not.

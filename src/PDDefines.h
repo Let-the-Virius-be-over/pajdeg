@@ -228,6 +228,13 @@ typedef const char         **PDID;
 typedef void (*PDDeallocator)(void *ob);
 
 /**
+ Synchronization signature.
+ 
+ Used in the PDParser to require synchronization of the given object instance, as it is about to be written to the output stream.
+ */
+typedef void (*PDSynchronizer)(void *parser, void *object, void *syncInfo);
+
+/**
  Pajdeg type.
  
  The PDType structure facilitates the retain and release layer for Pajdeg objects.
@@ -250,6 +257,15 @@ typedef union PDType *PDTypeRef;
  The pd_stack is tailored to handle some common types used in Pajdeg.
  */
 typedef struct pd_stack      *pd_stack;
+
+/**
+ A low-performance array implementation.
+ 
+ @ingroup pd_array
+ 
+ The pd_array.
+ */
+typedef struct pd_array     *pd_array;
 
 /**
  A (very) simple hash table implementation.
@@ -427,20 +443,6 @@ typedef struct PDParser     *PDParserRef;
  @ingroup PDCATALOG
  */
 typedef struct PDCatalog    *PDCatalogRef;
-
-/**
- An annotations object (an array of annotation objects, essentially).
- 
- @ingroup PDANNOTS
- */
-typedef struct PDAnnotsGroup     *PDAnnotsGroupRef;
-
-/**
- An annotation.
- 
- @ingroup PDANNOT
- */
-typedef struct PDAnnot      *PDAnnotRef;
 
 /** @} // PDUSER */
 

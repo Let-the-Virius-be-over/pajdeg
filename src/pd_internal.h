@@ -147,6 +147,7 @@ struct PDObject {
     PDBool              skipObject;     ///< if set, entire object is discarded
     PDBool              deleteObject;   ///< if set, the object's XREF table slot is marked as free
     pd_stack            mutations;      ///< key/value stack of alterations to do when writing the object
+    pd_array            array;          ///< array content; set if the object is an array and has been instantiated
     char               *ovrStream;      ///< stream override
     PDInteger           ovrStreamLen;   ///< length of ^
     PDBool              ovrStreamAlloc; ///< if set, ovrStream will be free()d by the object after use
@@ -154,6 +155,8 @@ struct PDObject {
     PDInteger           ovrDefLen;      ///< take a wild guess
     PDBool              encryptedDoc;   ///< if set, the object is contained in an encrypted PDF; if false, PDObjectSetStreamEncrypted is NOP
     char               *refString;      ///< reference string, cached from calls to 
+    PDSynchronizer      synchronizer;   ///< synchronizer callback, called right before the object is serialized and written to the output stream
+    const void         *syncInfo;       ///< user info object for synchronizer callback (usually a class instance, for wrappers)
 };
 
 //
@@ -366,29 +369,6 @@ struct PDCatalog {
     PDInteger  *kids;               ///< Array of object IDs for all pages
 };
 
-/**
- The annotations array.
- */
-struct PDAnnotsGroup {
-    PDParserRef parser;             ///< The parser owning the annotations array.
-    PDObjectRef object;             ///< The object associated with the annotations.
-    PDInteger   count;              ///< Number of annotations.
-    PDInteger   capacity;           ///< Size of annots array.
-    PDAnnotRef *annots;             ///< Array of annotations.
-};
-
-/**
- The annotation object.
- */
-struct PDAnnot {
-    PDAnnotsGroupRef annots;        ///< Annots object containing the annotation.
-    PDObjectRef      object;        ///< Annot object
-    PDObjectRef      a;             ///< Action object, if any
-    PDObjectRef      uri;           ///< URI object, if any
-    char            *subtype;       ///< Subtype, e.g. "Link"
-    PDRect           rect;          ///< Rectangle
-};
-
 /// @name Scanner
 
 typedef struct PDScannerSymbol *PDScannerSymbolRef;
@@ -442,6 +422,15 @@ struct pd_stack {
     pd_stack   prev;            ///< Previous object in stack
     char       type;            ///< Stack type
     void      *info;            ///< The stack content, based on its type
+};
+
+/**
+ The internal array structure.
+ */
+struct pd_array {
+    PDInteger count;            ///< Number of elements.
+    PDInteger capacity;         ///< Capacity of array.
+    char    **values;           ///< Content.
 };
 
 /// @name State
