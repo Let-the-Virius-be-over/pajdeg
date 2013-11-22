@@ -64,20 +64,20 @@ void PDCatalogAppendPages(PDCatalogRef catalog, PDPage *pages, pd_stack defs)
     
     /*
      stack<0x113c5c10> {
-     0x3f99a0 ("ae")
-     stack<0x113532b0> {
-     0x3f9988 ("ref")
-     557
-     0
-     }
+         0x3f99a0 ("ae")
+         stack<0x113532b0> {
+             0x3f9988 ("ref")
+             557
+             0
+         }
      }
      stack<0x113d49b0> {
-     0x3f99a0 ("ae")
-     stack<0x113efa50> {
-     0x3f9988 ("ref")
-     558
-     0
-     }
+         0x3f99a0 ("ae")
+         stack<0x113efa50> {
+             0x3f9988 ("ref")
+             558
+             0
+         }
      }
      */
     pd_stack stack, iter;
