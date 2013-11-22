@@ -232,7 +232,7 @@ typedef void (*PDDeallocator)(void *ob);
  
  Used in the PDParser to require synchronization of the given object instance, as it is about to be written to the output stream.
  */
-typedef void (*PDSynchronizer)(void *parser, void *object, void *syncInfo);
+typedef void (*PDSynchronizer)(void *parser, void *object, const void *syncInfo);
 
 /**
  Pajdeg type.

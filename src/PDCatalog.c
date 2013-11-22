@@ -28,7 +28,7 @@
 void PDPageDestroy(PDPage * page)
 {
     if (page->collection) {
-        for (int i = page->count - 1; i >= 0; i--) 
+        for (long i = page->count - 1; i >= 0; i--)
             PDPageDestroy(&page->kids[i]);
         free(page->kids);
     }
