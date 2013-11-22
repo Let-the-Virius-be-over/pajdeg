@@ -27,14 +27,19 @@
 #include "PDStreamFilter.h"
 #include "PDObject.h"
 #include "pd_array.h"
+#include "pd_dict.h"
 
 void PDObjectDestroy(PDObjectRef object)
 {
+    if (object->array) pd_array_destroy(object->array);
+    if (object->dict) pd_dict_destroy(object->dict);
     pd_stack_destroy(object->mutations);
+    
     if (object->type == PDObjectTypeString)
         free(object->def);
     else
         pd_stack_destroy(object->def);
+    
     if (object->ovrDef) free(object->ovrDef);
     if (object->ovrStream && object->ovrStreamAlloc)
         free(object->ovrStream);
@@ -157,9 +162,16 @@ void PDObjectSetValue(PDObjectRef object, const char *value)
     object->def = strdup(value);
 }
 
-pd_stack lastKeyContainer;
+//pd_stack lastKeyContainer;
 const char *PDObjectGetDictionaryEntry(PDObjectRef object, const char *key)
 {
+    if (NULL == object->dict) {
+        object->dict = pd_dict_from_pdf_dict_stack(object->def);
+        object->type = PDObjectTypeDictionary;
+    }
+    
+    return pd_dict_get(object->dict, key);
+#if 0
     // check mutations dict if we have this one already
     pd_stack entry, field;
     for (entry = object->mutations; entry; entry = entry->prev->prev) {
@@ -196,10 +208,18 @@ const char *PDObjectGetDictionaryEntry(PDObjectRef object, const char *key)
     pd_stack_destroy(entry);
     
     return value;
+#endif
 }
 
 void PDObjectSetDictionaryEntry(PDObjectRef object, const char *key, const char *value)
 {
+    if (NULL == object->dict) {
+        object->dict = pd_dict_from_pdf_dict_stack(object->def);
+        object->type = PDObjectTypeDictionary;
+    }
+    
+    pd_dict_set(object->dict, key, value);
+#if 0
     object->type = PDObjectTypeDictionary;
     
     // see if we have it (user is responsible for nulling lastKeyContainer)
@@ -214,11 +234,18 @@ void PDObjectSetDictionaryEntry(PDObjectRef object, const char *key, const char 
     // we didn't so we add
     pd_stack_push_key(&object->mutations, strdup(value));
     pd_stack_push_key(&object->mutations, strdup(key));
-
+#endif
 }
 
 void PDObjectRemoveDictionaryEntry(PDObjectRef object, const char *key)
 {
+    if (NULL == object->dict) {
+        object->dict = pd_dict_from_pdf_dict_stack(object->def);
+        object->type = PDObjectTypeDictionary;
+    }
+    
+    pd_dict_remove(object->dict, key);
+#if 0
     // check mutations dict as well
     pd_stack entry, prev;
     prev = NULL;
@@ -241,6 +268,7 @@ void PDObjectRemoveDictionaryEntry(PDObjectRef object, const char *key)
 
     pd_stack ks = pd_stack_get_dict_key(object->def, key, true);
     pd_stack_destroy(ks);
+#endif
 }
 
 /*#define PDArraySetEntries(ob,v)  ob->mutations->info = as(void*, v)
@@ -307,6 +335,16 @@ stack<0x10c1c0bb0> {
 
     // set the object type as we're now defined to be an array
     object->type = PDObjectTypeArray;
+}
+
+PDInteger PDObjectGetDictionaryCount(PDObjectRef object)
+{
+    if (NULL == object->dict) {
+        object->dict = pd_dict_from_pdf_dict_stack(object->def);
+        object->type = PDObjectTypeDictionary;
+    }
+
+    return pd_dict_get_count(object->dict);
 }
 
 PDInteger PDObjectGetArrayCount(PDObjectRef object)
@@ -583,22 +621,29 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
     }
     switch (object->type) {
         case PDObjectTypeDictionary:
-            PDStringGrow(20);
-            putstr("<<", 2);
-            // write out mutations first
-            for (stack = object->mutations; stack; stack = stack->prev->prev) {
-                PDStringGrow(13 + strlen(stack->info) + strlen(stack->prev->info));
-                putfmt("/%s %s ", (char*)stack->info, (char*)stack->prev->info);
+            if (NULL == object->dict) {
+                PDStringGrow(20);
+                putstr("<<", 2);
+                // write out mutations first (deprecated)
+                for (stack = object->mutations; stack; stack = stack->prev->prev) {
+                    PDStringGrow(13 + strlen(stack->info) + strlen(stack->prev->info));
+                    putfmt("/%s %s ", (char*)stack->info, (char*)stack->prev->info);
+                }
+                // then write out unmodified entries
+                stack = object->def;
+                while (pd_stack_get_next_dict_key(&stack, &key, &val)) { // <-- sploff upon generating << /Marked true >>
+                    PDStringGrow(4 + strlen(key) + strlen(val));
+                    putfmt("/%s %s ", key, val);
+                    free(val);
+                }
+                PDStringGrow(10);
+                putstr(">>\n", 2);
+            } else {
+                char *dictstr = pd_dict_to_string(object->dict);
+                i = strlen(dictstr);
+                PDStringGrow(i + i);
+                putstr(dictstr, i);
             }
-            // then write out unmodified entries
-            stack = object->def;
-            while (pd_stack_get_next_dict_key(&stack, &key, &val)) { // <-- sploff upon generating << /Marked true >>
-                PDStringGrow(4 + strlen(key) + strlen(val));
-                putfmt("/%s %s ", key, val);
-                free(val);
-            }
-            PDStringGrow(10);
-            putstr(">>\n", 2);
             break;
             
         case PDObjectTypeArray:

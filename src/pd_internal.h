@@ -148,6 +148,7 @@ struct PDObject {
     PDBool              deleteObject;   ///< if set, the object's XREF table slot is marked as free
     pd_stack            mutations;      ///< key/value stack of alterations to do when writing the object
     pd_array            array;          ///< array content; set if the object is an array and has been instantiated
+    pd_dict             dict;           ///< dictionary content; set if the object is a dictionary and has been instantiated
     char               *ovrStream;      ///< stream override
     PDInteger           ovrStreamLen;   ///< length of ^
     PDBool              ovrStreamAlloc; ///< if set, ovrStream will be free()d by the object after use
@@ -431,6 +432,16 @@ struct pd_array {
     PDInteger count;            ///< Number of elements.
     PDInteger capacity;         ///< Capacity of array.
     char    **values;           ///< Content.
+};
+
+/**
+ The internal dictionary structure.
+ */
+struct pd_dict {
+    PDInteger count;            ///< Number of entries.
+    PDInteger capacity;         ///< Capacity of dictionary.
+    char    **keys;             ///< Keys.
+    char    **values;           ///< Values.
 };
 
 /// @name State

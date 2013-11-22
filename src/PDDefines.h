@@ -268,6 +268,15 @@ typedef struct pd_stack      *pd_stack;
 typedef struct pd_array     *pd_array;
 
 /**
+ A low-performance dictionary implementation.
+ 
+ @ingroup pd_dict
+ 
+ The pd_dict.
+ */
+typedef struct pd_dict      *pd_dict;
+
+/**
  A (very) simple hash table implementation.
  
  @ingroup PDSTATICHASH

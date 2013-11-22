@@ -248,6 +248,15 @@ extern void PDObjectSetDictionaryEntry(PDObjectRef object, const char *key, cons
  */
 extern void PDObjectRemoveDictionaryEntry(PDObjectRef object, const char *key);
 
+/**
+ Get the element count of the dictionary object.
+ 
+ @warning Crashes if the object is not a dictionary.
+ 
+ @param object The object.
+ */
+extern PDInteger PDObjectGetDictionaryCount(PDObjectRef object);
+
 /// @name Array objects
 
 /**
