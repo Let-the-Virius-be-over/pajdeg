@@ -566,8 +566,8 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
     //scv.allocBuf[scv.offs] = 0;
     
     pd_stack stack;
-    pd_stack *array;
-    PDInteger i, count;
+    //pd_stack *array;
+    PDInteger i;//, count;
     char *key, *val;
     PDInteger sz;
     switch (object->obclass) {
