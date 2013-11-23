@@ -187,6 +187,16 @@ void pd_dict_set(pd_dict dict, const char *key, const char *value)
     }
 }
 
+const char **pd_dict_keys(pd_dict dict)
+{
+    return (const char **) dict->keys;
+}
+
+const char **pd_dict_values(pd_dict dict)
+{
+    return (const char **) dict->values;
+}
+
 char *pd_dict_to_string(pd_dict dict)
 {
     PDInteger len = 6; // << >>\0

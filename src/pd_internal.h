@@ -158,6 +158,7 @@ struct PDObject {
     char               *refString;      ///< reference string, cached from calls to 
     PDSynchronizer      synchronizer;   ///< synchronizer callback, called right before the object is serialized and written to the output stream
     const void         *syncInfo;       ///< user info object for synchronizer callback (usually a class instance, for wrappers)
+    pd_crypto           crypto;         ///< crypto instance, if available
 };
 
 //
@@ -331,8 +332,10 @@ struct PDParser {
     PDReferenceRef encryptRef;      ///< reference to the encrypt object
     PDObjectRef trailer;            ///< the trailer object
     PDObjectRef root;               ///< the root object, if instantiated
+    PDObjectRef info;               ///< the info object, if instantiated
     PDObjectRef encrypt;            ///< the encrypt object, if instantiated
     PDCatalogRef catalog;           ///< the root catalog, if instantiated
+    pd_crypto crypto;               ///< crypto instance, if the document is encrypted
     
     // miscellaneous
     PDBool success;                 ///< if true, the parser has so far succeeded at parsing the input file
@@ -442,6 +445,35 @@ struct pd_dict {
     PDInteger capacity;         ///< Capacity of dictionary.
     char    **keys;             ///< Keys.
     char    **values;           ///< Values.
+};
+
+/**
+ Crypto sequence parameter.
+ */
+typedef struct pd_crypto_param pd_crypto_param;
+struct pd_crypto_param {
+    unsigned char *d;
+    unsigned long l;
+};
+
+/**
+ The internal crypto structure.
+ */
+struct pd_crypto {
+    // common values
+    pd_crypto_param identifier; ///< PDF /ID found in the trailer dictionary
+    char     *filter;           ///< filter name
+    char     *subfilter;        ///< sub-filter name
+    PDInteger version;          ///< algorithm version (V key in PDFs)
+    PDInteger length;           ///< length of the encryption key, in bits; must be a multiple of 8 in the range 40 - 128; default = 40
+    
+    // standard security handler 
+    PDInteger revision;         ///< revision ("R") of algorithm: 2 if version < 2 and perms have no 3 or greater values, 3 if version is 2 or 3, or P has rev 3 stuff, 4 if version = 4
+    pd_crypto_param owner;      ///< owner string ("O"), 32-byte string based on owner and user passwords, used to compute encryption key and determining whether a valid owner password was entered
+    pd_crypto_param user;       ///< user string ("U"), 32-byte string based on user password, used in determining whether to prompt the user for a password and whether given password was a valid user or owner password
+    int32_t privs;              ///< privileges (see Table 3.20 in PDF spec v 1.7, p. 123-124)
+    PDBool encryptMetadata;     ///< whether metadata should be encrypted or not ("/EncryptMetadata true")
+    pd_crypto_param enckey;     ///< encryption key
 };
 
 /// @name State

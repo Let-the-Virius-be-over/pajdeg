@@ -149,6 +149,13 @@ extern PDInteger PDParserGetContainerObjectIDForObject(PDParserRef parser, PDInt
 extern PDObjectRef PDParserGetRootObject(PDParserRef parser);
 
 /**
+ Get an immutable reference to the info object for the input PDF.
+ 
+ @param parser The parser.
+ */
+extern PDObjectRef PDParserGetInfoObject(PDParserRef parser);
+
+/**
  Set up (if necessary) and return the PDCatalog object for the current PDF.
  
  @param parser The parser.

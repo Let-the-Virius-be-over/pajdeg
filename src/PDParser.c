@@ -32,7 +32,7 @@
 #include "PDStreamFilter.h"
 #include "PDXTable.h"
 #include "PDCatalog.h"
-
+#include "pd_crypto.h"
 #include "PDScanner.h"
 
 void PDParserDestroy(PDParserRef parser)
@@ -46,18 +46,20 @@ void PDParserDestroy(PDParserRef parser)
     PDRelease(parser->catalog);
     PDRelease(parser->construct);
     PDRelease(parser->root);
+    PDRelease(parser->info);
     PDRelease(parser->encrypt);
     PDRelease(parser->rootRef);
     PDRelease(parser->infoRef);
     PDRelease(parser->encryptRef);
     PDRelease(parser->trailer);
-    //pd_btree_destroy(parser->skipT);
     PDRelease(parser->skipT);
     pd_stack_destroy(parser->appends);
     
     PDRelease(parser->mxt);
     PDRelease(parser->cxt);
     pd_stack_destroy(parser->xstack);
+    
+    if (parser->crypto) pd_crypto_destroy(parser->crypto);
     
     pd_pdf_implementation_discard();
 }
@@ -102,6 +104,16 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
     
     PDTwinStreamAsserts(parser->stream);
     
+    if (parser->encryptRef) {
+        // set up crypto instance 
+        if (! parser->encrypt) {
+            pd_stack encDef = PDParserLocateAndCreateDefinitionForObject(parser, parser->encryptRef->obid, true);
+            parser->encrypt = PDObjectCreate(parser->encryptRef->obid, parser->encryptRef->genid);
+            parser->encrypt->def = encDef;
+        }
+        parser->crypto = pd_crypto_create(PDObjectGetDictionary(parser->trailer), PDObjectGetDictionary(parser->encrypt));
+    }
+    
     return parser;
 }
 
@@ -128,6 +140,7 @@ pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, 
         PDAssert(containerDef);
         PDObjectRef obstmObject = PDObjectCreate(0, 0);
         obstmObject->def = containerDef;
+        obstmObject->crypto = parser->crypto;
         obstmObject->streamLen = len = pd_stack_peek_int(pd_stack_get_dict_key(containerDef, "Length", false)->prev->prev);
         
         PDTwinStreamFetchBranch(stream, containerOffset, len + 20, &tb);
@@ -835,6 +848,7 @@ PDObjectRef PDParserCreateNewObject(PDParserRef parser)
     
     PDObjectRef object = parser->construct = PDObjectCreate(parser->obid, parser->genid);
     object->encryptedDoc = PDParserGetEncryptionState(parser);
+    object->crypto = parser->crypto;
     
     // we need to retain the object twice; once because this returns a retained object, and once because we retain it ourselves, and release it in "UpdateObject"
     return PDRetain(object);
@@ -859,6 +873,7 @@ PDObjectRef PDParserConstructObject(PDParserRef parser)
     PDAssert(parser->state == PDParserStateObjectDefinition);
     PDAssert(parser->construct == NULL);
     PDObjectRef object = parser->construct = PDObjectCreate(parser->obid, parser->genid);
+    object->crypto = parser->crypto;
     object->encryptedDoc = PDParserGetEncryptionState(parser);
 
     char *string;
@@ -960,8 +975,20 @@ PDObjectRef PDParserGetRootObject(PDParserRef parser)
         pd_stack rootDef = PDParserLocateAndCreateDefinitionForObject(parser, parser->rootRef->obid, true);
         parser->root = PDObjectCreate(parser->rootRef->obid, parser->rootRef->genid);
         parser->root->def = rootDef;
+        parser->root->crypto = parser->crypto;
     }
     return parser->root;
+}
+
+PDObjectRef PDParserGetInfoObject(PDParserRef parser)
+{
+    if (! parser->info) {
+        pd_stack infoDef = PDParserLocateAndCreateDefinitionForObject(parser, parser->infoRef->obid, true);
+        parser->info = PDObjectCreate(parser->infoRef->obid, parser->infoRef->genid);
+        parser->info->def = infoDef;
+        parser->info->crypto = parser->crypto;
+    }
+    return parser->info;
 }
 
 PDCatalogRef PDParserGetCatalog(PDParserRef parser)

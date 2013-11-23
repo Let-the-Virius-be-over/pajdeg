@@ -257,7 +257,25 @@ extern void PDObjectRemoveDictionaryEntry(PDObjectRef object, const char *key);
  */
 extern PDInteger PDObjectGetDictionaryCount(PDObjectRef object);
 
+/**
+ Get internal pd_dict object used to represent the dictionary object.
+ 
+ @note The returned dictionary can be modified, but if the object modifications are mimicked, the object may need a schedule call directly, as it may not detect changes otherwise.
+ 
+ @param object The object.
+ */
+extern pd_dict PDObjectGetDictionary(PDObjectRef object);
+
 /// @name Array objects
+
+/**
+ Get internal pd_array object used to represent the array object.
+ 
+ @note The returned array can be modified, but if the object modifications are mimicked, the object may need a schedule call directly, as it may not detect changes otherwise.
+ 
+ @param object The object.
+ */
+extern pd_array PDObjectGetArray(PDObjectRef object);
 
 /**
  Get the element count of the array object.

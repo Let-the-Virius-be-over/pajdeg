@@ -155,6 +155,7 @@ PDObjectRef PDObjectStreamGetObjectByID(PDObjectStreamRef obstm, PDInteger obid)
     for (i = 0; i < n; i++) {
         if (elements[i].obid == obid) {
             ob = PDObjectCreate(obid, 0);
+            ob->crypto = obstm->ob->crypto;
             ob->obclass = PDObjectClassCompressed;
             ob->def = elements[i].def;
             ob->type = elements[i].type;
@@ -177,6 +178,7 @@ PDObjectRef PDObjectStreamGetObjectAtIndex(PDObjectStreamRef obstm, PDInteger in
     
     if (elements[index].def) {
         PDObjectRef ob = PDObjectCreate(elements[index].obid, 0);
+        ob->crypto = obstm->ob->crypto;
         ob->obclass = PDObjectClassCompressed;
         ob->def = elements[index].def;
         ob->type = elements[index].type;

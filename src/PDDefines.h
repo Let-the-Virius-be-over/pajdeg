@@ -277,6 +277,15 @@ typedef struct pd_array     *pd_array;
 typedef struct pd_dict      *pd_dict;
 
 /**
+ Cryptography module for PDF encryption/decryption.
+ 
+ @ingroup pd_crypto
+ 
+ The pd_crypto object.
+ */
+typedef struct pd_crypto    *pd_crypto;
+
+/**
  A (very) simple hash table implementation.
  
  @ingroup PDSTATICHASH

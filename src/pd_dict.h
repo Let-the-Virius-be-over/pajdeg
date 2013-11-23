@@ -99,6 +99,20 @@ extern void pd_dict_remove(pd_dict dict, const char *key);
 extern void pd_dict_set(pd_dict dict, const char *key, const char *value);
 
 /**
+ Get the keys of the dictionary as an array of strings.
+ 
+ @param dict The dict.
+ */
+extern const char **pd_dict_keys(pd_dict dict);
+
+/**
+ Get the values of the dictionary as an array of strings.
+ 
+ @param dict The dict.
+ */
+extern const char **pd_dict_values(pd_dict dict);
+
+/**
  Convert the dict into a string value formatted as a PDF dict, including the dictionary symbols. The returned string must be freed.
  
  @param dict The dict.
