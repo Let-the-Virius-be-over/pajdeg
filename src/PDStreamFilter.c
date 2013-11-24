@@ -262,7 +262,7 @@ PDInteger PDStreamFilterProceed(PDStreamFilterRef filter)
     
     // we actually go through once more to set 'finished' as it may flip back and forth as the filters rewind
     PDBool finished = true;
-    for (curr = filter; curr; curr = curr->nextFilter)
+    for (curr = filter; finished && curr; curr = curr->nextFilter)
         finished &= curr->finished;
     
     filter->finished = finished;
@@ -316,7 +316,7 @@ pd_stack PDStreamFilterGenerateOptionsFromDictionaryStack(pd_stack dictStack)
     pd_stack_set_global_preserve_flag(true);
     while (iter) {
         entry = iter->info;
-        char *value = (entry->prev->prev->type == pd_stack_STACK 
+        char *value = (entry->prev->prev->type == PD_STACK_STACK 
                        ? PDStringFromComplex(entry->prev->prev->info)
                        : strdup(entry->prev->prev->info));
         pd_stack_push_key(&stack, value);

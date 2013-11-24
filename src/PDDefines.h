@@ -268,6 +268,15 @@ typedef struct pd_stack      *pd_stack;
 typedef struct pd_array     *pd_array;
 
 /**
+ The crypto array.
+ 
+ @ingroup pd_array
+ 
+ The pd_crypto_array.
+ */
+//typedef struct pd_crypto_array *pd_crypto_array;
+
+/**
  A low-performance dictionary implementation.
  
  @ingroup pd_dict
@@ -275,6 +284,15 @@ typedef struct pd_array     *pd_array;
  The pd_dict.
  */
 typedef struct pd_dict      *pd_dict;
+
+/**
+ The crypto dictionary.
+ 
+ @ingroup pd_dict
+ 
+ The pd_crypto_dict.
+ */
+//typedef struct pd_crypto_dict *pd_crypto_dict;
 
 /**
  Cryptography module for PDF encryption/decryption.

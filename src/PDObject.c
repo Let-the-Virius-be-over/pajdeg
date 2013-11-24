@@ -162,12 +162,28 @@ void PDObjectSetValue(PDObjectRef object, const char *value)
     object->def = strdup(value);
 }
 
-//pd_stack lastKeyContainer;
+void PDObjectInstantiateDictionary(PDObjectRef object)
+{
+    object->dict = pd_dict_from_pdf_dict_stack(object->def);
+    object->type = PDObjectTypeDictionary;
+    if (object->crypto) {
+        pd_dict_set_crypto(object->dict, object->crypto, object->obid, object->genid);
+    }
+}
+
+void PDObjectInstantiateArray(PDObjectRef object)
+{
+    object->array = pd_array_from_pdf_array_stack(object->def);
+    object->type = PDObjectTypeArray;
+    if (object->crypto) {
+        pd_array_set_crypto(object->array, object->crypto, object->obid, object->genid);
+    }
+}
+
 const char *PDObjectGetDictionaryEntry(PDObjectRef object, const char *key)
 {
     if (NULL == object->dict) {
-        object->dict = pd_dict_from_pdf_dict_stack(object->def);
-        object->type = PDObjectTypeDictionary;
+        PDObjectInstantiateDictionary(object);
     }
     
     return pd_dict_get(object->dict, key);
@@ -176,8 +192,7 @@ const char *PDObjectGetDictionaryEntry(PDObjectRef object, const char *key)
 void PDObjectSetDictionaryEntry(PDObjectRef object, const char *key, const char *value)
 {
     if (NULL == object->dict) {
-        object->dict = pd_dict_from_pdf_dict_stack(object->def);
-        object->type = PDObjectTypeDictionary;
+        PDObjectInstantiateDictionary(object);
     }
     
     pd_dict_set(object->dict, key, value);
@@ -186,8 +201,7 @@ void PDObjectSetDictionaryEntry(PDObjectRef object, const char *key, const char 
 void PDObjectRemoveDictionaryEntry(PDObjectRef object, const char *key)
 {
     if (NULL == object->dict) {
-        object->dict = pd_dict_from_pdf_dict_stack(object->def);
-        object->type = PDObjectTypeDictionary;
+        PDObjectInstantiateDictionary(object);
     }
     
     pd_dict_remove(object->dict, key);
@@ -196,26 +210,14 @@ void PDObjectRemoveDictionaryEntry(PDObjectRef object, const char *key)
 pd_dict PDObjectGetDictionary(PDObjectRef object)
 {
     if (NULL == object->dict) {
-        object->dict = pd_dict_from_pdf_dict_stack(object->def);
-        object->type = PDObjectTypeDictionary;
+        PDObjectInstantiateDictionary(object);
     }
     return object->dict;
 }
 
-void PDObjectInstantiateArray(PDObjectRef object)
-{
-    if (object->array != NULL) {
-        pd_array_destroy(object->array);
-    }
-    object->array = pd_array_from_pdf_array_stack(object->def);
-
-    // set the object type as we're now defined to be an array
-    object->type = PDObjectTypeArray;
-}
-
 pd_array PDObjectGetArray(PDObjectRef object)
 {
-    if (object->array == NULL) {
+    if (NULL == object->array) {
         PDObjectInstantiateArray(object);
     }
     return object->array;
@@ -224,8 +226,7 @@ pd_array PDObjectGetArray(PDObjectRef object)
 PDInteger PDObjectGetDictionaryCount(PDObjectRef object)
 {
     if (NULL == object->dict) {
-        object->dict = pd_dict_from_pdf_dict_stack(object->def);
-        object->type = PDObjectTypeDictionary;
+        PDObjectInstantiateDictionary(object);
     }
 
     return pd_dict_get_count(object->dict);

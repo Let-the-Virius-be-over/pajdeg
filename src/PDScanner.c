@@ -652,7 +652,7 @@ PDBool PDScannerPopString(PDScannerRef scanner, char **value)
 
 PDBool PDScannerPopStack(PDScannerRef scanner, pd_stack *value)
 {
-    if (PDScannerPollType(scanner, pd_stack_STACK)) {
+    if (PDScannerPollType(scanner, PD_STACK_STACK)) {
         *value = pd_stack_pop_stack(&scanner->resultStack);
         return true;
     }

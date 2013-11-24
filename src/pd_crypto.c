@@ -208,7 +208,86 @@ pd_crypto pd_crypto_create(pd_dict trailerDict, pd_dict options)
     return crypto;
 }
 
-void pd_crypto_encrypt(pd_crypto crypto, PDInteger obid, PDInteger genid, char *data, PDInteger len)
+PDInteger pd_crypto_unescape(char *str)
+{
+    PDBool esc = false;
+    int si = 0;
+    int escseq;
+    int ibeg = 0;
+    int iend = strlen(str);
+    if (str[0] == '(' && str[iend-1] == ')') {
+        ibeg = 1;
+        iend --;
+    }
+    for (int i = ibeg; i < iend; i++) {
+        if (str[i] == '\\' && ! esc) {
+            esc = true;
+        } else {
+            if (esc) {
+                if (str[i] >= '0' && str[i] <= '9') {
+                    str[si] = 0;
+                    for (escseq = 0; escseq < 3 && str[i] >= '0' && str[i] <= '9'; escseq++, i++)
+                        str[si] = (str[si] << 4) + (str[i] - '0');
+                    i--;
+                } else switch (str[i]) {
+                    case '\n':
+                    case '\r':
+                        si--; // ignore newline by nulling the si++ below
+                        break;
+                    case 't': str[si] = '\t'; break;
+                    case 'r': str[si] = '\r'; break;
+                    case 'n': str[si] = '\n'; break;
+                    case 'b': str[si] = '\b'; break;
+                    default: str[si] = str[i]; break;
+                }
+                esc = false;
+            } else {
+                str[si] = str[i];
+            }
+            si++;
+        }
+    }
+    str[si] = 0;
+    return si;
+}
+
+PDInteger pd_crypto_escape(char **dst, const char *src, PDInteger srcLen)
+{
+    char *str = malloc(3 + srcLen * 4); // worst case, we get \000 for every single character
+    str[0] = '(';
+    int si = 1;
+    for (int i = 0; i < srcLen; i++) {
+        str[si] = '\\';
+        switch (src[i]) {
+            case '\t': str[++si] = 't'; break;
+            case '\b': str[++si] = 'b'; break;
+            case '\r': str[++si] = 'r'; break;
+            case '\n': str[++si] = 'n'; break;
+            case '\\': 
+            case '(':
+            case ')':
+                str[++si] = src[i];
+                break;
+            case 0: 
+                str[++si] = '0';
+                str[++si] = '0';
+                str[++si] = '0';
+                break;
+            default:
+                str[si] = src[i];
+                break;
+        }
+        si++;
+    }
+    str[si++] = ')';
+    str[si] = 0;
+    *dst = malloc(si+1);
+    memcpy(*dst, str, si+1);
+    free(str);
+    return si;
+}
+
+void pd_crypto_convert(pd_crypto crypto, PDInteger obid, PDInteger genid, char *data, PDInteger len)
 {
 //1. Obtain the object number and generation number from the object identifier of the string or stream to be encrypted (see Section 3.2.9, “Indirect Objects”). If the string is a direct object, use the identifier of the indirect object containing it.
     
@@ -245,7 +324,21 @@ void pd_crypto_encrypt(pd_crypto crypto, PDInteger obid, PDInteger genid, char *
     key[klen] = 0; // truncate at min(16, n + 5)
     pd_crypto_rc4(crypto, key, klen, data, len);
 }
-void pd_crypto_decrypt(pd_crypto crypto, PDInteger obid, PDInteger genid, char *data, PDInteger len)
+
+PDInteger pd_crypto_encrypt(pd_crypto crypto, PDInteger obid, PDInteger genid, char **dst, char *src, PDInteger len)
 {
-    pd_crypto_encrypt(crypto, obid, genid, data, len);
+    // We want to crop off ()s if found
+    if (len > 0 && src[0] == '(' && src[len-1] == ')') {
+        src = &src[1];
+        len -= 2;
+    }
+    
+    pd_crypto_convert(crypto, obid, genid, src, len);
+    return pd_crypto_escape(dst, src, len);
+}
+
+void pd_crypto_decrypt(pd_crypto crypto, PDInteger obid, PDInteger genid, char *data)
+{
+    PDInteger len = pd_crypto_unescape(data);
+    pd_crypto_convert(crypto, obid, genid, data, len);
 }

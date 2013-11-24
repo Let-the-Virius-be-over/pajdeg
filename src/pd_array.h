@@ -24,7 +24,11 @@
  
  @defgroup pd_array pd_array
  
- @brief Low-performance convenience array implementation.
+ @brief Low-performance convenience array implementation with optional crypto support.
+ 
+ This is a crude implementation of the array structure. If a crypto object is supplied, the array will transparently supply decrypted values for entries on demand, and will encrypt entries supplied.
+ 
+ Currently, entries are only encrypted if they are found to be strings, i.e. if they are "(wrapped within parentheses)".
  
  @ingroup PDALGO
  
@@ -54,6 +58,18 @@ extern pd_array pd_array_with_capacity(PDInteger capacity);
  @param array The array to delete. 
  */
 extern void pd_array_destroy(pd_array array);
+
+/**
+ Supply a crypto object to an array, and associate the array with a specific object. 
+ 
+ The array will swap out its g, s, pi pointers to crypto-enabled ones. It will also instantiate a crypto instance for holding parameters used in crypto.
+ 
+ @param array The array.
+ @param crypto The pd_crypt object.
+ @param objectID The object ID of the owning object.
+ @param genNumber Generation number of the owning object.
+ */
+extern void pd_array_set_crypto(pd_array array, pd_crypto crypto, PDInteger objectID, PDInteger genNumber);
 
 /**
  Converts a stack into an array.
@@ -138,6 +154,8 @@ extern void pd_array_replace_at_index(pd_array array, PDInteger index, const cha
  @param array The array.
  */
 extern char *pd_array_to_string(pd_array array);
+
+#define encryptable(str) (strlen(str) > 0 && str[0] == '(' && str[strlen(str)-1] == ')')
 
 #endif
 

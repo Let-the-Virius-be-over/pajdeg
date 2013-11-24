@@ -41,7 +41,7 @@ void pd_stack_push_identifier(pd_stack *stack, PDID identifier)
     pd_stack s = malloc(sizeof(struct pd_stack));
     s->prev = *stack;
     s->info = identifier;
-    s->type = pd_stack_ID;
+    s->type = PD_STACK_ID;
     *stack = s;
 }
 
@@ -59,7 +59,7 @@ void pd_stack_push_freeable(pd_stack *stack, void *freeable)
     pd_stack s = malloc(sizeof(struct pd_stack));
     s->prev = *stack;
     s->info = freeable;
-    s->type = pd_stack_FREEABL;
+    s->type = PD_STACK_FREEABLE;
     *stack = s;
 }
 
@@ -68,7 +68,7 @@ void pd_stack_push_stack(pd_stack *stack, pd_stack pstack)
     pd_stack s = malloc(sizeof(struct pd_stack));
     s->prev = *stack;
     s->info = pstack;
-    s->type = pd_stack_STACK;
+    s->type = PD_STACK_STACK;
     *stack = s;
 }
 
@@ -85,7 +85,7 @@ void pd_stack_unshift_stack(pd_stack *stack, pd_stack sstack)
     pd_stack s = malloc(sizeof(struct pd_stack));
     s->prev = NULL;
     s->info = sstack;
-    s->type = pd_stack_STACK;
+    s->type = PD_STACK_STACK;
     vtail->prev = s;
 }
 
@@ -95,7 +95,7 @@ void pd_stack_push_object(pd_stack *stack, void *ob)
     pd_stack s = malloc(sizeof(struct pd_stack));
     s->prev = *stack;
     s->info = ob; //PDRetain(ob);
-    s->type = pd_stack_PDOB;
+    s->type = PD_STACK_PDOB;
     *stack = s;
 }
 
@@ -103,7 +103,7 @@ PDID pd_stack_pop_identifier(pd_stack *stack)
 {
     if (*stack == NULL) return NULL;
     pd_stack popped = *stack;
-    PDAssert(popped->type == pd_stack_ID);
+    PDAssert(popped->type == PD_STACK_ID);
     *stack = popped->prev;
     PDID identifier = popped->info;
     (*pd_stack_dealloc)(popped);
@@ -115,7 +115,7 @@ void pd_stack_assert_expected_key(pd_stack *stack, const char *key)
     PDAssert(*stack != NULL);
     
     pd_stack popped = *stack;
-    PDAssert(popped->type == PD_STACK_STRING || popped->type == pd_stack_ID);
+    PDAssert(popped->type == PD_STACK_STRING || popped->type == PD_STACK_ID);
 
     char *got = popped->info;
     if (popped->type == PD_STACK_STRING) {
@@ -192,7 +192,7 @@ pd_stack pd_stack_pop_stack(pd_stack *stack)
 {
     if (*stack == NULL) return NULL;
     pd_stack popped = *stack;
-    PDAssert(popped->type == pd_stack_STACK);
+    PDAssert(popped->type == PD_STACK_STACK);
     *stack = popped->prev;
     pd_stack pstack = popped->info;
     (*pd_stack_dealloc)(popped);
@@ -203,7 +203,7 @@ void *pd_stack_pop_object(pd_stack *stack)
 {
     if (*stack == NULL) return NULL;
     pd_stack popped = *stack;
-    PDAssert(popped->type == pd_stack_PDOB);
+    PDAssert(popped->type == PD_STACK_PDOB);
     *stack = popped->prev;
     void *ob = popped->info;
     (*pd_stack_dealloc)(popped);
@@ -214,7 +214,7 @@ void *pd_stack_pop_freeable(pd_stack *stack)
 {
     if (*stack == NULL) return NULL;
     pd_stack popped = *stack;
-    PDAssert(popped->type == pd_stack_FREEABL);
+    PDAssert(popped->type == PD_STACK_FREEABLE);
     *stack = popped->prev;
     void *key = popped->info;
     (*pd_stack_dealloc)(popped);
@@ -238,13 +238,13 @@ static inline void pd_stack_free_info(pd_stack stack)
 {
     switch (stack->type) {
         case PD_STACK_STRING:
-        case pd_stack_FREEABL:
+        case PD_STACK_FREEABLE:
             free(stack->info);
             break;
-        case pd_stack_STACK:
+        case PD_STACK_STACK:
             pd_stack_destroy(stack->info);
             break;
-        case pd_stack_PDOB:
+        case PD_STACK_PDOB:
             PDRelease(stack->info);
             break;
     }
@@ -336,7 +336,7 @@ PDBool pd_stack_get_next_dict_key(pd_stack *iterStack, char **key, char **value)
     // entry is now iterated past e, ID and is now at
     // entry
     // so we see if type is primitive or not
-    if (entry->type == pd_stack_STACK) {
+    if (entry->type == PD_STACK_STACK) {
         // it's not primitive, so we set the preserve flag and stringify
         pd_stack_set_global_preserve_flag(true);
         entry = (pd_stack)entry->info;
@@ -482,19 +482,19 @@ void pd_stack_print_(pd_stack stack, PDInteger indent)
     sind[cind] = 0;
     while (stack) {
         switch (stack->type) {
-            case pd_stack_ID:
+            case PD_STACK_ID:
                 printf("%s %p (\"%s\")\n", sind, stack->info, *(char **)stack->info);
                 break;
             case PD_STACK_STRING:
                 printf("%s %s\n", sind, (char*)stack->info);
                 break;
-            case pd_stack_FREEABL:
+            case PD_STACK_FREEABLE:
                 printf("%s %p\n", sind, stack->info);
                 break;
-            case pd_stack_STACK:
+            case PD_STACK_STACK:
                 pd_stack_print_(stack->info, cind + 2);
                 break;
-            case pd_stack_PDOB:
+            case PD_STACK_PDOB:
                 printf("%s object (%p)", sind, stack->info);
                 break;
             default:
@@ -526,23 +526,23 @@ void pd_stack_show_(pd_stack stack)
 {
     PDBool stackLumping = false;
     while (stack) {
-        stackLumping &= (stack->type == pd_stack_STACK);
+        stackLumping &= (stack->type == PD_STACK_STACK);
         if (stackLumping) putchar('\t');
         
         switch (stack->type) {
-            case pd_stack_ID:
+            case PD_STACK_ID:
                 printf("@%s", *(char **)stack->info);
                 break;
             case PD_STACK_STRING:
                 printf("\"%s\"", (char*)stack->info);
                 break;
-            case pd_stack_FREEABL:
+            case PD_STACK_FREEABLE:
                 printf("%p", stack->info);
                 break;
-            case pd_stack_STACK:
-                if (! stackLumping && (stackLumping |= stack->prev && stack->prev->type == pd_stack_STACK)) 
+            case PD_STACK_STACK:
+                if (! stackLumping && (stackLumping |= stack->prev && stack->prev->type == PD_STACK_STACK)) 
                     putchar('\n');
-                //stackLumping |= stack->prev && stack->prev->type == pd_stack_STACK;
+                //stackLumping |= stack->prev && stack->prev->type == PD_STACK_STACK;
                 if (stackLumping) {
                     printf("\t{ ");
                     pd_stack_show_(stack->info);
@@ -553,7 +553,7 @@ void pd_stack_show_(pd_stack stack)
                     printf(" }");
                 }
                 break;
-            case pd_stack_PDOB:
+            case PD_STACK_PDOB:
                 printf("<%p>", stack->info);
                 break;
             default:

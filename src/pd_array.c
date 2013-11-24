@@ -19,12 +19,147 @@
 
 #include "pd_array.h"
 #include "pd_stack.h"
+#include "pd_crypto.h"
 #include "pd_internal.h"
 #include "pd_pdf_implementation.h"
+
+///
+/// Getters/setters
+///
+
+const char *pd_array_getter(void *arr, const void *k)
+{
+    return as(pd_array, arr)->values[as(PDInteger, k)];
+}
+
+const char *pd_array_crypto_getter(void *arr, const void *k)
+{
+    pd_array array = arr;
+    pd_crypto_instance ci = array->info;
+    char **plain = ci->info;
+    PDInteger index = as(PDInteger, k);
+
+    if (NULL == plain[index] && NULL != array->values[index]) {
+        char *encrypted = plain[index] = strdup(array->values[index]);
+        if (encryptable(encrypted)) {
+            pd_crypto_decrypt(ci->crypto, ci->obid, ci->genid, encrypted);
+        }
+    }
+    return plain[index];
+}
+
+///
+
+void pd_array_remover(void *arr, const void *k)
+{
+    pd_array array = as(pd_array, arr);
+    PDInteger index = as(PDInteger, k);
+    
+    free(array->values[index]);
+    array->count--;
+    for (PDInteger i = index; i < array->count; i++)
+        array->values[i] = array->values[i+1];
+}
+
+void pd_array_crypto_remover(void *arr, const void *k)
+{
+    pd_array array = as(pd_array, arr);
+    pd_crypto_instance ci = array->info;
+    PDInteger index = as(PDInteger, k);
+    char **plain = ci->info;
+    
+    free(array->values[index]);
+    free(plain[index]);
+    array->count--;
+    for (PDInteger i = index; i < array->count; i++) {
+        array->values[i] = array->values[i+1];
+        plain[i] = plain[i+1];
+    }
+}
+
+///
+
+void pd_array_setter(void *arr, const void *k, const char *value)
+{
+    pd_array array = as(pd_array, arr);
+    PDInteger index = as(PDInteger, k);
+    
+    free(array->values[index]);
+    array->values[index] = strdup(value);
+}
+
+void pd_array_crypto_setter(void *arr, const void *k, const char *value)
+{
+    pd_array array = as(pd_array, arr);
+    pd_crypto_instance ci = array->info;
+    PDInteger index = as(PDInteger, k);
+    char **plain = ci->info;
+    
+    free(array->values[index]);
+    free(plain[index]);
+
+    plain[index] = strdup(value);
+    char *decrypted = array->values[index] = strdup(value);
+    if (encryptable(decrypted)) {
+        pd_crypto_encrypt(ci->crypto, ci->obid, ci->genid, &array->values[index], decrypted, strlen(decrypted));
+        free(decrypted);
+    }
+}
+
+///
+
+void pd_array_push_index(void *arr, PDInteger index)
+{
+    pd_array array = as(pd_array, arr);
+    
+    if (array->count == array->capacity) {
+        array->capacity += array->capacity + 1;
+        array->values = realloc(array->values, sizeof(char*) * array->capacity);
+    }
+    
+    for (PDInteger i = array->count; i > index; i--)
+        array->values[i] = array->values[i-1];
+    
+    array->values[index] = NULL;
+    
+    array->count++;
+}
+
+void pd_array_crypto_push_index(void *arr, PDInteger index)
+{
+    pd_array array = as(pd_array, arr);
+    pd_crypto_instance ci = array->info;
+    char **plain = ci->info;
+    
+    if (array->count == array->capacity) {
+        array->capacity += array->capacity + 1;
+        array->values = realloc(array->values, sizeof(char*) * array->capacity);
+        ci->info = plain = realloc(plain, sizeof(char*) * array->capacity);
+    }
+    
+    for (PDInteger i = array->count; i > index; i--) {
+        array->values[i] = array->values[i-1];
+        plain[i] = plain[i-1];
+    }
+
+    plain[index] = array->values[index] = NULL;
+    
+    array->count++;
+}
+
+
+///
+/// Array code
+///
 
 pd_array pd_array_with_capacity(PDInteger capacity)
 {
     pd_array arr = malloc(sizeof(struct pd_array));
+    arr->g = pd_array_getter;
+    arr->s = pd_array_setter;
+    arr->r = pd_array_remover;
+    arr->pi = pd_array_push_index;
+    arr->info = NULL;
     arr->count = 0;
     arr->capacity = capacity;
     arr->values = malloc(sizeof(char*) * capacity);
@@ -35,8 +170,28 @@ void pd_array_destroy(pd_array array)
 {
     for (PDInteger i = array->count-1; i >= 0; i--)
         free(array->values[i]);
+    if (array->info) {
+        // we don't bother with signature juggling for this as it presumably happens relatively seldom (destruction of arrays, that is), compared to getting/setting
+        pd_crypto_instance ci = array->info;
+        free(ci->info);
+        free(ci);
+    }
     free(array->values);
     free(array);
+}
+
+void pd_array_set_crypto(pd_array array, pd_crypto crypto, PDInteger objectID, PDInteger genNumber)
+{
+    pd_crypto_instance ci = malloc(sizeof(struct pd_crypto_instance));
+    ci->info = calloc(array->capacity, sizeof(char *));
+    ci->crypto = crypto;
+    ci->obid = objectID;
+    ci->genid = genNumber;
+    array->info = ci;
+    array->g = pd_array_crypto_getter;
+    array->s = pd_array_crypto_setter;
+    array->r = pd_array_crypto_remover;
+    array->pi = pd_array_crypto_push_index;
 }
 
 pd_array pd_array_from_stack(pd_stack stack)
@@ -143,42 +298,34 @@ PDInteger pd_array_get_count(pd_array array)
 
 const char *pd_array_get_at_index(pd_array array, PDInteger index)
 {
-    return array->values[index];
-}
-
-#define pd_array_prepare_insertion(array) \
-    if (array->count == array->capacity) {\
-        array->capacity += array->capacity + 1;\
-        array->values = realloc(array->values, sizeof(char*) * array->capacity);\
-    }
-
-void pd_array_append(pd_array array, const char *value)
-{
-    pd_array_prepare_insertion(array);
-    array->values[array->count++] = strdup(value);
+    return (*array->g)(array, (const void*)index);
 }
 
 void pd_array_insert_at_index(pd_array array, PDInteger index, const char *value)
 {
-    pd_array_prepare_insertion(array);
-    for (PDInteger i = array->count; i > index; i--)
-        array->values[i] = array->values[i-1];
-    array->values[index] = strdup(value);
-    array->count++;
+    // make room first
+    (*array->pi)(array, index);
+    // then insert
+    (*array->s)(array, (const void *)index, value);
+}
+
+void pd_array_append(pd_array array, const char *value)
+{
+    PDInteger index = array->count;
+    // make room first
+    (*array->pi)(array, index);
+    // then insert
+    (*array->s)(array, (const void *)index, value);
 }
 
 void pd_array_remove_at_index(pd_array array, PDInteger index)
 {
-    free(array->values[index]);
-    array->count--;
-    for (PDInteger i = index; i < array->count; i++)
-        array->values[i] = array->values[i+1];
+    (*array->r)(array, (const void *)index);
 }
 
 void pd_array_replace_at_index(pd_array array, PDInteger index, const char *value)
 {
-    free(array->values[index]);
-    array->values[index] = strdup(value);
+    (*array->s)(array, (const void *)index, value);
 }
 
 char *pd_array_to_string(pd_array array)

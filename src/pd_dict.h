@@ -57,6 +57,18 @@ extern pd_dict pd_dict_with_capacity(PDInteger capacity);
 extern void pd_dict_destroy(pd_dict dict);
 
 /**
+ Supply a crypto object to a dictionary, and associate the dict with a specific object. 
+ 
+ The dict will swap out its g, s, r pointers to crypto-enabled ones. It will also instantiate a crypto instance for holding parameters used in crypto.
+ 
+ @param dict The dict.
+ @param crypto The pd_crypt object.
+ @param objectID The object ID of the owning object.
+ @param genNumber Generation number of the owning object.
+ */
+extern void pd_dict_set_crypto(pd_dict dict, pd_crypto crypto, PDInteger objectID, PDInteger genNumber);
+
+/**
  Converts a PDF dict stack into a dictionary.
  
  @param stack The PDF dict stack.

@@ -413,11 +413,11 @@ struct PDScanner {
 
 /// @name Stack
 
-#define PD_STACK_STRING  0      ///< Stack string type
-#define pd_stack_ID      1      ///< Stack identifier type
-#define pd_stack_STACK   2      ///< Stack stack type
-#define pd_stack_PDOB    3      ///< Stack object (PDTypeRef managed) type
-#define pd_stack_FREEABL 4      ///< Stack freeable type
+#define PD_STACK_STRING   0      ///< Stack string type
+#define PD_STACK_ID       1      ///< Stack identifier type
+#define PD_STACK_STACK    2      ///< Stack stack type
+#define PD_STACK_PDOB     3      ///< Stack object (PDTypeRef managed) type
+#define PD_STACK_FREEABLE 4      ///< Stack freeable type
 
 /**
  The internal stack structure
@@ -428,24 +428,87 @@ struct pd_stack {
     void      *info;            ///< The stack content, based on its type
 };
 
+
+/**
+ "Get object for key" signature for arrays/dictionaries. (Arrays pass integers as keys.)
+ */
+typedef const char *(*_list_getter)(void *ref, const void *key);
+
+/**
+ "Remove object for key" signature for arrays/dictionaries. (Arrays pass integers as keys.)
+ */
+typedef void (*_list_remover)(void *ref, const void *key);
+
+/**
+ "Set object for key to value" signature for arrays/dictionaries.
+ */
+typedef void (*_list_setter)(void *ref, const void *key, const char *value);
+
+/**
+ "Make room at index" signature for arrays.
+ */
+typedef void (*_list_push_index)(void *ref, PDInteger index);
+
+/**
+ Crypto instance for arrays/dicts.
+ */
+typedef struct pd_crypto_instance *pd_crypto_instance;
+struct pd_crypto_instance {
+    pd_crypto crypto;           ///< Crypto object.
+    PDInteger obid;             ///< Associated object ID.
+    PDInteger genid;            ///< Associated generation number.
+    void     *info;             ///< User info. A char ** for arrays and dicts.
+};
+
 /**
  The internal array structure.
  */
 struct pd_array {
-    PDInteger count;            ///< Number of elements.
-    PDInteger capacity;         ///< Capacity of array.
-    char    **values;           ///< Content.
+    PDInteger        count;     ///< Number of elements.
+    PDInteger        capacity;  ///< Capacity of array.
+    char           **values;    ///< Content.
+    _list_getter     g;         ///< Getter
+    _list_setter     s;         ///< Setter
+    _list_remover    r;         ///< Remover
+    _list_push_index pi;        ///< Push-indexer
+    void            *info;      ///< Info object (used for encrypted arrays)
 };
+
+/**
+ The internal crypto array structure.
+ */
+/*struct pd_crypto_array {
+    pd_array encrypted;         ///< Encrypted content.
+    pd_array decrypted;         ///< Decrypted content.
+    pd_crypto crypto;           ///< Crypto object, or NULL if unencrypted
+    PDInteger objID;            ///< Array owner (used for decryption) ID.
+    PDInteger genID;            ///< Array owner (used for decrypiton) generation number.
+};*/
 
 /**
  The internal dictionary structure.
  */
 struct pd_dict {
-    PDInteger count;            ///< Number of entries.
-    PDInteger capacity;         ///< Capacity of dictionary.
-    char    **keys;             ///< Keys.
-    char    **values;           ///< Values.
+    PDInteger        count;     ///< Number of entries.
+    PDInteger        capacity;  ///< Capacity of dictionary.
+    char           **keys;      ///< Keys.
+    char           **values;    ///< Values.
+    _list_getter     g;         ///< Getter
+    _list_setter     s;         ///< Setter
+    _list_remover    r;         ///< Remover
+    void            *info;      ///< Info object (used for encrypted arrays)
 };
+
+/**
+ The internal crypto dictionary structure.
+ */
+/*struct pd_crypto_dict {
+    pd_dict encrypted;          ///< Encrypted content.
+    pd_dict decrypted;          ///< Decrypted content.
+    pd_crypto crypto;           ///< Crypto object, or NULL if unencrypted
+    PDInteger objID;            ///< Array owner (used for decryption) ID.
+    PDInteger genID;            ///< Array owner (used for decrypiton) generation number.
+};*/
 
 /**
  Crypto sequence parameter.

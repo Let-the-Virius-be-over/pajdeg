@@ -20,11 +20,146 @@
 #include "pd_dict.h"
 #include "pd_internal.h"
 #include "pd_stack.h"
+#include "pd_array.h"
+#include "pd_crypto.h"
 #include "pd_pdf_implementation.h"
+
+#define pd_dict_fetch_i(dict, key) \
+    PDInteger i; \
+    for (i = 0; i < dict->count; i++) \
+        if (0 == strcmp(key, dict->keys[i])) \
+            break
+
+///
+/// Getters / setters
+///
+
+const char *pd_dict_getter(void *d, const void *key)
+{
+    pd_dict dict = as(pd_dict, d);
+    pd_dict_fetch_i(dict, key);
+    return (i == dict->count ? NULL : dict->values[i]);
+}
+
+const char *pd_dict_crypto_getter(void *d, const void *key)
+{
+    pd_dict dict = as(pd_dict, d);
+    pd_crypto_instance ci = dict->info;
+    char **plain = ci->info;
+
+    pd_dict_fetch_i(dict, key);
+    if (i == dict->count) return NULL;
+
+    if (NULL == plain[i] && NULL != dict->values[i]) {
+        char *encrypted = plain[i] = strdup(dict->values[i]);
+        if (encryptable(encrypted)) {
+            pd_crypto_decrypt(ci->crypto, ci->obid, ci->genid, encrypted);
+        }
+    }
+    return plain[i];
+}
+
+///
+
+void pd_dict_remover(void *d, const void *key)
+{
+    pd_dict dict = as(pd_dict, d);
+    pd_dict_fetch_i(dict, key);
+    if (i == dict->count) return;
+    
+    free(dict->values[i]);
+    free(dict->keys[i]);
+    
+    dict->count--;
+    for (PDInteger j = i; j < dict->count; j++) {
+        dict->keys[j] = dict->keys[j+1];
+        dict->values[j] = dict->values[j+1];
+    }
+}
+
+void pd_dict_crypto_remover(void *d, const void *key)
+{
+    pd_dict dict = as(pd_dict, d);
+
+    pd_dict_fetch_i(dict, key);
+    if (i == dict->count) return;
+
+    pd_crypto_instance ci = dict->info;
+    char **plain = ci->info;
+    
+    free(plain[i]);
+    free(dict->values[i]);
+    free(dict->keys[i]);
+    
+    dict->count--;
+    for (PDInteger j = i; j < dict->count; j++) {
+        dict->keys[j] = dict->keys[j+1];
+        dict->values[j] = dict->values[j+1];
+        plain[j] = plain[j+1];
+    }
+}
+
+///
+
+void pd_dict_setter(void *d, const void *key, const char *value)
+{
+    pd_dict dict = as(pd_dict, d);
+    pd_dict_fetch_i(dict, key);
+    if (i == dict->count) {
+        if (dict->count == dict->capacity) {
+            dict->capacity += dict->capacity + 1;
+            dict->values = realloc(dict->values, sizeof(char*) * dict->capacity);
+            dict->keys = realloc(dict->keys, sizeof(char*) * dict->capacity);
+        }
+        dict->keys[dict->count] = strdup(key);
+        dict->values[dict->count++] = strdup(value);
+    } else {
+        free(dict->values[i]);
+        dict->values[i] = strdup(value);
+    }
+}
+
+void pd_dict_crypto_setter(void *d, const void *key, const char *value)
+{
+    pd_dict dict = as(pd_dict, d);
+    pd_crypto_instance ci = dict->info;
+    char **plain = ci->info;
+
+    pd_dict_fetch_i(dict, key);
+    
+    if (i == dict->count) {
+        if (dict->count == dict->capacity) {
+            dict->capacity += dict->capacity + 1;
+            dict->values = realloc(dict->values, sizeof(char*) * dict->capacity);
+            dict->keys = realloc(dict->keys, sizeof(char*) * dict->capacity);
+            ci->info = plain = realloc(plain, sizeof(char*) * dict->capacity);
+        }
+        dict->count++;
+        dict->keys[i] = strdup(key);
+    } else {
+        free(dict->values[i]);
+        free(plain[i]);
+    }
+    
+    plain[i] = strdup(value);
+    char *decrypted = dict->values[i] = strdup(value);
+    if (encryptable(decrypted)) {
+        pd_crypto_encrypt(ci->crypto, ci->obid, ci->genid, &dict->values[i], decrypted, strlen(decrypted));
+        free(decrypted);
+    }
+}
+
+///
+///
+///
 
 pd_dict pd_dict_with_capacity(PDInteger capacity)
 {
     pd_dict dict = malloc(sizeof(struct pd_dict));
+    dict->g = pd_dict_getter;
+    dict->s = pd_dict_setter;
+    dict->r = pd_dict_remover;
+    dict->info = NULL;
     dict->capacity = capacity;
     dict->count = 0;
     dict->keys = malloc(sizeof(char*) * capacity);
@@ -34,6 +169,13 @@ pd_dict pd_dict_with_capacity(PDInteger capacity)
 
 void pd_dict_destroy(pd_dict dict)
 {
+    if (dict->info) {
+        // we don't bother with signature juggling for this as it presumably happens relatively seldom (destruction of dicts, that is), compared to getting/setting
+        pd_crypto_instance ci = dict->info;
+        free(ci->info);
+        free(ci);
+    }
+
     for (PDInteger i = dict->count-1; i >= 0; i--) {
         free(dict->keys[i]);
         free(dict->values[i]);
@@ -41,6 +183,19 @@ void pd_dict_destroy(pd_dict dict)
     free(dict->keys);
     free(dict->values);
     free(dict);
+}
+
+void pd_dict_set_crypto(pd_dict dict, pd_crypto crypto, PDInteger objectID, PDInteger genNumber)
+{
+    pd_crypto_instance ci = malloc(sizeof(struct pd_crypto_instance));
+    ci->info = calloc(dict->capacity, sizeof(char *));
+    ci->crypto = crypto;
+    ci->obid = objectID;
+    ci->genid = genNumber;
+    dict->info = ci;
+    dict->g = pd_dict_crypto_getter;
+    dict->s = pd_dict_crypto_setter;
+    dict->r = pd_dict_crypto_remover;
 }
 
 pd_dict pd_dict_from_pdf_dict_stack(pd_stack stack)
@@ -143,48 +298,19 @@ PDInteger pd_dict_get_count(pd_dict dict)
     return dict->count;
 }
 
-#define pd_dict_fetch_i(dict, key) \
-    PDInteger i; \
-    for (i = 0; i < dict->count; i++) \
-        if (0 == strcmp(key, dict->keys[i])) \
-            break
-
 const char *pd_dict_get(pd_dict dict, const char *key)
 {
-    pd_dict_fetch_i(dict, key);
-    return (i == dict->count ? NULL : dict->values[i]);
+    return (*dict->g)(dict, key);
 }
 
 void pd_dict_remove(pd_dict dict, const char *key)
 {
-    pd_dict_fetch_i(dict, key);
-    if (i == dict->count) return;
-    
-    free(dict->values[i]);
-    free(dict->keys[i]);
-    
-    dict->count--;
-    for (PDInteger j = i; j < dict->count; j++) {
-        dict->keys[j] = dict->keys[j+1];
-        dict->values[j] = dict->values[j+1];
-    }
+    (*dict->r)(dict, key);
 }
 
 void pd_dict_set(pd_dict dict, const char *key, const char *value)
 {
-    pd_dict_fetch_i(dict, key);
-    if (i == dict->count) {
-        if (dict->count == dict->capacity) {
-            dict->capacity += dict->capacity + 1;
-            dict->values = realloc(dict->values, sizeof(char*) * dict->capacity);
-            dict->keys = realloc(dict->keys, sizeof(char*) * dict->capacity);
-        }
-        dict->keys[dict->count] = strdup(key);
-        dict->values[dict->count++] = strdup(value);
-    } else {
-        free(dict->values[i]);
-        dict->values[i] = strdup(value);
-    }
+    (*dict->s)(dict, key, value);
 }
 
 const char **pd_dict_keys(pd_dict dict)

@@ -55,6 +55,32 @@ extern pd_crypto pd_crypto_create(pd_dict trailerDict, pd_dict options);
 extern void pd_crypto_destroy(pd_crypto crypto);
 
 /**
+ Unescape a PDF string which may optionally be wrapped in parentheses. The result is not wrapped in parentheses. The string is unescaped in-place and NUL-terminated.
+ 
+ Strings, in particular encrypted strings, are stored using escaping to prevent null termination in the middle of strings and PDF misinterpretations and other nastiness.
+ 
+ Escaping is done to control chars, such as \r, \n, \t, \b, and unreadable ascii characters using \octal(s) (1, 2 or 3).
+ 
+ @param str The string.
+ @return The length of the unescaped string.
+ */
+extern PDInteger pd_crypto_unescape(char *str);
+
+/**
+ Escape a string. The result will be wrapped in parentheses.
+ 
+ Strings, in particular encrypted strings, are stored using escaping to prevent null termination in the middle of strings and PDF misinterpretations and other nastiness.
+ 
+ Escaping is done to control chars, such as \r, \n, \t, \b, and unreadable ascii characters using \octal(s) (1, 2 or 3).
+ 
+ @param dst Pointer to destination string. Should not be pre-allocated.
+ @param src String to escape.
+ @param srcLen Length of string.
+ @return The length of the escaped string.
+ */
+extern PDInteger pd_crypto_escape(char **dst, const char *src, PDInteger srcLen);
+
+/**
  Supply a user password. 
  
  @param crypto The crypto object.
@@ -64,26 +90,27 @@ extern void pd_crypto_destroy(pd_crypto crypto);
 extern PDBool pd_crypto_authenticate_user(pd_crypto crypto, const char *password);
 
 /**
- Encrypt the value of strIn of length lenIn and store the value in strOut and the length of the value in lenOut.
+ Encrypt the value of src of length len and store the value in dst, escaped and parenthesized.
  
  @param crypto Crypto instance.
  @param obid The object ID of the object whose content is being encrypted.
  @param genid The generation number of the object whose content is being encrypted.
- @param data The data to encrypt. The content will be in-place replaced with the new data.
+ @param dst Pointer to char buffer into which results will be stored. Should not be pre-allocated.
+ @param src The data to encrypt. The content will be in-place encrypted but escaped results go into *dst.
  @param len Length of data in bytes.
+ @return Length of encrypted string, including parentheses and escaping.
  */
-extern void pd_crypto_encrypt(pd_crypto crypto, PDInteger obid, PDInteger genid, char *data, PDInteger len);
+extern PDInteger pd_crypto_encrypt(pd_crypto crypto, PDInteger obid, PDInteger genid, char **dst, char *src, PDInteger len);
 
 /**
- Decrypt the value of strIn of length lenIn and store the value in strOut and the length of the value in lenOut.
+ Decrypt, unescape and NUL-terminate the value of data in-place.
  
  @param crypto Crypto instance.
  @param obid The object ID of the object whose content is being decrypted.
  @param genid The generation number of the object whose content is being decrypted.
  @param data The data to decrypt. The content will be in-place replaced with the new data.
- @param len Length of data in bytes.
  */
-extern void pd_crypto_decrypt(pd_crypto crypto, PDInteger obid, PDInteger genid, char *data, PDInteger len);
+extern void pd_crypto_decrypt(pd_crypto crypto, PDInteger obid, PDInteger genid, char *data);
 
 #endif
 

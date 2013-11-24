@@ -226,7 +226,7 @@ pd_stack PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDIntege
 void PDParserFetchStreamLengthFromObjectDictionary(PDParserRef parser, pd_stack entry)
 {
     entry = entry->prev->prev;
-    if (entry->type == pd_stack_STACK) {
+    if (entry->type == PD_STACK_STACK) {
         PDInteger refid;
         pd_stack stack;
         // this is a reference length
