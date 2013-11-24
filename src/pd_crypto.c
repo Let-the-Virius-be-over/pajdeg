@@ -22,6 +22,8 @@
 #include "pd_dict.h"
 #include "pd_md5.h"
 
+#ifdef PD_SUPPORT_CRYPTO
+
 /*
 struct pd_crypto {
     // common values
@@ -342,3 +344,5 @@ void pd_crypto_decrypt(pd_crypto crypto, PDInteger obid, PDInteger genid, char *
     PDInteger len = pd_crypto_unescape(data);
     pd_crypto_convert(crypto, obid, genid, data, len);
 }
+
+#endif

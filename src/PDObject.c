@@ -166,18 +166,22 @@ void PDObjectInstantiateDictionary(PDObjectRef object)
 {
     object->dict = pd_dict_from_pdf_dict_stack(object->def);
     object->type = PDObjectTypeDictionary;
+#ifdef PD_SUPPORT_CRYPTO
     if (object->crypto) {
         pd_dict_set_crypto(object->dict, object->crypto, object->obid, object->genid);
     }
+#endif
 }
 
 void PDObjectInstantiateArray(PDObjectRef object)
 {
     object->array = pd_array_from_pdf_array_stack(object->def);
     object->type = PDObjectTypeArray;
+#ifdef PD_SUPPORT_CRYPTO
     if (object->crypto) {
         pd_array_set_crypto(object->array, object->crypto, object->obid, object->genid);
     }
+#endif
 }
 
 const char *PDObjectGetDictionaryEntry(PDObjectRef object, const char *key)

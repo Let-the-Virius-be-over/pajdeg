@@ -41,6 +41,7 @@ const char *pd_dict_getter(void *d, const void *key)
     return (i == dict->count ? NULL : dict->values[i]);
 }
 
+#ifdef PD_SUPPORT_CRYPTO
 const char *pd_dict_crypto_getter(void *d, const void *key)
 {
     pd_dict dict = as(pd_dict, d);
@@ -58,6 +59,7 @@ const char *pd_dict_crypto_getter(void *d, const void *key)
     }
     return plain[i];
 }
+#endif
 
 ///
 
@@ -77,6 +79,7 @@ void pd_dict_remover(void *d, const void *key)
     }
 }
 
+#ifdef PD_SUPPORT_CRYPTO
 void pd_dict_crypto_remover(void *d, const void *key)
 {
     pd_dict dict = as(pd_dict, d);
@@ -98,6 +101,7 @@ void pd_dict_crypto_remover(void *d, const void *key)
         plain[j] = plain[j+1];
     }
 }
+#endif
 
 ///
 
@@ -119,6 +123,7 @@ void pd_dict_setter(void *d, const void *key, const char *value)
     }
 }
 
+#ifdef PD_SUPPORT_CRYPTO
 void pd_dict_crypto_setter(void *d, const void *key, const char *value)
 {
     pd_dict dict = as(pd_dict, d);
@@ -148,6 +153,7 @@ void pd_dict_crypto_setter(void *d, const void *key, const char *value)
         free(decrypted);
     }
 }
+#endif
 
 ///
 ///
@@ -169,13 +175,15 @@ pd_dict pd_dict_with_capacity(PDInteger capacity)
 
 void pd_dict_destroy(pd_dict dict)
 {
+#ifdef PD_SUPPORT_CRYPTO
     if (dict->info) {
         // we don't bother with signature juggling for this as it presumably happens relatively seldom (destruction of dicts, that is), compared to getting/setting
         pd_crypto_instance ci = dict->info;
         free(ci->info);
         free(ci);
     }
-
+#endif
+    
     for (PDInteger i = dict->count-1; i >= 0; i--) {
         free(dict->keys[i]);
         free(dict->values[i]);
@@ -187,6 +195,7 @@ void pd_dict_destroy(pd_dict dict)
 
 void pd_dict_set_crypto(pd_dict dict, pd_crypto crypto, PDInteger objectID, PDInteger genNumber)
 {
+#ifdef PD_SUPPORT_CRYPTO
     pd_crypto_instance ci = malloc(sizeof(struct pd_crypto_instance));
     ci->info = calloc(dict->capacity, sizeof(char *));
     ci->crypto = crypto;
@@ -196,6 +205,7 @@ void pd_dict_set_crypto(pd_dict dict, pd_crypto crypto, PDInteger objectID, PDIn
     dict->g = pd_dict_crypto_getter;
     dict->s = pd_dict_crypto_setter;
     dict->r = pd_dict_crypto_remover;
+#endif
 }
 
 pd_dict pd_dict_from_pdf_dict_stack(pd_stack stack)

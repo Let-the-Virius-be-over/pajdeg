@@ -30,6 +30,10 @@
 #ifndef INCLUDED_PD_MD5
 #define INCLUDED_PD_MD5
 
+#include "PDDefines.h"
+
+#ifdef PD_SUPPORT_CRYPTO
+
 /* UINT2 defines a two byte word */
 typedef unsigned short int UINT2;
 
@@ -49,5 +53,7 @@ extern void pd_md5_update(pd_md5_ctx *ctx, unsigned char *data, unsigned int len
 extern void pd_md5_final(unsigned char *md, pd_md5_ctx *ctx);
 
 extern void pd_md5(unsigned char *data, unsigned int len, unsigned char *result);
+
+#endif
 
 #endif

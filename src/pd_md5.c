@@ -31,6 +31,8 @@
 #include <string.h>
 #include "pd_md5.h"
 
+#ifdef PD_SUPPORT_CRYPTO
+
 void pd_md5(unsigned char *data, unsigned int len, unsigned char *result)
 {
     pd_md5_ctx ctx;
@@ -349,20 +351,4 @@ unsigned int len;
     }
 }
 
-/* Digests a string and prints the result.
- */
-static void MDString (string)
-char *string;
-{
-    pd_md5_ctx context;
-    unsigned char digest[16];
-    unsigned int len = strlen (string);
-    
-    pd_md5_init (&context);
-    pd_md5_update (&context, (unsigned char *)string, len);
-    pd_md5_final (digest, &context);
-    
-    printf ("MD5 (\"%s\") = ", string);
-    //MDPrint (digest);
-    printf ("\n");
-}
+#endif

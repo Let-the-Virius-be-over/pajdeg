@@ -32,6 +32,7 @@ const char *pd_array_getter(void *arr, const void *k)
     return as(pd_array, arr)->values[as(PDInteger, k)];
 }
 
+#ifdef PD_SUPPORT_CRYPTO
 const char *pd_array_crypto_getter(void *arr, const void *k)
 {
     pd_array array = arr;
@@ -47,6 +48,7 @@ const char *pd_array_crypto_getter(void *arr, const void *k)
     }
     return plain[index];
 }
+#endif
 
 ///
 
@@ -61,6 +63,7 @@ void pd_array_remover(void *arr, const void *k)
         array->values[i] = array->values[i+1];
 }
 
+#ifdef PD_SUPPORT_CRYPTO
 void pd_array_crypto_remover(void *arr, const void *k)
 {
     pd_array array = as(pd_array, arr);
@@ -76,6 +79,7 @@ void pd_array_crypto_remover(void *arr, const void *k)
         plain[i] = plain[i+1];
     }
 }
+#endif
 
 ///
 
@@ -88,6 +92,7 @@ void pd_array_setter(void *arr, const void *k, const char *value)
     array->values[index] = strdup(value);
 }
 
+#ifdef PD_SUPPORT_CRYPTO
 void pd_array_crypto_setter(void *arr, const void *k, const char *value)
 {
     pd_array array = as(pd_array, arr);
@@ -105,6 +110,7 @@ void pd_array_crypto_setter(void *arr, const void *k, const char *value)
         free(decrypted);
     }
 }
+#endif
 
 ///
 
@@ -125,6 +131,7 @@ void pd_array_push_index(void *arr, PDInteger index)
     array->count++;
 }
 
+#ifdef PD_SUPPORT_CRYPTO
 void pd_array_crypto_push_index(void *arr, PDInteger index)
 {
     pd_array array = as(pd_array, arr);
@@ -146,7 +153,7 @@ void pd_array_crypto_push_index(void *arr, PDInteger index)
     
     array->count++;
 }
-
+#endif
 
 ///
 /// Array code
@@ -170,18 +177,21 @@ void pd_array_destroy(pd_array array)
 {
     for (PDInteger i = array->count-1; i >= 0; i--)
         free(array->values[i]);
+#ifdef PD_SUPPORT_CRYPTO
     if (array->info) {
         // we don't bother with signature juggling for this as it presumably happens relatively seldom (destruction of arrays, that is), compared to getting/setting
         pd_crypto_instance ci = array->info;
         free(ci->info);
         free(ci);
     }
+#endif
     free(array->values);
     free(array);
 }
 
 void pd_array_set_crypto(pd_array array, pd_crypto crypto, PDInteger objectID, PDInteger genNumber)
 {
+#ifdef PD_SUPPORT_CRYPTO
     pd_crypto_instance ci = malloc(sizeof(struct pd_crypto_instance));
     ci->info = calloc(array->capacity, sizeof(char *));
     ci->crypto = crypto;
@@ -192,6 +202,7 @@ void pd_array_set_crypto(pd_array array, pd_crypto crypto, PDInteger objectID, P
     array->s = pd_array_crypto_setter;
     array->r = pd_array_crypto_remover;
     array->pi = pd_array_crypto_push_index;
+#endif
 }
 
 pd_array pd_array_from_stack(pd_stack stack)

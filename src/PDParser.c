@@ -59,7 +59,9 @@ void PDParserDestroy(PDParserRef parser)
     PDRelease(parser->cxt);
     pd_stack_destroy(parser->xstack);
     
+#ifdef PD_SUPPORT_CRYPTO
     if (parser->crypto) pd_crypto_destroy(parser->crypto);
+#endif
     
     pd_pdf_implementation_discard();
 }
@@ -111,7 +113,9 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
             parser->encrypt = PDObjectCreate(parser->encryptRef->obid, parser->encryptRef->genid);
             parser->encrypt->def = encDef;
         }
+#ifdef PD_SUPPORT_CRYPTO
         parser->crypto = pd_crypto_create(PDObjectGetDictionary(parser->trailer), PDObjectGetDictionary(parser->encrypt));
+#endif
     }
     
     return parser;

@@ -122,9 +122,9 @@ extern char *PDC;
  A macro for asserting that an object is a proper PDType.
  */
 #ifdef DEBUG_PDTYPES
-#define PDTYPE_ASSERT(ob) PDAssert(((PDTypeRef)ob - 1)->pdc == PDC)
+#   define PDTYPE_ASSERT(ob) PDAssert(((PDTypeRef)ob - 1)->pdc == PDC)
 #else
-#define PDTYPE_ASSERT(ob) 
+#   define PDTYPE_ASSERT(ob) 
 #endif
 
 /**
@@ -450,17 +450,6 @@ typedef void (*_list_setter)(void *ref, const void *key, const char *value);
 typedef void (*_list_push_index)(void *ref, PDInteger index);
 
 /**
- Crypto instance for arrays/dicts.
- */
-typedef struct pd_crypto_instance *pd_crypto_instance;
-struct pd_crypto_instance {
-    pd_crypto crypto;           ///< Crypto object.
-    PDInteger obid;             ///< Associated object ID.
-    PDInteger genid;            ///< Associated generation number.
-    void     *info;             ///< User info. A char ** for arrays and dicts.
-};
-
-/**
  The internal array structure.
  */
 struct pd_array {
@@ -473,17 +462,6 @@ struct pd_array {
     _list_push_index pi;        ///< Push-indexer
     void            *info;      ///< Info object (used for encrypted arrays)
 };
-
-/**
- The internal crypto array structure.
- */
-/*struct pd_crypto_array {
-    pd_array encrypted;         ///< Encrypted content.
-    pd_array decrypted;         ///< Decrypted content.
-    pd_crypto crypto;           ///< Crypto object, or NULL if unencrypted
-    PDInteger objID;            ///< Array owner (used for decryption) ID.
-    PDInteger genID;            ///< Array owner (used for decrypiton) generation number.
-};*/
 
 /**
  The internal dictionary structure.
@@ -499,16 +477,18 @@ struct pd_dict {
     void            *info;      ///< Info object (used for encrypted arrays)
 };
 
+#ifdef PD_SUPPORT_CRYPTO
+
 /**
- The internal crypto dictionary structure.
+ Crypto instance for arrays/dicts.
  */
-/*struct pd_crypto_dict {
-    pd_dict encrypted;          ///< Encrypted content.
-    pd_dict decrypted;          ///< Decrypted content.
-    pd_crypto crypto;           ///< Crypto object, or NULL if unencrypted
-    PDInteger objID;            ///< Array owner (used for decryption) ID.
-    PDInteger genID;            ///< Array owner (used for decrypiton) generation number.
-};*/
+typedef struct pd_crypto_instance *pd_crypto_instance;
+struct pd_crypto_instance {
+    pd_crypto crypto;           ///< Crypto object.
+    PDInteger obid;             ///< Associated object ID.
+    PDInteger genid;            ///< Associated generation number.
+    void     *info;             ///< User info. A char ** for arrays and dicts.
+};
 
 /**
  Crypto sequence parameter.
@@ -538,6 +518,14 @@ struct pd_crypto {
     PDBool encryptMetadata;     ///< whether metadata should be encrypted or not ("/EncryptMetadata true")
     pd_crypto_param enckey;     ///< encryption key
 };
+
+#else
+
+struct pd_crypto {
+    
+};
+
+#endif
 
 /// @name State
 

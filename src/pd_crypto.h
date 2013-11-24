@@ -40,6 +40,8 @@
 #include <sys/types.h>
 #include "PDDefines.h"
 
+#ifdef PD_SUPPORT_CRYPTO
+
 /**
  Create crypto object with given configuration. 
  
@@ -111,6 +113,8 @@ extern PDInteger pd_crypto_encrypt(pd_crypto crypto, PDInteger obid, PDInteger g
  @param data The data to decrypt. The content will be in-place replaced with the new data.
  */
 extern void pd_crypto_decrypt(pd_crypto crypto, PDInteger obid, PDInteger genid, char *data);
+
+#endif
 
 #endif
 
