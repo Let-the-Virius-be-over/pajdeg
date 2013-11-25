@@ -22,7 +22,7 @@
  
  @section intro_sec Introduction
  
- Pajdeg is a C library for modifying existing PDF documents by passing them through a stream with tasks assigned based on object ID's.
+ Pajdeg is a C library for modifying existing PDF documents by passing them through a stream with tasks assigned based on object ID's, pages, object types, or similar.
  
  @note Unless you need to, using a @link WRAPPERS wrapper @endlink is recommended, as the core C library is fairly low level.
  
@@ -33,6 +33,18 @@
  - Executing.
  
  Tasks can be chained together, and appended to the stream at any time through other tasks, with the caveat that the requested object has not yet passed through the stream.
+ 
+ @section features Features
+ 
+ Pajdeg supports the following notable PDF related features:
+ 
+ - Stream compression/decompression (via zlib)
+ - Predictors
+ - Standard encryption/decryption (RC4, not AES)
+ - Object streams (PDF 1.5+ feature)
+ - PDF catalogs (page-to-object mapping)
+ 
+ More sophisticated functionality (such as manipulating annotations) can be found in @link WRAPPERS wrappers @endlink.
  
  @section quick_start Quick Start
 

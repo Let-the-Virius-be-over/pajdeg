@@ -35,7 +35,7 @@
 #define PD_SUPPORT_ZLIB
 
 /**
- Enable crypto support.
+ Support cryptography in PDFs. Currently includes RC4/MD5, but not AES.
  */
 #define PD_SUPPORT_CRYPTO
 
