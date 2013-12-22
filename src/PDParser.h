@@ -94,6 +94,17 @@ extern PDObjectRef PDParserCreateAppendedObject(PDParserRef parser);
 extern char *PDParserFetchCurrentObjectStream(PDParserRef parser, PDInteger obid);
 
 /**
+ Fetch the object stream of the given object.
+ 
+ Once fetched, this will simply return the stream buffer as is.
+ 
+ @param parser The parser.
+ @param object The object whose stream is to be fetched. Assertion is thrown if it is not in the original PDF.
+ @return Stream buffer.
+ */
+extern char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDObjectRef object);
+
+/**
  Determine if the PDF is encrypted or not.
  
  @param parser The parser.

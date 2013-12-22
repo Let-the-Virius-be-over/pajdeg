@@ -114,6 +114,21 @@ extern PDInteger pd_crypto_encrypt(pd_crypto crypto, PDInteger obid, PDInteger g
  */
 extern void pd_crypto_decrypt(pd_crypto crypto, PDInteger obid, PDInteger genid, char *data);
 
+/**
+ Convert data of length len owned by object obid with generation number genid to/from encrypted version.
+ 
+ This is the "low level" function used by the above two methods to encrypt/decrypt content. This version does not 
+ escape/unescape or add/remove parentheses, which the above ones do. This version is used directly for streams
+ which aren't escaped.
+ 
+ @param crypto Crypto instance.
+ @param obid Object ID of owning object.
+ @param genid Generation number of owning object.
+ @param data Data to convert.
+ @param len Length of data.
+ */
+extern void pd_crypto_convert(pd_crypto crypto, PDInteger obid, PDInteger genid, char *data, PDInteger len);
+
 #endif
 
 #endif

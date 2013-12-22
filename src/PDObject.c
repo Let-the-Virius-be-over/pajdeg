@@ -456,7 +456,7 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
             break;
             
         case PDObjectTypeString:
-            PDStringGrow(1 + strlen((char*)object->def));
+            PDStringGrow(2 + strlen((char*)object->def));
             putfmt("%s\n", (char*)object->def);
             break;
             

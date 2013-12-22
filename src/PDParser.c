@@ -251,6 +251,29 @@ void PDParserFetchStreamLengthFromObjectDictionary(PDParserRef parser, pd_stack 
     }
 }
 
+void PDParserPrepareStreamData(PDParserRef parser, PDObjectRef ob, PDInteger len, const char *filterName, char *rawBuf)
+{
+    if (filterName) {
+        filterName = &filterName[1];
+        pd_stack filterOpts = pd_stack_get_dict_key(ob->def, "DecodeParms", false);
+        if (filterOpts) 
+            filterOpts = PDStreamFilterGenerateOptionsFromDictionaryStack(filterOpts->prev->prev->info);
+        PDStreamFilterRef filter = PDStreamFilterObtain(filterName, true, filterOpts);
+        char *extractedBuf;
+        PDStreamFilterApply(filter, (unsigned char *)rawBuf, (unsigned char **)&extractedBuf, len, &len);
+        free(rawBuf);
+        rawBuf = extractedBuf;
+        PDRelease(filter);
+    }
+    
+    if (parser->crypto) {
+        pd_crypto_convert(parser->crypto, ob->obid, ob->genid, rawBuf, len);
+    }
+    
+    ob->extractedLen = len;
+    ob->streamBuf = rawBuf;
+}
+
 char *PDParserFetchCurrentObjectStream(PDParserRef parser, PDInteger obid)
 {
     PDObjectRef ob = parser->construct;
@@ -267,12 +290,12 @@ char *PDParserFetchCurrentObjectStream(PDParserRef parser, PDInteger obid)
     PDInteger len = parser->streamLen;
     const char *filterName = PDObjectGetDictionaryEntry(parser->construct, "Filter");
 
-    //PDScannerAssertString(parser->scanner, "stream");
-
     char *rawBuf = malloc(len);
     PDScannerReadStream(parser->scanner, len, rawBuf, len);
     
-    if (filterName) {
+    PDParserPrepareStreamData(parser, ob, len, filterName, rawBuf);
+    
+    /*if (filterName) {
         filterName = &filterName[1];
         pd_stack filterOpts = pd_stack_get_dict_key(ob->def, "DecodeParms", false);
         if (filterOpts) 
@@ -285,10 +308,116 @@ char *PDParserFetchCurrentObjectStream(PDParserRef parser, PDInteger obid)
         PDRelease(filter);
     }
     
+    if (parser->crypto) {
+        pd_crypto_convert(parser->crypto, ob->obid, ob->genid, rawBuf, len);
+    }
+    
     ob->extractedLen = len;
-    ob->streamBuf = rawBuf;
+    ob->streamBuf = rawBuf;*/
     
     parser->state = PDParserStateObjectPostStream;
+    
+    return rawBuf;
+}
+
+char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDObjectRef object)
+{
+    if (parser->obid == object->obid) {
+        // use the (faster) FetchCurrentObjectStream
+        return PDParserFetchCurrentObjectStream(parser, object->obid);
+    }
+    
+    // objects that were random-access-fetched normally don't have their hasStream property set, but we can
+    // set it based on their dictionary value /Length -- if it's non-zero (or a ref), they have a stream
+    if (! object->hasStream) {
+        const char *length = PDObjectGetDictionaryEntry(object, "Length");
+        if (length) {
+            // length could be a ref, or a number
+            PDInteger lenOb, lenGen, lenInt;
+            if (2 == sscanf(length, "%ld %ld R", &lenOb, &lenGen)) {
+                // it's a ref, fetch it
+                pd_stack lenDef = PDParserLocateAndCreateDefinitionForObject(parser, lenOb, true);
+                const char *realLength = pd_stack_pop_key(&lenDef);
+                lenInt = PDIntegerFromString(realLength);
+            } else {
+                lenInt = PDIntegerFromString(length);
+            }
+            object->hasStream = lenInt > 0;
+            object->streamLen = lenInt;
+        }
+    }
+    
+    PDAssert(object);
+    PDAssert(object->hasStream);
+    if (object->extractedLen != -1) return object->streamBuf;
+
+    PDInteger len = object->streamLen;
+    const char *filterName = PDObjectGetDictionaryEntry(object, "Filter");
+    
+    char *rawBuf = malloc(len);
+    
+    char *tb;
+    char *string;
+    pd_stack stack;
+
+    PDXOffsetType offset = PDXTableGetOffsetForID(parser->mxt, object->obid);
+    PDTwinStreamFetchBranch(parser->stream, offset, 10000 + len, &tb);
+    
+    PDScannerRef tmpscan = PDScannerCreateWithState(pdfRoot);
+    PDScannerContextPush(parser->stream, &PDTwinStreamDisallowGrowth);
+    tmpscan->buf = tb;
+    tmpscan->boffset = 0;
+    tmpscan->bsize = 10000 + len;
+    
+    if (PDScannerPopStack(tmpscan, &stack)) {
+        if (! parser->stream->outgrown) {
+            pd_stack_assert_expected_key(&stack, "obj");
+            pd_stack_assert_expected_int(&stack, object->obid);
+        }
+        pd_stack_destroy(stack);
+    }
+    
+    stack = NULL;
+    if (! PDScannerPopStack(tmpscan, &stack)) {
+        if (PDScannerPopString(tmpscan, &string)) {
+            free(string);
+        }
+    }
+    pd_stack_destroy(stack);
+    
+    PDScannerPopString(tmpscan, &string);
+    // we expect 'stream'
+    PDAssert(!strcmp(string, "stream"));
+    free(string);
+        
+    PDScannerReadStream(tmpscan, len, rawBuf, len);
+    
+    PDParserPrepareStreamData(parser, object, len, filterName, rawBuf);
+        
+    /*if (filterName) {
+        filterName = &filterName[1];
+        pd_stack filterOpts = pd_stack_get_dict_key(object->def, "DecodeParms", false);
+        if (filterOpts) 
+            filterOpts = PDStreamFilterGenerateOptionsFromDictionaryStack(filterOpts->prev->prev->info);
+        PDStreamFilterRef filter = PDStreamFilterObtain(filterName, true, filterOpts);
+        char *extractedBuf;
+        PDStreamFilterApply(filter, (unsigned char *)rawBuf, (unsigned char **)&extractedBuf, len, &len);
+        free(rawBuf);
+        rawBuf = extractedBuf;
+        PDRelease(filter);
+    }
+    
+    if (parser->crypto) {
+        pd_crypto_convert(parser->crypto, object->obid, object->genid, rawBuf, len);
+    }
+        
+    object->extractedLen = len;
+    object->streamBuf = rawBuf;*/
+        
+    PDTwinStreamCutBranch(parser->stream, tb);
+    
+    PDRelease(tmpscan);
+    PDScannerContextPop();
     
     return rawBuf;
 }

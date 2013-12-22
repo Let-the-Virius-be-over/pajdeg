@@ -96,9 +96,6 @@ void pd_crypto_generate_enckey(pd_crypto crypto, const char *user_pass)
     // pass owner hash
     pd_md5_update(&md5ctx, crypto->owner.d, crypto->owner.l);
     
-    // append owner hash; we truncate above so that user pass + pad is 32 bytes always
-    //memcpy(&buf[32], crypto->owner.d, 32);
-    
     // append privs as 4-byte int, LSB first
     buf[0] = crypto->privs & 0xff;
     buf[1] = (crypto->privs >> 8) & 0xff;
@@ -116,16 +113,6 @@ void pd_crypto_generate_enckey(pd_crypto crypto, const char *user_pass)
     
     pd_md5_final(buf, &md5ctx);
     
-    // append file identifier
-    /*int blen = 68;
-    memcpy(&buf[blen], crypto->identifier.d, crypto->identifier.l);
-    blen += crypto->identifier.l;
-    //memcpy(&buf[blen], crypto->identifier.d, crypto->identifier.l);
-    //blen += crypto->identifier.l;
-    
-    // md5-hash the result (back into buf)
-    pd_md5(buf, blen, buf);*/
-    
     int eklen = crypto->length/8;
     if (crypto->revision > 2) {
         for (int i = 0; i < 50; i++) {
@@ -134,9 +121,9 @@ void pd_crypto_generate_enckey(pd_crypto crypto, const char *user_pass)
     }
     
     // the first length/8 bytes are the encryption key
-    unsigned char *enckey = malloc(1 + (crypto->length/8));
-    memcpy(enckey, buf, crypto->length/8);
-    enckey[crypto->length/8] = 0;
+    unsigned char *enckey = malloc(1 + eklen);
+    memcpy(enckey, buf, eklen);
+    enckey[eklen] = 0;
     crypto->enckey.d = enckey;
     crypto->enckey.l = crypto->length/8;
 }
@@ -182,34 +169,6 @@ pd_crypto_param pd_crypto_decode_pdf_hex(const char *hexstr)
     return cp;
 }
 
-pd_crypto pd_crypto_create(pd_dict trailerDict, pd_dict options)
-{
-    pd_crypto crypto = malloc(sizeof(struct pd_crypto));
-    
-    const char *fid = pd_dict_get(trailerDict, "ID");
-    crypto->identifier = pd_crypto_decode_pdf_hex(fid);
-    
-    // read from dict
-    crypto->filter = strdup_null(pd_dict_get(options, "Filter"));
-    crypto->subfilter = strdup_null(pd_dict_get(options, "SubFilter"));
-    crypto->version = PDIntegerFromString(pd_dict_get(options, "V"));
-    crypto->length = PDIntegerFromString(pd_dict_get(options, "Length"));
-    crypto->encryptMetadata = pd_dict_get(options, "EncryptMetadata") && 0 == strcmp(pd_dict_get(options, "EncryptMetadata"), "true");
-    
-    crypto->revision = PDIntegerFromString(pd_dict_get(options, "R"));
-    crypto->owner = pd_crypto_decode_pdf_hex(pd_dict_get(options, "O"));
-    crypto->user = pd_crypto_decode_pdf_hex(pd_dict_get(options, "U"));
-    crypto->privs = PDIntegerFromString(pd_dict_get(options, "P"));
-    
-    // fix defaults where appropriate
-    if (crypto->version == 0) crypto->version = 1; // we do not support the default as it is undocumented and no longer supported by the official specification
-    if (crypto->length < 40 || crypto->length > 128) crypto->length = 40;
-    
-    crypto->enckey = (pd_crypto_param){NULL, 0};
-    
-    return crypto;
-}
-
 PDInteger pd_crypto_unescape(char *str)
 {
     PDBool esc = false;
@@ -240,7 +199,15 @@ PDInteger pd_crypto_unescape(char *str)
                     case 'r': str[si] = '\r'; break;
                     case 'n': str[si] = '\n'; break;
                     case 'b': str[si] = '\b'; break;
-                    default: str[si] = str[i]; break;
+                    case 'f': str[si] = '\f'; break;
+                    case '0': str[si] = '\0'; break;
+                    case 'a': str[si] = '\a'; break;
+                    case 'v': str[si] = '\v'; break;
+                    case 'e': str[si] = '\e'; break;
+                    default: 
+                        PDWarn("unknown escape sequence: encryption may break: \\%c\n", str[i]);
+                        str[si] = str[i]; 
+                        break;
                 }
                 esc = false;
             } else {
@@ -251,6 +218,57 @@ PDInteger pd_crypto_unescape(char *str)
     }
     str[si] = 0;
     return si;
+}
+
+pd_crypto_param pd_crypto_decode_param(const char *param)
+{
+    // param can be a (string with \escapes) or a <hex string>
+    pd_crypto_param cp;
+    cp.d = NULL;
+    cp.l = 0;
+    if (param == NULL || strlen(param) == 0) {
+        return cp;
+    }
+    
+    if (param[0] == '(') {
+        if (param[strlen(param)-1] != ')') {
+            // special case; sometimes encryption keys contain \0; invalid of course, as these must be escaped, but life is life
+            param = &param[1];
+        }
+        cp.d = (unsigned char *)strdup(param);
+        cp.l = pd_crypto_unescape((char *)cp.d);
+        return cp;
+    }
+
+    return pd_crypto_decode_pdf_hex(param);
+}
+
+pd_crypto pd_crypto_create(pd_dict trailerDict, pd_dict options)
+{
+    pd_crypto crypto = malloc(sizeof(struct pd_crypto));
+    
+    const char *fid = pd_dict_get(trailerDict, "ID");
+    crypto->identifier = pd_crypto_decode_pdf_hex(fid);
+    
+    // read from dict
+    crypto->filter = strdup_null(pd_dict_get(options, "Filter"));
+    crypto->subfilter = strdup_null(pd_dict_get(options, "SubFilter"));
+    crypto->version = PDIntegerFromString(pd_dict_get(options, "V"));
+    crypto->length = PDIntegerFromString(pd_dict_get(options, "Length"));
+    crypto->encryptMetadata = pd_dict_get(options, "EncryptMetadata") && 0 == strcmp(pd_dict_get(options, "EncryptMetadata"), "true");
+    
+    crypto->revision = PDIntegerFromString(pd_dict_get(options, "R"));
+    crypto->owner = pd_crypto_decode_param(pd_dict_get(options, "O"));
+    crypto->user = pd_crypto_decode_param(pd_dict_get(options, "U"));
+    crypto->privs = PDIntegerFromString(pd_dict_get(options, "P"));
+    
+    // fix defaults where appropriate
+    if (crypto->version == 0) crypto->version = 1; // we do not support the default as it is undocumented and no longer supported by the official specification
+    if (crypto->length < 40 || crypto->length > 128) crypto->length = 40;
+    
+    crypto->enckey = (pd_crypto_param){NULL, 0};
+    
+    return crypto;
 }
 
 PDInteger pd_crypto_escape(char **dst, const char *src, PDInteger srcLen)
@@ -265,16 +283,21 @@ PDInteger pd_crypto_escape(char **dst, const char *src, PDInteger srcLen)
             case '\b': str[++si] = 'b'; break;
             case '\r': str[++si] = 'r'; break;
             case '\n': str[++si] = 'n'; break;
+            case '\f': str[++si] = 'f'; break;
+            case '\a': str[++si] = 'a'; break;
+                
             case '\\': 
             case '(':
             case ')':
                 str[++si] = src[i];
                 break;
+                
             case 0: 
                 str[++si] = '0';
                 str[++si] = '0';
                 str[++si] = '0';
                 break;
+                
             default:
                 str[si] = src[i];
                 break;
