@@ -317,7 +317,7 @@ char *PDParserFetchCurrentObjectStream(PDParserRef parser, PDInteger obid)
     
     parser->state = PDParserStateObjectPostStream;
     
-    return rawBuf;
+    return ob->streamBuf;
 }
 
 char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDObjectRef object)
@@ -419,7 +419,7 @@ char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDObjectRe
     PDRelease(tmpscan);
     PDScannerContextPop();
     
-    return rawBuf;
+    return object->streamBuf;
 }
 
 void PDParserUpdateObject(PDParserRef parser)
