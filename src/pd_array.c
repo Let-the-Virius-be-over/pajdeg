@@ -161,6 +161,8 @@ void pd_array_crypto_push_index(void *arr, PDInteger index)
 
 pd_array pd_array_with_capacity(PDInteger capacity)
 {
+    if (capacity < 1) capacity = 1;
+    
     pd_array arr = malloc(sizeof(struct pd_array));
     arr->g = pd_array_getter;
     arr->s = pd_array_setter;

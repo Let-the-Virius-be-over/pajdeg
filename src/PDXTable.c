@@ -854,7 +854,7 @@ PDBool PDXTableFetchContent(PDXI X)
     
     // we now set up the xstack from the (byte-ordered) list of xref tables; if the PDF is or appears to be linearized, however, we flatten the stack into one entry
     X->parser->xstack = NULL;
-    if (X->tables == 2 && pdx->pos < pdx->prev->pos) {
+    if (X->tables == 2 && pdx && pdx->prev && pdx->pos < pdx->prev->pos) {
         // master is before its precdecessor byte-wise, and the PDF has two XRef entries => linearized; flatten
         pdx->linearized = true;
         pdx->pos = pdx->prev->pos;
@@ -865,7 +865,7 @@ PDBool PDXTableFetchContent(PDXI X)
         // otherwise ensure that the master xref table is last; if it isn't, Pajdeg will end parsing prematurely
         for (i = X->tables - 1; i >= 0; i--) {
             // if the XREF comes after the master, the PDF is broken (?), and we bump the master XREF position and skip over the XREF entirely -- this is perfectly non-destructive in terms of data; the master XREF contains the complete set of changes applied in revision order; in theory, all XREF tables could be completely ignored with no side effects aside from safety harness of the parser seeing what it expects to be seeing; the one potential problem with dropping a revision is that indirect object referenced stream lengths for deprecated objects may receive the wrong length; I'm fine with Pajdeg failing at that point
-            if (tables[i]->pos > pdx->pos) {
+            if (tables[i]->pos > pdx->pos) { /// @todo CLANG does not recognize that X->tables = 0 if pdx = nil, and no dereferencing of null or undefined ptr value will ever occur
                 /// @todo this is not the case when XRefStm objects are included, as that puts table count > 2
                 PDWarn("Master XREF position adjusted due to bytewise successing predecessor -- this PDF is badly formed; may result in corrupted output\n");
                 pdx->pos = tables[i]->pos;

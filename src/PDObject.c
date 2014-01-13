@@ -113,6 +113,31 @@ PDObjectType PDObjectDetermineType(PDObjectRef object)
         object->type = PDObjectTypeDictionary;
     else if (PDIdentifies(stid, PD_NAME))
         object->type = PDObjectTypeString; // todo: make use of more types
+    else if (st->prev == NULL) {
+        // this is *probably* a string; let's see if we get something sensible out of it
+        char *string = strdup(st->info);
+        if (string) {
+            object->type = PDObjectTypeString;
+            object->def = string;
+            pd_stack_destroy(st);
+            /*
+            if (string[0] == '(') {
+                // yeah, it's a string
+                object->type = PDObjectTypeString;
+            } else if (string[0] >= '0' && string[0] <= '9') {
+                // it's a number; we can find out by looking for a period if it's real or integral
+                while (string[0] && string[0] != '.') string = &string[1];
+                if (string[0]) { 
+                    // it's real
+                    object->type = PDObjectTypeReal;
+                } else {
+                    // it's integral
+                    object->type = PDObjectTypeInteger;
+                }
+            }
+            */
+        }
+    }
     return object->type;
 }
 

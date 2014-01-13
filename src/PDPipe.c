@@ -323,7 +323,7 @@ PDInteger PDPipeExecute(PDPipeRef pipe)
         // run unfiltered tasks
         if (! (proceed &= PDPipeRunStackedTasks(pipe, parser, &pipe->typeTasks[0]))) break;
         
-        // check filtered tasks
+        /// check filtered tasks; @todo: CLANG: does not recognize that dynamicFiltering is always true if sht is nil.
         if (pipe->dynamicFiltering || PDStaticHashValueForKey(sht, parser->obid)) {
 
             // by object id

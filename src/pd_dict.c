@@ -161,6 +161,8 @@ void pd_dict_crypto_setter(void *d, const void *key, const char *value)
 
 pd_dict pd_dict_with_capacity(PDInteger capacity)
 {
+    if (capacity < 1) capacity = 1;
+    
     pd_dict dict = malloc(sizeof(struct pd_dict));
     dict->g = pd_dict_getter;
     dict->s = pd_dict_setter;

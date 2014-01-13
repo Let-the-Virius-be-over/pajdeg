@@ -204,6 +204,13 @@ PDInteger pd_crypto_unescape(char *str)
                     case 'a': str[si] = '\a'; break;
                     case 'v': str[si] = '\v'; break;
                     case 'e': str[si] = '\e'; break;
+
+                        // a number of things are simply escaped escapings (\, (, ))
+                    case '\\':
+                    case '(':
+                    case ')': 
+                        str[si] = str[i]; break;
+                        
                     default: 
                         PDWarn("unknown escape sequence: encryption may break: \\%c\n", str[i]);
                         str[si] = str[i]; 

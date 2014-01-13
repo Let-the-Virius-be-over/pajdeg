@@ -73,8 +73,10 @@ static inline bt_node bt_node_probe(bt_node subroot, PDInteger key, PDBool activ
     }
     
     // insert
-    node = bt_node_create(key, NULL, active);
-    bt_node_branch_for_key(p, key) = node;
+    if (p) {
+        node = bt_node_create(key, NULL, active);
+        bt_node_branch_for_key(p, key) = node;
+    }
     
     return node;
 }
@@ -193,7 +195,7 @@ void PDBTreeInsert(PDBTreeRef btree, PDInteger key, void *value)
     void *old = bt_node_insert(btree->root, key, value, true);
     if (value && NULL == old) btree->count++;
 #ifdef DEBUG
-    PDInteger *tmp = malloc(sizeof(void*) * btree->count);
+    PDInteger *tmp = malloc(sizeof(PDInteger) * btree->count);
     PDInteger c = PDBTreePopulateKeys(btree, tmp);
     PDAssert(btree->count == c);
     free(tmp);
@@ -206,7 +208,7 @@ void PDBTreeDelete(PDBTreeRef btree, PDInteger key)
         btree->count--;
     
 #ifdef DEBUG
-    PDInteger *tmp = malloc(sizeof(void*) * btree->count);
+    PDInteger *tmp = malloc(sizeof(PDInteger) * btree->count);
     PDInteger c = PDBTreePopulateKeys(btree, tmp);
     PDAssert(btree->count == c);
     free(tmp);
