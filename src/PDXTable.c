@@ -324,7 +324,7 @@ static inline PDBool PDXTableReadXRefStreamHeader(PDXI X)
     PDScannerAssertString(X->scanner, "stream");
     PDInteger len = PDIntegerFromString(pd_stack_get_dict_key(X->stack, "Length", false)->prev->prev->info);
     PDScannerSkip(X->scanner, len);
-    PDTwinStreamAdvance(X->stream, X->scanner->boffset);
+    PDTwinStreamAdvance(X->stream, X->stream->cursor + X->scanner->boffset);
     PDScannerAssertComplex(X->scanner, PD_ENDSTREAM);
     PDScannerAssertString(X->scanner, "endobj");
         
@@ -566,7 +566,7 @@ static inline PDBool PDXTableReadXRefHeader(PDXI X)
         // we now have a stream (technically speaking) of xrefs
         count *= 20;
         PDScannerSkip(X->scanner, count);
-        PDTwinStreamAdvance(X->stream, X->scanner->boffset);
+        PDTwinStreamAdvance(X->stream, X->stream->cursor + X->scanner->boffset);
     } while (PDScannerPopStack(X->scanner, &X->stack));
     
     // we now get the trailer

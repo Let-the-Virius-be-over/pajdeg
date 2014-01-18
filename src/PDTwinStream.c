@@ -300,6 +300,7 @@ void PDTwinStreamAdvance(PDTwinStreamRef ts, PDSize bytes)
 void PDTwinStreamSeek(PDTwinStreamRef ts, PDSize position)
 {
     PDAssert(ts->method == PDTwinStreamRandomAccess);
+    
     if (ts->offsi <= position && ts->offsi + ts->holds > position) {
         ts->cursor = position - (PDSize)ts->offsi;
         return;
