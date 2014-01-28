@@ -342,22 +342,28 @@ void PDScannerPopSymbolRev(PDScannerRef scanner)
 
 void PDScannerReadUntilDelimiter(PDScannerRef scanner, PDBool delimiterIsNewline)
 {
+    //static int bop = 0; bop++; if (bop > 400) { 
+    //    printf("");
+    //}
     char *buf;
     PDInteger   bsize, i;
     PDBool escaped;
     PDScannerSymbolRef sym = scanner->sym;
     i = scanner->boffset;
     escaped = false;
-
-    // if we have a symbol stack we want to pop it all and rewind back to where it was, or we will end up skipping content; we do not reset 'i', however, as we don't want to SCAN from the start, we just want to include everything from the start
-    if (scanner->symbolStack) {
+    
+    // if we have a symbol stack we want to pop it all and rewind back to where it was, or we may end up skipping content; we do not reset 'i' (the cursor) however, or we may end up looping infinitely; if this is a newline delimiter operation, however, we do need to reset 'i' as well, or we may end up trampling past the newline character for cases where the line to be skipped is a single symbol (e.g. "PDF-1.4"); in these cases, we also rewind beyond 'sym', and not just beyond symbol stack content
+    
+    if ((delimiterIsNewline && sym) || scanner->symbolStack) {
         while (scanner->symbolStack) {
             if (sym) free(sym);
             sym = pd_stack_pop_freeable(&scanner->symbolStack);
         }
         scanner->sym = sym;
         scanner->boffset = sym->sstart - scanner->buf;
+        if (delimiterIsNewline) i = scanner->boffset;
     }
+    
     buf = scanner->buf;
     bsize = scanner->bsize;
     while (true) {

@@ -271,7 +271,7 @@ PDBool PDXTablePassoverXRefEntry(PDParserRef parser, pd_stack stack, PDBool incl
         // next is EOF meta
         PDScannerPopStack(scanner, &stack);
         pd_stack_assert_expected_key(&stack, "meta");
-        pd_stack_assert_expected_key(&stack, "EOF");
+        pd_stack_assert_expected_key(&stack, "%EOF");
         
         PDTwinStreamDiscardContent(parser->stream);//, PDTwinStreamScannerCommitBytes(parser->stream));
     }
