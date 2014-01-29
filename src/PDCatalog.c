@@ -132,6 +132,10 @@ PDCatalogRef PDCatalogCreateWithParserForObject(PDParserRef parser, PDObjectRef 
     // note that MediaBox is currently ignored
     
     pd_stack defs = PDParserLocateAndCreateDefinitionForObject(parser, PDIntegerFromString(sref), true);
+    if (! defs) {
+        PDRelease(catalog);
+        return NULL;
+    }
     PDCatalogAppendPages(catalog, &catalog->pages, defs);
     //PDCatalogAppendPagesWithID(catalog, PDIntegerFromString(sref));
     

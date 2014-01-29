@@ -81,7 +81,7 @@ PDObjectStreamRef PDObjectStreamCreateWithObject(PDObjectRef object)
     return obstm;
 }
 
-void PDObjectStreamParseRawObjectStream(PDObjectStreamRef obstm, char *rawBuf)
+PDBool PDObjectStreamParseRawObjectStream(PDObjectStreamRef obstm, char *rawBuf)
 {
     char *extractedBuf;
     PDInteger len;
@@ -91,8 +91,12 @@ void PDObjectStreamParseRawObjectStream(PDObjectStreamRef obstm, char *rawBuf)
     if (obstm->filter) {
         if (! PDStreamFilterApply(obstm->filter, (unsigned char *)rawBuf, (unsigned char **)&extractedBuf, len, &len)) {
             PDWarn("PDStreamFilterApply() failed.");
-            PDAssert(0);
-        }
+            obstm->ob->streamBuf = NULL;
+            obstm->ob->extractedLen = 0;
+            obstm->n = 0;
+            return false;
+        } 
+        
         PDAssert(extractedBuf);
         rawBuf = extractedBuf;
         obstm->ob->streamBuf = extractedBuf;
@@ -100,6 +104,7 @@ void PDObjectStreamParseRawObjectStream(PDObjectStreamRef obstm, char *rawBuf)
     }
 
     PDObjectStreamParseExtractedObjectStream(obstm, rawBuf);
+    return true;
 }
 
 void PDObjectStreamParseExtractedObjectStream(PDObjectStreamRef obstm, char *buf)
@@ -222,8 +227,10 @@ void PDObjectStreamCommit(PDObjectStreamRef obstm)
             len = PDObjectGenerateDefinition(ob, (char**)&elements[i].def, 0);
             len--; // objects add \n after def; don't want two \n's
         } else {
-            pd_stack def = elements[i].def;
-            elements[i].def = PDStringFromComplex(&def);
+            if (PDObjectTypeString != elements[i].type) {
+                pd_stack def = elements[i].def;
+                elements[i].def = PDStringFromComplex(&def);
+            }
             len = strlen(elements[i].def);
         }
         len++; // add a \n after every def

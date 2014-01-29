@@ -118,6 +118,8 @@ extern PDStateRef arbStream;
  
  @warning Destroys target stack unless preserve flag is set.
  
+ @todo Change name to reflect that returned value is allocated and must be freed.
+ 
  @see pd_stack
  @see pd_stack_set_global_preserve_flag
  */

@@ -252,24 +252,26 @@ void PDScannerPopSymbol(PDScannerRef scanner)
     //if (0 == strncmp(&buf[i], "\r\n\n", 3)) {
     //    printf("");
     //}
-    i--;
-    
-    short nlstate = 0; // 0 = nothing, 1 = got \r, 2 = got \n
-    
-    do {
-        if ((c = (buf[i] == '\r' || buf[i] == '\n'))) {
-            nlstate += (nlstate < 1) * (buf[i] == '\r');
-            if (buf[i] == '\n') nlstate = 2;
-        }
-        i++;
-        if (bsize <= i) {
-            scanner->outgrown |= scanner->fixedBuf;
-            if (! scanner->fixedBuf)
-                (*bufFunc)(bufFuncInfo, scanner, &buf, &bsize, 0);
-            if (bsize <= i) 
-                break;
-        }
-    } while ((!c || (nlstate == 0 && buf[i] == '\r') || (nlstate < 2 && buf[i] == '\n')) && PDOperatorSymbolGlob[(unsigned char)buf[i]] == PDOperatorSymbolGlobWhitespace);
+    if (i > 0) {
+        i--;
+        
+        short nlstate = 0; // 0 = nothing, 1 = got \r, 2 = got \n
+        
+        do {
+            if ((c = (buf[i] == '\r' || buf[i] == '\n'))) {
+                nlstate += (nlstate < 1) * (buf[i] == '\r');
+                if (buf[i] == '\n') nlstate = 2;
+            }
+            i++;
+            if (bsize <= i) {
+                scanner->outgrown |= scanner->fixedBuf;
+                if (! scanner->fixedBuf)
+                    (*bufFunc)(bufFuncInfo, scanner, &buf, &bsize, 0);
+                if (bsize <= i) 
+                    break;
+            }
+        } while ((!c || (nlstate == 0 && buf[i] == '\r') || (nlstate < 2 && buf[i] == '\n')) && PDOperatorSymbolGlob[(unsigned char)buf[i]] == PDOperatorSymbolGlobWhitespace);
+    }
     
     sym->sstart = buf + I - len;
     sym->slen = len;
@@ -608,17 +610,20 @@ void PDScannerScan(PDScannerRef scanner)
         
         (*scanner->popFunc)(scanner);
         sym = scanner->sym;
-        hash = sym->shash & (symindices-1);
-        //   |hash entry exists   |hash is not missing   |symbol does not match hash entry
-        while (hash < symindices && symindex[hash] != 0 && strncmp(symbol[symindex[hash]-1], sym->sstart, sym->slen)) 
-            hash++;
-        op = (hash < symindices && symindex[hash]
-              ? state->symbolOp[symindex[hash]-1]
-              : (sym->stype & PDOperatorSymbolExtNumeric) && state->numberOp
-              ? state->numberOp
-              : (sym->stype & PDOperatorSymbolGlobDelimiter) && state->delimiterOp
-              ? state->delimiterOp
-              : state->fallbackOp);
+        op = NULL;
+        if (sym->slen > 0) {
+            hash = sym->shash & (symindices-1);
+            //   |hash entry exists   |hash is not missing   |symbol does not match hash entry
+            while (hash < symindices && symindex[hash] != 0 && strncmp(symbol[symindex[hash]-1], sym->sstart, sym->slen)) 
+                hash++;
+            op = (hash < symindices && symindex[hash]
+                  ? state->symbolOp[symindex[hash]-1]
+                  : (sym->stype & PDOperatorSymbolExtNumeric) && state->numberOp
+                  ? state->numberOp
+                  : (sym->stype & PDOperatorSymbolGlobDelimiter) && state->delimiterOp
+                  ? state->delimiterOp
+                  : state->fallbackOp);
+        } 
         if (op) {
             //char *str = strndup(sym->sstart, sym->slen);
             //printf("state %s operator(%s) [\n", state->name, str);

@@ -214,8 +214,9 @@ extern PDObjectStreamRef PDObjectStreamCreateWithObject(PDObjectRef object);
  
  @param obstm The object stream.
  @param rawBuf The raw buffer.
+ @return True if object stream was parsed successfully, false if an error occurred.
  */
-extern void PDObjectStreamParseRawObjectStream(PDObjectStreamRef obstm, char *rawBuf);
+extern PDBool PDObjectStreamParseRawObjectStream(PDObjectStreamRef obstm, char *rawBuf);
 
 /**
  Parse the extracted object stream and set up the object stream structure.

@@ -80,7 +80,6 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
         PDWarn("PDF is invalid or in an unsupported format.");
         //PDAssert(0); // the PDF is invalid or in a format that isn't supported
         PDRelease(parser);
-        pd_pdf_implementation_discard();
         return NULL;
     }
 
@@ -188,17 +187,20 @@ pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, 
             pd_crypto_convert(parser->crypto, ctrobid, 0, rawBuf, len);
         }
         
-        PDObjectStreamParseRawObjectStream(obstm, rawBuf);
-        if (obstm->elements[index].type == PDObjectTypeString) {
-            stack = NULL;
-            pd_stack_push_key(&stack, obstm->elements[index].def);
-        } else {
-            stack = obstm->elements[index].def;
-            obstm->elements[index].def = NULL;
+        stack = NULL;
+        
+        if (PDObjectStreamParseRawObjectStream(obstm, rawBuf)) {
+            if (obstm->elements[index].type == PDObjectTypeString) {
+                stack = NULL;
+                pd_stack_push_key(&stack, obstm->elements[index].def);
+            } else {
+                stack = obstm->elements[index].def;
+                obstm->elements[index].def = NULL;
+            }
+            
+            PDAssert(outOffset == NULL);
         }
         PDRelease(obstm);
-        
-        PDAssert(outOffset == NULL);
         
         return stack;
     } 
@@ -870,13 +872,6 @@ PDBool PDParserIterate(PDParserRef parser)
     if (parser->done) 
         return false;
     
-    // we may have passed beyond the current binary XREF table
-    if (parser->cxt->format == PDXTableFormatBinary && PDTwinStreamGetInputOffset(parser->stream) >= parser->cxt->pos) {
-        if (! PDParserIterateXRefDomain(parser)) 
-            // we've reached the end
-            return false;
-    }
-    
     // move past half-read objects
     if (PDParserStateBase != parser->state || NULL != parser->construct) {
         PDParserPassthroughObject(parser);
@@ -885,6 +880,13 @@ PDBool PDParserIterate(PDParserRef parser)
     PDTwinStreamAsserts(parser->stream);
     
     while (true) {
+        // we may have passed beyond the current binary XREF table
+        if (parser->cxt->format == PDXTableFormatBinary && PDTwinStreamGetInputOffset(parser->stream) >= parser->cxt->pos) {
+            if (! PDParserIterateXRefDomain(parser)) 
+                // we've reached the end
+                return false;
+        }
+
         // discard up to this point
         if (scanner->boffset > 0) {
             PDTwinStreamDiscardContent(parser->stream);
@@ -938,9 +940,11 @@ PDBool PDParserIterate(PDParserRef parser)
                         PDInteger wsi = 0;
                         while (offset < 0 && PDOperatorSymbolGlob[(unsigned char)parser->stream->heap[parser->stream->cursor+(wsi++)]] == PDOperatorSymbolGlobWhitespace) 
                             offset++;
-                        /*wsi = 1;
-                        while (offset > 0 && PDOperatorSymbolGlob[parser->stream->heap[parser->stream->cursor-(wsi++)]] == PDOperatorSymbolGlobWhitespace) 
-                            offset--;*/
+                        // we also got this fine situation:
+                        // \n       4 0 obj, where the XREF pointed at the point right after the \n, resulting in a 7 byte offset
+                        wsi = 1;
+                        while (offset > 0 && PDOperatorSymbolGlob[(unsigned char)parser->stream->heap[parser->stream->cursor+scanner->bresoffset-(wsi++)]] == PDOperatorSymbolGlobWhitespace) 
+                            offset--;
                     }
                     //printf("offset = %lld\n", offset);
                     if (offset < 2 && offset > -2) {
