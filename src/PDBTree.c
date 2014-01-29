@@ -229,3 +229,13 @@ PDInteger PDBTreePopulateKeys(PDBTreeRef tree, PDInteger *dest)
 {
     return bt_node_populate_keys(tree->root, dest);
 }
+
+void PDBTreePrint(PDBTreeRef btree)
+{
+    PDInteger *dest = malloc(sizeof(PDInteger) * PDBTreeGetCount(btree));
+    PDInteger count = bt_node_populate_keys(btree->root, dest);
+    printf("[%ld items in tree]\n", count);
+    for (PDInteger i = 0; i < count; i++) {
+        printf("%ld = %p\n", dest[i], PDBTreeGet(btree, dest[i]));
+    }
+}

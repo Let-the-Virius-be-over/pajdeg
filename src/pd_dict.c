@@ -41,6 +41,13 @@ const char *pd_dict_getter(void *d, const void *key)
     return (i == dict->count ? NULL : dict->values[i]);
 }
 
+const pd_stack pd_dict_getter_raw(void *d, const void *key)
+{
+    pd_dict dict = as(pd_dict, d);
+    pd_dict_fetch_i(dict, key);
+    return (i == dict->count ? NULL : dict->vstacks[i]);
+}
+
 #ifdef PD_SUPPORT_CRYPTO
 const char *pd_dict_crypto_getter(void *d, const void *key)
 {
@@ -113,11 +120,15 @@ void pd_dict_setter(void *d, const void *key, const char *value)
         if (dict->count == dict->capacity) {
             dict->capacity += dict->capacity + 1;
             dict->values = realloc(dict->values, sizeof(char*) * dict->capacity);
+            dict->vstacks = realloc(dict->vstacks, sizeof(void*) * dict->capacity);
             dict->keys = realloc(dict->keys, sizeof(char*) * dict->capacity);
         }
         dict->keys[dict->count] = strdup(key);
-        dict->values[dict->count++] = strdup(value);
+        dict->values[dict->count] = strdup(value);
+        dict->vstacks[dict->count++] = NULL;
     } else {
+        pd_stack_destroy(dict->vstacks[i]);
+        dict->vstacks[i] = NULL;
         free(dict->values[i]);
         dict->values[i] = strdup(value);
     }
@@ -136,12 +147,16 @@ void pd_dict_crypto_setter(void *d, const void *key, const char *value)
         if (dict->count == dict->capacity) {
             dict->capacity += dict->capacity + 1;
             dict->values = realloc(dict->values, sizeof(char*) * dict->capacity);
+            dict->vstacks = realloc(dict->vstacks, sizeof(void*) * dict->capacity);
             dict->keys = realloc(dict->keys, sizeof(char*) * dict->capacity);
             ci->info = plain = realloc(plain, sizeof(char*) * dict->capacity);
         }
         dict->count++;
         dict->keys[i] = strdup(key);
+        dict->vstacks[i] = NULL;
     } else {
+        pd_stack_destroy(dict->vstacks[i]);
+        dict->vstacks[i] = NULL;
         free(dict->values[i]);
         free(plain[i]);
     }
@@ -165,6 +180,7 @@ pd_dict pd_dict_with_capacity(PDInteger capacity)
     
     pd_dict dict = malloc(sizeof(struct pd_dict));
     dict->g = pd_dict_getter;
+    dict->rg = pd_dict_getter_raw;
     dict->s = pd_dict_setter;
     dict->r = pd_dict_remover;
     dict->info = NULL;
@@ -172,6 +188,7 @@ pd_dict pd_dict_with_capacity(PDInteger capacity)
     dict->count = 0;
     dict->keys = malloc(sizeof(char*) * capacity);
     dict->values = malloc(sizeof(char*) * capacity);
+    dict->vstacks = malloc(sizeof(pd_stack) * capacity);
     return dict;
 }
 
@@ -189,9 +206,11 @@ void pd_dict_destroy(pd_dict dict)
     for (PDInteger i = dict->count-1; i >= 0; i--) {
         free(dict->keys[i]);
         free(dict->values[i]);
+        pd_stack_destroy(dict->vstacks[i]);
     }
     free(dict->keys);
     free(dict->values);
+    free(dict->vstacks);
     free(dict);
 }
 
@@ -205,6 +224,7 @@ void pd_dict_set_crypto(pd_dict dict, pd_crypto crypto, PDInteger objectID, PDIn
     ci->genid = genNumber;
     dict->info = ci;
     dict->g = pd_dict_crypto_getter;
+    //dict->rg = pd_dict_getter_raw; // already the case
     dict->s = pd_dict_crypto_setter;
     dict->r = pd_dict_crypto_remover;
 #endif
@@ -294,8 +314,11 @@ pd_dict pd_dict_from_pdf_dict_stack(pd_stack stack)
         entry = entry->prev;
         if (entry->type == PD_STACK_STRING) {
             dict->values[count] = strdup(entry->info);
+            dict->vstacks[count] = NULL;
         } else {
-            entry = entry->info;
+            dict->vstacks[count] = entry->info;
+            entry->info = NULL;
+            entry = dict->vstacks[count];
             dict->values[count] = PDStringFromComplex(&entry);
         }
         count++;
@@ -313,6 +336,11 @@ PDInteger pd_dict_get_count(pd_dict dict)
 const char *pd_dict_get(pd_dict dict, const char *key)
 {
     return (*dict->g)(dict, key);
+}
+
+const pd_stack pd_dict_get_raw(pd_dict dict, const char *key)
+{
+    return (*dict->rg)(dict, key);
 }
 
 void pd_dict_remove(pd_dict dict, const char *key)

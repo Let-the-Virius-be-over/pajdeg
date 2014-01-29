@@ -113,8 +113,8 @@ PDBool PDStreamFilterApply(PDStreamFilterRef filter, unsigned char *src, unsigne
     
     *dstPtr = resbuf;
     *newlenPtr = got;
-
-    return true;
+    
+    return ! filter->failing;
 }
 
 PDBool PDStreamFilterInit(PDStreamFilterRef filter)

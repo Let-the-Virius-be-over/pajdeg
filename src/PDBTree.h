@@ -47,4 +47,9 @@ extern PDInteger PDBTreeGetCount(PDBTreeRef btree);
  */
 extern PDInteger PDBTreePopulateKeys(PDBTreeRef btree, PDInteger *dest);
 
+/**
+ Print tree to stdout.
+ */
+extern void PDBTreePrint(PDBTreeRef btree);
+
 #endif

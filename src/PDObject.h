@@ -227,6 +227,16 @@ extern void PDObjectSetValue(PDObjectRef object, const char *value);
 extern const char *PDObjectGetDictionaryEntry(PDObjectRef object, const char *key);
 
 /**
+ Fetch the raw (pd_stack) dictionary entry for the given key.
+ 
+ @warning Crashes if the object is not a dictionary.
+ 
+ @param object The object.
+ @param key The dictionary key. Note that keys in a PDF dictionary are names, i.e. /Something, but the corresponding key in PDObjectRef is the string without the forward slash, i.e. "Something" in this case.
+ */
+extern const pd_stack PDObjectGetDictionaryEntryRaw(PDObjectRef object, const char *key);
+
+/**
  Set a dictionary key to a new value.
  
  @note Expects object to be a dictionary.

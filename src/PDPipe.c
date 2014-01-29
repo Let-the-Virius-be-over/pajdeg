@@ -249,7 +249,9 @@ PDBool PDPipePrepare(PDPipeRef pipe)
     pipe->stream = PDTwinStreamCreate(pipe->fi, pipe->fo);
     pipe->parser = PDParserCreateWithStream(pipe->stream);
     
-    pipe->filter = PDBTreeCreate(PDRelease, 1, pipe->parser->mxt->count, 3);
+    if (pipe->parser) {
+        pipe->filter = PDBTreeCreate(PDRelease, 1, pipe->parser->mxt->count, 3);
+    }
 
     return pipe->stream && pipe->parser;
 }

@@ -29,6 +29,8 @@
 #include "PDObjectStream.h"
 #include "PDBTree.h"
 
+#include "pd_crypto.h" // temporary!
+
 /*struct PDObjectStream {
     PDObjectRef ob;                     // obstream object
     PDInteger n;                        // number of objects

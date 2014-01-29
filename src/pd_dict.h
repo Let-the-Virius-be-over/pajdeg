@@ -94,6 +94,13 @@ extern PDInteger pd_dict_get_count(pd_dict dict);
 extern const char *pd_dict_get(pd_dict dict, const char *key);
 
 /**
+ Return the raw value of the entry for the given key. O(n)!
+ 
+ @note The raw value is NULL if it's a native string.
+ */
+extern const pd_stack pd_dict_get_raw(pd_dict dict, const char *key);
+
+/**
  Delete entry for the given key. O(n)!
  
  @param dict The dict.

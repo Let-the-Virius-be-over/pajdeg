@@ -320,6 +320,7 @@ struct PDParser {
     
     // object related
     pd_stack appends;               ///< stack of objects that are meant to be appended at the end of the PDF
+    pd_stack inserts;               ///< stack of objects that are meant to be inserted as soon as the current object is dealt with
     PDObjectRef construct;          ///< cannot be relied on to contain anything; is used to hold constructed objects until iteration (at which point they're released)
     PDSize streamLen;               ///< stream length of the current object
     PDSize obid;                    ///< object ID of the current object
@@ -409,6 +410,7 @@ struct PDScanner {
     PDScannerPopFunc popFunc;   ///< the symbol pop function
     PDBool        fixedBuf;     ///< if set, the buffer is fixed (i.e. buffering function should not be called)
     PDBool        failed;       ///< if set, the scanner aborted due to a failure
+    PDBool        outgrown;     ///< if true, a scanner with fixedBuf set needed more data
 };
 
 /// @name Stack
@@ -430,9 +432,14 @@ struct pd_stack {
 
 
 /**
- "Get object for key" signature for arrays/dictionaries. (Arrays pass integers as keys.)
+ "Get string object for key" signature for arrays/dictionaries. (Arrays pass integers as keys.)
  */
 typedef const char *(*_list_getter)(void *ref, const void *key);
+
+/**
+ "Get raw object for key" signature for arrays/dictionaries. (Arrays pass integers as keys.)
+ */
+typedef const pd_stack (*_list_getter_raw)(void *ref, const void *key);
 
 /**
  "Remove object for key" signature for arrays/dictionaries. (Arrays pass integers as keys.)
@@ -471,7 +478,9 @@ struct pd_dict {
     PDInteger        capacity;  ///< Capacity of dictionary.
     char           **keys;      ///< Keys.
     char           **values;    ///< Values.
+    void           **vstacks;   ///< Values in pd_stack form.
     _list_getter     g;         ///< Getter
+    _list_getter_raw rg;        ///< Raw getter
     _list_setter     s;         ///< Setter
     _list_remover    r;         ///< Remover
     void            *info;      ///< Info object (used for encrypted arrays)

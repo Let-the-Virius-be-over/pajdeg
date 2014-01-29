@@ -184,7 +184,9 @@ PDInteger fd_decompress_proceed(PDStreamFilterRef filter)
     stream->next_out = filter->bufOut;
     
     ret = inflate(stream, Z_NO_FLUSH);
-    if (ret < 0) { PDWarn("inflate error: %s\n", stream->msg); }
+    if (ret < 0) { 
+        PDWarn("inflate error: %s\n", stream->msg); 
+    }
     filter->finished = ret == Z_STREAM_END;
     PDAssert (ret != Z_STREAM_ERROR); // crash = screwed up setup
     PDAssert (ret != Z_BUF_ERROR);    // crash = buffer was trashed

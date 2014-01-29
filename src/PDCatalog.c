@@ -87,6 +87,7 @@ void PDCatalogAppendPages(PDCatalogRef catalog, PDPage *pages, pd_stack defs)
         stack = as(pd_stack, as(pd_stack, iter->info)->prev->info)->prev;
         oid = PDIntegerFromString(stack->info);
         defs = PDParserLocateAndCreateDefinitionForObject(parser, oid, true);
+        PDAssert(defs); // crash = above function is failing; it may start failing if an object is "weird", or if the code to fetch objects is broken (e.g. PDScanner, PDTwinStream, or even PDParser)
         char *type = as(pd_stack, pd_stack_get_dict_key(defs, "Type", false)->prev->prev->info)->prev->info;
         if (0 == strcmp(type, "Pages")) {
             PDCatalogAppendPages(catalog, &kids[i], defs);

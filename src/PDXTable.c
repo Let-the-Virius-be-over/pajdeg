@@ -566,7 +566,12 @@ static inline PDBool PDXTableReadXRefHeader(PDXI X)
         // we now have a stream (technically speaking) of xrefs
         count *= 20;
         PDScannerSkip(X->scanner, count);
+        
+        /// @todo: Sort out this mess; the problem is that PDTwinStreamAdvance() sometimes needs cursor included, and sometimes not, depending on circumstances; or is it boffset? in either case, it's not working very well, requiring the hack below
         PDTwinStreamAdvance(X->stream, X->stream->cursor + X->scanner->boffset);
+        X->scanner->buf = &X->stream->heap[X->stream->cursor];
+        X->scanner->boffset = 0;
+        X->scanner->bsize = X->stream->holds - X->stream->cursor;
     } while (PDScannerPopStack(X->scanner, &X->stack));
     
     // we now get the trailer
@@ -718,7 +723,7 @@ static inline void PDXTableParseTrailer(PDXI X)
 
 PDBool PDXTableFetchHeaders(PDXI X)
 {
-//   PDBool running;
+   PDBool success;
     pd_stack osstack;
     
     X->tables = 0;
@@ -756,14 +761,16 @@ PDBool PDXTableFetchHeaders(PDXI X)
             }
         }
         
+        success = ! X->scanner->failed;
+        
         PDXTableParseTrailer(X);
         
         PDRelease(X->scanner);
-    } while (X->queue);
+    } while (X->queue && success);
     
     X->stack = osstack;
     
-    return true;
+    return success;
 }
 
 void PDXTablePrint(PDXTableRef pdx)

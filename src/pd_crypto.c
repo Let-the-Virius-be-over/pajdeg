@@ -355,6 +355,8 @@ void pd_crypto_convert(pd_crypto crypto, PDInteger obid, PDInteger genid, char *
     if (klen > 16) klen = 16;
     key[klen] = 0; // truncate at min(16, n + 5)
     pd_crypto_rc4(crypto, key, klen, data, len);
+    
+    free(key);
 }
 
 PDInteger pd_crypto_encrypt(pd_crypto crypto, PDInteger obid, PDInteger genid, char **dst, char *src, PDInteger len)

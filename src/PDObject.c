@@ -218,6 +218,15 @@ const char *PDObjectGetDictionaryEntry(PDObjectRef object, const char *key)
     return pd_dict_get(object->dict, key);
 }
 
+const pd_stack PDObjectGetDictionaryEntryRaw(PDObjectRef object, const char *key)
+{
+    if (NULL == object->dict) {
+        PDObjectInstantiateDictionary(object);
+    }
+    
+    return pd_dict_get_raw(object->dict, key);
+}
+
 void PDObjectSetDictionaryEntry(PDObjectRef object, const char *key, const char *value)
 {
     if (NULL == object->dict) {
