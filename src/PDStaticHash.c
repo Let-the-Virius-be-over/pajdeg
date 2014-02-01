@@ -60,7 +60,8 @@ PDStaticHashRef PDStaticHashCreate(PDInteger entries, void **keys, void **values
         sizeBits++;
         converterTableSize <<= 1;
         
-        PDAssert(converterTableSize < maxe); // crash = this entire idea is rotten and should be thrown out and replaced with a real dictionary handler
+        /// @todo had 1 assert below; so this needs to be ripped out asap
+        //PDAssert(converterTableSize < maxe); // crash = this entire idea is rotten and should be thrown out and replaced with a real dictionary handler
         converterTableMask = converterTableSize - 1;
         for (converterTableShift = sizeBits; i < entries && converterTableShift < 30; converterTableShift++) {
             k++;

@@ -192,7 +192,7 @@ pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, 
         if (PDObjectStreamParseRawObjectStream(obstm, rawBuf)) {
             if (obstm->elements[index].type == PDObjectTypeString) {
                 stack = NULL;
-                pd_stack_push_key(&stack, obstm->elements[index].def);
+                pd_stack_push_key(&stack, strdup(obstm->elements[index].def));
             } else {
                 stack = obstm->elements[index].def;
                 obstm->elements[index].def = NULL;

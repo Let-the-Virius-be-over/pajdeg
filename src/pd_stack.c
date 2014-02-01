@@ -49,7 +49,7 @@ void pd_stack_push_key(pd_stack *stack, char *key)
 {
     pd_stack s = malloc(sizeof(struct pd_stack));
     s->prev = *stack;
-    s->info = key;//strdup(key); free(key);
+    s->info = key;//strdup(key); free(key);// we can't do the strdup/free trick, ever, because it breaks any code that uses pd_stack as a garbage collector
     s->type = PD_STACK_STRING;
     *stack = s;
 }

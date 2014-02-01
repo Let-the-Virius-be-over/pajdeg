@@ -36,6 +36,7 @@
 #include <string.h>
 
 #include "PDDefines.h"
+#include "PDOperator.h"
 
 /**
  @def true 
@@ -380,13 +381,25 @@ struct PDCatalog {
 typedef struct PDScannerSymbol *PDScannerSymbolRef;
 
 /**
+ Scanner symbol type.
+ */
+typedef enum {
+    PDScannerSymbolTypeDefault    = PDOperatorSymbolGlobRegular,    ///< standard symbol
+    PDScannerSymbolTypeWhitespace = PDOperatorSymbolGlobWhitespace, ///< PDF whitespace character
+    PDScannerSymbolTypeDelimiter  = PDOperatorSymbolGlobDelimiter,  ///< PDF delimiter character
+    PDScannerSymbolTypeNumeric    = PDOperatorSymbolExtNumeric,     ///< a numeric symbol
+    PDScannerSymbolTypeEOB        = PDOperatorSymbolExtEOB,         ///< end of buffer marked
+    PDScannerSymbolTypeFake       = PDOperatorSymbolExtFake,        ///< fake symbol, which is when sstart is actually a real string, rather than a pointer into the stream buffer
+} PDScannerSymbolType;
+
+/**
  A scanner symbol.
  */
 struct PDScannerSymbol {
     char         *sstart;       ///< symbol start
     short         shash;        ///< symbol hash (not normalized)
     PDInteger     slen;         ///< symbol length
-    PDInteger     stype;        ///< symbol type
+    PDScannerSymbolType stype;  ///< symbol type
 };
 
 /**

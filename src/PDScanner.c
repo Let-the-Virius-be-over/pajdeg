@@ -104,10 +104,10 @@ void PDScannerAlign(PDScannerRef scanner, PDOffset offset)
     
     // can most likely skip fake checks entirely as it only happens during a scan, not after, but what if a fake symbol is the final symbol in the list after scan? hm
     sym = scanner->sym;
-    if (sym && (sym->stype ^ PDOperatorSymbolExtFake)) sym->sstart += offset;
+    if (sym && (sym->stype ^ PDScannerSymbolTypeFake)) sym->sstart += offset;
     for (s = scanner->symbolStack; s; s = s->prev) {
         sym = s->info;
-        if (sym->stype ^ PDOperatorSymbolExtFake)
+        if (sym->stype ^ PDScannerSymbolTypeFake)
             sym->sstart += offset;
     }
 }
@@ -196,7 +196,7 @@ void PDScannerPopSymbol(PDScannerRef scanner)
     char *buf;
     short hash;
     PDInteger   bsize, len, i, I;
-    char  prevtype, type;
+    PDScannerSymbolType prevtype, type;
     PDBool numeric, real, escaped;
     
     if (scanner->bsize < scanner->boffset) {
@@ -216,7 +216,7 @@ void PDScannerPopSymbol(PDScannerRef scanner)
     real = false;
     escaped = false;
     
-    prevtype = type = PDOperatorSymbolGlobWhitespace;
+    prevtype = type = PDScannerSymbolTypeWhitespace;
 
     // we want to move past whitespace, and we want to stop immediately on (prev=) delimiter, and we want to parse until the end of regular
     while (true) {
@@ -229,11 +229,11 @@ void PDScannerPopSymbol(PDScannerRef scanner)
         }
         prevtype = type;
         c = buf[i];
-        type = escaped ? PDOperatorSymbolGlobRegular : PDOperatorSymbolGlob[c];
+        type = escaped ? PDScannerSymbolTypeDefault : PDOperatorSymbolGlob[c];
         escaped = !escaped && c == '\\';
         
-        if (prevtype != PDOperatorSymbolGlobDelimiter && (prevtype == PDOperatorSymbolGlobWhitespace || prevtype == type)) {
-            if (type != PDOperatorSymbolGlobWhitespace) {
+        if (prevtype != PDScannerSymbolTypeDelimiter && (prevtype == PDScannerSymbolTypeWhitespace || prevtype == type)) {
+            if (type != PDScannerSymbolTypeWhitespace) {
                 len ++;
                 hash -= (type - 1) * c;
                 PDSymbolUpdateNumeric(numeric, real, c, len == 1);
@@ -275,7 +275,7 @@ void PDScannerPopSymbol(PDScannerRef scanner)
     
     sym->sstart = buf + I - len;
     sym->slen = len;
-    sym->stype = len == 0 ? PDOperatorSymbolExtEOB : prevtype == PDOperatorSymbolGlobRegular && numeric ? PDOperatorSymbolExtNumeric : prevtype;
+    sym->stype = len == 0 ? PDScannerSymbolTypeEOB : prevtype == PDScannerSymbolTypeDefault && numeric ? PDScannerSymbolTypeNumeric : prevtype;
     sym->shash = 10 * abs(hash) + len;
     
     scanner->buf = buf;
@@ -316,7 +316,7 @@ void PDScannerPopSymbolRev(PDScannerRef scanner)
     hash = 0;
     numeric = true;
     
-    prevtype = type = PDOperatorSymbolGlobWhitespace;
+    prevtype = type = PDScannerSymbolTypeWhitespace;
     
     // we want to move past whitespace, and we want to stop immediately on (prev=) delimiter, and we want to parse until the end of regular
     while (true) {
@@ -332,8 +332,8 @@ void PDScannerPopSymbolRev(PDScannerRef scanner)
         c = buf[i];
         type = PDOperatorSymbolGlob[c];
         
-        if (prevtype != PDOperatorSymbolGlobDelimiter && (prevtype == PDOperatorSymbolGlobWhitespace || prevtype == type)) {
-            if (type != PDOperatorSymbolGlobWhitespace) {
+        if (prevtype != PDScannerSymbolTypeDelimiter && (prevtype == PDScannerSymbolTypeWhitespace || prevtype == type)) {
+            if (type != PDScannerSymbolTypeWhitespace) {
                 len ++;
                 hash -= (type - 1) * c;
                 numeric &= c >= '0' && c <= '9'; // we do not go to similar extents here
@@ -343,7 +343,7 @@ void PDScannerPopSymbolRev(PDScannerRef scanner)
     }
     sym->sstart = buf + i + 1;
     sym->slen = len;
-    sym->stype = prevtype == PDOperatorSymbolGlobRegular && numeric ? PDOperatorSymbolExtNumeric : prevtype;
+    sym->stype = prevtype == PDScannerSymbolTypeDefault && numeric ? PDScannerSymbolTypeNumeric : prevtype;
     sym->shash = 10 * abs(hash) + len;
     
     scanner->buf = buf;
@@ -402,14 +402,14 @@ void PDScannerReadUntilDelimiter(PDScannerRef scanner, PDBool delimiterIsNewline
     
     sym->sstart = buf + scanner->boffset;
     sym->slen = i - scanner->boffset;
-    sym->stype = PDOperatorSymbolGlobRegular;
+    sym->stype = PDScannerSymbolTypeDefault;
     sym->shash = 0;
 
     scanner->buf = buf;
     scanner->bsize = bsize;
     
     // absorb whitespace if any
-    while (PDOperatorSymbolGlob[(unsigned char)buf[i]] == PDOperatorSymbolGlobWhitespace) {
+    while (PDOperatorSymbolGlob[(unsigned char)buf[i]] == PDScannerSymbolTypeWhitespace) {
         i++;
         if (bsize <= i) {
             scanner->outgrown |= scanner->fixedBuf;
@@ -531,7 +531,7 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
                     // todo: verify that this doesn't break by-ref stringing
                 }
                 sym->slen = strlen(sym->sstart);
-                sym->stype = PDOperatorSymbolExtFake | PDOperatorSymbolGlobDefine(sym->sstart);
+                sym->stype = PDScannerSymbolTypeFake | PDOperatorSymbolGlobDefine(sym->sstart);
                 
                 // fall through to pushback symbol that we just created
                 
