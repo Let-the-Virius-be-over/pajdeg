@@ -119,7 +119,7 @@ extern void pd_stack_unshift_stack(pd_stack *stack, pd_stack sstack);
  
  @param stack The stack.
  */
-extern void pd_stack_destroy(pd_stack stack);
+extern void pd_stack_destroy(pd_stack *stack);
 
 /**
  Pop a key off of the stack. Throws assertion if the next item is not a key.

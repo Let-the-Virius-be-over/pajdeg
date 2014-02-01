@@ -272,7 +272,7 @@ static inline PDBool PDPipeRunStackedTasks(PDPipeRef pipe, PDParserRef parser, p
             if (prevStack) {
                 prevStack->prev = iter->prev;
                 iter->prev = NULL;
-                pd_stack_destroy(iter);
+                pd_stack_destroy(&iter);
                 iter = prevStack;
             } else {
                 // since we're dropping the top item, we've lost our iteration variable, so we recall ourselves to start over (which means continuing, as this was the first item)

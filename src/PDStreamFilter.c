@@ -47,8 +47,7 @@ void PDStreamFilterDestroy(PDStreamFilterRef filter)
     if (filter->initialized) 
         (*filter->done)(filter);
     
-    pd_stack_destroy(filter->options);
-    filter->options = NULL;
+    pd_stack_destroy(&filter->options);
     
     if (filter->bufOutOwned)
         free(filter->bufOutOwned);

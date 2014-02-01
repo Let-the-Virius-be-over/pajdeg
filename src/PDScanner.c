@@ -66,9 +66,9 @@ void PDScannerDestroy(PDScannerRef scanner)
         PDEnvDestroy((PDEnvRef)pd_stack_pop_identifier(&scanner->envStack));
     }
     
-    pd_stack_destroy(scanner->resultStack);
-    pd_stack_destroy(scanner->symbolStack);
-    pd_stack_destroy(scanner->garbageStack);
+    pd_stack_destroy(&scanner->resultStack);
+    pd_stack_destroy(&scanner->symbolStack);
+    pd_stack_destroy(&scanner->garbageStack);
     
     free(scanner->sym);
 }
@@ -131,8 +131,8 @@ void PDScannerReset(PDScannerRef scanner)
     scanner->boffset = scanner->bsize = 0;
     // scanner->btrail = 0;
     scanner->buf = NULL;
-    pd_stack_destroy(scanner->symbolStack);
-    pd_stack_destroy(scanner->resultStack);
+    pd_stack_destroy(&scanner->symbolStack);
+    pd_stack_destroy(&scanner->resultStack);
 }
 
 void PDScannerSkip(PDScannerRef scanner, PDSize bytes)
@@ -631,21 +631,20 @@ void PDScannerScan(PDScannerRef scanner)
             //printf("] // state %s operator(%s)\n", state->name, str);
             //free(str);
         } else {
-            if (sym->stype == PDOperatorSymbolExtEOB) {
-                // if we have a fixed buffer, we will OFTEN have end of buffers for when we miss the size of an object, and this is perfectly normal
-                scanner->outgrown |= scanner->fixedBuf;
-                if (! scanner->fixedBuf) {
+            // if we have a fixed buffer, we will OFTEN have end of buffers and other errors for when we miss the size of an object, and this is perfectly normal
+            scanner->outgrown |= scanner->fixedBuf;
+            if (! scanner->outgrown) {
+                if (sym->stype == PDOperatorSymbolExtEOB) {
                     PDWarn("unexpected end of buffer encountered; resetting scanner\n");
+                } else {
+                    PDWarn("scanner failure! resetting!\n");
                 }
-            } else {
-                PDWarn("scanner failure! resetting!\n");
             }
             struct PDOperator resetter;
             resetter.type = PDOperatorPopState;
             resetter.next = NULL;
             while (scanner->env) PDScannerOperate(scanner, &resetter);
-            pd_stack_destroy(scanner->resultStack);
-            scanner->resultStack = NULL;
+            pd_stack_destroy(&scanner->resultStack);
             scanner->failed = true;
             return;
         }
@@ -658,8 +657,7 @@ void PDScannerScan(PDScannerRef scanner)
 
 PDBool PDScannerPollType(PDScannerRef scanner, char type)
 {
-    pd_stack_destroy(scanner->garbageStack);
-    scanner->garbageStack = NULL;
+    pd_stack_destroy(&scanner->garbageStack);
     while (!scanner->failed && scanner->env && !scanner->resultStack) {
         if (PDScannerScanAttemptCap > -1 && PDScannerScanAttemptCap-- == 0) 
             return false;
@@ -717,7 +715,7 @@ void PDScannerAssertStackType(PDScannerRef scanner)
         }
         PDAssert(0);
     } else {
-        pd_stack_destroy(stack);
+        pd_stack_destroy(&stack);
     }
 }
 
@@ -736,7 +734,7 @@ void PDScannerAssertComplex(PDScannerRef scanner, const char *identifier)
     } else {
         pd_stack_assert_expected_key(&stack, identifier);
         
-        pd_stack_destroy(stack);
+        pd_stack_destroy(&stack);
     }
 }
 

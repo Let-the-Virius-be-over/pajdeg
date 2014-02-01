@@ -25,8 +25,8 @@
 
 void PDEnvDestroy(PDEnvRef env)
 {
-    if (env->buildStack) pd_stack_destroy(env->buildStack);
-    if (env->varStack) pd_stack_destroy(env->varStack);
+    if (env->buildStack) pd_stack_destroy(&env->buildStack);
+    if (env->varStack) pd_stack_destroy(&env->varStack);
     free(env);
 }
 

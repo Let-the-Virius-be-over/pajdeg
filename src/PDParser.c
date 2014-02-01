@@ -53,12 +53,12 @@ void PDParserDestroy(PDParserRef parser)
     PDRelease(parser->encryptRef);
     PDRelease(parser->trailer);
     PDRelease(parser->skipT);
-    pd_stack_destroy(parser->appends);
-    pd_stack_destroy(parser->inserts);
+    pd_stack_destroy(&parser->appends);
+    pd_stack_destroy(&parser->inserts);
     
     PDRelease(parser->mxt);
     PDRelease(parser->cxt);
-    pd_stack_destroy(parser->xstack);
+    pd_stack_destroy(&parser->xstack);
     
 #ifdef PD_SUPPORT_CRYPTO
     if (parser->crypto) pd_crypto_destroy(parser->crypto);
@@ -100,7 +100,7 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
         PDObjectRef first = PDParserConstructObject(parser);
         if (first->type == PDObjectTypeDictionary) {
             pd_stack linearizedKey = pd_stack_get_dict_key(first->def, "Linearized", true);
-            pd_stack_destroy(linearizedKey);
+            pd_stack_destroy(&linearizedKey);
         }
     }
     
@@ -221,7 +221,7 @@ pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, 
             pd_stack_assert_expected_key(&stack, "obj");
             pd_stack_assert_expected_int(&stack, obid);
         }
-        pd_stack_destroy(stack);
+        pd_stack_destroy(&stack);
     }
     
     stack = NULL;
@@ -242,7 +242,7 @@ pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, 
     
     if (stream->outgrown) {
         // the object did not fit in our expected buffer, which means it's unusually big; we bump the buffer size to 6k if it's smaller, otherwise we consider this a failure
-        pd_stack_destroy(stack);
+        pd_stack_destroy(&stack);
         stack = NULL;
         if (bufsize < 64000)
             return PDParserLocateAndCreateDefinitionForObjectWithSize(parser, obid, (bufsize + 1024) * 3, master, outOffset);
@@ -402,7 +402,7 @@ char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDObjectRe
             pd_stack_assert_expected_key(&stack, "obj");
             pd_stack_assert_expected_int(&stack, object->obid);
         }
-        pd_stack_destroy(stack);
+        pd_stack_destroy(&stack);
     }
     
     stack = NULL;
@@ -411,7 +411,7 @@ char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDObjectRe
             free(string);
         }
     }
-    pd_stack_destroy(stack);
+    pd_stack_destroy(&stack);
     
     PDScannerPopString(tmpscan, &string);
     // we expect 'stream'
@@ -670,7 +670,7 @@ void PDParserPassthroughObject(PDParserRef parser)
                     entry = entry->prev->prev->info; // entry value is a stack (a name stack)
                     PDAssert(PDIdentifies(entry->info, PD_NAME));
                     if (!strcmp("XRef", entry->prev->info)) {
-                        pd_stack_destroy(stack);
+                        pd_stack_destroy(&stack);
                         PDXSetTypeForID(parser->mxt->xrefs, parser->obid, PDXTypeFreed);
                         parser->state = PDParserStateObjectAppendix;
                         PDParserPassoverObject(parser);
@@ -683,7 +683,7 @@ void PDParserPassthroughObject(PDParserRef parser)
                             if (PDIdentifies(stack->info, PD_META)) {
                                 // yeh
                                 PDTwinStreamDiscardContent(parser->stream);
-                                pd_stack_destroy(stack);
+                                pd_stack_destroy(&stack);
                             } else {
                                 // whoops, no
                                 pd_stack_push_stack(&scanner->resultStack, stack);
@@ -693,7 +693,7 @@ void PDParserPassthroughObject(PDParserRef parser)
                         return;
                     }
                 }
-                pd_stack_destroy(stack);
+                pd_stack_destroy(&stack);
             } else {
                 PDScannerPopString(scanner, &string);
                 free(string);
@@ -763,7 +763,7 @@ void PDParserPassoverObject(PDParserRef parser)
                         PDParserFetchStreamLengthFromObjectDictionary(parser, entry);
                     }
                 }
-                pd_stack_destroy(stack);
+                pd_stack_destroy(&stack);
             } else {
                 PDScannerPopString(scanner, &string);
                 free(string);
@@ -921,7 +921,7 @@ PDBool PDParserIterate(PDParserRef parser)
                 parser->obid = nextobid = pd_stack_pop_int(&stack);
                 PDAssert(nextobid < parser->mxt->cap);
                 parser->genid = nextgenid = pd_stack_pop_int(&stack);
-                pd_stack_destroy(stack);
+                pd_stack_destroy(&stack);
                 
                 skipObject = false;
                 parser->state = PDParserStateObjectDefinition;
@@ -974,7 +974,7 @@ PDBool PDParserIterate(PDParserRef parser)
             
             if (typeid == &PD_STARTXREF) {
                 // a trailing startxref entry
-                pd_stack_destroy(stack);
+                pd_stack_destroy(&stack);
                 PDScannerAssertComplex(scanner, PD_META);
                 // snip
                 PDTwinStreamDiscardContent(parser->stream);

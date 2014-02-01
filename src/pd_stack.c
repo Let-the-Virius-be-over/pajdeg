@@ -234,6 +234,8 @@ void pd_stack_pop_into(pd_stack *dest, pd_stack *source)
     *dest = popped;
 }
 
+void pd_stack_destroy_internal(pd_stack stack);
+
 static inline void pd_stack_free_info(pd_stack stack)
 {
     switch (stack->type) {
@@ -242,7 +244,7 @@ static inline void pd_stack_free_info(pd_stack stack)
             free(stack->info);
             break;
         case PD_STACK_STACK:
-            pd_stack_destroy(stack->info);
+            pd_stack_destroy_internal(stack->info);
             break;
         case PD_STACK_PDOB:
             PDRelease(stack->info);
@@ -257,7 +259,7 @@ void pd_stack_replace_info_object(pd_stack stack, char type, void *info)
     stack->info = info;
 }
 
-void pd_stack_destroy(pd_stack stack)
+void pd_stack_destroy_internal(pd_stack stack)
 {
     pd_stack p;
     while (stack) {
@@ -267,6 +269,12 @@ void pd_stack_destroy(pd_stack stack)
         free(stack);
         stack = p;
     }
+}
+
+void pd_stack_destroy(pd_stack *stack)
+{
+    pd_stack_destroy_internal(*stack);
+    *stack = NULL;
 }
 
 pd_stack pd_stack_get_dict_key(pd_stack dictStack, const char *key, PDBool remove)
@@ -299,7 +307,7 @@ pd_stack pd_stack_get_dict_key(pd_stack dictStack, const char *key, PDBool remov
                 // disconnect stack from its siblings and from prev (or prev is destroyed), then destroy stack and we can return prev
                 stack->info = NULL;
                 stack->prev = NULL;
-                pd_stack_destroy(stack);
+                pd_stack_destroy_internal(stack);
                 return entry;
             }
             return entry;

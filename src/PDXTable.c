@@ -260,13 +260,13 @@ PDBool PDXTablePassoverXRefEntry(PDParserRef parser, pd_stack stack, PDBool incl
                 pd_stack_pop_identifier(&stack);
                 return PDXTablePassoverXRefEntry(parser, stack, true);
             }
-            pd_stack_destroy(stack);
+            pd_stack_destroy(&stack);
             return false;
         }
 
         // read startxref
         pd_stack_assert_expected_key(&stack, "startxref");
-        pd_stack_destroy(stack);
+        pd_stack_destroy(&stack);
         
         // next is EOF meta
         PDScannerPopStack(scanner, &stack);
@@ -319,7 +319,7 @@ static inline PDBool PDXTableReadXRefStreamHeader(PDXI X)
 {
     pd_stack_pop_identifier(&X->stack);
     X->mtobid = pd_stack_pop_int(&X->stack);
-    pd_stack_destroy(X->stack);
+    pd_stack_destroy(&X->stack);
     PDScannerPopStack(X->scanner, &X->stack);
     PDScannerAssertString(X->scanner, "stream");
     PDInteger len = PDIntegerFromString(pd_stack_get_dict_key(X->stack, "Length", false)->prev->prev->info);
@@ -365,7 +365,7 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X)
     pdx->format = PDXTableFormatBinary;
     
     // pull in defs stack and get ready to read stream
-    pd_stack_destroy(X->stack);
+    pd_stack_destroy(&X->stack);
     PDScannerPopStack(X->scanner, &X->stack);
     PDScannerAssertString(X->scanner, "stream");
     len = PDIntegerFromString(pd_stack_get_dict_key(X->stack, "Length", false)->prev->prev->info);
@@ -717,7 +717,7 @@ static inline void PDXTableParseTrailer(PDXI X)
             free(value);
         }
 #endif
-        pd_stack_destroy(X->stack);
+        pd_stack_destroy(&X->stack);
     }
 }
 
@@ -853,7 +853,7 @@ PDBool PDXTableFetchContent(PDXI X)
         }
         
         PDRelease(X->scanner);
-        pd_stack_destroy(X->stack);
+        pd_stack_destroy(&X->stack);
     }
     
     // pdx is now the complete input xref table with all offsets correct, so we use it as the base for the master table

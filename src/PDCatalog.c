@@ -54,7 +54,7 @@ void PDCatalogAppendPages(PDCatalogRef catalog, PDPage *pages, pd_stack defs)
     }
     
     pd_stack kidsStack = pd_stack_get_dict_key(defs, "Kids", true);
-    pd_stack_destroy(defs);
+    pd_stack_destroy(&defs);
     pd_stack kidsArr = pd_stack_get_arr(kidsStack);
     
     PDInteger lcount = pages->count = pd_stack_get_count(kidsArr); //PDObjectGetArrayCount(kidsArray);
@@ -96,11 +96,11 @@ void PDCatalogAppendPages(PDCatalogRef catalog, PDPage *pages, pd_stack defs)
             kids[i].collection = false;
             kids[i].obid = oid;
             kids[i].genid = PDIntegerFromString(stack->prev->info);
-            pd_stack_destroy(defs);
+            pd_stack_destroy(&defs);
         }
         i++;
     }
-    pd_stack_destroy(kidsStack);
+    pd_stack_destroy(&kidsStack);
     /*for (PDInteger i = 0; i < count; i++) {
      //sref = PDObjectGetArrayElementAtIndex(kidsArray, i); // 2 0 R
      stack = pd_stack_get_arr_element(kidsStack, i);

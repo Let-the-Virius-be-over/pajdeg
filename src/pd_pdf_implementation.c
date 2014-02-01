@@ -481,7 +481,7 @@ void pd_pdf_implementation_use()
             }
         }
         pd_btree_destroy(seen);
-        pd_stack_destroy(s);
+        pd_stack_destroy(&s);
 #endif
     }
     users++;

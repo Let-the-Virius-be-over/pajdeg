@@ -127,8 +127,7 @@ void pd_dict_setter(void *d, const void *key, const char *value)
         dict->values[dict->count] = strdup(value);
         dict->vstacks[dict->count++] = NULL;
     } else {
-        pd_stack_destroy(dict->vstacks[i]);
-        dict->vstacks[i] = NULL;
+        pd_stack_destroy(&dict->vstacks[i]);
         free(dict->values[i]);
         dict->values[i] = strdup(value);
     }
@@ -155,8 +154,7 @@ void pd_dict_crypto_setter(void *d, const void *key, const char *value)
         dict->keys[i] = strdup(key);
         dict->vstacks[i] = NULL;
     } else {
-        pd_stack_destroy(dict->vstacks[i]);
-        dict->vstacks[i] = NULL;
+        pd_stack_destroy(&dict->vstacks[i]);
         free(dict->values[i]);
         free(plain[i]);
     }
@@ -206,7 +204,7 @@ void pd_dict_destroy(pd_dict dict)
     for (PDInteger i = dict->count-1; i >= 0; i--) {
         free(dict->keys[i]);
         free(dict->values[i]);
-        pd_stack_destroy(dict->vstacks[i]);
+        pd_stack_destroy(&dict->vstacks[i]);
     }
     free(dict->keys);
     free(dict->values);

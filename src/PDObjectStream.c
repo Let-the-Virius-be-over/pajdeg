@@ -47,7 +47,7 @@ void PDObjectStreamDestroy(PDObjectStreamRef obstm)
         if (elements[i].type == PDObjectTypeString)
             free(elements[i].def);
         else
-            pd_stack_destroy(elements[i].def);
+            pd_stack_destroy((pd_stack *)&elements[i].def);
     free(elements);
     PDRelease(obstm->filter);
     if (obstm->constructs) {

@@ -33,12 +33,12 @@ void PDObjectDestroy(PDObjectRef object)
 {
     if (object->array) pd_array_destroy(object->array);
     if (object->dict) pd_dict_destroy(object->dict);
-    pd_stack_destroy(object->mutations);
+    pd_stack_destroy(&object->mutations);
     
     if (object->type == PDObjectTypeString)
         free(object->def);
     else
-        pd_stack_destroy(object->def);
+        pd_stack_destroy((pd_stack *)&object->def);
     
     if (object->ovrDef) free(object->ovrDef);
     if (object->ovrStream && object->ovrStreamAlloc)
@@ -119,7 +119,7 @@ PDObjectType PDObjectDetermineType(PDObjectRef object)
         if (string) {
             object->type = PDObjectTypeString;
             object->def = string;
-            pd_stack_destroy(st);
+            pd_stack_destroy(&st);
             /*
             if (string[0] == '(') {
                 // yeah, it's a string
@@ -373,7 +373,7 @@ PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len)
         }
         if (optsDict) {
             options = PDStreamFilterGenerateOptionsFromDictionaryStack(optsDict);
-            pd_stack_destroy(optsDict);
+            pd_stack_destroy(&optsDict);
         }
         PDRelease(scanner);
     }
@@ -382,7 +382,7 @@ PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len)
     PDStreamFilterRef sf = PDStreamFilterObtain(filter, false, options);
     if (NULL == sf) {
         // we don't support this filter, at all
-        pd_stack_destroy(options);
+        pd_stack_destroy(&options);
         success = false;
     } 
     

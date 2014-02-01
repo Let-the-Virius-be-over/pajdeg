@@ -479,7 +479,7 @@ struct pd_dict {
     PDInteger        capacity;  ///< Capacity of dictionary.
     char           **keys;      ///< Keys.
     char           **values;    ///< Values.
-    void           **vstacks;   ///< Values in pd_stack form.
+    pd_stack        *vstacks;   ///< Values in pd_stack form.
     _list_getter     g;         ///< Getter
     _list_getter_raw rg;        ///< Raw getter
     _list_setter     s;         ///< Setter
