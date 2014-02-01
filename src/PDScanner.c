@@ -25,6 +25,7 @@
 #include "PDEnv.h"
 #include "pd_stack.h"
 #include "PDStreamFilter.h"
+#include "pd_crypto.h"
 #include "pd_pdf_implementation.h" // <-- not ideal
 
 static PDInteger PDScannerScanAttemptCap = -1;
@@ -447,6 +448,9 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
 {
     PDScannerSymbolRef sym;
     pd_stack *var;
+    char *str;
+    char *str2;
+    PDInteger len;
     //pd_stack ref;
 
     while (op) {
@@ -570,7 +574,19 @@ void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op)
                 
             case PDOperatorPushMarked:
                 PDAssert(scanner->bmark < scanner->boffset);
-                pd_stack_push_key(&scanner->resultStack, strndup(&scanner->buf[scanner->bmark], sym->sstart - scanner->buf - scanner->bmark + sym->slen));
+                // people tend to believe that as long as they use parentheses, it's fine to do whatever they want, including putting a NUL term in the middle of a string; that obviously doesn't work, and while some characters normally needing escaping can be thrown in without probs, \0 is definitely not one of them so we have to "safify" this string via escaping
+                
+                len = sym->sstart - scanner->buf - scanner->bmark + sym->slen;
+#ifdef PD_SUPPORT_CRYPTO
+                str = malloc(len+1);
+                memcpy(str, &scanner->buf[scanner->bmark], len);
+                str[len] = 0;
+                pd_crypto_secure(&str2, str, len);
+                pd_stack_push_key(&scanner->resultStack, str2);
+                free(str);
+#else
+                pd_stack_push_key(&scanner->resultStack, strndup(&scanner->buf[scanner->bmark], len));
+#endif
                 SOShowStack("results [PUSH] > ", scanner->resultStack);
                 break;
                 

@@ -71,6 +71,13 @@ void PDXSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offset)
     PDAssert(offset == ((PDXOffsetType)o[3] | (o[2]<<8) | (o[1]<<16) | (o[0]<<24)));
 }
 
+PDXType PDXGetTypeForIDd(char *xrefs, PDInteger obid)
+{
+    PDXType type = PDXGetTypeForID(xrefs, obid);
+    return type;
+}
+
+
 typedef struct PDXI *PDXI;
 
 /**
@@ -325,13 +332,18 @@ static inline PDBool PDXTableReadXRefStreamHeader(PDXI X)
     PDInteger len = PDIntegerFromString(pd_stack_get_dict_key(X->stack, "Length", false)->prev->prev->info);
     PDScannerSkip(X->scanner, len);
     PDTwinStreamAdvance(X->stream, X->stream->cursor + X->scanner->boffset);
+    
+    X->scanner->buf = &X->stream->heap[X->stream->cursor];
+    X->scanner->boffset = 0;
+    X->scanner->bsize = X->stream->holds - X->stream->cursor;
+
     PDScannerAssertComplex(X->scanner, PD_ENDSTREAM);
     PDScannerAssertString(X->scanner, "endobj");
         
     return true;
 }
 
-static inline PDBool PDXTableReadXRefStreamContent(PDXI X)
+static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
 {
     PDSize size;
     char *xrefs;
@@ -384,6 +396,16 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X)
         filter = PDStreamFilterObtain(filterDef->info, true, filterOpts);
     }
     
+    
+    if (size == X->mtobid) {
+        // some PDF creators think it's wise to exclude the XRef binary object from the XRef. entirely. this can be signified by the XRef being the very last object in the PDF, and the XRef size being its own id (thus including all except itself)
+        if (size >= pdx->cap) {
+            // realloc; we only do this here because we want to avoid two big reallocs (one for 'size' and one for 'size+1')
+            pdx->cap = size+1;
+            pdx->xrefs = realloc(pdx->xrefs, PDXWidth * (size + 1));
+        }
+    }
+
     if (size > pdx->count) {
         pdx->count = size;
         if (size > pdx->cap) {
@@ -550,6 +572,14 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X)
     
     PDScannerAssertComplex(X->scanner, PD_ENDSTREAM);
     PDScannerAssertString(X->scanner, "endobj");
+    
+    if (size == X->mtobid && pdx->count == size) {
+        // put in the XRef manually
+        pdx->count++;
+        PDXSetTypeForID(pdx->xrefs, X->mtobid, PDXTypeUsed);
+        PDXSetOffsetForID(pdx->xrefs, X->mtobid, (PDXOffsetType)offset);
+        PDXSetGenForID(pdx->xrefs, X->mtobid, 0);
+    }
     
     return true;
 }
@@ -839,7 +869,7 @@ PDBool PDXTableFetchContent(PDXI X)
         if (PDScannerPopStack(X->scanner, &X->stack)) {
             // we determine this by checking the identifier for the popped stack
             if (PDIdentifies(X->stack->info, PD_OBJ)) {
-                if (! PDXTableReadXRefStreamContent(X)) {
+                if (! PDXTableReadXRefStreamContent(X, offs)) {
                     PDWarn("Failed to read XRef stream header.");
                     continue;
                 }

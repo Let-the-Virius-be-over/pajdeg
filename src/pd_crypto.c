@@ -171,11 +171,15 @@ pd_crypto_param pd_crypto_decode_pdf_hex(const char *hexstr)
 
 PDInteger pd_crypto_unescape(char *str)
 {
+    return pd_crypto_unescape_explicit_len(str, strlen(str));
+}
+
+PDInteger pd_crypto_unescape_explicit_len(char *str, int iend)
+{
     PDBool esc = false;
     int si = 0;
     int escseq;
     int ibeg = 0;
-    int iend = strlen(str);
     if (str[0] == '(' && str[iend-1] == ')') {
         ibeg = 1;
         iend --;
@@ -206,6 +210,7 @@ PDInteger pd_crypto_unescape(char *str)
                     case 'e': str[si] = '\e'; break;
 
                         // a number of things are simply escaped escapings (\, (, ))
+                    case '%':
                     case '\\':
                     case '(':
                     case ')': 
@@ -317,6 +322,17 @@ PDInteger pd_crypto_escape(char **dst, const char *src, PDInteger srcLen)
     memcpy(*dst, str, si+1);
     free(str);
     return si;
+}
+
+extern PDInteger pd_crypto_secure(char **dst, const char *src, PDInteger srcLen)
+{
+    char *tmp = malloc(srcLen+1);
+    memcpy(tmp, src, srcLen);
+    tmp[srcLen] = 0;
+    PDInteger len = pd_crypto_unescape_explicit_len(tmp, srcLen);
+    len = pd_crypto_escape(dst, tmp, len);
+    free(tmp);
+    return len;
 }
 
 void pd_crypto_convert(pd_crypto crypto, PDInteger obid, PDInteger genid, char *data, PDInteger len)

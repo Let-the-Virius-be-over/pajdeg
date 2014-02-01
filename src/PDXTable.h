@@ -128,6 +128,11 @@ extern void PDXSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offset)
 #define PDXGetTypeForID(xrefs, id)        (PDXType)((xrefs)[id*PDXWidth])
 
 /**
+ used while debugging to get type as macros are not available in gdb/lldb
+ */
+extern PDXType PDXGetTypeForIDd(char *xrefs, PDInteger obid);
+
+/**
  Set the type for the given object.
  
  @param xrefs The XREF buffer

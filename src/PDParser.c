@@ -480,7 +480,7 @@ void PDParserUpdateObject(PDParserRef parser)
     // we discard old definition first; if object has a stream but wants it nixed, we iterate beyond that before discarding; we may have passed beyond the appendix already, in which case we do nothing (we're already done)
     if (parser->state == PDParserStateObjectAppendix && ob->hasStream) {
         if (ob->skipStream) {
-            PDAssert(parser->streamLen > 0);
+            // invalid; see other commented assertion // PDAssert(parser->streamLen > 0);
 
             PDScannerSkip(scanner, parser->streamLen);
             PDTwinStreamDiscardContent(parser->stream);//, PDTwinStreamScannerCommitBytes(parser->stream));
@@ -601,7 +601,7 @@ void PDParserUpdateObject(PDParserRef parser)
             // endobj                   endobj
             // <<<<<<<<<<<<<<<<<<<<     >>>>>>>>>>>>>>>>>>>>     
         } else {
-            PDAssert(ob->hasStream == (parser->streamLen > 0));
+            // invalid; see other commented assertion // PDAssert(ob->hasStream == (parser->streamLen > 0));
             // discard and print out endobj; we do not pass through here, because we may be dealing with a brand new object that doesn't have anything for us to pass
             PDTwinStreamDiscardContent(parser->stream);//, PDTwinStreamScannerCommitBytes(parser->stream));
             PDTwinStreamInsertContent(parser->stream, 7, "endobj\n");
@@ -706,7 +706,19 @@ void PDParserPassthroughObject(PDParserRef parser)
             if (string[0] == 's')  {
                 PDAssert(!strcmp(string, "stream"));
                 free(string);
-                PDAssert(parser->streamLen > 0);
+                // below assert is not valid; this actually came up on a PDF:
+                /*
+8 0 obj
+<< /Length 19 0 R >>
+stream
+endstream
+endobj
+19 0 obj
+0
+endobj
+                 */
+                
+                //PDAssert(parser->streamLen > 0);
                 PDScannerSkip(scanner, parser->streamLen);
                 PDTWinStreamPassthroughContent(parser->stream);//, PDTwinStreamScannerCommitBytes(parser->stream));
                 PDScannerAssertComplex(scanner, PD_ENDSTREAM);
@@ -776,7 +788,7 @@ void PDParserPassoverObject(PDParserRef parser)
             if (string[0] == 's')  {
                 PDAssert(!strcmp(string, "stream"));
                 free(string);
-                PDAssert(parser->streamLen > 0);
+                // invalid; see other commented assertion // PDAssert(parser->streamLen > 0);
                 PDScannerSkip(scanner, parser->streamLen);
                 PDTwinStreamDiscardContent(parser->stream);
                 PDScannerAssertComplex(scanner, PD_ENDSTREAM);
@@ -1014,7 +1026,7 @@ PDObjectRef PDParserCreateObject(PDParserRef parser, pd_stack *queue)
     cap = parser->mxt->cap;
     xrefs = parser->mxt->xrefs;
     
-    while (newiter < count && PDXTypeFreed != PDXGetTypeForID(xrefs, newiter)) //PDXUsed(xrefs[newiter]))
+    while (newiter < count && PDXTypeFreed != PDXGetTypeForID(xrefs, newiter))
         newiter++;
     if (newiter == cap) {
         // we must realloc xref as it can't contain all the xrefs

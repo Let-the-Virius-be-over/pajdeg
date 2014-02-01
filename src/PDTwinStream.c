@@ -161,6 +161,7 @@ void PDTwinStreamGrowInputBuffer(void *_ts, PDScannerRef scanner, char **buf, PD
     
     // the available amount (preloaded) is
     preloaded = ts->holds - (*buf - ts->heap) - *size;
+    PDAssert(preloaded >= 0);
     
     // if we have enough data to cover req, we can give it back instantly
     if (req > 0 && preloaded >= req) {

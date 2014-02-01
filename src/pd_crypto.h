@@ -69,6 +69,19 @@ extern void pd_crypto_destroy(pd_crypto crypto);
 extern PDInteger pd_crypto_unescape(char *str);
 
 /**
+ Unescape a PDF string, explicitly defining the length of the string to allow for potential mid-NULs. May optionally be wrapped in parentheses. The result is not wrapped in parentheses. The string is unescaped in-place and NUL-terminated.
+ 
+ Strings, in particular encrypted strings, are stored using escaping to prevent null termination in the middle of strings and PDF misinterpretations and other nastiness.
+ 
+ Escaping is done to control chars, such as \r, \n, \t, \b, and unreadable ascii characters using \octal(s) (1, 2 or 3).
+ 
+ @param str The string.
+ @param len The length of the string;
+ @return The length of the unescaped string.
+ */
+extern PDInteger pd_crypto_unescape_explicit_len(char *str, int len);
+
+/**
  Escape a string. The result will be wrapped in parentheses.
  
  Strings, in particular encrypted strings, are stored using escaping to prevent null termination in the middle of strings and PDF misinterpretations and other nastiness.
@@ -81,6 +94,22 @@ extern PDInteger pd_crypto_unescape(char *str);
  @return The length of the escaped string.
  */
 extern PDInteger pd_crypto_escape(char **dst, const char *src, PDInteger srcLen);
+
+/**
+ Generate a secure string from a given input string.
+ 
+ The input string may optionally be wrapped in parentheses. The resulting string will be, regardless of input string.
+ 
+ This method is roughly the equivalent of doing
+    len = pd_crypto_unescape_explicit_len(src, srcLen);
+    pd_crypto_escape(dst, src, len);
+ 
+ @param dst Pointer to destination string. Should not be pre-allocated.
+ @param src String to escape.
+ @param srcLen Length of string.
+ @return The length of the escaped string.
+ */
+extern PDInteger pd_crypto_secure(char **dst, const char *src, PDInteger srcLen);
 
 /**
  Supply a user password. 
