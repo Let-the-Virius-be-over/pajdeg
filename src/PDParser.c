@@ -109,9 +109,10 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
     if (parser->encryptRef) {
         // set up crypto instance 
         if (! parser->encrypt) {
-            pd_stack encDef = PDParserLocateAndCreateDefinitionForObject(parser, parser->encryptRef->obid, true);
-            parser->encrypt = PDObjectCreate(parser->encryptRef->obid, parser->encryptRef->genid);
-            parser->encrypt->def = encDef;
+            parser->encrypt = PDParserLocateAndCreateObject(parser, parser->encryptRef->obid, true);
+            //pd_stack encDef = PDParserLocateAndCreateDefinitionForObject(parser, parser->encryptRef->obid, true);
+            //parser->encrypt = PDObjectCreate(parser->encryptRef->obid, parser->encryptRef->genid);
+            //parser->encrypt->def = encDef;
         }
 #ifdef PD_SUPPORT_CRYPTO
         parser->crypto = pd_crypto_create(PDObjectGetDictionary(parser->trailer), PDObjectGetDictionary(parser->encrypt));
@@ -253,7 +254,21 @@ pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, 
 
 pd_stack PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDInteger obid, PDBool master)
 {
+    if (parser->construct && parser->construct->obid == obid) {
+        return pd_stack_copy(parser->construct->def);
+    }
     return PDParserLocateAndCreateDefinitionForObjectWithSize(parser, obid, 4192, master, NULL);
+}
+
+PDObjectRef PDParserLocateAndCreateObject(PDParserRef parser, PDInteger obid, PDBool master)
+{
+    if (parser->construct && parser->construct->obid == obid) {
+        return PDRetain(parser->construct);
+    }
+    pd_stack defs = PDParserLocateAndCreateDefinitionForObject(parser, obid, master);
+    PDObjectRef obj = PDObjectCreateFromDefinitionsStack(obid, defs);
+    obj->crypto = parser->crypto;
+    return obj;
 }
 
 void PDParserFetchStreamLengthFromObjectDictionary(PDParserRef parser, pd_stack entry)
@@ -555,11 +570,19 @@ void PDParserUpdateObject(PDParserRef parser)
             }
             if (ob->skipStream || ob->ovrStream) {
                 PDTwinStreamDiscardContent(parser->stream);
+            } 
+            
+            // we may be post-stream here, in which case we have to actually print the stream out as we've discarded the input version already
+            else if (parser->state == PDParserStateObjectPostStream) {
+                // we do this by setting the stream to itself; this applies filters and such, and also sets ovrStream flag (which is inserted as appropriate, below)
+                PDObjectSetStreamFiltered(ob, ob->streamBuf, ob->streamLen);
             } else {
                 // we've just discarded "stream", so we have to put that in first of all
                 PDTwinStreamInsertContent(parser->stream, 7, "stream\n");
+                
                 PDTWinStreamPassthroughContent(parser->stream);
             }
+            
             PDScannerAssertComplex(scanner, PD_ENDSTREAM);
             //PDScannerAssertString(scanner, "endstream");
           
@@ -1174,10 +1197,11 @@ PDBool PDParserIsObjectStillMutable(PDParserRef parser, PDInteger obid)
 PDObjectRef PDParserGetRootObject(PDParserRef parser)
 {
     if (! parser->root) {
-        pd_stack rootDef = PDParserLocateAndCreateDefinitionForObject(parser, parser->rootRef->obid, true);
-        parser->root = PDObjectCreate(parser->rootRef->obid, parser->rootRef->genid);
-        parser->root->def = rootDef;
-        parser->root->crypto = parser->crypto;
+        parser->root = PDParserLocateAndCreateObject(parser, parser->rootRef->obid, true);
+        //pd_stack rootDef = PDParserLocateAndCreateDefinitionForObject(parser, parser->rootRef->obid, true);
+        //parser->root = PDObjectCreate(parser->rootRef->obid, parser->rootRef->genid);
+        //parser->root->def = rootDef;
+        //parser->root->crypto = parser->crypto;
     }
     return parser->root;
 }
@@ -1185,10 +1209,11 @@ PDObjectRef PDParserGetRootObject(PDParserRef parser)
 PDObjectRef PDParserGetInfoObject(PDParserRef parser)
 {
     if (! parser->info && parser->infoRef) {
-        pd_stack infoDef = PDParserLocateAndCreateDefinitionForObject(parser, parser->infoRef->obid, true);
-        parser->info = PDObjectCreate(parser->infoRef->obid, parser->infoRef->genid);
-        parser->info->def = infoDef;
-        parser->info->crypto = parser->crypto;
+        parser->info = PDParserLocateAndCreateObject(parser, parser->infoRef->obid, true);
+        //pd_stack infoDef = PDParserLocateAndCreateDefinitionForObject(parser, parser->infoRef->obid, true);
+        //parser->info = PDObjectCreate(parser->infoRef->obid, parser->infoRef->genid);
+        //parser->info->def = infoDef;
+        //parser->info->crypto = parser->crypto;
     }
     return parser->info;
 }

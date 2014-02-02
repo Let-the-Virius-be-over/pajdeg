@@ -117,11 +117,26 @@ extern PDBool PDParserGetEncryptionState(PDParserRef parser);
  
  @warning This is an expensive operation that requires setting up a temporary buffer of sufficiently big size, seeking to the object in the input file, reading the definition, then seeking back.
  
+ @warning This is no longer the recommended way to obtain random access objects. Use PDParserLocateAndCreateObject instead.
+ 
  @param parser The parser.
  @param obid The object ID
  @param master If true, the master PDX ref is referenced, otherwise the current PDX ref is used. Generally speaking, you always want to use the master (non-master is used internally to determine the deprecated length of a stream for a multi-part PDF).
  */
 extern pd_stack PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDInteger obid, PDBool master);
+
+/**
+ Fetch an object reference of the object with the given id.
+ 
+ @warning This is an expensive operation that requires setting up a temporary buffer of sufficiently big size, seeking to the object in the input file, reading the definition, then seeking back.
+ 
+ @note The object is returned as a retained object and must be PDRelease()d or it will leak.
+ 
+ @param parser The parser.
+ @param obid The object ID
+ @param master If true, the master PDX ref is referenced, otherwise the current PDX ref is used. Generally speaking, you always want to use the master (non-master is used internally to determine the deprecated length of a stream for a multi-part PDF).
+ */
+extern PDObjectRef PDParserLocateAndCreateObject(PDParserRef parser, PDInteger obid, PDBool master);
 
 /**
  Write remaining objects, XREF table, trailer, and end fluff to output PDF.

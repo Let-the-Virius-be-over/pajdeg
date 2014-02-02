@@ -39,7 +39,7 @@
  Objects that are always immutable are:
  
  1. The PDParserRef's root object. To modify the root object, check its object ID and add a filter task.
- 2. Any object fetched via PDParserLocateAndCreateDefinitionForObject(). Same deal; add a filter and mutator.
+ 2. Any object fetched via PDParserLocateAndCreateDefinitionForObject() or PDParserLocateAndCreateObject(). Same deal; add a filter and mutator.
  
  ### Pinpointing mutability expiration
  
@@ -388,7 +388,9 @@ extern void PDObjectSetStream(PDObjectRef object, char *str, PDInteger len, PDBo
  
  @note Pajdeg only supports a limited number of filters. If the object's filter settings are not supported, the operation is aborted.
  
- @see PDObjectSetStreamFiltered
+ @note If no filter is defined, PDObjectSetStream is called and and true is returned.
+ 
+ @see PDObjectSetStream
  @see PDObjectSetFlateDecodedFlag
  @see PDObjectSetPredictionStrategy
  

@@ -108,7 +108,15 @@ extern void pd_stack_push_object(pd_stack *stack, void *ob);
  */
 extern void pd_stack_unshift_stack(pd_stack *stack, pd_stack sstack);
 
-
+/**
+ Copy a stack in its entirety, strdup()ing as necessary to prevent double-free() calls when destroyed.
+ 
+ In other words, this creates a stack which is entirely isolated from the original, which may be destroyed without incident.
+ 
+ @param stack The stack to copy.
+ @return A copy of the stack.
+ */
+extern pd_stack pd_stack_copy(pd_stack stack);
 
 /// @name Popping from stack
 

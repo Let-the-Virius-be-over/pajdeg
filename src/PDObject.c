@@ -354,7 +354,8 @@ PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len)
     
     if (NULL == filter) {
         // no filter
-        return false;
+        PDObjectSetStream(object, str, len, true, false);
+        return true;
     } else filter = &filter[1]; // get rid of name slash
 
     const char *decodeParms = PDObjectGetDictionaryEntry(object, "DecodeParms");

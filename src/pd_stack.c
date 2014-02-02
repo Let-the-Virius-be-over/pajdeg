@@ -94,7 +94,7 @@ void pd_stack_push_object(pd_stack *stack, void *ob)
     PDTYPE_ASSERT(ob);
     pd_stack s = malloc(sizeof(struct pd_stack));
     s->prev = *stack;
-    s->info = ob; //PDRetain(ob);
+    s->info = ob;
     s->type = PD_STACK_PDOB;
     *stack = s;
 }
@@ -232,6 +232,37 @@ void pd_stack_pop_into(pd_stack *dest, pd_stack *source)
     *source = popped->prev;
     popped->prev = *dest;
     *dest = popped;
+}
+
+pd_stack pd_stack_copy(pd_stack stack)
+{
+    pd_stack backward = NULL;
+    pd_stack forward = NULL;
+    
+    for (pd_stack s = stack; s; s = s->prev) {
+        switch (s->type) {
+            case PD_STACK_STRING:
+                pd_stack_push_key(&backward, strdup(s->info));
+                break;
+            case PD_STACK_ID:
+                pd_stack_push_identifier(&backward, s->info);
+                break;
+            case PD_STACK_STACK:
+                pd_stack_push_stack(&backward, pd_stack_copy(s->info));
+                break;
+            case PD_STACK_PDOB:
+                pd_stack_push_object(&backward, PDRetain(s->info));
+                break;
+            default: // case PD_STACK_FREEABLE:
+                // we don't allow arbitrary freeables (or any other types) in clones
+                PDWarn("skipping arbitrary object in pd_stack_copy operation");
+                break;
+        }
+    }
+    
+    // flip order of backward stack, as it is the opposite order of the copied one
+    while (backward) pd_stack_pop_into(&forward, &backward);
+    return forward;
 }
 
 void pd_stack_destroy_internal(pd_stack stack);
