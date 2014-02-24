@@ -94,7 +94,7 @@ void pd_crypto_generate_enckey(pd_crypto crypto, const char *user_pass)
     pd_md5_update(&md5ctx, buf, 32);
     
     // pass owner hash
-    pd_md5_update(&md5ctx, crypto->owner.d, crypto->owner.l);
+    pd_md5_update(&md5ctx, crypto->owner.d, (unsigned int)crypto->owner.l);
     
     // append privs as 4-byte int, LSB first
     buf[0] = crypto->privs & 0xff;
@@ -104,7 +104,7 @@ void pd_crypto_generate_enckey(pd_crypto crypto, const char *user_pass)
     pd_md5_update(&md5ctx, buf, 4);
     
     // pass file identifier to md5
-    pd_md5_update(&md5ctx, crypto->identifier.d, crypto->identifier.l);
+    pd_md5_update(&md5ctx, crypto->identifier.d, (unsigned int)crypto->identifier.l);
     
     if (crypto->revision > 3 && !crypto->encryptMetadata) {
         buf[0] = buf[1] = buf[2] = buf[3] = 0xff;
@@ -113,7 +113,7 @@ void pd_crypto_generate_enckey(pd_crypto crypto, const char *user_pass)
     
     pd_md5_final(buf, &md5ctx);
     
-    int eklen = crypto->length/8;
+    int eklen = (int) (crypto->length/8);
     if (crypto->revision > 2) {
         for (int i = 0; i < 50; i++) {
             pd_md5(buf, eklen, buf);
@@ -155,7 +155,7 @@ pd_crypto_param pd_crypto_decode_pdf_hex(const char *hexstr)
         for (int i = 10; i < 16; i++) HEX_TAB['a' + i - 10] = HEX_TAB['A' + i - 10] = i;
     }
     int rlen = 0;
-    int len = strlen(hexstr);
+    int len = (int) strlen(hexstr);
     cp.d = malloc(len);
     int i = 0;
     
@@ -171,7 +171,7 @@ pd_crypto_param pd_crypto_decode_pdf_hex(const char *hexstr)
 
 PDInteger pd_crypto_unescape(char *str)
 {
-    return pd_crypto_unescape_explicit_len(str, strlen(str));
+    return pd_crypto_unescape_explicit_len(str, (int) strlen(str));
 }
 
 PDInteger pd_crypto_unescape_explicit_len(char *str, int iend)
@@ -272,7 +272,7 @@ pd_crypto pd_crypto_create(pd_dict trailerDict, pd_dict options)
     crypto->revision = PDIntegerFromString(pd_dict_get(options, "R"));
     crypto->owner = pd_crypto_decode_param(pd_dict_get(options, "O"));
     crypto->user = pd_crypto_decode_param(pd_dict_get(options, "U"));
-    crypto->privs = PDIntegerFromString(pd_dict_get(options, "P"));
+    crypto->privs = (int32_t) PDIntegerFromString(pd_dict_get(options, "P"));
     
     // fix defaults where appropriate
     if (crypto->version == 0) crypto->version = 1; // we do not support the default as it is undocumented and no longer supported by the official specification
@@ -329,7 +329,7 @@ extern PDInteger pd_crypto_secure(char **dst, const char *src, PDInteger srcLen)
     char *tmp = malloc(srcLen+1);
     memcpy(tmp, src, srcLen);
     tmp[srcLen] = 0;
-    PDInteger len = pd_crypto_unescape_explicit_len(tmp, srcLen);
+    PDInteger len = pd_crypto_unescape_explicit_len(tmp, (int) srcLen);
     len = pd_crypto_escape(dst, tmp, len);
     free(tmp);
     return len;
@@ -362,7 +362,7 @@ void pd_crypto_convert(pd_crypto crypto, PDInteger obid, PDInteger genid, char *
     
 //3. Initialize the MD5 hash function and pass the result of step 2 as input to this function.
     
-    pd_md5((unsigned char *)key, klen, (unsigned char *)key);
+    pd_md5((unsigned char *)key, (unsigned int)klen, (unsigned char *)key);
 
 //￼￼￼￼4. Use the first (n + 5) bytes, up to a maximum of 16, of the output from the MD5 hash as the key for the RC4 or AES symmetric key algorithms, along with the string or stream data to be encrypted.
 //If using the AES algorithm, the Cipher Block Chaining (CBC) mode, which requires an initialization vector, is used. The block size parameter is set to 16 bytes, and the initialization vector is a 16-byte random number that is stored as the first 16 bytes of the encrypted stream or string.
@@ -370,7 +370,7 @@ void pd_crypto_convert(pd_crypto crypto, PDInteger obid, PDInteger genid, char *
     
     if (klen > 16) klen = 16;
     key[klen] = 0; // truncate at min(16, n + 5)
-    pd_crypto_rc4(crypto, key, klen, data, len);
+    pd_crypto_rc4(crypto, key, (int)klen, data, len);
     
     free(key);
 }
