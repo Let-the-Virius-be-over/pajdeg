@@ -34,25 +34,21 @@
 
 #ifdef PD_SUPPORT_CRYPTO
 
-/* UINT2 defines a two byte word */
-typedef unsigned short int UINT2;
-
-/* UINT4 defines a four byte word */
-typedef unsigned long int UINT4;
+#include <sys/types.h>
 
 /* MD5 context. */
 typedef struct pd_md5_ctx pd_md5_ctx;
 struct pd_md5_ctx {
-    UINT4 state[4];                 ///< state (ABCD)
-    UINT4 count[2];                 ///< number of bits, modulo 2^64 (lsb first)
+    u_int32_t state[4];             ///< state (ABCD)
+    u_int32_t count[2];             ///< number of bits, modulo 2^64 (lsb first)
     unsigned char buffer[64];       ///< input buffer
 };
 
 extern void pd_md5_init(pd_md5_ctx *ctx);
-extern void pd_md5_update(pd_md5_ctx *ctx, unsigned char *data, unsigned int len);
+extern void pd_md5_update(pd_md5_ctx *ctx, unsigned char *data, u_int32_t len);
 extern void pd_md5_final(unsigned char *md, pd_md5_ctx *ctx);
 
-extern void pd_md5(unsigned char *data, unsigned int len, unsigned char *result);
+extern void pd_md5(unsigned char *data, u_int32_t len, unsigned char *result);
 
 #endif
 
