@@ -362,15 +362,15 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
     PDInteger sizeT;
     PDInteger sizeO;
     PDInteger sizeI;
-    PDInteger padT;
-    PDInteger padO;
-    PDInteger padI;
-    PDInteger shrT;
-    PDInteger shrO;
-    PDInteger shrI;
-    PDInteger capT;
-    PDInteger capO;
-    PDInteger capI;
+    PDInteger padT = 0;
+    PDInteger padO = 0;
+    PDInteger padI = 0;
+    PDInteger shrT = 0;
+    PDInteger shrO = 0;
+    PDInteger shrI = 0;
+    PDInteger capT = 0;
+    PDInteger capO = 0;
+    PDInteger capI = 0;
     PDXTableRef pdx;
     
     pdx = X->pdx;

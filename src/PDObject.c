@@ -393,8 +393,8 @@ PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len)
     if (success) success = (sf->compatible);
     // if !success, filter was not compatible with options
 
-    char *filtered;
-    PDInteger flen;
+    char *filtered = NULL;
+    PDInteger flen = 0;
     if (success) success = PDStreamFilterApply(sf, (unsigned char *)str, (unsigned char **)&filtered, len, &flen);
     // if !success, filter did not apply to input data successfully
 
