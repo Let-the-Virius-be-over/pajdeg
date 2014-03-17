@@ -81,6 +81,13 @@ void PDObjectDelete(PDObjectRef object)
     }
 }
 
+void PDObjectUndelete(PDObjectRef object)
+{
+    if (object->obclass != PDObjectClassCompressed) {
+        object->skipObject = object->deleteObject = false;
+    }
+}
+
 PDInteger PDObjectGetObID(PDObjectRef object)
 {
     return object->obid;

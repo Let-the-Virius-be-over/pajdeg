@@ -112,6 +112,15 @@ extern void PDObjectSetSynchronizationCallback(PDObjectRef object, PDSynchronize
  */
 extern void PDObjectDelete(PDObjectRef object);
 
+/**
+ Undelete this object. 
+ 
+ If PDObjectDelete() was called previously, calling this method will cancel the deletion. 
+ 
+ The object may end up deleted anyway, if the pipe has moved past the object definition since the delete call.
+ */
+extern void PDObjectUndelete(PDObjectRef object);
+
 /// @name Examining
 
 /**
