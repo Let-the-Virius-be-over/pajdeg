@@ -694,12 +694,30 @@ struct PDStringConv {
 #   if defined(DEBUG) || defined(PD_WARNINGS)
 #       define PD_WARNINGS
 #       define PDWarn(args...) do { \
-            fprintf(stderr, "%s:%d - ", __FILE__,__LINE__); \
+            fprintf(stderr, "[pajdeg::warning] %s:%d - ", __FILE__,__LINE__); \
             fprintf(stderr, args); \
             fprintf(stderr, "\n"); \
         } while (0)
 #   else
 #       define PDWarn(args...) 
+#   endif
+#endif
+
+/**
+ @def PDNotice
+ Print an informational message (a "weak" warning) to stderr, if user has turned on PD_NOTICES.
+ 
+ @param args Formatted variable argument list.
+ */
+#ifndef PDNotice
+#   if defined(PD_NOTICES)
+#       define PDNotice(args...) do { \
+            fprintf(stderr, "[pajdeg::notice]  %s:%d - ", __FILE__,__LINE__); \
+            fprintf(stderr, args); \
+            fprintf(stderr, "\n"); \
+        } while (0)
+#   else
+#       define PDNotice(args...) 
 #   endif
 #endif
 
@@ -718,10 +736,10 @@ struct PDStringConv {
 #       include <assert.h>
 #       if defined(PD_WARNINGS)
 #           define PDAssert(args...) \
-if (!(args)) { \
-PDWarn("assertion failure : %s", #args); \
-assert(args); \
-}
+                if (!(args)) { \
+                    PDWarn("assertion failure : %s", #args); \
+                    assert(args); \
+                }
 #       else
 #           define PDAssert(args...) assert(args)
 #       endif

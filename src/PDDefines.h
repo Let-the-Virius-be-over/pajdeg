@@ -58,6 +58,14 @@
 #define PD_WARNINGS
 
 /**
+ @def PD_NOTICES
+ Show internal notices (weak warnings) on stderr.
+ 
+ The PD_NOTICES directive turns on printing of notices (PDInfo output) to stderr. Must be turned on explicitly.
+ */
+// #define PD_NOTICES
+
+/**
  @def PD_ASSERTS
  Enable internal assertions. 
  

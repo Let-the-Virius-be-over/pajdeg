@@ -669,7 +669,7 @@ static inline PDBool PDXTableReadXRefContent(PDXI X)
             // other PDF creators think dumping 000000000 00000 n (i.e. this object can be found at offset 0, and it's in use) means "this object is unused"; we address that as well
 #ifdef DEBUG
             if (PDXUsed(src) && (PDXGenId(src) == 65536 || offset == 0)) {
-                PDWarn("warning: marking object #%ld as unused, because its generation id is 65536 or its offset is 0\n", i);
+                PDNotice("warning: marking object #%ld as unused, because its generation id is 65536 or its offset is 0\n", i);
                 
             }
 #endif
