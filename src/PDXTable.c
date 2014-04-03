@@ -826,6 +826,7 @@ PDBool PDXTableFetchContent(PDXI X)
     PDInteger offscount;
     PDInteger j;
     PDInteger i;
+    PDInteger gotTables;
     pd_stack osstack;
     PDXTableRef prev;
     PDXTableRef pdx;
@@ -838,9 +839,11 @@ PDBool PDXTableFetchContent(PDXI X)
     offsets = malloc(X->tables * sizeof(PDSize));
     tables = malloc(X->tables * sizeof(PDXTableRef));
     offscount = 0;
+    gotTables = 0;
     
     pdx = NULL;
     while (0 != (offs = (PDSize)pd_stack_pop_identifier(&osstack))) {
+        gotTables++;
         prev = pdx;
         pdx = PDXTableCreate(pdx);
         
@@ -900,7 +903,7 @@ PDBool PDXTableFetchContent(PDXI X)
         pd_stack_push_object(&X->parser->xstack, pdx);
     } else {
         // otherwise ensure that the master xref table is last; if it isn't, Pajdeg will end parsing prematurely
-        for (i = X->tables - 1; i >= 0; i--) {
+        for (i = gotTables - 1; i >= 0; i--) {
             // if the XREF comes after the master, the PDF is broken (?), and we bump the master XREF position and skip over the XREF entirely -- this is perfectly non-destructive in terms of data; the master XREF contains the complete set of changes applied in revision order; in theory, all XREF tables could be completely ignored with no side effects aside from safety harness of the parser seeing what it expects to be seeing; the one potential problem with dropping a revision is that indirect object referenced stream lengths for deprecated objects may receive the wrong length; I'm fine with Pajdeg failing at that point
             if (tables[i]->pos > pdx->pos) { /// @todo CLANG does not recognize that X->tables = 0 if pdx = nil, and no dereferencing of null or undefined ptr value will ever occur
                 /// @todo this is not the case when XRefStm objects are included, as that puts table count > 2

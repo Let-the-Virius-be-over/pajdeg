@@ -238,4 +238,5 @@ void PDBTreePrint(PDBTreeRef btree)
     for (PDInteger i = 0; i < count; i++) {
         printf("%ld = %p\n", dest[i], PDBTreeGet(btree, dest[i]));
     }
+    free(dest);
 }

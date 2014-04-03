@@ -193,7 +193,7 @@ void PDTwinStreamGrowInputBuffer(void *_ts, PDScannerRef scanner, char **buf, PD
     if (req > capacity) {
         PDSize growth = PIO_CHUNK_SIZE * (1 + (req - capacity) / PIO_CHUNK_SIZE);
         ts->size += growth;
-        if (ts->size > 10000000000000) {
+        if ((unsigned long long)ts->size > 10000000000000) {
             fprintf(stderr, "break!");
             assert(0); // crash = you just ran into an existing bug; please please please let us know how to reproduce this
         }

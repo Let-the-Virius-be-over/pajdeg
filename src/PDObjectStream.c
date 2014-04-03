@@ -246,6 +246,7 @@ void PDObjectStreamCommit(PDObjectStreamRef obstm)
     
     // generate stream
     len = headerlen + offs;
+    if (len == 0) return; // this will never happen (in theory), but this line gets rid of CLANG warnings
     content = malloc(len);
     
     // header

@@ -120,7 +120,7 @@ void pd_dict_setter(void *d, const void *key, const char *value)
         if (dict->count == dict->capacity) {
             dict->capacity += dict->capacity + 1;
             dict->values = realloc(dict->values, sizeof(char*) * dict->capacity);
-            dict->vstacks = realloc(dict->vstacks, sizeof(void*) * dict->capacity);
+            dict->vstacks = realloc(dict->vstacks, sizeof(pd_stack) * dict->capacity);
             dict->keys = realloc(dict->keys, sizeof(char*) * dict->capacity);
         }
         dict->keys[dict->count] = strdup(key);
@@ -146,7 +146,7 @@ void pd_dict_crypto_setter(void *d, const void *key, const char *value)
         if (dict->count == dict->capacity) {
             dict->capacity += dict->capacity + 1;
             dict->values = realloc(dict->values, sizeof(char*) * dict->capacity);
-            dict->vstacks = realloc(dict->vstacks, sizeof(void*) * dict->capacity);
+            dict->vstacks = realloc(dict->vstacks, sizeof(pd_stack) * dict->capacity);
             dict->keys = realloc(dict->keys, sizeof(char*) * dict->capacity);
             ci->info = plain = realloc(plain, sizeof(char*) * dict->capacity);
         }
