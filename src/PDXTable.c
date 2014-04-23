@@ -30,20 +30,23 @@
 #include "PDStreamFilter.h"
 #include "pd_pdf_implementation.h"
 
+#define xrefalloc(tbl, cap, width)           malloc((cap) * (width) + 1); tbl->allocx = (cap) * (width) + 1
+#define xrefrealloc(tbl, xref, cap, width)   realloc(xref, (cap) * (width) + 1); tbl->allocx = (cap) * (width) + 1
+
 /**
  @todo Below functions swap endianness due to the fact numbers are big-endian in binary XRefs (and, I guess, in text-form XRefs as well); if the machine running Pajdeg happens to be big-endian as well, below methods need to be #ifdef-ified to handle this (by NOT swapping every byte around in the integral representation).
  */
 
-PDXOffsetType PDXGetOffsetForArbitraryRepresentation(char *rep, PDInteger len)
+PDOffset PDXGetOffsetForArbitraryRepresentation(char *rep, PDInteger len)
 {
     PDInteger i;
     unsigned char *o = (unsigned char *)rep;
-    PDXOffsetType ot = 0;
-    PDXOffsetType shift = 0;
+    PDOffset ot = 0;
+    PDOffset shift = 0;
     for (i = len-1; i >= 0; i--) {
-        if (shift > 8*sizeof(PDXOffsetType)) {
+        if (shift > 8*sizeof(PDOffset)) {
             if (o[i] > 0) {
-                PDWarn("XREF offset larger than largest value containable in the offset type. This is a bug, or the PDF is bigger than %.1f GBs.\n", pow(2.0, (8.0*sizeof(PDXOffsetType))-30.0));
+                PDWarn("XREF offset larger than largest value containable in the offset type. This is a bug, or the PDF is bigger than %.1f GBs.\n", pow(2.0, (8.0*sizeof(PDOffset))-30.0));
             }
         } else {
             ot |= (o[i] << shift);
@@ -53,28 +56,83 @@ PDXOffsetType PDXGetOffsetForArbitraryRepresentation(char *rep, PDInteger len)
     return ot;
 }
 
-PDXOffsetType PDXGetOffsetForID(char *xrefs, PDInteger obid)
+PDOffset PDXTableGetOffsetForID(PDXTableRef table, PDInteger obid)
 {
-    unsigned char *o = (unsigned char *) &xrefs[PDXOffsAlign + obid * PDXWidth];
-    // note: requires that offs size is 4
-    return (PDXOffsetType)o[3] | (o[2]<<8) | (o[1]<<16) | (o[0]<<24);
+    unsigned char *o = (unsigned char *) &table->xrefs[table->offsAlign + obid * table->width];
+
+    // note: requires that offs size <= 4
+#define O(index, value) (((value) * (index < table->offsSize)) << (8 * (table->offsSize - index - 1)))
+    return (PDOffset)(O(3,o[3]) | O(2,o[2]) | O(1,o[1]) | O(0,o[0]));
+#undef O
 }
 
-void PDXSetOffsetForID(char *xrefs, PDInteger obid, PDXOffsetType offset)
+#define _PDXSetTypeForID(xrefs, table, id, t)    *(PDXType*)&((xrefs)[id*table->width]) = t
+
+void _PDXSetOffsetForID(char *xrefs, PDXTableRef table, PDInteger obid, PDOffset offset)
 {
-    unsigned char *o = (unsigned char *) &xrefs[PDXOffsAlign + obid * PDXWidth];
-    // note: requires that offs size is 4
-    o[0] = (offset & 0xff000000) >> 24;
-    o[1] = (offset & 0x00ff0000) >> 16;
-    o[2] = (offset & 0x0000ff00) >> 8;
-    o[3] = (offset & 0x000000ff);
-    PDAssert(offset == ((PDXOffsetType)o[3] | (o[2]<<8) | (o[1]<<16) | (o[0]<<24)));
+    unsigned char *o = (unsigned char *) &xrefs[table->offsAlign + obid * table->width];
+    PDOffset mask = 0xff;
+    PDOffset shift = 0;
+    for (int i = table->offsSize - 1; i >= 0; i--) {
+        o[i] = (offset & mask) >> shift;
+        mask <<= 8;
+        shift += 8;
+    }
 }
 
-PDXType PDXGetTypeForIDd(char *xrefs, PDInteger obid)
+
+void PDXTableSetOffsetForID(PDXTableRef table, PDInteger obid, PDOffset offset)
 {
-    PDXType type = PDXGetTypeForID(xrefs, obid);
-    return type;
+    unsigned char *o = (unsigned char *) &table->xrefs[table->offsAlign + obid * table->width];
+    PDOffset mask = 0xff;
+    PDOffset shift = 0;
+    for (int i = table->offsSize - 1; i >= 0; i--) {
+        o[i] = (offset & mask) >> shift;
+        mask <<= 8;
+        shift += 8;
+    }
+    // note: requires that offs size <= 4
+//    o[0] = (offset & 0xff000000) >> 24;
+//    o[1] = (offset & 0x00ff0000) >> 16;
+//    o[2] = (offset & 0x0000ff00) >> 8;
+//    o[3] = (offset & 0x000000ff);
+    PDAssert(PDXTableGetOffsetForID(table, obid) == offset);
+}
+
+PDInteger PDXTableGetGenForID(PDXTableRef table, PDInteger obid)
+{
+    unsigned char *o = (unsigned char *) &table->xrefs[table->genAlign + obid * table->width];
+    
+    // note: requires that gen size <= 2
+#define O(index, value) (((value) * (index < table->genSize)) << (8 * (table->genSize - index - 1)))
+    return (PDInteger)(O(1,o[1]) | O(0,o[0]));
+#undef O
+}
+
+void PDXTableSetGenForID(PDXTableRef table, PDInteger obid, PDInteger gen)
+{
+    unsigned char *o = (unsigned char *) &table->xrefs[table->genAlign + obid * table->width];
+    PDOffset mask = 0xff;
+    PDOffset shift = 0;
+    for (int i = table->genSize - 1; i >= 0; i--) {
+        o[i] = (gen & mask) >> shift;
+        mask <<= 8;
+        shift += 8;
+    }
+    PDAssert(PDXTableGetGenForID(table, obid) == gen);
+}
+
+void _PDXSetGenForID(char *xrefs, PDXTableRef table, PDInteger obid, PDInteger gen)
+{
+    unsigned char *o = (unsigned char *) &xrefs[table->genAlign + obid * table->width];
+    PDOffset mask = 0xff;
+    PDOffset shift = 0;
+    for (int i = table->genSize - 1; i >= 0; i--) {
+        o[i] = (gen & mask) >> shift;
+        mask <<= 8;
+        shift += 8;
+    }
+//    PDAssert(PDXTableGetGenForID(table, obid) == gen);
 }
 
 
@@ -120,6 +178,7 @@ struct PDXI {
 
 void PDXTableDestroy(PDXTableRef xtable)
 {
+    if (xtable->w) free(xtable->w);
     free(xtable->xrefs);
 }
 
@@ -129,11 +188,20 @@ PDXTableRef PDXTableCreate(PDXTableRef pdx)
     if (pdx) {
         PDXTableRef pdxc = PDAlloc(sizeof(struct PDXTable), PDXTableDestroy, false);
         memcpy(pdxc, pdx, sizeof(struct PDXTable));
-        pdxc->xrefs = malloc(pdx->cap * PDXWidth);
-        memcpy(pdxc->xrefs, pdx->xrefs, pdx->cap * PDXWidth);
+        pdxc->xrefs = xrefalloc(pdx, pdx->cap, pdx->width); //malloc(pdx->cap * pdxc->width + 1);
+        memcpy(pdxc->xrefs, pdx->xrefs, pdx->cap * pdxc->width);
         return pdxc;
     } 
-    return PDAlloc(sizeof(struct PDXTable), PDXTableDestroy, true);
+    
+    pdx = PDAlloc(sizeof(struct PDXTable), PDXTableDestroy, true);
+    pdx->width = 6;
+    pdx->typeSize = 1;
+    pdx->typeAlign = 0;
+    pdx->offsSize = 4;
+    pdx->offsAlign = pdx->typeSize;
+    pdx->genSize = 1;
+    pdx->genAlign = pdx->offsAlign + pdx->offsSize;
+    return pdx;
 }
 
 PDBool PDXTableInsertXRef(PDParserRef parser)
@@ -155,7 +223,7 @@ PDBool PDXTableInsertXRef(PDParserRef parser)
     // write xref table
     twinstream_put(20, "0000000000 65535 f \n");
     for (i = 1; i < mxt->count; i++) {
-        twinstream_printf("%010u %05d %c \n", PDXTableGetOffsetForID(mxt, i), PDXTableGetGenForID(mxt, i), PDXTableIsIDFree(mxt, i) ? 'f' : 'n');
+        twinstream_printf("%010lld %05ld %c \n", PDXTableGetOffsetForID(mxt, i), PDXTableGetGenForID(mxt, i), PDXTableIsIDFree(mxt, i) ? 'f' : 'n');
     }
     
     PDObjectRef tob = parser->trailer;
@@ -187,12 +255,12 @@ PDBool PDXTableInsertXRefStream(PDParserRef parser)
     PDObjectRef trailer = parser->trailer;
     PDXTableRef mxt = parser->mxt;
     
-    PDXSetOffsetForID(mxt->xrefs, trailer->obid, (PDXOffsetType)parser->oboffset);
-    PDXSetTypeForID(mxt->xrefs, trailer->obid, PDXTypeUsed);
+    PDXTableSetOffsetForID(mxt, trailer->obid, (PDOffset)parser->oboffset);
+    PDXTableSetTypeForID(mxt, trailer->obid, PDXTypeUsed);
     
     sprintf(obuf, "%lu", mxt->count);
     PDObjectSetDictionaryEntry(trailer, "Size", obuf);
-    PDObjectSetDictionaryEntry(trailer, "W", PDXWEntry);
+    PDObjectSetDictionaryEntry(trailer, "W", PDXTableWEntry(mxt));
 
     PDObjectRemoveDictionaryEntry(trailer, "Prev");
     PDObjectRemoveDictionaryEntry(trailer, "Index");
@@ -200,9 +268,9 @@ PDBool PDXTableInsertXRefStream(PDParserRef parser)
 
     // override filters/decode params always -- better than risk passing something on by mistake that makes the xref stream unreadable
     PDObjectSetFlateDecodedFlag(trailer, true);
-    PDObjectSetPredictionStrategy(trailer, PDPredictorPNG_UP, 6);
+    PDObjectSetPredictionStrategy(trailer, PDPredictorPNG_UP, mxt->width);
     
-    PDObjectSetStreamFiltered(trailer, (char *)mxt->xrefs, PDXWidth * mxt->count);
+    PDObjectSetStreamFiltered(trailer, mxt->xrefs, mxt->width * mxt->count);
 
     // now chuck this through via parser
     parser->state = PDParserStateBase;
@@ -285,8 +353,6 @@ PDBool PDXTablePassoverXRefEntry(PDParserRef parser, pd_stack stack, PDBool incl
     
     return true;
 }
-
-
 
 static inline PDBool PDXTableFindStartXRef(PDXI X)
 {
@@ -377,6 +443,9 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
     pdx->format = PDXTableFormatBinary;
     
     // pull in defs stack and get ready to read stream
+    PDID id = pd_stack_pop_identifier(&X->stack);
+    PDAssert(id == &PD_OBJ);
+    pdx->obid = pd_stack_pop_int(&X->stack);
     pd_stack_destroy(&X->stack);
     PDScannerPopStack(X->scanner, &X->stack);
     PDScannerAssertString(X->scanner, "stream");
@@ -396,25 +465,6 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
         filter = PDStreamFilterObtain(filterDef->info, true, filterOpts);
     }
     
-    
-    if (size == X->mtobid) {
-        // some PDF creators think it's wise to exclude the XRef binary object from the XRef. entirely. this can be signified by the XRef being the very last object in the PDF, and the XRef size being its own id (thus including all except itself)
-        if (size >= pdx->cap) {
-            // realloc; we only do this here because we want to avoid two big reallocs (one for 'size' and one for 'size+1')
-            pdx->cap = size+1;
-            pdx->xrefs = realloc(pdx->xrefs, PDXWidth * (size + 1));
-        }
-    }
-
-    if (size > pdx->count) {
-        pdx->count = size;
-        if (size > pdx->cap) {
-            /// @todo this size is known beforehand, or can be known beforehand, in pass 1; xrefs should never have to be reallocated, except for the initial setup
-            pdx->cap = size;
-            pdx->xrefs = realloc(pdx->xrefs, PDXWidth * size);
-        }
-    }
-        
     if (filter) {
         /// @todo We know from 'size' exactly how many bytes we expect out of this thing, so we can set buffer to this value instead of basing it off len (compressed stream length)
         
@@ -427,10 +477,10 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
         while (bytes > 0) {
             got += bytes;
             if (! filter->finished && filter->bufOutCapacity < 512) {
-                cap *= (cap < 8192 ? 4 : 2); // we don't want to hit caps in filters more than once or twice, but we don't want retardo-huge buffers either so we can the rapid growth to 8k and then double after that
+                cap *= (cap < 8192 ? 4 : 2); // we don't want to hit caps in filters more than once or twice, but we don't want huge buffers either so we cap the rapid growth to 8k and then double after that
                 buf = realloc(buf, cap);
             }
-            bytes = PDScannerReadStreamNext(X->scanner, &buf[got]  , cap - got);
+            bytes = PDScannerReadStreamNext(X->scanner, &buf[got], cap - got);
         }
 
         PDScannerDetachFilter(X->scanner);
@@ -446,9 +496,42 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
     sizeO = PDIntegerFromString(as(pd_stack, byteWidths->prev->info)->prev->info);
     sizeI = PDIntegerFromString(as(pd_stack, byteWidths->prev->prev->info)->prev->info);
     
-    // this layout may be optimized for Pajdeg; if it is, we can inject the buffer straight into the data structure
-    aligned = sizeT == PDXTypeSize && sizeO == PDXOffsSize && sizeI == PDXGenSize;
+    if (pdx->count == 0 || (sizeT >= pdx->typeSize && sizeO >= pdx->offsSize && sizeI >= pdx->genSize)) {
+        // we can adopt the given sizes as is, as they won't force us to lose bytes
+        PDXTableSetSizes(pdx, sizeT, sizeO, sizeI);
+        aligned = true;
+    } else {
+        // we may still have to resize the table to fit
+        unsigned char maxT = sizeT > pdx->typeSize ? sizeT : pdx->typeSize;
+        unsigned char maxO = sizeO > pdx->offsSize ? sizeO : pdx->offsSize;
+        unsigned char maxI = sizeI > pdx->genSize  ? sizeI : pdx->genSize;
+        if (maxT > pdx->typeSize || maxO > pdx->offsSize || maxI > pdx->genSize) {
+            PDXTableSetSizes(pdx, maxT, maxO, maxI);
+        }
+        aligned = false;
+    }
     
+    if (size == X->mtobid) {
+        // some PDF creators think it's wise to exclude the XRef binary object from the XRef. entirely. this can be signified by the XRef being the very last object in the PDF, and the XRef size being its own id (thus including all except itself)
+        if (size >= pdx->cap) {
+            // realloc; we only do this here because we want to avoid two big reallocs (one for 'size' and one for 'size+1')
+            pdx->cap = size+1;
+            pdx->xrefs = xrefrealloc(pdx, pdx->xrefs, size + 1, pdx->width); //realloc(pdx->xrefs, pdx->width * (size + 1));
+        }
+    }
+    
+    if (size > pdx->count) {
+        pdx->count = size;
+        if (size > pdx->cap) {
+            /// @todo this size is known beforehand, or can be known beforehand, in pass 1; xrefs should never have to be reallocated, except for the initial setup
+            pdx->cap = size;
+            pdx->xrefs = xrefrealloc(pdx, pdx->xrefs, size, pdx->width); //realloc(pdx->xrefs, pdx->width * size);
+        }
+    }
+    
+//    // this layout may be optimized for Pajdeg; if it is, we can inject the buffer straight into the data structure
+//    aligned = sizeT == PDXTypeSize && sizeO == PDXOffsSize && sizeI == PDXGenSize;
+//    
     if (! aligned) {
         // not aligned, so need pad
 #define setup_align(suf, our_size) \
@@ -462,15 +545,17 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
             shr##suf = size##suf - our_size; \
         }
 
-        setup_align(T, PDXTypeSize);
-        setup_align(O, PDXOffsSize);
-        setup_align(I, PDXGenSize);
+        setup_align(T, pdx->typeSize);
+        setup_align(O, pdx->offsSize);
+        setup_align(I, pdx->genSize);
         
 #undef setup_align
 #define transfer_pc(dst, src, pad, shr, cap, i) \
             for (i = 0; i < pad; i++) \
                 dst[i] = 0; \
-            memcpy(&dst[pad], src, cap); \
+            for (i = 0; i < shr; i++) \
+                assert(src[i] == 0); \
+            memcpy(&dst[pad], &src[shr], cap); \
             dst += pad + cap; \
             src += shr + cap
 #define transfer_pcs(dst, src, i, suf) transfer_pc(dst, src, pad##suf, shr##suf, cap##suf, i)
@@ -502,24 +587,24 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
         PDAssert(startob + obcount <= size);
         
         if (aligned) {
-            memcpy(&xrefs[startob * PDXWidth], bufi, obcount * PDXWidth);
-            bufi += obcount * PDXWidth;
+            memcpy(&xrefs[startob * pdx->width], bufi, obcount * pdx->width);
+            bufi += obcount * pdx->width;
         } else {
-            char *dst = &xrefs[startob * PDXWidth];
+            char *dst = &xrefs[startob * pdx->width];
             
             for (i = 0; i < obcount; i++) {
                 // transfer 
                 transfer_pcs(dst, bufi, j, T);
-#ifdef DEBUG
+//#ifdef DEBUG
                 //PDXOffsetType mark = PDXGetOffsetForArbitraryRepresentation(bufi, sizeO);
-#endif
+//#endif
                 transfer_pcs(dst, bufi, j, O);
                 transfer_pcs(dst, bufi, j, I);
-                PDAssert(((dst - xrefs) % PDXWidth) == 0);
-#ifdef DEBUG
+                PDAssert(((dst - xrefs) % pdx->width) == 0);
+//#ifdef DEBUG
                 //printf("force-aligned XREF entry: #%ld: %u (%d)\n", i+startob, PDXTableOffsetForID(pdx, startob+i), *PDXTableGenForID(pdx, startob+i));
                 //PDAssert(mark == PDXGetOffsetForID(pdx->xrefs, startob+i)); // crash = transfer failure
-#endif
+//#endif
             }
         }
         
@@ -576,9 +661,9 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
     if (size == X->mtobid && pdx->count == size) {
         // put in the XRef manually
         pdx->count++;
-        PDXSetTypeForID(pdx->xrefs, X->mtobid, PDXTypeUsed);
-        PDXSetOffsetForID(pdx->xrefs, X->mtobid, (PDXOffsetType)offset);
-        PDXSetGenForID(pdx->xrefs, X->mtobid, 0);
+        PDXTableSetTypeForID(pdx, X->mtobid, PDXTypeUsed);
+        PDXTableSetOffsetForID(pdx, X->mtobid, (PDOffset)offset);
+        PDXTableSetGenForID(pdx, X->mtobid, 0);
     }
     
     return true;
@@ -620,10 +705,14 @@ static inline PDBool PDXTableReadXRefContent(PDXI X)
     char *buf;
     char *src;
     char *dst;
-    PDXGenType *freeLink;
+    PDBool used;
+    PDOffset offset;
+//    PDInteger *freeLink;
+    PDInteger prevFreeID;
 
     PDXTableRef pdx = X->pdx;
     pdx->format = PDXTableFormatText;
+    PDXTableSetSizes(pdx, 1, 4, 2); // we do this because there's no guarantee that 0 <= generation number <= 255, which it must be for the default size setup
     
     do {
         // this stack = xref, startobid, <startobid>, count, <count>
@@ -640,7 +729,7 @@ static inline PDBool PDXTableReadXRefContent(PDXI X)
             if (size > pdx->cap) {
                 // we must realloc xref as it can't contain all the xrefs
                 pdx->cap = size;
-                pdx->xrefs = realloc(pdx->xrefs, PDXWidth * size);
+                pdx->xrefs = xrefrealloc(pdx, pdx->xrefs, size, pdx->width); //realloc(pdx->xrefs, pdx->width * size);
             }
         }
         
@@ -654,39 +743,42 @@ static inline PDBool PDXTableReadXRefContent(PDXI X)
         
         // convert into internal xref table
         src = buf;
-        dst = &pdx->xrefs[PDXWidth * startobid];
-        freeLink = NULL;
-        PDBool used;
-        PDXOffsetType offset;
+        dst = &pdx->xrefs[pdx->width * startobid];
+//        freeLink = NULL;
+        prevFreeID = -1;
         for (i = 0; i < count; i++) {
 #define PDXOffset(pdx)      fast_mutative_atol(pdx, 10)
 #define PDXGenId(pdx)       fast_mutative_atol(&pdx[11], 5)
 #define PDXUsed(pdx)        (pdx[17] == 'n')
             
-            offset = (PDXOffsetType)PDXOffset(src);
+            offset = (PDOffset)PDXOffset(src);
             
-            // some PDF creators (determine who this is so they can contacted) incorrectly think setting generation number to 65536 is the same as setting the used character to 'f' (free) -- in order to not confuse Pajdeg, we address that here
+            // some PDF creators (determine who this is so they can be contacted; or determine if this is acceptable according to spec) incorrectly think setting generation number to 65536 is the same as setting the used character to 'f' (free) -- in order to not confuse Pajdeg, we address that here
             // other PDF creators think dumping 000000000 00000 n (i.e. this object can be found at offset 0, and it's in use) means "this object is unused"; we address that as well
 #ifdef DEBUG
             if (PDXUsed(src) && (PDXGenId(src) == 65536 || offset == 0)) {
                 PDNotice("warning: marking object #%ld as unused, because its generation id is 65536 or its offset is 0\n", i);
-                
             }
 #endif
             used = PDXUsed(src) && (PDXGenId(src) != 65536) && (offset != 0);
             
-            PDXSetOffsetForID(dst, i, offset);
+            _PDXSetOffsetForID(dst, pdx, i, offset);
+//            _PDXSetOffsetForID(dst, i, offset);
 
             if (used) {
-                PDXSetTypeForID(dst, i, PDXTypeUsed);
-                PDXSetGenForID(dst, i, PDXGenId(src));
+                _PDXSetTypeForID(dst, pdx, i, PDXTypeUsed);
+                _PDXSetGenForID(dst, pdx, i, PDXGenId(src));
             } else {
                 // freed objects link to each other in obstreams
-                PDXSetTypeForID(dst, i, PDXTypeFreed);
-                if (freeLink) 
-                    *freeLink =  startobid + i;
-                freeLink = (PDXGenType*)&((dst)[PDXGenAlign+i*PDXWidth]);//PDXGetGenForID(dst, i);
-                *freeLink = 0;
+                _PDXSetTypeForID(dst, pdx, i, PDXTypeFreed);
+                if (prevFreeID > -1)
+                    _PDXSetGenForID(dst, pdx, prevFreeID, startobid + i);
+                prevFreeID = i;
+                _PDXSetGenForID(dst, pdx, prevFreeID, 0);
+//                if (freeLink) 
+//                    *freeLink =  startobid + i;
+//                freeLink = (PDInteger*)&((dst)[PDXGenAlign+i*PDXWidth]);//PDXGetGenForID(dst, i);
+//                *freeLink = 0;
             }
             
             src += 20;
@@ -805,7 +897,7 @@ PDBool PDXTableFetchHeaders(PDXI X)
 
 void PDXTablePrint(PDXTableRef pdx)
 {
-    char *xrefs = pdx->xrefs;
+//    char *xrefs = pdx->xrefs;
     PDInteger i;
     
     char *types[] = {"free", "used", "compressed"};
@@ -813,8 +905,8 @@ void PDXTablePrint(PDXTableRef pdx)
     printf("XREF with %ld objects @ %ld:\n", pdx->count, pdx->pos);
 
     for (i = 0; i < pdx->count; i++) {
-        PDOffset offs = PDXGetOffsetForID(xrefs, i);
-        printf("#%03ld: %010lld (%s)\n", i, offs, types[PDXGetTypeForID(xrefs, i)]);
+        PDOffset offs = PDXTableGetOffsetForID(pdx, i);
+        printf("#%03ld: %010lld (%s)\n", i, offs, types[PDXTableGetTypeForID(pdx, i)]);
     }
 }
 
@@ -898,7 +990,10 @@ PDBool PDXTableFetchContent(PDXI X)
         // master is before its precdecessor byte-wise, and the PDF has two XRef entries => linearized; flatten
         pdx->linearized = true;
         pdx->pos = pdx->prev->pos;
+        if (pdx->format == PDXTableFormatBinary && pdx->prev->format == PDXTableFormatBinary)
+            PDXTableSetTypeForID(X->parser->mxt, pdx->prev->obid, PDXTypeFreed);
         PDRelease(pdx->prev);
+        pdx->prev = NULL;
         
         pd_stack_push_object(&X->parser->xstack, pdx);
     } else {
@@ -960,19 +1055,20 @@ PDBool PDXTableFetchXRefs(PDParserRef parser)
     PDTWinStreamSetMethod(X.stream, PDTwinStreamReadWrite);
     
     //#define DEBUG_PARSER_PRINT_XREFS
-#ifdef DEBUG_PARSER_PRINT_XREFS
-    printf("\n"
-           "       XREFS     \n"
-           "  OFFSET    GEN  U\n"
-           "---------- ----- -\n"
-           "%s", (char*)xrefs);
-#endif
+//#ifdef DEBUG_PARSER_PRINT_XREFS
+//    printf("\n"
+//           "       XREFS     \n"
+//           "  OFFSET    GEN  U\n"
+//           "---------- ----- -\n"
+//           "%s", (char*)xrefs);
+//#endif
     
 //#define DEBUG_PARSER_CHECK_XREFS
 #ifdef DEBUG_PARSER_CHECK_XREFS
     printf("* * * * *\nCHECKING XREFS\n* * * * * *\n");
     {
-        char *xrefs = parser->mxt->xrefs;
+        PDXTableRef table = parser->mxt;
+//        char *xrefs = table->xrefs;
         char *buf;
         char obdef[50];
         PDInteger bufl,obdefl,i,j;
@@ -980,13 +1076,13 @@ PDBool PDXTableFetchXRefs(PDParserRef parser)
         //char *types[] = {"free", "used", "compressed"};
         
         for (i = 0; i < parser->mxt->count; i++) {
-            PDOffset offs = PDXGetOffsetForID(xrefs, i);
+            PDOffset offs = PDXTableGetOffsetForID(table, i);
             //printf("object #%3ld: %10lld (%s)\n", i, offs, types[PDXGetTypeForID(xrefs, i)]);
-            if (PDXTypeUsed == PDXGetTypeForID(xrefs, i)) {
-                bufl = PDTwinStreamFetchBranch(X.stream, offs, 200, &buf);
-                obdefl = sprintf(obdef, "%ld %d obj", i, PDXGetGenForID(xrefs, i));//PDXGenId(xrefs[i]));
+            if (PDXTypeUsed == PDXTableGetTypeForID(table, i)) {
+                bufl = PDTwinStreamFetchBranch(X.stream, (PDSize) offs, 200, &buf);
+                obdefl = sprintf(obdef, "%ld %ld obj", i, PDXTableGetGenForID(table, i));//PDXGenId(xrefs[i]));
                 if (bufl < obdefl || strncmp(obdef, buf, obdefl)) {
-                    printf("ERROR: object definition did not start at %lld: instead, this was encountered: ", offs);
+                    printf("ERROR: object %ld definition did not start at %lld: instead, this was encountered: ", i, offs);
                     for (j = 0; j < 20 && j < bufl; j++) 
                         putchar(buf[j] < '0' || buf[j] > 'z' ? '.' : buf[j]);
                     printf("\n");
@@ -999,3 +1095,52 @@ PDBool PDXTableFetchXRefs(PDParserRef parser)
     return true;
 }
 
+char *PDXTableWEntry(PDXTableRef table)
+{
+    if (table->w) return table->w;
+    table->w = malloc(13);
+    sprintf(table->w, "[ %d %d %d ]", table->typeSize, table->offsSize, table->genSize);
+    return table->w;
+}
+
+void PDXTableSetSizes(PDXTableRef table, unsigned char typeSize, unsigned char offsSize, unsigned char genSize)
+{
+    PDAssert(typeSize == 1); // crash = type size <> 1 is not supported in this implementation; contact devs or update code to support this if needed (but why?)
+
+    if (table->w) {
+        free(table->w);
+        table->w = NULL;
+    }
+    
+    unsigned char newWidth = typeSize + offsSize + genSize;
+    if (table->xrefs != NULL) {
+        PDXTableRef tmp = PDXTableCreate(NULL);
+        PDXTableSetSizes(tmp, typeSize, offsSize, genSize);
+        char *newXrefs = xrefalloc(table, table->cap, newWidth); //malloc(table->cap * newWidth);
+        for (int i = 0; i < table->count; i++) {
+            _PDXSetTypeForID(newXrefs, tmp, i, PDXTableGetTypeForID(table, i));
+            _PDXSetOffsetForID(newXrefs, tmp, i, PDXTableGetOffsetForID(table, i));
+            _PDXSetGenForID(newXrefs, tmp, i, PDXTableGetGenForID(table, i));
+        }
+        PDRelease(tmp);
+        free(table->xrefs);
+        table->xrefs = newXrefs;
+    }
+    
+    table->typeSize = typeSize;
+    table->typeAlign = 0;
+    
+    table->offsSize = offsSize;
+    table->offsAlign = typeSize;
+    
+    table->genSize = genSize;
+    table->genAlign = typeSize + offsSize;
+    
+    table->width = newWidth;
+}
+
+void PDXTableGrow(PDXTableRef table, PDSize cap)
+{
+    table->cap = cap;
+    table->xrefs = xrefrealloc(table, table->xrefs, cap, table->width);
+}
