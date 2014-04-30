@@ -335,11 +335,18 @@ typedef struct PDBTree *PDBTreeRef;
 typedef struct PDObject *PDObjectRef;
 
 /**
- A PDF object.
+ A PDF object stream.
  
  @ingroup PDOBJECTSTREAM
  */
 typedef struct PDObjectStream *PDObjectStreamRef;
+
+/**
+ A PDF content stream.
+ 
+ @ingroup PDCONTENTSTREAM
+ */
+typedef struct PDContentStream *PDContentStreamRef;
 
 /**
  The type of object.

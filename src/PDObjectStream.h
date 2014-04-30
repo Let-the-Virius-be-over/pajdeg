@@ -24,7 +24,7 @@
  
  @defgroup PDOBJECTSTREAM PDObjectStream
  
- @brief A PDF object stream.
+ @brief A PDF object stream, i.e. a stream of PDF objects inside a stream.
  
  @ingroup PDUSER
  
