@@ -30,7 +30,23 @@
  
  Content streams may have a wide variety of purposes. One such purpose is the drawing of content on the page. 
  The content stream module contains support for working with the state machine to process the content in a
- variety of ways. 
+ variety of ways.
+ 
+ The mode of operation goes as follows: 
+ 
+ - there are two types of entries: arguments and operators
+ - there is a stack of (space/line separated) arguments
+ - there is a stack of current operators
+ - when an argument is encountered, it's pushed onto the stack
+ - when an operator is encountered, a defined number of arguments (based on operator name) are popped off the stack
+ - some operators push onto or pop off of the current operators stack (BT pushes, ET pops, for example)
+ 
+ At this point, no known example exists where the above complexity (in reference to arguments) is necessary. Instead, the following approximation is done:
+ 
+ - put arguments into a list until the next operator is encountered
+ - operator & list = the next operation
+ 
+ Current operators stack is done exactly as defined.
  
  @{
  */
@@ -45,11 +61,25 @@
  *
  *  @param object The object containing a stream.
  *
- *  @return The content stream object.
+ *  @return The content stream object
  */
 extern PDContentStreamRef PDContentStreamCreateWithObject(PDObjectRef object);
 
+/**
+ *  Attach an operator function to a given operator (replacing the current operator, if any).
+ *
+ *  @param cs     The content stream
+ *  @param opname The operator (e.g. "BT")
+ *  @param op     The callback, which abides by the PDContentOperatorFunc signature
+ */
+extern void PDContentStreamAttachOperator(PDContentStreamRef cs, const char *opname, PDContentOperatorFunc op);
 
+/**
+ *  Execute the content stream, i.e. parse the stream and call the operators as appropriate.
+ *
+ *  @param cs The content stream
+ */
+extern void PDContentStreamExecute(PDContentStreamRef cs);
 
 #endif
 

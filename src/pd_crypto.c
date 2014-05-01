@@ -21,6 +21,7 @@
 #include "pd_internal.h"
 #include "pd_dict.h"
 #include "pd_md5.h"
+#include "pd_aes256.h"
 
 #ifdef PD_SUPPORT_CRYPTO
 
@@ -257,6 +258,29 @@ pd_crypto_param pd_crypto_decode_param(const char *param)
 
 pd_crypto pd_crypto_create(pd_dict trailerDict, pd_dict options)
 {
+    /*
+    1 0 obj
+    <<
+        /Filter /Standard
+        /P -1036
+        /R 4
+        /CF <<
+            /StdCF <<
+                /Length 16
+                /CFM /AESV2
+                /AuthEvent /DocOpen
+            >>
+        >>
+        /EncryptMetadata true
+        /U ([K<D8>U<85>e5<CC>v<8A>z<F9><F5><E7>6<D0>^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@^@)
+        /V 4
+        /StmF /StdCF
+        /Length 128
+        /StrF /StdCF
+        /O (t^?<CA>!<90>`<AF>y<9A>T<AA>^F<BF><9D><D2>PdG<9E><8F><EF><DC>Fn<D1><E7>^ZhѹZ<BC>)
+    >>
+    endobj
+     */
     pd_crypto crypto = malloc(sizeof(struct pd_crypto));
     
     const char *fid = pd_dict_get(trailerDict, "ID");
@@ -279,6 +303,32 @@ pd_crypto pd_crypto_create(pd_dict trailerDict, pd_dict options)
     if (crypto->length < 40 || crypto->length > 128) crypto->length = 40;
     
     crypto->enckey = (pd_crypto_param){NULL, 0};
+    
+    crypto->cfLength = 0;
+    crypto->cfMethod = pd_crypto_method_rc4;
+    crypto->cfAuthEvent = pd_auth_event_docopen;
+    
+    // for version = 4, there may be a crypt filter (CF) dict
+    if (crypto->version == 4) {
+        pd_stack cfs = pd_dict_get_raw(options, "CF");
+        if (cfs) {
+            pd_dict cf =  pd_dict_from_pdf_dict_stack(cfs);
+            pd_stack stdcfs = pd_dict_get_raw(cf, "StdCF");
+            if (stdcfs) {
+                pd_dict stdcf = pd_dict_from_pdf_dict_stack(stdcfs);
+                if (pd_dict_get(stdcf, "Length")) crypto->cfLength = PDIntegerFromString(pd_dict_get(stdcf, "Length"));
+                const char *cfm = pd_dict_get(stdcf, "CFM");
+                if (cfm) {
+                    if      (0 == strcmp(cfm, "/AESV2")) crypto->cfMethod = pd_crypto_method_aesv2;
+                    else if (0 == strcmp(cfm, "/V2")) crypto->cfMethod = pd_crypto_method_rc4;
+                    else if (0 == strcmp(cfm, "/None")) crypto->cfMethod = pd_crypto_method_none;
+                    else {
+                        PDWarn("unknown crypt filter method: %s", cfm);
+                    }
+                }
+            }
+        }
+    }
     
     return crypto;
 }
@@ -346,8 +396,9 @@ void pd_crypto_convert(pd_crypto crypto, PDInteger obid, PDInteger genid, char *
     if (crypto->enckey.d == NULL) 
         pd_crypto_generate_enckey(crypto, "");
     
-    PDInteger klen = crypto->length/8;
-    char *key = malloc(klen > 26 ? klen + 5 : 32);
+    PDInteger klen = crypto->version == 1 ? 5 : crypto->length/8;
+    PDInteger kext = crypto->cfMethod == pd_crypto_method_aesv2 ? 9 : 5;
+    char *key = malloc(klen + kext < 32 ? 32 : klen + kext);
     memcpy(key, crypto->enckey.d, crypto->enckey.l);
     key[klen++] = obid & 0xff;
     key[klen++] = (obid>>8) & 0xff;
@@ -358,7 +409,12 @@ void pd_crypto_convert(pd_crypto crypto, PDInteger obid, PDInteger genid, char *
     
 //If using the AES algorithm, extend the encryption key an additional 4 bytes by adding the value "sAlT", which corresponds to the hexadecimal values 0x73, 0x41, 0x6C, 0x54. (This addition is done for backward compatibility and is not intended to provide additional security.)
 
-    /// @todo: determine if, and do above
+    if (crypto->cfMethod == pd_crypto_method_aesv2) {
+        key[klen++] = 0x73;
+        key[klen++] = 0x41;
+        key[klen++] = 0x6c;
+        key[klen++] = 0x54;
+    }
     
 //3. Initialize the MD5 hash function and pass the result of step 2 as input to this function.
     
@@ -370,7 +426,24 @@ void pd_crypto_convert(pd_crypto crypto, PDInteger obid, PDInteger genid, char *
     
     if (klen > 16) klen = 16;
     key[klen] = 0; // truncate at min(16, n + 5)
-    pd_crypto_rc4(crypto, key, (int)klen, data, len);
+    
+    switch (crypto->cfMethod) {
+        case pd_crypto_method_rc4:      
+        case pd_crypto_method_aesv2:
+            pd_crypto_rc4(crypto, key, (int)klen, data, len);
+            break;
+            
+//        case pd_crypto_method_aesv2:
+//            {
+//                aes256_context ctx;
+//                aes256_init(&ctx, (unsigned char *) key);
+//                aes256_encrypt_ecb(&ctx, (unsigned char *) data);
+//            }
+//            break;
+            
+        case pd_crypto_method_none:
+            break;
+    }
     
     free(key);
 }

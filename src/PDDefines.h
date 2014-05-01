@@ -349,6 +349,30 @@ typedef struct PDObjectStream *PDObjectStreamRef;
 typedef struct PDContentStream *PDContentStreamRef;
 
 /**
+ Content operator result type. 
+ 
+ @ingroup PDCONTENTSTREAM
+ 
+ Content operators are responsible for maintaining the operator state of their designated functions. For example, the 'q' and 'BT' operators need to return PDOperatorStatePush and the 'Q' and 'ET' operators need to return PDOperatorStatePop. The default behavior for all unattached operators is PDOperatorStateIndependent, i.e. the operator does not modify the current operators stack.
+ */
+typedef enum {
+    PDOperatorStateIndependent = 0, ///< this operator does not push nor pop the stack
+    PDOperatorStatePush        = 1, ///< this operator pushes onto the stack
+    PDOperatorStatePop         = 2, ///< this operator pops the stack
+} PDOperatorState;
+
+/**
+ Function signature for content operators. 
+ 
+ @ingroup PDCONTENTSTREAM
+ @param cs   Content stream reference
+ @param args Argument list
+ @param argc Argument count
+ @return State of operator (i.e. whether it pushes, pops, or does neither)
+ */
+typedef PDOperatorState (*PDContentOperatorFunc)(PDContentStreamRef cs, const char **args, PDInteger argc);
+
+/**
  The type of object.
  
  @ingroup PDOBJECT

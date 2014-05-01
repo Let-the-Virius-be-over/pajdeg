@@ -22,6 +22,8 @@
 #include "PDBTree.h"
 #include "pd_internal.h"
 
+typedef struct bt_node *bt_node;
+
 struct PDBTree {
     PDDeallocator deallocator;
     bt_node       root;

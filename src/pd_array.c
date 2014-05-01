@@ -175,6 +175,12 @@ pd_array pd_array_with_capacity(PDInteger capacity)
     return arr;
 }
 
+void pd_array_clear(pd_array arr)
+{
+    while (arr->count > 0)
+        (*arr->r)(arr, (const void *)(arr->count-1));
+}
+
 void pd_array_destroy(pd_array array)
 {
     for (PDInteger i = array->count-1; i >= 0; i--)
@@ -312,6 +318,14 @@ PDInteger pd_array_get_count(pd_array array)
 const char *pd_array_get_at_index(pd_array array, PDInteger index)
 {
     return (*array->g)(array, (const void*)index);
+}
+
+const char **pd_array_create_args(pd_array array)
+{
+    const char **result = malloc(sizeof(char*) * array->count);
+    for (int i = 0; i < array->count; i++) 
+        result[i] = (*array->g)(array, (const void*)i);
+    return result;
 }
 
 void pd_array_insert_at_index(pd_array array, PDInteger index, const char *value)

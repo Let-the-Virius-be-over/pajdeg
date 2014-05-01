@@ -170,6 +170,14 @@ extern PDObjectType PDObjectGetType(PDObjectRef object);
 extern PDObjectType PDObjectDetermineType(PDObjectRef object);
 
 /**
+ *  Explicitly set the type of an object.
+ *
+ *  @param object The object whose type should be (re)defined.
+ *  @param type   The (new) object type.
+ */
+extern void PDObjectSetType(PDObjectRef object, PDObjectType type);
+
+/**
  Determine if the object has a stream or not.
  
  @param object The object.

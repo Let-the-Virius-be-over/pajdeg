@@ -238,6 +238,27 @@ extern void PDObjectStreamCommit(PDObjectStreamRef obstm);
 
 /** @} */
 
+/**
+ @addtogroup PDCONTENTSTREAM
+ 
+ @{ 
+ */
+
+/**
+ Content stream internal structure
+ 
+ The content stream is a simple wrapper around an object, with additional support for PDF operators (the ones used to draw stuff on screen, for example).
+ */
+struct PDContentStream {
+    PDObjectRef ob;                     ///< obstream object
+    PDBTreeRef opertree;                ///< operator tree
+    pd_array args;                      ///< pending operator arguments
+    pd_stack opers;                     ///< current operators stack
+};
+
+/** @} */
+
+
 /// @name Environment
 
 /**
@@ -523,6 +544,23 @@ struct pd_crypto_param {
 };
 
 /**
+ Crypto methods.
+ */
+typedef enum {
+    pd_crypto_method_none  = 0,
+    pd_crypto_method_rc4   = 1,
+    pd_crypto_method_aesv2 = 2,
+} pd_crypto_method;
+
+/**
+ Crypto authentication events.
+ */
+typedef enum {
+    pd_auth_event_none    = 0,
+    pd_auth_event_docopen = 1,
+} pd_auth_event;
+
+/**
  The internal crypto structure.
  */
 struct pd_crypto {
@@ -540,6 +578,11 @@ struct pd_crypto {
     int32_t privs;              ///< privileges (see Table 3.20 in PDF spec v 1.7, p. 123-124)
     PDBool encryptMetadata;     ///< whether metadata should be encrypted or not ("/EncryptMetadata true")
     pd_crypto_param enckey;     ///< encryption key
+    
+    // standard crypt filter
+    PDInteger cfLength;         ///< crypt filter length, e.g. 16 for AESV2
+    pd_crypto_method cfMethod;  ///< crypt filter method
+    pd_auth_event cfAuthEvent;  ///< when authentication occurs; currently only supports '/DocOpen'
 };
 
 #else

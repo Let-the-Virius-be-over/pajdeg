@@ -53,6 +53,13 @@
 extern pd_array pd_array_with_capacity(PDInteger capacity);
 
 /**
+ Clear the given array, removing all entries.
+ 
+ @param arr The array.
+ */
+extern void pd_array_clear(pd_array arr);
+
+/**
  Free up an array.
  
  @param array The array to delete. 
@@ -113,6 +120,15 @@ extern PDInteger pd_array_get_count(pd_array array);
  @return Value.
  */
 extern const char *pd_array_get_at_index(pd_array array, PDInteger index);
+
+/**
+ Return entire array as a newly allocated char* array which must be free()'d. Its elements, however, must NOT be freed.
+ 
+ @warning The returned array should be freed, but its elements shouldn't be as they're still used internally in the array.
+ 
+ @param array The array whose entries should be returned.
+ */
+extern const char **pd_array_create_args(pd_array array);
 
 /**
  Append an element to the end of the array.

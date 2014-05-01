@@ -108,6 +108,11 @@ PDObjectType PDObjectGetType(PDObjectRef object)
     return object->type;
 }
 
+void PDObjectSetType(PDObjectRef object, PDObjectType type)
+{
+    object->type = type;
+}
+
 PDObjectType PDObjectDetermineType(PDObjectRef object)
 {
     pd_stack st = object->def;
