@@ -335,6 +335,13 @@ typedef struct PDBTree *PDBTreeRef;
 typedef struct PDObject *PDObjectRef;
 
 /**
+ A PDF page.
+ 
+ @ingroup PDPAGE
+ */
+typedef struct PDPage *PDPageRef;
+
+/**
  A PDF object stream.
  
  @ingroup PDOBJECTSTREAM

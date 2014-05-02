@@ -32,6 +32,11 @@ const char *pd_array_getter(void *arr, const void *k)
     return as(pd_array, arr)->values[as(PDInteger, k)];
 }
 
+const pd_stack pd_array_getter_raw(void *arr, const void *k)
+{
+    return as(pd_array, arr)->vstacks[as(PDInteger, k)];
+}
+
 #ifdef PD_SUPPORT_CRYPTO
 const char *pd_array_crypto_getter(void *arr, const void *k)
 {
@@ -58,9 +63,12 @@ void pd_array_remover(void *arr, const void *k)
     PDInteger index = as(PDInteger, k);
     
     free(array->values[index]);
+    pd_stack_destroy(&array->vstacks[index]);
     array->count--;
-    for (PDInteger i = index; i < array->count; i++)
+    for (PDInteger i = index; i < array->count; i++) {
         array->values[i] = array->values[i+1];
+        array->vstacks[i] = array->vstacks[i+1];
+    }
 }
 
 #ifdef PD_SUPPORT_CRYPTO
@@ -72,10 +80,12 @@ void pd_array_crypto_remover(void *arr, const void *k)
     char **plain = ci->info;
     
     free(array->values[index]);
+    pd_stack_destroy(&array->vstacks[index]);
     free(plain[index]);
     array->count--;
     for (PDInteger i = index; i < array->count; i++) {
         array->values[i] = array->values[i+1];
+        array->vstacks[i] = array->vstacks[i+1];
         plain[i] = plain[i+1];
     }
 }
@@ -89,6 +99,7 @@ void pd_array_setter(void *arr, const void *k, const char *value)
     PDInteger index = as(PDInteger, k);
     
     free(array->values[index]);
+    pd_stack_destroy(&array->vstacks[index]);
     array->values[index] = strdup(value);
 }
 
@@ -101,6 +112,7 @@ void pd_array_crypto_setter(void *arr, const void *k, const char *value)
     char **plain = ci->info;
     
     free(array->values[index]);
+    pd_stack_destroy(&array->vstacks[index]);
     free(plain[index]);
 
     plain[index] = strdup(value);
@@ -121,12 +133,16 @@ void pd_array_push_index(void *arr, PDInteger index)
     if (array->count == array->capacity) {
         array->capacity += array->capacity + 1;
         array->values = realloc(array->values, sizeof(char*) * array->capacity);
+        array->vstacks = realloc(array->vstacks, sizeof(pd_stack) * array->capacity);
     }
     
-    for (PDInteger i = array->count; i > index; i--)
+    for (PDInteger i = array->count; i > index; i--) {
         array->values[i] = array->values[i-1];
+        array->vstacks[i] = array->vstacks[i-1];
+    }
     
     array->values[index] = NULL;
+    array->vstacks[index] = NULL;
     
     array->count++;
 }
@@ -141,15 +157,18 @@ void pd_array_crypto_push_index(void *arr, PDInteger index)
     if (array->count == array->capacity) {
         array->capacity += array->capacity + 1;
         array->values = realloc(array->values, sizeof(char*) * array->capacity);
+        array->vstacks = realloc(array->vstacks, sizeof(pd_stack) * array->capacity);
         ci->info = plain = realloc(plain, sizeof(char*) * array->capacity);
     }
     
     for (PDInteger i = array->count; i > index; i--) {
         array->values[i] = array->values[i-1];
+        array->vstacks[i] = array->vstacks[i-1];
         plain[i] = plain[i-1];
     }
 
     plain[index] = array->values[index] = NULL;
+    array->vstacks[index] = NULL;
     
     array->count++;
 }
@@ -165,6 +184,7 @@ pd_array pd_array_with_capacity(PDInteger capacity)
     
     pd_array arr = malloc(sizeof(struct pd_array));
     arr->g = pd_array_getter;
+    arr->rg = pd_array_getter_raw;
     arr->s = pd_array_setter;
     arr->r = pd_array_remover;
     arr->pi = pd_array_push_index;
@@ -172,6 +192,7 @@ pd_array pd_array_with_capacity(PDInteger capacity)
     arr->count = 0;
     arr->capacity = capacity;
     arr->values = malloc(sizeof(char*) * capacity);
+    arr->vstacks = malloc(sizeof(pd_stack) * capacity);
     return arr;
 }
 
@@ -183,8 +204,11 @@ void pd_array_clear(pd_array arr)
 
 void pd_array_destroy(pd_array array)
 {
-    for (PDInteger i = array->count-1; i >= 0; i--)
+    for (PDInteger i = array->count-1; i >= 0; i--) {
         free(array->values[i]);
+        free(array->vstacks[i]);
+    }
+    
 #ifdef PD_SUPPORT_CRYPTO
     if (array->info) {
         // we don't bother with signature juggling for this as it presumably happens relatively seldom (destruction of arrays, that is), compared to getting/setting
@@ -193,6 +217,7 @@ void pd_array_destroy(pd_array array)
         free(ci);
     }
 #endif
+    
     free(array->values);
     free(array);
 }
@@ -234,9 +259,11 @@ pd_array pd_array_from_stack(pd_stack stack)
     for (count = 0; s; s = s->prev) {
         if (s->type == PD_STACK_STRING) {
             arr->values[count] = strdup(s->info);
+            arr->vstacks[count] = NULL;
         } else {
             entry = s->info;
             arr->values[count] = PDStringFromComplex(&entry);
+            arr->vstacks[count] = entry;
         }
     }
     pd_stack_set_global_preserve_flag(false);
@@ -291,9 +318,11 @@ stack<0x14cdde90> {
         entry = as(pd_stack, s->info)->prev;
         if (entry->type == PD_STACK_STRING) {
             arr->values[count] = strdup(entry->info);
+            arr->vstacks[count] = NULL;
         } else {
             entry = entry->info;
             arr->values[count] = PDStringFromComplex(&entry);
+            arr->vstacks[count] = entry;
         }
         count++;
     }

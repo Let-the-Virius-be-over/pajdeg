@@ -205,6 +205,20 @@ extern PDInteger PDObjectGetStreamLength(PDObjectRef object);
 extern PDInteger PDObjectGetExtractedStreamLength(PDObjectRef object);
 
 /**
+ Determine if the object's stream is text or binary data. 
+ 
+ This is determined by looking at the first 10 (or all, if length <= 10) bytes and seeing 80% or more of them
+ are defined text characters. If this is the case, true is returned. The very last byte must also be 0 (the 
+ string must be NULL-terminated).
+ 
+ @warning Assertion thrown if the object stream has not been fetched before this call.
+ 
+ @param object The object.
+ @return true if the object's stream is text-based, false otherwise
+ */
+extern PDBool PDObjectHasTextStream(PDObjectRef object);
+
+/**
  Get the object's stream. Assertion thrown if the stream has not been fetched via PDParserFetchCurrentObjectStream() first.
  
  @param object The object.

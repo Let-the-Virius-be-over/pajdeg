@@ -180,6 +180,28 @@ PDInteger PDObjectGetExtractedStreamLength(PDObjectRef object)
     return object->extractedLen;
 }
 
+PDBool PDObjectHasTextStream(PDObjectRef object)
+{
+    PDAssert(object->extractedLen != -1);
+    if (object->extractedLen == 0) return false;
+    
+    PDInteger ix = object->extractedLen > 10 ? 10 : object->extractedLen - 1;
+    PDInteger matches = 0;
+    PDInteger thresh = ix * 0.8f;
+    char ch;
+    if (object->streamBuf[object->extractedLen-1] != 0) 
+        return false;
+    for (PDInteger i = 0; i < ix; i++) {
+        ch = object->streamBuf[i];
+        matches += ((ch >= 'a' && ch <= 'z') || 
+                    (ch >= 'A' && ch <= 'Z') ||
+                    (ch >= '0' && ch <= '9') ||
+                    (ch >= 32 && ch <= 126) ||
+                    ch == '\n' || ch == '\r');
+    }
+    return matches >= thresh;
+}
+
 char *PDObjectGetStream(PDObjectRef object)
 {
     PDAssert(object->extractedLen != -1);

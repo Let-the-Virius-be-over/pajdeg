@@ -82,6 +82,12 @@ void PDStreamFilterAppendFilter(PDStreamFilterRef filter, PDStreamFilterRef next
 
 PDBool PDStreamFilterApply(PDStreamFilterRef filter, unsigned char *src, unsigned char **dstPtr, PDInteger len, PDInteger *newlenPtr)
 {
+    if (filter == NULL) {
+        PDWarn("NULL filter in call to PDStreamFilterApply(). Performing copy.");
+        memcpy(*dstPtr, src, len);
+        *newlenPtr = len;
+        return true;
+    }
     if (! filter->initialized) {
         if (! PDStreamFilterInit(filter))
             return false;

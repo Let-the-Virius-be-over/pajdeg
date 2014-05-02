@@ -122,6 +122,17 @@ extern PDInteger pd_array_get_count(pd_array array);
 extern const char *pd_array_get_at_index(pd_array array, PDInteger index);
 
 /**
+ Return the raw value of the element at the given index.
+ 
+ @note The raw value is NULL if it's a native string.
+ 
+ @param array The array.
+ @param index The index of the element.
+ @return Raw value as pd_stack.
+ */
+extern pd_stack pd_array_get_raw_at_index(pd_array array, PDInteger index);
+
+/**
  Return entire array as a newly allocated char* array which must be free()'d. Its elements, however, must NOT be freed.
  
  @warning The returned array should be freed, but its elements shouldn't be as they're still used internally in the array.

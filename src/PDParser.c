@@ -33,6 +33,7 @@
 #include "PDXTable.h"
 #include "PDCatalog.h"
 #include "pd_crypto.h"
+#include "pd_dict.h"
 #include "PDScanner.h"
 
 void PDParserDestroy(PDParserRef parser)
@@ -306,11 +307,16 @@ void PDParserPrepareStreamData(PDParserRef parser, PDObjectRef ob, PDInteger len
         if (filterOpts) 
             filterOpts = PDStreamFilterGenerateOptionsFromDictionaryStack(filterOpts->prev->prev->info);
         PDStreamFilterRef filter = PDStreamFilterObtain(filterName, true, filterOpts);
-        char *extractedBuf;
-        PDStreamFilterApply(filter, (unsigned char *)rawBuf, (unsigned char **)&extractedBuf, len, &len);
-        free(rawBuf);
-        rawBuf = extractedBuf;
-        PDRelease(filter);
+        
+        if (NULL == filter) {
+            PDWarn("Unknown filter \"%s\" is ignored.", filterName);
+        } else {
+            char *extractedBuf;
+            PDStreamFilterApply(filter, (unsigned char *)rawBuf, (unsigned char **)&extractedBuf, len, &len);
+            free(rawBuf);
+            rawBuf = extractedBuf;
+            PDRelease(filter);
+        }
     }
     
     ob->extractedLen = len;
@@ -363,13 +369,8 @@ char *PDParserFetchCurrentObjectStream(PDParserRef parser, PDInteger obid)
     return ob->streamBuf;
 }
 
-char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDObjectRef object)
+void PDParserClarifyObjectStreamExistence(PDParserRef parser, PDObjectRef object)
 {
-    if (parser->obid == object->obid) {
-        // use the (faster) FetchCurrentObjectStream
-        return PDParserFetchCurrentObjectStream(parser, object->obid);
-    }
-    
     // objects that were random-access-fetched normally don't have their hasStream property set, but we can
     // set it based on their dictionary value /Length -- if it's non-zero (or a ref), they have a stream
     if (! object->hasStream) {
@@ -389,6 +390,16 @@ char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDObjectRe
             object->streamLen = lenInt;
         }
     }
+}
+
+char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDObjectRef object)
+{
+    if (parser->obid == object->obid) {
+        // use the (faster) FetchCurrentObjectStream
+        return PDParserFetchCurrentObjectStream(parser, object->obid);
+    }
+
+    PDParserClarifyObjectStreamExistence(parser, object);
     
     PDAssert(object);
     PDAssert(object->hasStream);
@@ -1234,5 +1245,114 @@ PDCatalogRef PDParserGetCatalog(PDParserRef parser)
 PDInteger PDParserGetTotalObjectCount(PDParserRef parser)
 {
     return parser->mxt->count;
+}
+
+void PDParserPerformImport(PDParserRef parser, PDParserRef srcParser, PDObjectRef dest, PDObjectRef source, const char **excludeKeys, PDInteger excludeKeysCount);
+
+void PDParserImportStack(PDParserRef parser, PDParserRef srcParser, pd_stack *dst, pd_stack src, const char **excludeKeys, PDInteger excludeKeysCount)
+{
+    pd_stack backward = NULL;
+    pd_stack tmp;
+    PDInteger skipCount = 0;
+    PDInteger ek;
+    pd_stack s;
+    pd_stack_for_each(src, s) {
+        if (skipCount > 0) {
+            skipCount--;
+        } else {
+            switch (s->type) {
+                case PD_STACK_STRING:
+                    pd_stack_push_key(&backward, strdup(s->info));
+                    break;
+                    
+                case PD_STACK_ID:
+                    if (excludeKeysCount && PDIdentifies(s->info, PD_DE)) {
+                        // this is a dictionary entry, which we may not want to include
+                        /*
+                         stack<0x1136ba20> {
+                         0x3f9998 ("de")
+                         Kids
+                         stack<0x11368f20> {
+                         0x3f999c ("array")
+                         */
+                        const char *key = s->prev->info;
+                        for (ek = 0; ek < excludeKeysCount; ek++) 
+                            if (0 == strcmp(key, excludeKeys[ek]))
+                                break;
+                        skipCount = (ek < excludeKeysCount);
+                    } 
+                    else if (PDIdentifies(s->info, PD_REF)) {
+                        // we need to deal with object references (by copying them over!)
+                        char buf[15];
+                        PDInteger refObID = atol(s->prev->info);
+                        PDObjectRef iob = PDParserCreateAppendedObject(parser);
+                        PDObjectRef eob = PDParserLocateAndCreateObject(srcParser, refObID, true);
+                        PDParserPerformImport(parser, srcParser, iob, eob, NULL, 0);
+                        pd_stack_push_identifier(&backward, s->info);
+                        sprintf(buf, "%ld", (long)PDObjectGetObID(iob));
+                        pd_stack_push_key(&backward, buf);
+                        pd_stack_push_key(&backward, "0");
+                        skipCount = 2;
+                    }
+                    
+                    if (! skipCount) {
+                        pd_stack_push_identifier(&backward, s->info);
+                    }
+                    break;
+                    
+                case PD_STACK_STACK:
+                    tmp = NULL;
+                    PDParserImportStack(parser, srcParser, &tmp, s->info, NULL, 0);
+                    pd_stack_push_stack(&backward, tmp);
+                    break;
+                    
+                    // we dont want pdobs as they could be indirect refs (in fact they most certainly are) and we would need to properly copy them
+//                case PD_STACK_PDOB:
+//                    pd_stack_push_object(&backward, PDRetain(s->info));
+//                    break;
+                default: // case PD_STACK_FREEABLE:
+                    // we don't allow arbitrary freeables (or any other types) in clones
+                    PDWarn("skipping arbitrary object in pd_stack_copy operation [PDParserImportStack()]");
+                    break;
+            }
+        }
+    }
+    
+    // backward is backward
+    while (backward) pd_stack_pop_into(dst, &backward);
+}
+
+void PDParserPerformImport(PDParserRef parser, PDParserRef srcParser, PDObjectRef dest, PDObjectRef source, const char **excludeKeys, PDInteger excludeKeysCount)
+{
+#define psr_fix_value() \
+                if (2 == sscanf("%d %d R", value, &obid, &genid)) {\
+                    PDObjectRef iob = PDParserCreateAppendedObject(parser);\
+                    PDObjectRef eob = PDParserLocateAndCreateObject(srcParser, obid, true);\
+                    PDParserPerformImport(parser, srcParser, iob, eob, NULL, 0);\
+                    value = PDObjectGetReferenceString(iob);\
+                    PDRelease(iob);\
+                    PDRelease(eob);\
+                }
+
+    PDAssert(dest->def == NULL); // crash = the destination is not a new object, or something broke somewhere
+    pd_stack def = NULL;
+    PDParserImportStack(parser, srcParser, &def, source->def, excludeKeys, excludeKeysCount);
+    dest->def = def;
+    PDObjectDetermineType(dest);
+    
+    // add stream, if any
+    
+    PDParserClarifyObjectStreamExistence(srcParser, source);
+    if (source->hasStream) {
+        char *stream = PDParserLocateAndFetchObjectStreamForObject(srcParser, source);
+        PDObjectSetStreamFiltered(dest, stream, source->streamLen);
+    }
+}
+
+PDObjectRef PDParserImportObject(PDParserRef parser, PDParserRef foreignParser, PDObjectRef foreignObject, const char **excludeKeys, PDInteger excludeKeysCount)
+{
+    PDObjectRef mainObject = PDParserCreateAppendedObject(parser);
+    PDParserPerformImport(parser, foreignParser, mainObject, foreignObject, excludeKeys, excludeKeysCount);
+    return PDAutorelease(mainObject);
 }
 

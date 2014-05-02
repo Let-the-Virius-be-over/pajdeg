@@ -258,6 +258,22 @@ struct PDContentStream {
 
 /** @} */
 
+/**
+ @addtogroup PDPAGE
+ 
+ @{ 
+ */
+
+/**
+ Page internal structure
+ */
+struct PDPage {
+    PDObjectRef ob;                     ///< the /Page object
+    PDParserRef parser;                 ///< the parser associated with the owning PDF document
+};
+
+/** @} */
+
 
 /// @name Environment
 
@@ -367,15 +383,15 @@ struct PDParser {
 };
 
 /**
- The PDPage internal structure.
+ The PDPageReference internal structure.
  */
-typedef struct PDPage PDPage;
-struct PDPage {
+typedef struct PDPageReference PDPageReference;
+struct PDPageReference {
     PDBool collection;              ///< If set, this is a /Type /Pages object, which is a group of page and pages references
     union {
         struct {
             PDInteger count;        ///< Number of entries
-            PDPage *kids;           ///< Kids
+            PDPageReference *kids;           ///< Kids
         };
         struct {
             PDInteger obid;         ///< The object ID
@@ -391,7 +407,7 @@ struct PDCatalog {
     PDParserRef parser;             ///< The parser owning the catalog
     PDObjectRef object;             ///< The object representation of the catalog
     PDRect      mediaBox;           ///< The media box of the catalog object
-    PDPage      pages;              ///< The root pages
+    PDPageReference      pages;              ///< The root pages
     PDInteger   count;              ///< Number of pages (in total)
     PDInteger   capacity;           ///< Size of kids array.
     PDInteger  *kids;               ///< Array of object IDs for all pages
@@ -495,10 +511,12 @@ typedef void (*_list_push_index)(void *ref, PDInteger index);
  The internal array structure.
  */
 struct pd_array {
-    PDInteger        count;     ///< Number of elements.
-    PDInteger        capacity;  ///< Capacity of array.
-    char           **values;    ///< Content.
+    PDInteger        count;     ///< Number of elements
+    PDInteger        capacity;  ///< Capacity of array
+    char           **values;    ///< Content
+    pd_stack        *vstacks;   ///< Values in pd_stack form
     _list_getter     g;         ///< Getter
+    _list_getter_raw rg;        ///< Raw getter
     _list_setter     s;         ///< Setter
     _list_remover    r;         ///< Remover
     _list_push_index pi;        ///< Push-indexer
@@ -509,11 +527,11 @@ struct pd_array {
  The internal dictionary structure.
  */
 struct pd_dict {
-    PDInteger        count;     ///< Number of entries.
-    PDInteger        capacity;  ///< Capacity of dictionary.
-    char           **keys;      ///< Keys.
-    char           **values;    ///< Values.
-    pd_stack        *vstacks;   ///< Values in pd_stack form.
+    PDInteger        count;     ///< Number of entries
+    PDInteger        capacity;  ///< Capacity of dictionary
+    char           **keys;      ///< Keys
+    char           **values;    ///< Values
+    pd_stack        *vstacks;   ///< Values in pd_stack form
     _list_getter     g;         ///< Getter
     _list_getter_raw rg;        ///< Raw getter
     _list_setter     s;         ///< Setter

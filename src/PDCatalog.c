@@ -25,23 +25,23 @@
 #include "pd_internal.h"
 #include "pd_stack.h"
 
-void PDPageDestroy(PDPage * page)
+void PDPageReferenceDestroy(PDPageReference * page)
 {
     if (page->collection) {
         for (long i = page->count - 1; i >= 0; i--)
-            PDPageDestroy(&page->kids[i]);
+            PDPageReferenceDestroy(&page->kids[i]);
         free(page->kids);
     }
 }
 
 void PDCatalogDestroy(PDCatalogRef catalog)
 {
-    PDPageDestroy(&catalog->pages);
+    PDPageReferenceDestroy(&catalog->pages);
     PDRelease(catalog->object);
     free(catalog->kids);
 }
 
-void PDCatalogAppendPages(PDCatalogRef catalog, PDPage *pages, pd_stack defs)
+void PDCatalogAppendPages(PDCatalogRef catalog, PDPageReference *pages, pd_stack defs)
 {
     pages->collection = true;
     PDParserRef parser = catalog->parser;
@@ -60,7 +60,7 @@ void PDCatalogAppendPages(PDCatalogRef catalog, PDPage *pages, pd_stack defs)
     PDInteger lcount = pages->count = pd_stack_get_count(kidsArr); //PDObjectGetArrayCount(kidsArray);
     
     PDInteger *ckids = catalog->kids;
-    PDPage *kids = pages->kids = malloc(sizeof(PDPage) * lcount);
+    PDPageReference *kids = pages->kids = malloc(sizeof(PDPageReference) * lcount);
     
     /*
      stack<0x113c5c10> {
