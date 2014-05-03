@@ -189,9 +189,9 @@ PDBool PDObjectHasTextStream(PDObjectRef object)
     PDInteger matches = 0;
     PDInteger thresh = ix * 0.8f;
     char ch;
-    if (object->streamBuf[object->extractedLen-1] != 0) 
-        return false;
-    for (PDInteger i = 0; i < ix; i++) {
+//    if (object->streamBuf[object->extractedLen-1] != 0) 
+//        return false;
+    for (PDInteger i = 0; matches < thresh && i < ix; i++) {
         ch = object->streamBuf[i];
         matches += ((ch >= 'a' && ch <= 'z') || 
                     (ch >= 'A' && ch <= 'Z') ||
@@ -429,7 +429,7 @@ PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len)
 
     char *filtered = NULL;
     PDInteger flen = 0;
-    if (success) success = PDStreamFilterApply(sf, (unsigned char *)str, (unsigned char **)&filtered, len, &flen);
+    if (success) success = PDStreamFilterApply(sf, (unsigned char *)str, (unsigned char **)&filtered, len, &flen, NULL);
     // if !success, filter did not apply to input data successfully
 
     PDRelease(sf);

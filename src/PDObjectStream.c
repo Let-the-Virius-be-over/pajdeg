@@ -89,7 +89,7 @@ PDBool PDObjectStreamParseRawObjectStream(PDObjectStreamRef obstm, char *rawBuf)
     extractedBuf = NULL;
     len = obstm->ob->streamLen;
     if (obstm->filter) {
-        if (! PDStreamFilterApply(obstm->filter, (unsigned char *)rawBuf, (unsigned char **)&extractedBuf, len, &len)) {
+        if (! PDStreamFilterApply(obstm->filter, (unsigned char *)rawBuf, (unsigned char **)&extractedBuf, len, &len, NULL)) {
             PDWarn("PDStreamFilterApply() failed.");
             obstm->ob->streamBuf = NULL;
             obstm->ob->extractedLen = 0;
@@ -273,7 +273,7 @@ void PDObjectStreamCommit(PDObjectStreamRef obstm)
     if (obstm->filter) {
         char *filteredBuf;
         PDStreamFilterRef inversionFilter = PDStreamFilterCreateInversionForFilter(obstm->filter);
-        if (! PDStreamFilterApply(inversionFilter, (unsigned char *)content, (unsigned char **)&filteredBuf, len, &len)) {
+        if (! PDStreamFilterApply(inversionFilter, (unsigned char *)content, (unsigned char **)&filteredBuf, len, &len, NULL)) {
             PDWarn("PDStreamFilterApply failed!\n");
             PDAssert(0);
         }

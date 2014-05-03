@@ -314,9 +314,9 @@ pd_dict pd_dict_from_pdf_dict_stack(pd_stack stack)
             dict->values[count] = strdup(entry->info);
             dict->vstacks[count] = NULL;
         } else {
-            dict->vstacks[count] = entry->info;
-            entry->info = NULL;
-            entry = dict->vstacks[count];
+            dict->vstacks[count] = entry = pd_stack_copy(entry->info);
+//            entry->info = NULL;
+//            entry = dict->vstacks[count];
             dict->values[count] = PDStringFromComplex(&entry);
         }
         count++;

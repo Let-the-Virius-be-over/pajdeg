@@ -44,6 +44,14 @@ PDPageRef PDPageCreateForPageWithIndex(PDParserRef parser, PDInteger pageIndex)
     PDInteger obid = PDCatalogGetObjectIDForPage(catalog, pageIndex);
     PDObjectRef ob = PDParserLocateAndCreateObject(parser, obid, true);
     PDPageRef page = PDPageCreateWithObject(parser, ob);
+    
+//    const char *contentsRef = PDObjectGetDictionaryEntry(ob, "Contents");
+//    assert(contentsRef);
+//    PDObjectRef contentsOb = PDParserLocateAndCreateObject(parser, PDIntegerFromString(contentsRef), true);
+//    char *stream = PDParserLocateAndFetchObjectStreamForObject(parser, contentsOb);
+//    printf("page #%ld:\n===\n%s\n", (long)pageIndex, stream);
+//    PDRelease(contentsOb);
+    
     PDRelease(ob);
     return page;
 }
@@ -61,9 +69,10 @@ PDTaskResult PDPageInsertionTask(PDPipeRef pipe, PDTaskRef task, PDObjectRef obj
     char *buf = malloc(64);
     pd_stack s, t;
     
-    void **iarr = (void **)info;
-    PDObjectRef neighbor = iarr[0];
-    PDObjectRef importedObject = iarr[1];
+    PDObjectRef *userInfo = info;
+    PDObjectRef neighbor = userInfo[0];
+    PDObjectRef importedObject = userInfo[1];
+    free(userInfo);
     
     pd_stack kids = pd_stack_get_dict_key(object->def, "Kids", false);
 
@@ -77,6 +86,8 @@ PDTaskResult PDPageInsertionTask(PDPipeRef pipe, PDTaskRef task, PDObjectRef obj
     } else {
         sprintf(buf, "%ld", PDObjectGetObID(neighbor));
     
+        kids = kids->prev->prev->info;
+        
     /*
 stack<0x14cdde90> {
    0x401394 ("array")
@@ -102,15 +113,18 @@ stack<0x14cdde90> {
     
         pd_stack_for_each(kids, s) {
             // we presume the array is valid and has an ae id at s
-            t = as(pd_stack, s->info)->prev;
+            t = as(pd_stack, as(pd_stack, s->info)->prev)->info;
             // we're now at another stack,
             // [PD_REF, ID, GEN]
             // which we also expect to be valid so we grab ID
             if (0 == strcmp(t->prev->info, buf)) {
-                // found it; we now have to duplicate it and fix the id
+                // found it; we now have to duplicate it and fix the id -- note that we fix the original, and leave the duplicate, to get the order right!
                 pd_stack dup = pd_stack_copy(s->info);
                 sprintf(buf, "%ld", PDObjectGetObID(importedObject));
-                dup->prev->info = strdup(buf);
+                free(t->prev->info);
+                t->prev->info = strdup(buf);
+//                free(as(pd_stack, dup->prev->info)->prev->info);
+//                as(pd_stack, dup->prev->info)->prev->info = strdup(buf);
                 pd_stack_push_stack(&s->prev, dup); // ??? does this work???
                 break;
             }
@@ -123,8 +137,10 @@ stack<0x14cdde90> {
     PDObjectSetDictionaryEntry(object, "Count", buf);
     
     free(buf);
+    PDRelease(importedObject);
+    if (neighbor) PDRelease(neighbor);
     
-    // we can unload this task as it only applies to a specific page
+    // we can (must, in fact) unload this task as it only applies to a specific page
     return PDTaskUnload;
 }
 
@@ -146,15 +162,16 @@ PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageInd
     PDObjectRef neighbor = PDParserLocateAndCreateObject(parser, neighborObID, true);
     const char *parentRef = PDObjectGetDictionaryEntry(neighbor, "Parent");
     PDAssert(parentRef); // crash = ??? no such page? no parent? can pages NOT have parents?
+    PDObjectSetDictionaryEntry(importedObject, "Parent", parentRef);
     PDInteger parentId = atol(parentRef);
     PDAssert(parentId); // crash = parentRef was not a <num> <num> R?
 //    PDObjectRef parent = PDParserLocateAndCreateObject(parser, parentId, true);
     
+    PDObjectRef *userInfo = malloc(sizeof(PDObjectRef) * 2);
+    userInfo[0] = (neighborPI == pageIndex ? neighbor : NULL);
+    userInfo[1] = PDRetain(importedObject);
     PDTaskRef task = PDTaskCreateMutatorForObject(parentId, PDPageInsertionTask);
-    PDTaskSetInfo(task, (void*[]) {
-        neighborPI == pageIndex ? neighbor : NULL, 
-        importedObject
-    });
+    PDTaskSetInfo(task, userInfo);
     PDPipeAddTask(pipe, task);
     PDRelease(task);
     

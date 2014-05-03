@@ -108,3 +108,5 @@ void PDFlush(void)
         PDRelease(obj);
     }
 }
+
+void PDNOP(void *val) {}

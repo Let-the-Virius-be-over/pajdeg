@@ -80,44 +80,47 @@ void PDStreamFilterAppendFilter(PDStreamFilterRef filter, PDStreamFilterRef next
     filter->nextFilter = PDRetain(next);
 }
 
-PDBool PDStreamFilterApply(PDStreamFilterRef filter, unsigned char *src, unsigned char **dstPtr, PDInteger len, PDInteger *newlenPtr)
+PDBool PDStreamFilterApply(PDStreamFilterRef filter, unsigned char *src, unsigned char **dstPtr, PDInteger len, PDInteger *newlenPtr, PDInteger *allocatedlenPtr)
 {
     if (filter == NULL) {
         PDWarn("NULL filter in call to PDStreamFilterApply(). Performing copy.");
         memcpy(*dstPtr, src, len);
         *newlenPtr = len;
+        if (allocatedlenPtr) *allocatedlenPtr = len;
         return true;
     }
+    
     if (! filter->initialized) {
         if (! PDStreamFilterInit(filter))
             return false;
     }
     
     unsigned char *resbuf;
-    PDInteger dstcap = len * filter->growthHint;
-    if (dstcap < 64) dstcap = 64;
-    if (dstcap > 64 * 1024) dstcap = 64 * 1024;
+    PDInteger dstCap = len * filter->growthHint;
+    if (dstCap < 64) dstCap = 64;
+    if (dstCap > 64 * 1024) dstCap = 64 * 1024;
     
     filter->bufIn = src;
     filter->bufInAvailable = len;
-    resbuf = filter->bufOut = malloc(dstcap);
-    filter->bufOutCapacity = dstcap;
+    resbuf = filter->bufOut = malloc(dstCap);
+    filter->bufOutCapacity = dstCap;
     
     PDInteger bytes = PDStreamFilterBegin(filter);
     PDInteger got = 0;
     while (bytes > 0) {
         got += bytes;
         if (! filter->finished) {
-            dstcap *= 3;
-            resbuf = realloc(resbuf, dstcap);
+            dstCap *= 3;
+            resbuf = realloc(resbuf, dstCap);
         }
         filter->bufOut = &resbuf[got];
-        filter->bufOutCapacity = dstcap - got;
+        filter->bufOutCapacity = dstCap - got;
         bytes = PDStreamFilterProceed(filter);
     }
     
     *dstPtr = resbuf;
     *newlenPtr = got;
+    if (allocatedlenPtr) *allocatedlenPtr = dstCap;
     
     return ! filter->failing;
 }

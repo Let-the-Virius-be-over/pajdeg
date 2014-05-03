@@ -261,7 +261,7 @@ pd_array pd_array_from_stack(pd_stack stack)
             arr->values[count] = strdup(s->info);
             arr->vstacks[count] = NULL;
         } else {
-            entry = s->info;
+            entry = pd_stack_copy(s->info);
             arr->values[count] = PDStringFromComplex(&entry);
             arr->vstacks[count] = entry;
         }

@@ -311,13 +311,22 @@ void PDParserPrepareStreamData(PDParserRef parser, PDObjectRef ob, PDInteger len
         if (NULL == filter) {
             PDWarn("Unknown filter \"%s\" is ignored.", filterName);
         } else {
+            PDInteger allocated;
             char *extractedBuf;
-            PDStreamFilterApply(filter, (unsigned char *)rawBuf, (unsigned char **)&extractedBuf, len, &len);
+            PDStreamFilterApply(filter, (unsigned char *)rawBuf, (unsigned char **)&extractedBuf, len, &len, &allocated);
             free(rawBuf);
             rawBuf = extractedBuf;
             PDRelease(filter);
+            if (allocated == len) {
+                // we need another byte for \0 in case this is a text stream; this happens very seldom but has to be dealt with
+                PDNotice("{ allocated == len } hit; notify Pajdeg devs if repeated");
+                rawBuf = realloc(rawBuf, len + 1);
+            }
         }
     }
+    
+    // in order for this line not to sporadically crash, all mallocs of rawBuf (including extractedBuf for filtered streams above) must have used len + 1 up to this point
+    rawBuf[len] = 0;
     
     ob->extractedLen = len;
     ob->streamBuf = rawBuf;
@@ -339,7 +348,7 @@ char *PDParserFetchCurrentObjectStream(PDParserRef parser, PDInteger obid)
     PDInteger len = parser->streamLen;
     const char *filterName = PDObjectGetDictionaryEntry(parser->construct, "Filter");
 
-    char *rawBuf = malloc(len);
+    char *rawBuf = malloc(len + 1);
     PDScannerReadStream(parser->scanner, len, rawBuf, len);
     
     PDParserPrepareStreamData(parser, ob, len, filterName, rawBuf);
@@ -373,7 +382,9 @@ void PDParserClarifyObjectStreamExistence(PDParserRef parser, PDObjectRef object
 {
     // objects that were random-access-fetched normally don't have their hasStream property set, but we can
     // set it based on their dictionary value /Length -- if it's non-zero (or a ref), they have a stream
-    if (! object->hasStream) {
+    if (object->type == PDObjectTypeUnknown) 
+        PDObjectDetermineType(object);
+    if (! object->hasStream && object->type == PDObjectTypeDictionary) {
         const char *length = PDObjectGetDictionaryEntry(object, "Length");
         if (length) {
             // length could be a ref, or a number
@@ -408,7 +419,7 @@ char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDObjectRe
     PDInteger len = object->streamLen;
     const char *filterName = PDObjectGetDictionaryEntry(object, "Filter");
     
-    char *rawBuf = malloc(len);
+    char *rawBuf = malloc(len + 1);
     
     char *tb;
     char *string;
@@ -1247,9 +1258,9 @@ PDInteger PDParserGetTotalObjectCount(PDParserRef parser)
     return parser->mxt->count;
 }
 
-void PDParserPerformImport(PDParserRef parser, PDParserRef srcParser, PDObjectRef dest, PDObjectRef source, const char **excludeKeys, PDInteger excludeKeysCount);
+void PDParserPerformImport(PDParserRef parser, PDBTreeRef obMap, PDParserRef srcParser, PDObjectRef dest, PDObjectRef source, const char **excludeKeys, PDInteger excludeKeysCount);
 
-void PDParserImportStack(PDParserRef parser, PDParserRef srcParser, pd_stack *dst, pd_stack src, const char **excludeKeys, PDInteger excludeKeysCount)
+void PDParserImportStack(PDParserRef parser, PDBTreeRef obMap, PDParserRef srcParser, pd_stack *dst, pd_stack src, const char **excludeKeys, PDInteger excludeKeysCount)
 {
     pd_stack backward = NULL;
     pd_stack tmp;
@@ -1276,22 +1287,26 @@ void PDParserImportStack(PDParserRef parser, PDParserRef srcParser, pd_stack *ds
                          0x3f999c ("array")
                          */
                         const char *key = s->prev->info;
+                        printf("(dict) %s\n", key);
                         for (ek = 0; ek < excludeKeysCount; ek++) 
                             if (0 == strcmp(key, excludeKeys[ek]))
                                 break;
-                        skipCount = (ek < excludeKeysCount);
+                        skipCount = (ek < excludeKeysCount) << 1;
                     } 
                     else if (PDIdentifies(s->info, PD_REF)) {
                         // we need to deal with object references (by copying them over!)
                         char buf[15];
                         PDInteger refObID = atol(s->prev->info);
-                        PDObjectRef iob = PDParserCreateAppendedObject(parser);
-                        PDObjectRef eob = PDParserLocateAndCreateObject(srcParser, refObID, true);
-                        PDParserPerformImport(parser, srcParser, iob, eob, NULL, 0);
+                        PDObjectRef iob = PDBTreeGet(obMap, refObID);
+                        if (iob == NULL) {
+                            iob = PDParserCreateAppendedObject(parser);
+                            PDObjectRef eob = PDParserLocateAndCreateObject(srcParser, refObID, true);
+                            PDParserPerformImport(parser, obMap, srcParser, iob, eob, NULL, 0);
+                        }
                         pd_stack_push_identifier(&backward, s->info);
                         sprintf(buf, "%ld", (long)PDObjectGetObID(iob));
-                        pd_stack_push_key(&backward, buf);
-                        pd_stack_push_key(&backward, "0");
+                        pd_stack_push_key(&backward, strdup(buf));
+                        pd_stack_push_key(&backward, strdup("0"));
                         skipCount = 2;
                     }
                     
@@ -1302,8 +1317,10 @@ void PDParserImportStack(PDParserRef parser, PDParserRef srcParser, pd_stack *ds
                     
                 case PD_STACK_STACK:
                     tmp = NULL;
-                    PDParserImportStack(parser, srcParser, &tmp, s->info, NULL, 0);
-                    pd_stack_push_stack(&backward, tmp);
+                    PDParserImportStack(parser, obMap, srcParser, &tmp, s->info, excludeKeys, excludeKeysCount);
+                    // if tmp comes out NULL, it means a skip occurred and we don't push it onto backward
+                    if (tmp != NULL)
+                        pd_stack_push_stack(&backward, tmp);
                     break;
                     
                     // we dont want pdobs as they could be indirect refs (in fact they most certainly are) and we would need to properly copy them
@@ -1322,21 +1339,13 @@ void PDParserImportStack(PDParserRef parser, PDParserRef srcParser, pd_stack *ds
     while (backward) pd_stack_pop_into(dst, &backward);
 }
 
-void PDParserPerformImport(PDParserRef parser, PDParserRef srcParser, PDObjectRef dest, PDObjectRef source, const char **excludeKeys, PDInteger excludeKeysCount)
+void PDParserPerformImport(PDParserRef parser, PDBTreeRef obMap, PDParserRef srcParser, PDObjectRef dest, PDObjectRef source, const char **excludeKeys, PDInteger excludeKeysCount)
 {
-#define psr_fix_value() \
-                if (2 == sscanf("%d %d R", value, &obid, &genid)) {\
-                    PDObjectRef iob = PDParserCreateAppendedObject(parser);\
-                    PDObjectRef eob = PDParserLocateAndCreateObject(srcParser, obid, true);\
-                    PDParserPerformImport(parser, srcParser, iob, eob, NULL, 0);\
-                    value = PDObjectGetReferenceString(iob);\
-                    PDRelease(iob);\
-                    PDRelease(eob);\
-                }
-
+    PDBTreeInsert(obMap, PDObjectGetObID(source), dest);
+    
     PDAssert(dest->def == NULL); // crash = the destination is not a new object, or something broke somewhere
     pd_stack def = NULL;
-    PDParserImportStack(parser, srcParser, &def, source->def, excludeKeys, excludeKeysCount);
+    PDParserImportStack(parser, obMap, srcParser, &def, source->def, excludeKeys, excludeKeysCount);
     dest->def = def;
     PDObjectDetermineType(dest);
     
@@ -1345,14 +1354,19 @@ void PDParserPerformImport(PDParserRef parser, PDParserRef srcParser, PDObjectRe
     PDParserClarifyObjectStreamExistence(srcParser, source);
     if (source->hasStream) {
         char *stream = PDParserLocateAndFetchObjectStreamForObject(srcParser, source);
-        PDObjectSetStreamFiltered(dest, stream, source->streamLen);
+        if (PDObjectHasTextStream(source)) {
+            printf("stream [%ld b]:\n===\n%s\n", (long)source->streamLen, stream);
+        }
+        PDObjectSetStreamFiltered(dest, stream, source->extractedLen);
     }
 }
 
 PDObjectRef PDParserImportObject(PDParserRef parser, PDParserRef foreignParser, PDObjectRef foreignObject, const char **excludeKeys, PDInteger excludeKeysCount)
 {
+    PDBTreeRef obMap = PDBTreeCreate(NULL, 1, 5000, 10);
     PDObjectRef mainObject = PDParserCreateAppendedObject(parser);
-    PDParserPerformImport(parser, foreignParser, mainObject, foreignObject, excludeKeys, excludeKeysCount);
+    PDParserPerformImport(parser, obMap, foreignParser, mainObject, foreignObject, excludeKeys, excludeKeysCount);
+    PDRelease(obMap);
     return PDAutorelease(mainObject);
 }
 

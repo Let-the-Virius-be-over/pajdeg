@@ -241,6 +241,11 @@ typedef const char         **PDID;
 typedef void (*PDDeallocator)(void *ob);
 
 /**
+ NOP function (e.g. used as NULL deallocator).
+ */
+extern void PDNOP(void*);
+
+/**
  Synchronization signature.
  
  Used in the PDParser to require synchronization of the given object instance, as it is about to be written to the output stream.
