@@ -38,10 +38,10 @@ void PDPageDestroy(PDPageRef page)
     PDRelease(page->ob);
 }
 
-PDPageRef PDPageCreateForPageWithIndex(PDParserRef parser, PDInteger pageIndex)
+PDPageRef PDPageCreateForPageWithNumber(PDParserRef parser, PDInteger pageNumber)
 {
     PDCatalogRef catalog = PDParserGetCatalog(parser);
-    PDInteger obid = PDCatalogGetObjectIDForPage(catalog, pageIndex);
+    PDInteger obid = PDCatalogGetObjectIDForPage(catalog, pageNumber);
     PDObjectRef ob = PDParserLocateAndCreateObject(parser, obid, true);
     PDPageRef page = PDPageCreateWithObject(parser, ob);
     
@@ -215,7 +215,7 @@ PDTaskResult PDPageInsertionTask(PDPipeRef pipe, PDTaskRef task, PDObjectRef obj
     return PDTaskUnload;
 }
 
-PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageIndex)
+PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageNumber)
 {
     PDParserAttachmentRef attachment = PDPipeConnectForeignParser(pipe, page->parser);
     
@@ -229,7 +229,7 @@ PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageInd
     // we now try to hook it up with a neighboring page's parent; what better neighbor than the page index itself, unless it exceeds the page count?
     PDCatalogRef cat = PDParserGetCatalog(parser);
     PDInteger pageCount = PDCatalogGetPageCount(cat);
-    PDInteger neighborPI = pageIndex - (pageIndex > pageCount);
+    PDInteger neighborPI = pageNumber - (pageNumber > pageCount);
     PDAssert(neighborPI > 0 && neighborPI <= pageCount); // crash = attempt to insert a page outside of the bounds of the destination PDF (i.e. the page index is higher than page count + 1, which would result in a hole with no pages)
     
     PDInteger neighborObID = PDCatalogGetObjectIDForPage(cat, neighborPI);
@@ -242,7 +242,7 @@ PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageInd
 //    PDObjectRef parent = PDParserLocateAndCreateObject(parser, parentId, true);
     
     PDObjectRef *userInfo = malloc(sizeof(PDObjectRef) * 2);
-    userInfo[0] = (neighborPI == pageIndex ? neighbor : NULL);
+    userInfo[0] = (neighborPI == pageNumber ? neighbor : NULL);
     userInfo[1] = PDRetain(importedObject);
     PDTaskRef task = PDTaskCreateMutatorForObject(parentId, PDPageInsertionTask);
     PDTaskSetInfo(task, userInfo);
@@ -250,7 +250,7 @@ PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageInd
     PDRelease(task);
     
     // update the catalog
-    PDCatalogInsertPage(cat, pageIndex, PDObjectGetObID(importedObject));
+    PDCatalogInsertPage(cat, pageNumber, PDObjectGetObID(importedObject));
     
     // finally, set up the new page and return it
     PDPageRef importedPage = PDPageCreateWithObject(parser, importedObject);

@@ -39,16 +39,16 @@
 #include "PDDefines.h"
 
 /**
- *  Create a new page instance for the given parser and page index. 
+ *  Create a new page instance for the given parser and page number. 
  *
- *  @note Page indices start at 1, not 0.
+ *  @note Page numbers start at 1, not 0.
  *
- *  @param parser    Parser reference
- *  @param pageIndex The index of the page to fetch
+ *  @param parser     Parser reference
+ *  @param pageNumber The page number of the page to fetch
  *
  *  @return New PDPage object
  */
-extern PDPageRef PDPageCreateForPageWithIndex(PDParserRef parser, PDInteger pageIndex);
+extern PDPageRef PDPageCreateForPageWithNumber(PDParserRef parser, PDInteger pageNumber);
 
 /**
  *  Create a new page instance for the given parser and object.
@@ -65,7 +65,7 @@ extern PDPageRef PDPageCreateForPageWithIndex(PDParserRef parser, PDInteger page
 extern PDPageRef PDPageCreateWithObject(PDParserRef parser, PDObjectRef object);
 
 /**
- *  Copy this page and all associated objects into the PDF document associated with the pipe, inserting it at pageIndex.
+ *  Copy this page and all associated objects into the PDF document associated with the pipe, inserting it at pageNumber.
  *
  *  With two separate simultaneous Pajdeg instances A and B with pages A1 A2 A3 and B1 B2 B3, the following operation
  *
@@ -76,13 +76,13 @@ extern PDPageRef PDPageCreateWithObject(PDParserRef parser, PDObjectRef object);
  *
  *  will result in the output of B consisting of pages B1 A2 B2 B3, in that order.
  * 
- *  @param page      The page object that should be copied
- *  @param pipe      The pipe into which the page object should be inserted
- *  @param pageIndex The resulting page number of the inserted page
+ *  @param page       The page object that should be copied
+ *  @param pipe       The pipe into which the page object should be inserted
+ *  @param pageNumber The resulting page number of the inserted page
  *
  *  @return Reference to the inserted page, autoreleased
  */
-extern PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageIndex);
+extern PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageNumber);
 
 #endif
 
