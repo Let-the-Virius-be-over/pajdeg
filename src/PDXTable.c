@@ -83,6 +83,12 @@ void _PDXSetOffsetForID(char *xrefs, PDXTableRef table, PDInteger obid, PDOffset
 
 void PDXTableSetOffsetForID(PDXTableRef table, PDInteger obid, PDOffset offset)
 {
+    // we may end up overflowing (or truncating, rather) if additions to the PDF resulted in exceeding the cap on bytes
+    if (offset > table->offsCap) {
+        // we indeed will overflow, so we need to resize the table
+        PDXTableSetSizes(table, table->typeSize, table->offsSize + 1, table->genSize);
+    }
+    
     unsigned char *o = (unsigned char *) &table->xrefs[table->offsAlign + obid * table->width];
     PDOffset mask = 0xff;
     PDOffset shift = 0;
@@ -198,6 +204,7 @@ PDXTableRef PDXTableCreate(PDXTableRef pdx)
     pdx->typeSize = 1;
     pdx->typeAlign = 0;
     pdx->offsSize = 4;
+    pdx->offsCap = 256 * 256 * 256 * 256 - 1;
     pdx->offsAlign = pdx->typeSize;
     pdx->genSize = 1;
     pdx->genAlign = pdx->offsAlign + pdx->offsSize;
@@ -1132,6 +1139,10 @@ void PDXTableSetSizes(PDXTableRef table, unsigned char typeSize, unsigned char o
     
     table->offsSize = offsSize;
     table->offsAlign = typeSize;
+    table->offsCap = 256;
+    for (unsigned char i = 1; i < offsSize; i++) 
+        table->offsCap *= 256;
+    table->offsCap--;
     
     table->genSize = genSize;
     table->genAlign = typeSize + offsSize;
