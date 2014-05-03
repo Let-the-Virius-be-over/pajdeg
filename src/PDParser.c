@@ -1258,9 +1258,65 @@ PDInteger PDParserGetTotalObjectCount(PDParserRef parser)
     return parser->mxt->count;
 }
 
-void PDParserPerformImport(PDParserRef parser, PDBTreeRef obMap, PDParserRef srcParser, PDObjectRef dest, PDObjectRef source, const char **excludeKeys, PDInteger excludeKeysCount);
+// 
+// Imports and parser attachments
+// 
 
-void PDParserImportStack(PDParserRef parser, PDBTreeRef obMap, PDParserRef srcParser, pd_stack *dst, pd_stack src, const char **excludeKeys, PDInteger excludeKeysCount)
+static PDParserAttachmentRef PDParserAttachmentHead = NULL, PDParserAttachmentTail = NULL;
+
+struct PDParserAttachment {
+    PDParserAttachmentRef prev, next;
+    PDParserRef nativeParser;
+    PDParserRef foreignParser;
+    PDBTreeRef  obMap;
+};
+
+void PDParserAttachmentDestroy(PDParserAttachmentRef attachment)
+{
+    if (attachment == PDParserAttachmentHead) {
+        PDParserAttachmentHead = attachment->next;
+        if (attachment->next) 
+            attachment->next->prev = NULL;
+        else 
+            PDParserAttachmentTail = NULL;
+    } else if (attachment == PDParserAttachmentTail) {
+        PDParserAttachmentTail = PDParserAttachmentTail->prev;
+        PDParserAttachmentTail->next = NULL;
+    } else {
+        attachment->prev->next = attachment->next;
+        attachment->next->prev = attachment->prev;
+    }
+    
+    PDRelease(attachment->obMap);
+}
+
+PDParserAttachmentRef PDParserCreateForeignParserAttachment(PDParserRef parser, PDParserRef foreignParser)
+{
+    // we look through the list of existing attachments and return pre-existing ones with the given parser pair, to prevent the case where a user creates two attachments between the same objects and end up importing the same objects multiple times
+    for (PDParserAttachmentRef att = PDParserAttachmentHead; att; att = att->next)
+        if (att->nativeParser == parser && att->foreignParser == foreignParser) 
+            return PDRetain(att);
+    
+    PDParserAttachmentRef attachment = PDAlloc(sizeof(struct PDParserAttachment), PDParserAttachmentDestroy, false);
+    attachment->nativeParser = parser;
+    attachment->foreignParser = foreignParser;
+    attachment->obMap = PDBTreeCreate(PDRelease, 1, 5000, 10);
+    
+    attachment->next = NULL;
+    attachment->prev = PDParserAttachmentTail;
+    if (PDParserAttachmentTail) 
+        PDParserAttachmentTail->next = attachment;
+    else 
+        PDParserAttachmentHead = attachment;
+
+    PDParserAttachmentTail = attachment;
+    
+    return attachment;
+}
+
+void PDParserPerformImport(PDParserAttachmentRef attachment, PDObjectRef dest, PDObjectRef source, const char **excludeKeys, PDInteger excludeKeysCount);
+
+void PDParserImportStack(PDParserAttachmentRef attachment, pd_stack *dst, pd_stack src, const char **excludeKeys, PDInteger excludeKeysCount)
 {
     pd_stack backward = NULL;
     pd_stack tmp;
@@ -1297,11 +1353,11 @@ void PDParserImportStack(PDParserRef parser, PDBTreeRef obMap, PDParserRef srcPa
                         // we need to deal with object references (by copying them over!)
                         char buf[15];
                         PDInteger refObID = atol(s->prev->info);
-                        PDObjectRef iob = PDBTreeGet(obMap, refObID);
+                        PDObjectRef iob = PDBTreeGet(attachment->obMap, refObID);
                         if (iob == NULL) {
-                            iob = PDParserCreateAppendedObject(parser);
-                            PDObjectRef eob = PDParserLocateAndCreateObject(srcParser, refObID, true);
-                            PDParserPerformImport(parser, obMap, srcParser, iob, eob, NULL, 0);
+                            iob = PDParserCreateAppendedObject(attachment->nativeParser);
+                            PDObjectRef eob = PDParserLocateAndCreateObject(attachment->foreignParser, refObID, true);
+                            PDParserPerformImport(attachment, iob, eob, NULL, 0);
                         }
                         pd_stack_push_identifier(&backward, s->info);
                         sprintf(buf, "%ld", (long)PDObjectGetObID(iob));
@@ -1317,7 +1373,7 @@ void PDParserImportStack(PDParserRef parser, PDBTreeRef obMap, PDParserRef srcPa
                     
                 case PD_STACK_STACK:
                     tmp = NULL;
-                    PDParserImportStack(parser, obMap, srcParser, &tmp, s->info, excludeKeys, excludeKeysCount);
+                    PDParserImportStack(attachment, &tmp, s->info, excludeKeys, excludeKeysCount);
                     // if tmp comes out NULL, it means a skip occurred and we don't push it onto backward
                     if (tmp != NULL)
                         pd_stack_push_stack(&backward, tmp);
@@ -1339,34 +1395,34 @@ void PDParserImportStack(PDParserRef parser, PDBTreeRef obMap, PDParserRef srcPa
     while (backward) pd_stack_pop_into(dst, &backward);
 }
 
-void PDParserPerformImport(PDParserRef parser, PDBTreeRef obMap, PDParserRef srcParser, PDObjectRef dest, PDObjectRef source, const char **excludeKeys, PDInteger excludeKeysCount)
+void PDParserPerformImport(PDParserAttachmentRef attachment, PDObjectRef dest, PDObjectRef source, const char **excludeKeys, PDInteger excludeKeysCount)
 {
-    PDBTreeInsert(obMap, PDObjectGetObID(source), dest);
+    PDBTreeInsert(attachment->obMap, PDObjectGetObID(source), PDRetain(dest));
     
     PDAssert(dest->def == NULL); // crash = the destination is not a new object, or something broke somewhere
     pd_stack def = NULL;
-    PDParserImportStack(parser, obMap, srcParser, &def, source->def, excludeKeys, excludeKeysCount);
+    PDParserImportStack(attachment, &def, source->def, excludeKeys, excludeKeysCount);
     dest->def = def;
     PDObjectDetermineType(dest);
     
     // add stream, if any
     
-    PDParserClarifyObjectStreamExistence(srcParser, source);
+    PDParserClarifyObjectStreamExistence(attachment->foreignParser, source);
     if (source->hasStream) {
-        char *stream = PDParserLocateAndFetchObjectStreamForObject(srcParser, source);
-        if (PDObjectHasTextStream(source)) {
-            printf("stream [%ld b]:\n===\n%s\n", (long)source->streamLen, stream);
-        }
+        char *stream = PDParserLocateAndFetchObjectStreamForObject(attachment->foreignParser, source);
+//        if (PDObjectHasTextStream(source)) {
+//            printf("stream [%ld b]:\n===\n%s\n", (long)source->streamLen, stream);
+//        }
         PDObjectSetStreamFiltered(dest, stream, source->extractedLen);
     }
 }
 
-PDObjectRef PDParserImportObject(PDParserRef parser, PDParserRef foreignParser, PDObjectRef foreignObject, const char **excludeKeys, PDInteger excludeKeysCount)
+PDObjectRef PDParserAttachmentImportObject(PDParserAttachmentRef attachment, PDObjectRef foreignObject, const char **excludeKeys, PDInteger excludeKeysCount)
 {
-    PDBTreeRef obMap = PDBTreeCreate(NULL, 1, 5000, 10);
-    PDObjectRef mainObject = PDParserCreateAppendedObject(parser);
-    PDParserPerformImport(parser, obMap, foreignParser, mainObject, foreignObject, excludeKeys, excludeKeysCount);
-    PDRelease(obMap);
+    PDObjectRef mainObject = PDBTreeGet(attachment->obMap, PDObjectGetObID(foreignObject));
+    if (mainObject) return mainObject;
+    
+    mainObject = PDParserCreateAppendedObject(attachment->nativeParser);
+    PDParserPerformImport(attachment, mainObject, foreignObject, excludeKeys, excludeKeysCount);
     return PDAutorelease(mainObject);
 }
-

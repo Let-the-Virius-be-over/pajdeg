@@ -33,17 +33,43 @@ PDTaskResult PDTaskExec(PDTaskRef task, PDPipeRef pipe, PDObjectRef object)
     
     PDTaskResult res = PDTaskDone;
     
-    while (task && PDTaskDone == (res = (*task->func)(pipe, task, object, task->info))) {
+    while (task) {
+        if (task->isActive)
+            res = (*task->func)(pipe, task, object, task->info);
+        else 
+            res = PDTaskDone;
+        
+        if (PDTaskUnload == res) {
+            // we can remove this task internally
+            task->isActive = false;
+            if (parent) {
+                // we can remove it for real
+                PDTaskRef child = task->child;
+                task->child = NULL;
+                parent->child = child;
+                PDRelease(task);
+                task = parent;
+            }
+        } 
+        else if (PDTaskDone != res) {
+            break;
+        }
+        
         parent = task;
         task = task->child;
     }
     
-    if (parent && task && PDTaskUnload == res) {
-        // we can remove this task internally
-        res = task->child == NULL ? PDTaskDone : PDTaskSkipRest;
-        parent->child = NULL;
-        PDRelease(task);
-    }
+//    while (task && PDTaskDone == (res = (*task->func)(pipe, task, object, task->info))) {
+//        parent = task;
+//        task = task->child;
+//    }
+//    
+//    if (parent && task && PDTaskUnload == res) {
+//        // we can remove this task internally
+//        res = task->child == NULL ? PDTaskDone : PDTaskSkipRest;
+//        parent->child = NULL;
+//        PDRelease(task);
+//    }
     
     return res;
 }
@@ -56,6 +82,7 @@ void PDTaskDestroy(PDTaskRef task)
 PDTaskRef PDTaskCreateFilterWithValue(PDPropertyType propertyType, PDInteger value)
 {
     PDTaskRef task = PDAlloc(sizeof(struct PDTask), PDTaskDestroy, false);
+    task->isActive     =  true;
     task->deallocator  = &PDTaskDealloc;
     task->isFilter     = 1;
     task->propertyType = propertyType;
@@ -72,6 +99,7 @@ PDTaskRef PDTaskCreateFilter(PDPropertyType propertyType)
 PDTaskRef PDTaskCreateMutator(PDTaskFunc mutatorFunc)
 {
     PDTaskRef task = PDAlloc(sizeof(struct PDTask), PDTaskDestroy, false);
+    task->isActive     =  true;
     task->deallocator  = &PDTaskDealloc;
     task->isFilter     = 0;
     task->func         = mutatorFunc;

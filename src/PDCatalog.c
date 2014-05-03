@@ -152,3 +152,18 @@ PDInteger PDCatalogGetPageCount(PDCatalogRef catalog)
 {
     return catalog->count;
 }
+
+void PDCatalogInsertPage(PDCatalogRef catalog, PDInteger pageNumber, PDInteger pageObjectID)
+{
+    if (catalog->count == catalog->capacity) {
+        catalog->capacity += 5;
+        catalog->kids = realloc(catalog->kids, sizeof(PDInteger) * catalog->capacity);
+    }
+    PDInteger t;
+    for (PDInteger i = pageNumber - 1; i <= catalog->count; i++) {
+        t = catalog->kids[i];
+        catalog->kids[i] = pageObjectID;
+        pageObjectID = t;
+    }
+    catalog->count++;
+}

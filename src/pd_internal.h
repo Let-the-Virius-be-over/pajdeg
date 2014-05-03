@@ -653,6 +653,7 @@ struct PDStaticHash {
  The internal task structure
  */
 struct PDTask {
+    PDBool          isActive;       ///< Whether task is still active; sometimes tasks cannot be unloaded properly even though the task returned PDTaskUnload; these tasks have their active flag unset instead
     PDBool          isFilter;       ///< Whether task is a filter or not. Internally, a task is only a filter if it is assigned to a specific object ID or IDs.
     PDPropertyType  propertyType;   ///< The filter property type
     PDInteger       value;          ///< The filter value, if any
@@ -692,11 +693,11 @@ struct PDTwinStream {
  @ingroup PDPIPE
  */
 struct PDPipe {
-    PDBool          opened;             ///< Whether pipe has been opened or not.
-    PDBool          dynamicFiltering;   ///< Whether dynamic filtering is necessary; if set, the static hash filtering of filters is skipped and filters are checked for all objects.
+    PDBool          opened;             ///< Whether pipe has been opened or not
+    PDBool          dynamicFiltering;   ///< Whether dynamic filtering is necessary; if set, the static hash filtering of filters is skipped and filters are checked for all objects
     PDBool          typedTasks;         ///< Whether type tasks (excluding unfiltered tasks) are activated; activation results in a slight decrease in performance due to all dictionary objects needing to be resolved in order to check their Type dictionary key
-    char           *pi;                 ///< The path of the input file.
-    char           *po;                 ///< The path of the output file.
+    char           *pi;                 ///< The path of the input file
+    char           *po;                 ///< The path of the output file
     FILE           *fi;                 ///< Reader
     FILE           *fo;                 ///< Writer
     PDInteger       filterCount;        ///< Number of filters in the pipe
@@ -705,6 +706,7 @@ struct PDPipe {
     PDBTreeRef      filter;             ///< The filters, in a tree with the object ID as key
     pd_stack
     typeTasks[_PDFTypeCount];           ///< Tasks which run depending on all objects of the given type; the 0'th element (type NULL) is triggered for all objects, and not just objects without a /Type dictionary key
+    PDBTreeRef      attachments;        ///< PDParserAttachment entries
 };
 
 /// @name Reference

@@ -347,6 +347,15 @@ typedef struct PDObject *PDObjectRef;
 typedef struct PDPage *PDPageRef;
 
 /**
+ *  An attachment to a foreign parser.
+ *
+ *  Attachments exist for the sole purpose of keeping track of which objects have been imported from the foreign parser already. 
+ *  Since many indirect object references are shared between multiple objects, the attachment ensures that a given object is only
+ *  imported once, even if several consecutive object imports are made. 
+ */
+typedef struct PDParserAttachment *PDParserAttachmentRef;
+
+/**
  A PDF object stream.
  
  @ingroup PDOBJECTSTREAM
