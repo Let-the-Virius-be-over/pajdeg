@@ -36,6 +36,7 @@ void PDPageDestroy(PDPageRef page)
 {
     PDRelease(page->parser);
     PDRelease(page->ob);
+    PDRelease(page->contentsObject);
 }
 
 PDPageRef PDPageCreateForPageWithNumber(PDParserRef parser, PDInteger pageNumber)
@@ -61,6 +62,7 @@ PDPageRef PDPageCreateWithObject(PDParserRef parser, PDObjectRef object)
     PDPageRef page = PDAlloc(sizeof(struct PDPage), PDPageDestroy, false);
     page->parser = PDRetain(parser);
     page->ob = PDRetain(object);
+    page->contentsObject = NULL;
     return page;
 }
 
@@ -119,8 +121,6 @@ PDTaskResult PDPageInsertionTask(PDPipeRef pipe, PDTaskRef task, PDObjectRef obj
                 sprintf(buf, "%ld", PDObjectGetObID(importedObject));
                 free(t->prev->info);
                 t->prev->info = strdup(buf);
-                //                free(as(pd_stack, dup->prev->info)->prev->info);
-                //                as(pd_stack, dup->prev->info)->prev->info = strdup(buf);
                 pd_stack_push_stack(&s->prev, dup);
                 break;
             }
@@ -137,68 +137,7 @@ PDTaskResult PDPageInsertionTask(PDPipeRef pipe, PDTaskRef task, PDObjectRef obj
         pd_stack_push_stack(&s->prev, dup);
         
     }
-    
-    
-    
-    
-    
-    
-    
-//    if (neighbor == NULL) {
-//        // this means we're appending; to avoid the hassle of appending into a pd_stack array definition, we simply set up a quasi-object array and use that
-//        PDObjectRef arrayOb = PDObjectCreateFromDefinitionsStack(-1, kids);
-//        arrayOb->obclass = PDObjectClassCompressed;
-//        PDObjectAddArrayElement(arrayOb, PDObjectGetReferenceString(importedObject));
-//        PDObjectGenerateDefinition(arrayOb, &buf, 64);
-//        PDObjectSetDictionaryEntry(object, "Kids", buf);
-//    } else {
-//        sprintf(buf, "%ld", PDObjectGetObID(neighbor));
-//    
-//        kids = kids->prev->prev->info;
-//        
-//    /*
-//stack<0x14cdde90> {
-//   0x401394 ("array")
-//   0x401388 ("entries")
-//    stack<0x14cdeb90> {
-//        stack<0x14cdead0> {
-//           0x401398 ("ae")
-//           ...
-//        }
-//    }
-//}
-//     */
-//    
-//        kids = kids->prev->prev->info;
-//    /*
-//    stack<0x14cdeb90> {
-//        stack<0x14cdead0> {
-//           0x401398 ("ae")
-//           ...
-//        }
-//    }
-//     */
-//    
-//        pd_stack_for_each(kids, s) {
-//            // we presume the array is valid and has an ae id at s
-//            t = as(pd_stack, as(pd_stack, s->info)->prev)->info;
-//            // we're now at another stack,
-//            // [PD_REF, ID, GEN]
-//            // which we also expect to be valid so we grab ID
-//            if (0 == strcmp(t->prev->info, buf)) {
-//                // found it; we now have to duplicate it and fix the id -- note that we fix the original, and leave the duplicate, to get the order right!
-//                pd_stack dup = pd_stack_copy(s->info);
-//                sprintf(buf, "%ld", PDObjectGetObID(importedObject));
-//                free(t->prev->info);
-//                t->prev->info = strdup(buf);
-////                free(as(pd_stack, dup->prev->info)->prev->info);
-////                as(pd_stack, dup->prev->info)->prev->info = strdup(buf);
-//                pd_stack_push_stack(&s->prev, dup); // ??? does this work???
-//                break;
-//            }
-//        }
-//    }
-    
+        
     pd_stack countEntry = pd_stack_get_dict_key(object->def, "Count", false);
     PDInteger count = PDIntegerFromString(countEntry->prev->prev->info);
     count++;
@@ -255,4 +194,17 @@ PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageNum
     // finally, set up the new page and return it
     PDPageRef importedPage = PDPageCreateWithObject(parser, importedObject);
     return PDAutorelease(importedPage);
+}
+
+PDObjectRef PDPageGetContentsObject(PDPageRef page)
+{
+    if (page->contentsObject) return page->contentsObject;
+    
+    const char *contentsRef = PDObjectGetDictionaryEntry(page->ob, "Contents");
+    if (contentsRef) {
+        PDInteger contentsId = PDIntegerFromString(contentsRef);
+        page->contentsObject = PDParserLocateAndCreateObject(page->parser, contentsId, true);
+    }
+    
+    return page->contentsObject;
 }

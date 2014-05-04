@@ -84,6 +84,15 @@ extern PDPageRef PDPageCreateWithObject(PDParserRef parser, PDObjectRef object);
  */
 extern PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageNumber);
 
+/**
+ *  Fetch (if unfetched) and return the PDObject associated with the page's /Contents key.
+ *
+ *  @param page Page whose contents object is requested
+ *
+ *  @return The contents object
+ */
+extern PDObjectRef PDPageGetContentsObject(PDPageRef page);
+
 #endif
 
 /** @} */

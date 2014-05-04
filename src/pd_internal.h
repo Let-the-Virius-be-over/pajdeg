@@ -254,6 +254,7 @@ struct PDContentStream {
     PDBTreeRef opertree;                ///< operator tree
     pd_array args;                      ///< pending operator arguments
     pd_stack opers;                     ///< current operators stack
+    const char *lastOperator;           ///< the last operator that was encountered
 };
 
 /** @} */
@@ -270,6 +271,7 @@ struct PDContentStream {
 struct PDPage {
     PDObjectRef ob;                     ///< the /Page object
     PDParserRef parser;                 ///< the parser associated with the owning PDF document
+    PDObjectRef contentsObject;         ///< the object referenced by the /Contents key; NULL until explicitly requested
 };
 
 /** @} */

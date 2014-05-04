@@ -333,6 +333,35 @@ typedef struct PDBTree *PDBTreeRef;
  */
 
 /**
+ *  A selection in a PDF
+ *
+ *  @ingroup PDSELECTION
+ *
+ *  Although selections may span across multiple pages, this is currently ignored.
+ */
+struct PDSelection {
+    PDInteger page;
+    PDRect position;
+    const char *text;
+};
+
+/**
+ *  A PDF selection.
+ *
+ *  @ingroup PDSELECTION
+ */
+typedef struct PDSelection *PDSelectionRef;
+
+/**
+ *  Text search operator function signature, used by PDContentStream's text searcher.
+ *
+ *  @param selection Selection that was matched to the search string
+ *
+ *  @return Whether or not search should continue or abort
+ */
+typedef PDBool (*PDTextSearchOperatorFunc)(PDSelectionRef selection);
+
+/**
  A PDF object.
  
  @ingroup PDOBJECT
@@ -386,12 +415,15 @@ typedef enum {
  Function signature for content operators. 
  
  @ingroup PDCONTENTSTREAM
- @param cs   Content stream reference
- @param args Argument list
- @param argc Argument count
+ @param cs       Content stream reference
+ @param args     Argument list
+ @param argc     Argument count
+ @param inState  The top-most entry in the operation stack, if any
+ @param outState Pointer to the resulting state after this operation; only applies to operators that return PDOperatorStatePush
+ 
  @return State of operator (i.e. whether it pushes, pops, or does neither)
  */
-typedef PDOperatorState (*PDContentOperatorFunc)(PDContentStreamRef cs, const char **args, PDInteger argc);
+typedef PDOperatorState (*PDContentOperatorFunc)(PDContentStreamRef cs, void *userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState);
 
 /**
  The type of object.
