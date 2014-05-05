@@ -126,10 +126,10 @@ PDTaskResult PDPageInsertionTask(PDPipeRef pipe, PDTaskRef task, PDObjectRef obj
             }
         }
 
-    } else {
+    } else if (kids) {
         
         // find last entry in stack
-        for (s = kids; s && s->prev; s = s->prev) ;
+        for (s = kids; s->prev; s = s->prev) ;
         pd_stack dup = pd_stack_copy(s->info);
         sprintf(buf, "%ld", PDObjectGetObID(importedObject));
         free(as(pd_stack, dup->prev->info)->prev->info);
