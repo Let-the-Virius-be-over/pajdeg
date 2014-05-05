@@ -70,7 +70,7 @@ extern PDPageRef PDPageCreateWithObject(PDParserRef parser, PDObjectRef object);
  *  With two separate simultaneous Pajdeg instances A and B with pages A1 A2 A3 and B1 B2 B3, the following operation
  *
     @code
-      PDPageRef pageA2 = PDPageCreateForPageWithIndex(parserA, 2); 
+      PDPageRef pageA2 = PDPageCreateForPageWithNumber(parserA, 2); 
       PDPageRef pageB2 = PDPageInsertIntoPipe(pageA2, pipeB, 2);
     @endcode
  *
