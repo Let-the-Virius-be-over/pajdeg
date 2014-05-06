@@ -430,10 +430,11 @@ typedef PDOperatorState (*PDContentOperatorFunc)(PDContentStreamRef cs, void *us
  
  @ingroup PDOBJECT
  
- @note This enum is matched with CGPDFObject's type enum (Core Graphics)
+ @note This enum is matched with CGPDFObject's type enum (Core Graphics), with extensions
  @warning Not all types are currently used.
  */
 typedef enum {
+    PDObjectTypeNull        = 0,    ///< Null object, often used to indicate the type of a dictionary entry for a key that it doesn't contain
     PDObjectTypeUnknown     = 1,    ///< The type of the object has not (yet) been determined
     PDObjectTypeBoolean,            ///< A boolean.
     PDObjectTypeInteger,            ///< An integer.
@@ -443,6 +444,7 @@ typedef enum {
     PDObjectTypeArray,              ///< An array.
     PDObjectTypeDictionary,         ///< A dictionary. Most objects are considered dictionaries.
     PDObjectTypeStream,             ///< A stream.
+    PDObjectTypeReference,          ///< A reference to another object.
 } PDObjectType;
 
 /**

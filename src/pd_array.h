@@ -133,6 +133,44 @@ extern const char *pd_array_get_at_index(pd_array array, PDInteger index);
 extern pd_stack pd_array_get_raw_at_index(pd_array array, PDInteger index);
 
 /**
+ *  Get the type of the given element.
+ *
+ *  @param array The array
+ *  @param index Element index
+ *
+ *  @return PDObjectType enum value.
+ */
+extern PDObjectType pd_array_get_type_at_index(pd_array array, PDInteger index);
+
+/**
+ *  Obtain a copy of the element at the given index.
+ *
+ *  The type of the returned object can be determined using pd_dict_get_type, and maps to the following types:
+ *  - PDObjectTypeNull       -> NULL
+ *  - PDObjectTypeUnknown    -> (not applicable)
+ *  - PDObjectTypeBoolean    -> PDBool [1]
+ *  - PDObjectTypeInteger    -> PDInteger [1] 
+ *  - PDObjectTypeReal       -> PDReal [1]
+ *  - PDObjectTypeName       -> const char *
+ *  - PDObjectTypeString     -> const char *
+ *  - PDObjectTypeArray      -> pd_array
+ *  - PDObjectTypeDictionary -> pd_dict
+ *  - PDObjectTypeStream     -> (not applicable)
+ *  - PDObjectTypeReference  -> PDReference
+ *
+ *  [1] These all map to PDObjectTypeString, in the current implementation.
+ *
+ *  @note Making changes to the copy naturally does not affect the dictionary.
+ *  @note The returned value must be released or freed accordingly.
+ *
+ *  @param array The array
+ *  @param index Element index
+ *
+ *  @return A copy of the appropriate object
+ */
+extern void *pd_array_get_copy_at_index(pd_array array, PDInteger index);
+
+/**
  Return entire array as a newly allocated char* array which must be free()'d. Its elements, however, must NOT be freed.
  
  @warning The returned array should be freed, but its elements shouldn't be as they're still used internally in the array.

@@ -268,6 +268,42 @@ extern const char *PDObjectGetDictionaryEntry(PDObjectRef object, const char *ke
 extern const pd_stack PDObjectGetDictionaryEntryRaw(PDObjectRef object, const char *key);
 
 /**
+ *  Get the object type of the entry for the given key. 
+ *
+ *  @param object Dictionary object
+ *  @param key    Key for the entry
+ *
+ *  @return PDObjectType enum value. PDObjectTypeNull is returned for missing keys.
+ */
+extern PDObjectType PDObjectGetDictionaryEntryType(PDObjectRef object, const char *key);
+
+/**
+ *  Obtain a copy of the entry for the given key.
+ *
+ *  The type of the returned object can be determined using PDObjectGetDictionaryEntryType, and maps to the following types:
+ *  - PDObjectTypeNull       -> NULL
+ *  - PDObjectTypeUnknown    -> (not applicable)
+ *  - PDObjectTypeBoolean    -> PDBool
+ *  - PDObjectTypeInteger    -> PDInteger
+ *  - PDObjectTypeReal       -> PDReal
+ *  - PDObjectTypeName       -> const char *
+ *  - PDObjectTypeString     -> const char *
+ *  - PDObjectTypeArray      -> pd_array
+ *  - PDObjectTypeDictionary -> pd_dict
+ *  - PDObjectTypeStream     -> (not applicable)
+ *  - PDObjectTypeReference  -> PDReference
+ *
+ *  @note Making changes to the copy naturally does not affect the object.
+ *  @note The returned value must be released or freed accordingly.
+ *
+ *  @param object Dictionary object
+ *  @param key    Key for the entry
+ *
+ *  @return A copy of the appropriate object
+ */
+extern void *PDObjectCopyDictionaryEntry(PDObjectRef object, const char *key);
+
+/**
  Set a dictionary key to a new value.
  
  @note Expects object to be a dictionary.
@@ -336,6 +372,60 @@ extern PDInteger PDObjectGetArrayCount(PDObjectRef object);
  @param index The array index.
  */
 extern const char *PDObjectGetArrayElementAtIndex(PDObjectRef object, PDInteger index);
+
+/**
+ *  Fetch the raw (pd_stack) array element at the given index.
+ *
+ *  @warning Crashes if the object is not an array.
+ *
+ *  @param object The object.
+ *  @param index  The array index.
+ *
+ *  @return pd_stack result of the given array element
+ */
+extern const pd_stack PDObjectGetArrayElementRawAtIndex(PDObjectRef object, PDInteger index);
+
+/**
+ *  Get the object type of the element at the given index. 
+ *
+ *  @param object Array object
+ *  @param index  Element index
+ *
+ *  @return PDObjectType enum value.
+ */
+extern PDObjectType PDObjectGetArrayElementTypeAtIndex(PDObjectRef object, PDInteger index);
+
+/**
+ *  Obtain a copy of the entry for the given key.
+ *
+ *  The type of the returned object can be determined using PDObjectGetDictionaryEntryType, and maps to the following types:
+ *  - PDObjectTypeNull       -> NULL
+ *  - PDObjectTypeUnknown    -> (not applicable)
+ *  - PDObjectTypeBoolean    -> PDBool
+ *  - PDObjectTypeInteger    -> PDInteger
+ *  - PDObjectTypeReal       -> PDReal
+ *  - PDObjectTypeName       -> const char *
+ *  - PDObjectTypeString     -> const char *
+ *  - PDObjectTypeArray      -> pd_array
+ *  - PDObjectTypeDictionary -> pd_dict
+ *  - PDObjectTypeStream     -> (not applicable)
+ *  - PDObjectTypeReference  -> PDReference
+ *
+ *  @note Making changes to the copy naturally does not affect the object.
+ *  @note The returned value must be released or freed accordingly.
+ *
+ *  @param object Array object
+ *  @param index  Element index
+ *
+ *  @return A copy of the appropriate object
+ */
+extern void *PDObjectCopyArrayElementAtIndex(PDObjectRef object, PDInteger index);
+
+
+
+
+
+
 
 /**
  Add an element to the array object.

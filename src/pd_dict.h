@@ -101,6 +101,44 @@ extern const char *pd_dict_get(pd_dict dict, const char *key);
 extern const pd_stack pd_dict_get_raw(pd_dict dict, const char *key);
 
 /**
+ *  Get the type of the given key. O(n)!
+ *
+ *  @param dict The dict.
+ *  @param key  The key.
+ *
+ *  @return PDObjectType enum value.
+ */
+extern PDObjectType pd_dict_get_type(pd_dict dict, const char *key);
+
+/**
+ *  Obtain a copy of the entry for the given key.
+ *
+ *  The type of the returned object can be determined using pd_dict_get_type, and maps to the following types:
+ *  - PDObjectTypeNull       -> NULL
+ *  - PDObjectTypeUnknown    -> (not applicable)
+ *  - PDObjectTypeBoolean    -> PDBool [1]
+ *  - PDObjectTypeInteger    -> PDInteger [1] 
+ *  - PDObjectTypeReal       -> PDReal [1]
+ *  - PDObjectTypeName       -> const char *
+ *  - PDObjectTypeString     -> const char *
+ *  - PDObjectTypeArray      -> pd_array
+ *  - PDObjectTypeDictionary -> pd_dict
+ *  - PDObjectTypeStream     -> (not applicable)
+ *  - PDObjectTypeReference  -> PDReference
+ *
+ *  [1] These all map to PDObjectTypeString, in the current implementation.
+ *
+ *  @note Making changes to the copy naturally does not affect the dictionary.
+ *  @note The returned value must be released or freed accordingly.
+ *
+ *  @param dict The dict.
+ *  @param key  The key.
+ *
+ *  @return A copy of the appropriate object
+ */
+extern void *pd_dict_get_copy(pd_dict dict, const char *key);
+
+/**
  Delete entry for the given key. O(n)!
  
  @param dict The dict.

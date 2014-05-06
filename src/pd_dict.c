@@ -23,6 +23,7 @@
 #include "pd_array.h"
 #include "pd_crypto.h"
 #include "pd_pdf_implementation.h"
+#include "pd_container.h"
 
 #define pd_dict_fetch_i(dict, key) \
     PDInteger i; \
@@ -339,6 +340,24 @@ const char *pd_dict_get(pd_dict dict, const char *key)
 const pd_stack pd_dict_get_raw(pd_dict dict, const char *key)
 {
     return (*dict->rg)(dict, key);
+}
+
+PDObjectType pd_dict_get_type(pd_dict dict, const char *key)
+{
+    pd_stack stack = pd_dict_get_raw(dict, key);
+    if (NULL == stack) {
+        const char *str = pd_dict_get(dict, key);
+        return str ? PDObjectTypeString : PDObjectTypeNull;
+    }
+    return pd_container_determine_type(stack);
+}
+
+void *pd_dict_get_copy(pd_dict dict, const char *key)
+{
+    pd_stack stack = pd_dict_get_raw(dict, key);
+    if (NULL == stack) 
+        return strdup(pd_dict_get(dict, key));
+    return pd_container_spawn(stack);
 }
 
 void pd_dict_remove(pd_dict dict, const char *key)

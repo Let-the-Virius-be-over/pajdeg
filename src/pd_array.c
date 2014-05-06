@@ -22,6 +22,7 @@
 #include "pd_crypto.h"
 #include "pd_internal.h"
 #include "pd_pdf_implementation.h"
+#include "pd_container.h"
 
 ///
 /// Getters/setters
@@ -320,9 +321,8 @@ stack<0x14cdde90> {
             arr->values[count] = strdup(entry->info);
             arr->vstacks[count] = NULL;
         } else {
-            entry = entry->info;
+            arr->vstacks[count] = entry = pd_stack_copy(entry->info);
             arr->values[count] = PDStringFromComplex(&entry);
-            arr->vstacks[count] = entry;
         }
         count++;
     }
@@ -347,6 +347,29 @@ PDInteger pd_array_get_count(pd_array array)
 const char *pd_array_get_at_index(pd_array array, PDInteger index)
 {
     return (*array->g)(array, (const void*)index);
+}
+
+pd_stack pd_array_get_raw_at_index(pd_array array, PDInteger index)
+{
+    return (*array->rg)(array, (const void*)index);
+}
+
+PDObjectType pd_array_get_type_at_index(pd_array array, PDInteger index)
+{
+    pd_stack stack = pd_array_get_raw_at_index(array, index);
+    if (NULL == stack) {
+        const char *str = pd_array_get_at_index(array, index);
+        return str ? PDObjectTypeString : PDObjectTypeNull;
+    }
+    return pd_container_determine_type(stack);
+}
+
+void *pd_array_get_copy_at_index(pd_array array, PDInteger index)
+{
+    pd_stack stack = pd_array_get_raw_at_index(array, index);
+    if (NULL == stack) 
+        return strdup(pd_array_get_at_index(array, index));
+    return pd_container_spawn(stack);
 }
 
 const char **pd_array_create_args(pd_array array)
