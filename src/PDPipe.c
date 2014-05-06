@@ -24,6 +24,7 @@
 #include "PDReference.h"
 #include "PDBTree.h"
 #include "pd_stack.h"
+#include "PDParserAttachment.h"
 #include "PDCatalog.h"
 #include "PDStaticHash.h"
 #include "PDObjectStream.h"
@@ -397,7 +398,7 @@ PDParserAttachmentRef PDPipeConnectForeignParser(PDPipeRef pipe, PDParserRef for
 {
     PDParserAttachmentRef attachment = PDBTreeGet(pipe->attachments, (PDInteger)foreignParser);
     if (NULL == attachment) {
-        attachment = PDParserCreateForeignParserAttachment(PDPipeGetParser(pipe), foreignParser);
+        attachment = PDParserAttachmentCreate(PDPipeGetParser(pipe), foreignParser);
         PDBTreeInsert(pipe->attachments, (PDInteger)foreignParser, attachment);
     }
     return attachment;

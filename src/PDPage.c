@@ -28,6 +28,7 @@
 #include "PDObject.h"
 #include "PDPage.h"
 #include "PDParser.h"
+#include "PDParserAttachment.h"
 #include "PDCatalog.h"
 #include "pd_array.h"
 #include "pd_dict.h"
@@ -168,7 +169,7 @@ PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageNum
     // we now try to hook it up with a neighboring page's parent; what better neighbor than the page index itself, unless it exceeds the page count?
     PDCatalogRef cat = PDParserGetCatalog(parser);
     PDInteger pageCount = PDCatalogGetPageCount(cat);
-    PDInteger neighborPI = pageNumber - (pageNumber > pageCount);
+    PDInteger neighborPI = pageNumber > pageCount ? pageCount : pageNumber;
     PDAssert(neighborPI > 0 && neighborPI <= pageCount); // crash = attempt to insert a page outside of the bounds of the destination PDF (i.e. the page index is higher than page count + 1, which would result in a hole with no pages)
     
     PDInteger neighborObID = PDCatalogGetObjectIDForPage(cat, neighborPI);
@@ -207,4 +208,27 @@ PDObjectRef PDPageGetContentsObject(PDPageRef page)
     }
     
     return page->contentsObject;
+}
+
+PDRect PDPageGetMediaBox(PDPageRef page)
+{
+    PDRect rect = (PDRect) {{0,0}, {612,792}};
+    if (PDObjectTypeArray == PDObjectGetDictionaryEntryType(page->ob, "MediaBox")) {
+        pd_array arr = PDObjectCopyDictionaryEntry(page->ob, "MediaBox");
+        if (4 == pd_array_get_count(arr)) {
+            rect = (PDRect) {
+                {
+                    PDRealFromString(pd_array_get_at_index(arr, 0)),
+                    PDRealFromString(pd_array_get_at_index(arr, 1))
+                },
+                {
+                    PDRealFromString(pd_array_get_at_index(arr, 2)),
+                    PDRealFromString(pd_array_get_at_index(arr, 3))
+                }
+            };
+        } else {
+            PDNotice("invalid count for MediaBox array: %ld (require 4: x1, y1, x2, y2)", pd_array_get_count(arr));
+        }
+    }
+    return rect;
 }

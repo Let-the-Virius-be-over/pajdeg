@@ -362,6 +362,7 @@ struct PDParser {
     // object related
     pd_stack appends;               ///< stack of objects that are meant to be appended at the end of the PDF
     pd_stack inserts;               ///< stack of objects that are meant to be inserted as soon as the current object is dealt with
+    PDBTreeRef aiTree;              ///< bin-tree identifying the (in-memory) PDObjectRefs in appends and inserts by their object ID's
     PDObjectRef construct;          ///< cannot be relied on to contain anything; is used to hold constructed objects until iteration (at which point they're released)
     PDSize streamLen;               ///< stream length of the current object
     PDSize obid;                    ///< object ID of the current object
@@ -409,7 +410,7 @@ struct PDCatalog {
     PDParserRef parser;             ///< The parser owning the catalog
     PDObjectRef object;             ///< The object representation of the catalog
     PDRect      mediaBox;           ///< The media box of the catalog object
-    PDPageReference      pages;              ///< The root pages
+    PDPageReference pages;          ///< The root pages
     PDInteger   count;              ///< Number of pages (in total)
     PDInteger   capacity;           ///< Size of kids array.
     PDInteger  *kids;               ///< Array of object IDs for all pages

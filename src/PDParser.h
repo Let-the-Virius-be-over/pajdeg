@@ -113,7 +113,9 @@ extern char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDO
 extern PDBool PDParserGetEncryptionState(PDParserRef parser);
 
 /**
- Fetch the definition (as a pd_stack) of the object with the given id.
+ Fetch the definition (as a pd_stack) of the object with the given id. 
+ 
+ @note Use of PDParserLocateAndCreateObject is recommended, as it is generally faster and will not get confused about objects inserted *this session*.
  
  @warning This is an expensive operation that requires setting up a temporary buffer of sufficiently big size, seeking to the object in the input file, reading the definition, then seeking back.
  
@@ -198,31 +200,6 @@ extern PDCatalogRef PDParserGetCatalog(PDParserRef parser);
 extern PDInteger PDParserGetTotalObjectCount(PDParserRef parser);
 
 /**
- *  Create a foreign parser attachment, so that importing objects into parser from foreignParser becomes possible.
- *
- *  @param parser        The native parser, which will receive imported objects
- *  @param foreignParser The foreign parser, which will provide existing objects in import operations
- *
- *  @return A retained PDParserAttachment instance
- */
-extern PDParserAttachmentRef PDParserCreateForeignParserAttachment(PDParserRef parser, PDParserRef foreignParser);
-
-/**
- *  Iterate over the given foreign object recursively, creating appended objects for every indirect reference encountered. The resulting (new) indirect references, along with any direct references and associated stream (if any) are copied into a new object which is returned to the caller autoreleased.
- *
- *  A set of keys which should not be imported can be set. This set only applies to the object itself, and is not recursive. Thus, if an excluded key is encountered in one of the indirectly referenced objects, it will be included.
- *
- *  @param parser           The parser which should import the foreign object
- *  @param attachment       The attachment to a foreign parser
- *  @param foreignObject    The foreign object
- *  @param excludeKeys      Array of strings that should not be imported, if any
- *  @param excludeKeysCount Size of excludeKeys array
- *
- *  @return The new, native object based on the foreign object
- */
-extern PDObjectRef PDParserAttachmentImportObject(PDParserAttachmentRef attachment, PDObjectRef foreignObject, const char **excludeKeys, PDInteger excludeKeysCount);
-
-/**
  * @page XREF versioning and indirect stream lengths
  * 
  * [1]: an intriguing problem arises with PDF's that have data appended to them, where multiple instances of the same object with the same generation ID exist, which have streams that have
@@ -268,7 +245,7 @@ extern PDObjectRef PDParserAttachmentImportObject(PDParserAttachmentRef attachme
  * which is indeed the case; however, since Pajdeg iterates over *all* objects, rather than jumping to objects on demand, it encounters objects that are deprecated,
  * such as 1 0 obj above; when Pajdeg hits the (old) 1 0 obj, it tries to move beyond it, but since it has a Length with a reference, Pajdeg looks up the reference
  * IN THE XREF TABLE, which has been overridden, and would incorrectly presume that the length of the (old) 1 0 obj's stream is 457 bytes, when in reality it is
- * 123 bytes.
+ * 123 bytes. (This is fixed, but at the cost of multi-layer XREF tables.)
  * Additionally, since each PDF append in fact *is* a patch operation, each XREF table has to not only be kept separate, but has to be properly patched with the
  * previous tables' content. 
  */

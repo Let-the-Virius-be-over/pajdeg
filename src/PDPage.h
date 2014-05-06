@@ -93,6 +93,17 @@ extern PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger 
  */
 extern PDObjectRef PDPageGetContentsObject(PDPageRef page);
 
+/**
+ *  Fetch the media box for the given page.
+ *
+ *  @param page The page object
+ *
+ *  @note PDRects differ from e.g. CGRects in that they are composed of the two points making up the rectangle, as opposed to making up an origin pair and a size pair.
+ *
+ *  @return A PDRect representing the media box.
+ */
+extern PDRect PDPageGetMediaBox(PDPageRef page);
+
 #endif
 
 /** @} */
