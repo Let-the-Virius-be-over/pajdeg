@@ -78,6 +78,7 @@ void PDRelease(void *pajdegObject)
 
 void *PDRetain(void *pajdegObject)
 {
+    if (NULL == pajdegObject) return pajdegObject;
     PDTypeRef type = (PDTypeRef)pajdegObject - 1;
     PDTypeCheck("retained", NULL);
     type->retainCount++;
@@ -108,3 +109,5 @@ void PDFlush(void)
         PDRelease(obj);
     }
 }
+
+void PDNOP(void *val) {}

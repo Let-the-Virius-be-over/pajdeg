@@ -148,6 +148,21 @@ extern const char *PDPipeGetInputFilePath(PDPipeRef pipe);
  */
 extern const char *PDPipeGetOutputFilePath(PDPipeRef pipe);
 
+/**
+ *  Connect a foreign parser into pipe, making it possible to import objects from the foreign parser throughout the pipe's existence.
+ *
+ *  This sets up a permanent parser attachment to the foreign parser. Some operations, such as PDPageInsertIntoPipe, will
+ *  do this automatically.
+ *
+ *  Multiple calls to connecting the same pipe/parser pair are ignored.
+ *
+ *  @param pipe          The native pipe into which importing of objects will be possible
+ *  @param foreignParser The foreign parser from which imports should be possible
+ *
+ *  @return Parser attachment associated with the connection
+ */
+extern PDParserAttachmentRef PDPipeConnectForeignParser(PDPipeRef pipe, PDParserRef foreignParser);
+
 #endif
 
 /** @} */

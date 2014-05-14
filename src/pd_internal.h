@@ -254,6 +254,24 @@ struct PDContentStream {
     PDBTreeRef opertree;                ///< operator tree
     pd_array args;                      ///< pending operator arguments
     pd_stack opers;                     ///< current operators stack
+    const char *lastOperator;           ///< the last operator that was encountered
+};
+
+/** @} */
+
+/**
+ @addtogroup PDPAGE
+ 
+ @{ 
+ */
+
+/**
+ Page internal structure
+ */
+struct PDPage {
+    PDObjectRef ob;                     ///< the /Page object
+    PDParserRef parser;                 ///< the parser associated with the owning PDF document
+    PDObjectRef contentsObject;         ///< the object referenced by the /Contents key; NULL until explicitly requested
 };
 
 /** @} */
@@ -344,6 +362,7 @@ struct PDParser {
     // object related
     pd_stack appends;               ///< stack of objects that are meant to be appended at the end of the PDF
     pd_stack inserts;               ///< stack of objects that are meant to be inserted as soon as the current object is dealt with
+    PDBTreeRef aiTree;              ///< bin-tree identifying the (in-memory) PDObjectRefs in appends and inserts by their object ID's
     PDObjectRef construct;          ///< cannot be relied on to contain anything; is used to hold constructed objects until iteration (at which point they're released)
     PDSize streamLen;               ///< stream length of the current object
     PDSize obid;                    ///< object ID of the current object
@@ -367,15 +386,15 @@ struct PDParser {
 };
 
 /**
- The PDPage internal structure.
+ The PDPageReference internal structure.
  */
-typedef struct PDPage PDPage;
-struct PDPage {
+typedef struct PDPageReference PDPageReference;
+struct PDPageReference {
     PDBool collection;              ///< If set, this is a /Type /Pages object, which is a group of page and pages references
     union {
         struct {
             PDInteger count;        ///< Number of entries
-            PDPage *kids;           ///< Kids
+            PDPageReference *kids;           ///< Kids
         };
         struct {
             PDInteger obid;         ///< The object ID
@@ -391,7 +410,7 @@ struct PDCatalog {
     PDParserRef parser;             ///< The parser owning the catalog
     PDObjectRef object;             ///< The object representation of the catalog
     PDRect      mediaBox;           ///< The media box of the catalog object
-    PDPage      pages;              ///< The root pages
+    PDPageReference pages;          ///< The root pages
     PDInteger   count;              ///< Number of pages (in total)
     PDInteger   capacity;           ///< Size of kids array.
     PDInteger  *kids;               ///< Array of object IDs for all pages
@@ -495,10 +514,12 @@ typedef void (*_list_push_index)(void *ref, PDInteger index);
  The internal array structure.
  */
 struct pd_array {
-    PDInteger        count;     ///< Number of elements.
-    PDInteger        capacity;  ///< Capacity of array.
-    char           **values;    ///< Content.
+    PDInteger        count;     ///< Number of elements
+    PDInteger        capacity;  ///< Capacity of array
+    char           **values;    ///< Content
+    pd_stack        *vstacks;   ///< Values in pd_stack form
     _list_getter     g;         ///< Getter
+    _list_getter_raw rg;        ///< Raw getter
     _list_setter     s;         ///< Setter
     _list_remover    r;         ///< Remover
     _list_push_index pi;        ///< Push-indexer
@@ -509,11 +530,11 @@ struct pd_array {
  The internal dictionary structure.
  */
 struct pd_dict {
-    PDInteger        count;     ///< Number of entries.
-    PDInteger        capacity;  ///< Capacity of dictionary.
-    char           **keys;      ///< Keys.
-    char           **values;    ///< Values.
-    pd_stack        *vstacks;   ///< Values in pd_stack form.
+    PDInteger        count;     ///< Number of entries
+    PDInteger        capacity;  ///< Capacity of dictionary
+    char           **keys;      ///< Keys
+    char           **values;    ///< Values
+    pd_stack        *vstacks;   ///< Values in pd_stack form
     _list_getter     g;         ///< Getter
     _list_getter_raw rg;        ///< Raw getter
     _list_setter     s;         ///< Setter
@@ -635,6 +656,7 @@ struct PDStaticHash {
  The internal task structure
  */
 struct PDTask {
+    PDBool          isActive;       ///< Whether task is still active; sometimes tasks cannot be unloaded properly even though the task returned PDTaskUnload; these tasks have their active flag unset instead
     PDBool          isFilter;       ///< Whether task is a filter or not. Internally, a task is only a filter if it is assigned to a specific object ID or IDs.
     PDPropertyType  propertyType;   ///< The filter property type
     PDInteger       value;          ///< The filter value, if any
@@ -674,11 +696,11 @@ struct PDTwinStream {
  @ingroup PDPIPE
  */
 struct PDPipe {
-    PDBool          opened;             ///< Whether pipe has been opened or not.
-    PDBool          dynamicFiltering;   ///< Whether dynamic filtering is necessary; if set, the static hash filtering of filters is skipped and filters are checked for all objects.
+    PDBool          opened;             ///< Whether pipe has been opened or not
+    PDBool          dynamicFiltering;   ///< Whether dynamic filtering is necessary; if set, the static hash filtering of filters is skipped and filters are checked for all objects
     PDBool          typedTasks;         ///< Whether type tasks (excluding unfiltered tasks) are activated; activation results in a slight decrease in performance due to all dictionary objects needing to be resolved in order to check their Type dictionary key
-    char           *pi;                 ///< The path of the input file.
-    char           *po;                 ///< The path of the output file.
+    char           *pi;                 ///< The path of the input file
+    char           *po;                 ///< The path of the output file
     FILE           *fi;                 ///< Reader
     FILE           *fo;                 ///< Writer
     PDInteger       filterCount;        ///< Number of filters in the pipe
@@ -687,6 +709,7 @@ struct PDPipe {
     PDBTreeRef      filter;             ///< The filters, in a tree with the object ID as key
     pd_stack
     typeTasks[_PDFTypeCount];           ///< Tasks which run depending on all objects of the given type; the 0'th element (type NULL) is triggered for all objects, and not just objects without a /Type dictionary key
+    PDBTreeRef      attachments;        ///< PDParserAttachment entries
 };
 
 /// @name Reference

@@ -98,6 +98,8 @@ struct PDXTable {
     
     PDXTableRef prev;       ///< previous (older) table (mostly debug related)
     PDXTableRef next;       ///< next (newer) table (mostly debug related)
+    
+    PDOffset    offsCap;    ///< threshold for offsets using current offsSize
 
     unsigned char typeSize;   ///< type size, current implementation requires this to be 1
     unsigned char offsSize;   ///< offset size

@@ -205,6 +205,20 @@ extern PDInteger PDObjectGetStreamLength(PDObjectRef object);
 extern PDInteger PDObjectGetExtractedStreamLength(PDObjectRef object);
 
 /**
+ Determine if the object's stream is text or binary data. 
+ 
+ This is determined by looking at the first 10 (or all, if length <= 10) bytes and seeing 80% or more of them
+ are defined text characters. If this is the case, true is returned. The very last byte must also be 0 (the 
+ string must be NULL-terminated).
+ 
+ @warning Assertion thrown if the object stream has not been fetched before this call.
+ 
+ @param object The object.
+ @return true if the object's stream is text-based, false otherwise
+ */
+extern PDBool PDObjectHasTextStream(PDObjectRef object);
+
+/**
  Get the object's stream. Assertion thrown if the stream has not been fetched via PDParserFetchCurrentObjectStream() first.
  
  @param object The object.
@@ -252,6 +266,42 @@ extern const char *PDObjectGetDictionaryEntry(PDObjectRef object, const char *ke
  @param key The dictionary key. Note that keys in a PDF dictionary are names, i.e. /Something, but the corresponding key in PDObjectRef is the string without the forward slash, i.e. "Something" in this case.
  */
 extern const pd_stack PDObjectGetDictionaryEntryRaw(PDObjectRef object, const char *key);
+
+/**
+ *  Get the object type of the entry for the given key. 
+ *
+ *  @param object Dictionary object
+ *  @param key    Key for the entry
+ *
+ *  @return PDObjectType enum value. PDObjectTypeNull is returned for missing keys.
+ */
+extern PDObjectType PDObjectGetDictionaryEntryType(PDObjectRef object, const char *key);
+
+/**
+ *  Obtain a copy of the entry for the given key.
+ *
+ *  The type of the returned object can be determined using PDObjectGetDictionaryEntryType, and maps to the following types:
+ *  - PDObjectTypeNull       -> NULL
+ *  - PDObjectTypeUnknown    -> (not applicable)
+ *  - PDObjectTypeBoolean    -> PDBool
+ *  - PDObjectTypeInteger    -> PDInteger
+ *  - PDObjectTypeReal       -> PDReal
+ *  - PDObjectTypeName       -> const char *
+ *  - PDObjectTypeString     -> const char *
+ *  - PDObjectTypeArray      -> pd_array
+ *  - PDObjectTypeDictionary -> pd_dict
+ *  - PDObjectTypeStream     -> (not applicable)
+ *  - PDObjectTypeReference  -> PDReference
+ *
+ *  @note Making changes to the copy naturally does not affect the object.
+ *  @note The returned value must be released or freed accordingly.
+ *
+ *  @param object Dictionary object
+ *  @param key    Key for the entry
+ *
+ *  @return A copy of the appropriate object
+ */
+extern void *PDObjectCopyDictionaryEntry(PDObjectRef object, const char *key);
 
 /**
  Set a dictionary key to a new value.
@@ -322,6 +372,60 @@ extern PDInteger PDObjectGetArrayCount(PDObjectRef object);
  @param index The array index.
  */
 extern const char *PDObjectGetArrayElementAtIndex(PDObjectRef object, PDInteger index);
+
+/**
+ *  Fetch the raw (pd_stack) array element at the given index.
+ *
+ *  @warning Crashes if the object is not an array.
+ *
+ *  @param object The object.
+ *  @param index  The array index.
+ *
+ *  @return pd_stack result of the given array element
+ */
+extern const pd_stack PDObjectGetArrayElementRawAtIndex(PDObjectRef object, PDInteger index);
+
+/**
+ *  Get the object type of the element at the given index. 
+ *
+ *  @param object Array object
+ *  @param index  Element index
+ *
+ *  @return PDObjectType enum value.
+ */
+extern PDObjectType PDObjectGetArrayElementTypeAtIndex(PDObjectRef object, PDInteger index);
+
+/**
+ *  Obtain a copy of the entry for the given key.
+ *
+ *  The type of the returned object can be determined using PDObjectGetDictionaryEntryType, and maps to the following types:
+ *  - PDObjectTypeNull       -> NULL
+ *  - PDObjectTypeUnknown    -> (not applicable)
+ *  - PDObjectTypeBoolean    -> PDBool
+ *  - PDObjectTypeInteger    -> PDInteger
+ *  - PDObjectTypeReal       -> PDReal
+ *  - PDObjectTypeName       -> const char *
+ *  - PDObjectTypeString     -> const char *
+ *  - PDObjectTypeArray      -> pd_array
+ *  - PDObjectTypeDictionary -> pd_dict
+ *  - PDObjectTypeStream     -> (not applicable)
+ *  - PDObjectTypeReference  -> PDReference
+ *
+ *  @note Making changes to the copy naturally does not affect the object.
+ *  @note The returned value must be released or freed accordingly.
+ *
+ *  @param object Array object
+ *  @param index  Element index
+ *
+ *  @return A copy of the appropriate object
+ */
+extern void *PDObjectCopyArrayElementAtIndex(PDObjectRef object, PDInteger index);
+
+
+
+
+
+
 
 /**
  Add an element to the array object.

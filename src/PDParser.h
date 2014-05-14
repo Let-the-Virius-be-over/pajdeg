@@ -113,7 +113,9 @@ extern char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDO
 extern PDBool PDParserGetEncryptionState(PDParserRef parser);
 
 /**
- Fetch the definition (as a pd_stack) of the object with the given id.
+ Fetch the definition (as a pd_stack) of the object with the given id. 
+ 
+ @note Use of PDParserLocateAndCreateObject is recommended, as it is generally faster and will not get confused about objects inserted *this session*.
  
  @warning This is an expensive operation that requires setting up a temporary buffer of sufficiently big size, seeking to the object in the input file, reading the definition, then seeking back.
  
@@ -243,7 +245,7 @@ extern PDInteger PDParserGetTotalObjectCount(PDParserRef parser);
  * which is indeed the case; however, since Pajdeg iterates over *all* objects, rather than jumping to objects on demand, it encounters objects that are deprecated,
  * such as 1 0 obj above; when Pajdeg hits the (old) 1 0 obj, it tries to move beyond it, but since it has a Length with a reference, Pajdeg looks up the reference
  * IN THE XREF TABLE, which has been overridden, and would incorrectly presume that the length of the (old) 1 0 obj's stream is 457 bytes, when in reality it is
- * 123 bytes.
+ * 123 bytes. (This is fixed, but at the cost of multi-layer XREF tables.)
  * Additionally, since each PDF append in fact *is* a patch operation, each XREF table has to not only be kept separate, but has to be properly patched with the
  * previous tables' content. 
  */

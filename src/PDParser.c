@@ -33,6 +33,7 @@
 #include "PDXTable.h"
 #include "PDCatalog.h"
 #include "pd_crypto.h"
+#include "pd_dict.h"
 #include "PDScanner.h"
 
 void PDParserDestroy(PDParserRef parser)
@@ -43,6 +44,7 @@ void PDParserDestroy(PDParserRef parser)
     for (pd_stack t = parser->xstack; t; t = t->prev)
         printf("- [-]: %ld\n", ((PDTypeRef)t->info - 1)->retainCount);*/
     
+    PDRelease(parser->aiTree);
     PDRelease(parser->catalog);
     PDRelease(parser->construct);
     PDRelease(parser->root);
@@ -75,6 +77,7 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
     parser->stream = stream;
     parser->state = PDParserStateBase;
     parser->success = true;
+    parser->aiTree = PDBTreeCreate(NULL, 1, 50000, 10);
     
     if (! PDXTableFetchXRefs(parser)) {
         PDWarn("PDF is invalid or in an unsupported format.");
@@ -262,9 +265,17 @@ pd_stack PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDIntege
 
 PDObjectRef PDParserLocateAndCreateObject(PDParserRef parser, PDInteger obid, PDBool master)
 {
+    PDObjectRef ob;
+    
     if (parser->construct && parser->construct->obid == obid) {
         return PDRetain(parser->construct);
     }
+    
+    ob = PDBTreeGet(parser->aiTree, obid);
+    if (NULL != ob) {
+        return PDRetain(ob);
+    }
+    
     pd_stack defs = PDParserLocateAndCreateDefinitionForObject(parser, obid, master);
     PDObjectRef obj = PDObjectCreateFromDefinitionsStack(obid, defs);
     obj->crypto = parser->crypto;
@@ -306,12 +317,26 @@ void PDParserPrepareStreamData(PDParserRef parser, PDObjectRef ob, PDInteger len
         if (filterOpts) 
             filterOpts = PDStreamFilterGenerateOptionsFromDictionaryStack(filterOpts->prev->prev->info);
         PDStreamFilterRef filter = PDStreamFilterObtain(filterName, true, filterOpts);
-        char *extractedBuf;
-        PDStreamFilterApply(filter, (unsigned char *)rawBuf, (unsigned char **)&extractedBuf, len, &len);
-        free(rawBuf);
-        rawBuf = extractedBuf;
-        PDRelease(filter);
+        
+        if (NULL == filter) {
+            PDWarn("Unknown filter \"%s\" is ignored.", filterName);
+        } else {
+            PDInteger allocated;
+            char *extractedBuf;
+            PDStreamFilterApply(filter, (unsigned char *)rawBuf, (unsigned char **)&extractedBuf, len, &len, &allocated);
+            free(rawBuf);
+            rawBuf = extractedBuf;
+            PDRelease(filter);
+            if (allocated == len) {
+                // we need another byte for \0 in case this is a text stream; this happens very seldom but has to be dealt with
+                PDNotice("{ allocated == len } hit; notify Pajdeg devs if repeated");
+                rawBuf = realloc(rawBuf, len + 1);
+            }
+        }
     }
+    
+    // in order for this line not to sporadically crash, all mallocs of rawBuf (including extractedBuf for filtered streams above) must have used len + 1 up to this point
+    rawBuf[len] = 0;
     
     ob->extractedLen = len;
     ob->streamBuf = rawBuf;
@@ -333,7 +358,7 @@ char *PDParserFetchCurrentObjectStream(PDParserRef parser, PDInteger obid)
     PDInteger len = parser->streamLen;
     const char *filterName = PDObjectGetDictionaryEntry(parser->construct, "Filter");
 
-    char *rawBuf = malloc(len);
+    char *rawBuf = malloc(len + 1);
     PDScannerReadStream(parser->scanner, len, rawBuf, len);
     
     PDParserPrepareStreamData(parser, ob, len, filterName, rawBuf);
@@ -363,16 +388,13 @@ char *PDParserFetchCurrentObjectStream(PDParserRef parser, PDInteger obid)
     return ob->streamBuf;
 }
 
-char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDObjectRef object)
+void PDParserClarifyObjectStreamExistence(PDParserRef parser, PDObjectRef object)
 {
-    if (parser->obid == object->obid) {
-        // use the (faster) FetchCurrentObjectStream
-        return PDParserFetchCurrentObjectStream(parser, object->obid);
-    }
-    
     // objects that were random-access-fetched normally don't have their hasStream property set, but we can
     // set it based on their dictionary value /Length -- if it's non-zero (or a ref), they have a stream
-    if (! object->hasStream) {
+    if (object->type == PDObjectTypeUnknown) 
+        PDObjectDetermineType(object);
+    if (! object->hasStream && object->type == PDObjectTypeDictionary) {
         const char *length = PDObjectGetDictionaryEntry(object, "Length");
         if (length) {
             // length could be a ref, or a number
@@ -389,6 +411,16 @@ char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDObjectRe
             object->streamLen = lenInt;
         }
     }
+}
+
+char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDObjectRef object)
+{
+    if (parser->obid == object->obid) {
+        // use the (faster) FetchCurrentObjectStream
+        return PDParserFetchCurrentObjectStream(parser, object->obid);
+    }
+
+    PDParserClarifyObjectStreamExistence(parser, object);
     
     PDAssert(object);
     PDAssert(object->hasStream);
@@ -397,7 +429,7 @@ char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDObjectRe
     PDInteger len = object->streamLen;
     const char *filterName = PDObjectGetDictionaryEntry(object, "Filter");
     
-    char *rawBuf = malloc(len);
+    char *rawBuf = malloc(len + 1);
     
     char *tb;
     char *string;
@@ -1068,6 +1100,7 @@ PDObjectRef PDParserCreateObject(PDParserRef parser, pd_stack *queue)
     PDObjectRef object = PDObjectCreate(newiter, 0);
     object->encryptedDoc = PDParserGetEncryptionState(parser);
     object->crypto = parser->crypto;
+    PDBTreeInsert(parser->aiTree, newiter, object);
     
     if (queue) {
         pd_stack_push_object(queue, object);
@@ -1195,7 +1228,9 @@ PDInteger PDParserGetContainerObjectIDForObject(PDParserRef parser, PDInteger ob
 
 PDBool PDParserIsObjectStillMutable(PDParserRef parser, PDInteger obid)
 {
-    return (PDTwinStreamGetInputOffset(parser->stream) <= PDXTableGetOffsetForID(parser->mxt, obid)); // PDXOffset(parser->mxt->fields[obid]));
+    return (PDTwinStreamGetInputOffset(parser->stream) <= PDXTableGetOffsetForID(parser->mxt, (PDXTableGetTypeForID(parser->mxt, obid) == PDXTypeComp
+                                                                                               ? (PDInteger)PDXTableGetOffsetForID(parser->mxt, obid) 
+                                                                                               : obid)));
 }
 
 PDObjectRef PDParserGetRootObject(PDParserRef parser)

@@ -47,3 +47,13 @@ PDReferenceRef PDReferenceCreate(PDInteger obid, PDInteger genid)
     ref->genid = genid;
     return ref;
 }
+
+PDInteger PDReferenceGetObjectID(PDReferenceRef reference)
+{
+    return reference->obid;
+}
+
+PDInteger PDReferenceGetGenerationID(PDReferenceRef reference)
+{
+    return reference->genid;
+}

@@ -180,6 +180,28 @@ PDInteger PDObjectGetExtractedStreamLength(PDObjectRef object)
     return object->extractedLen;
 }
 
+PDBool PDObjectHasTextStream(PDObjectRef object)
+{
+    PDAssert(object->extractedLen != -1);
+    if (object->extractedLen == 0) return false;
+    
+    PDInteger ix = object->extractedLen > 10 ? 10 : object->extractedLen - 1;
+    PDInteger matches = 0;
+    PDInteger thresh = ix * 0.8f;
+    char ch;
+//    if (object->streamBuf[object->extractedLen-1] != 0) 
+//        return false;
+    for (PDInteger i = 0; matches < thresh && i < ix; i++) {
+        ch = object->streamBuf[i];
+        matches += ((ch >= 'a' && ch <= 'z') || 
+                    (ch >= 'A' && ch <= 'Z') ||
+                    (ch >= '0' && ch <= '9') ||
+                    (ch >= 32 && ch <= 126) ||
+                    ch == '\n' || ch == '\r');
+    }
+    return matches >= thresh;
+}
+
 char *PDObjectGetStream(PDObjectRef object)
 {
     PDAssert(object->extractedLen != -1);
@@ -238,6 +260,25 @@ const pd_stack PDObjectGetDictionaryEntryRaw(PDObjectRef object, const char *key
     
     return pd_dict_get_raw(object->dict, key);
 }
+
+PDObjectType PDObjectGetDictionaryEntryType(PDObjectRef object, const char *key)
+{
+    if (NULL == object->dict) {
+        PDObjectInstantiateDictionary(object);
+    }
+    
+    return pd_dict_get_type(object->dict, key);
+}
+
+void *PDObjectCopyDictionaryEntry(PDObjectRef object, const char *key)
+{
+    if (NULL == object->dict) {
+        PDObjectInstantiateDictionary(object);
+    }
+    
+    return pd_dict_get_copy(object->dict, key);
+}
+
 
 void PDObjectSetDictionaryEntry(PDObjectRef object, const char *key, const char *value)
 {
@@ -298,6 +339,30 @@ const char *PDObjectGetArrayElementAtIndex(PDObjectRef object, PDInteger index)
     return pd_array_get_at_index(object->array, index);
 }
 
+const pd_stack PDObjectGetArrayElementRawAtIndex(PDObjectRef object, PDInteger index)
+{
+    if (NULL == object->array)
+        PDObjectInstantiateArray(object);
+    
+    return pd_array_get_raw_at_index(object->array, index);
+}
+
+PDObjectType PDObjectGetArrayElementTypeAtIndex(PDObjectRef object, PDInteger index)
+{
+    if (NULL == object->array)
+        PDObjectInstantiateArray(object);
+    
+    return pd_array_get_type_at_index(object->array, index);
+}
+
+void *PDObjectCopyArrayElementAtIndex(PDObjectRef object, PDInteger index)
+{
+    if (NULL == object->array)
+        PDObjectInstantiateArray(object);
+    
+    return pd_array_get_copy_at_index(object->array, index);
+}
+
 void PDObjectAddArrayElement(PDObjectRef object, const char *value)
 {
     if (NULL == object->array)
@@ -306,12 +371,6 @@ void PDObjectAddArrayElement(PDObjectRef object, const char *value)
     pd_array_append(object->array, value);
 }
 
-/**
- Delete the array element at the given index.
- 
- @param object The object.
- @param index The array index.
- */
 void PDObjectRemoveArrayElementAtIndex(PDObjectRef object, PDInteger index)
 {
     if (NULL == object->array) 
@@ -320,13 +379,6 @@ void PDObjectRemoveArrayElementAtIndex(PDObjectRef object, PDInteger index)
     pd_array_remove_at_index(object->array, index);
 }
 
-/**
- Replace the value of the array element at the given index with a new value.
- 
- @param object The object.
- @param index The array index.
- @param value The replacement value.
- */
 void PDObjectSetArrayElement(PDObjectRef object, PDInteger index, const char *value)
 {
     if (NULL == object->array) 
@@ -407,7 +459,7 @@ PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len)
 
     char *filtered = NULL;
     PDInteger flen = 0;
-    if (success) success = PDStreamFilterApply(sf, (unsigned char *)str, (unsigned char **)&filtered, len, &flen);
+    if (success) success = PDStreamFilterApply(sf, (unsigned char *)str, (unsigned char **)&filtered, len, &flen, NULL);
     // if !success, filter did not apply to input data successfully
 
     PDRelease(sf);

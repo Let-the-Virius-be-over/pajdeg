@@ -120,8 +120,6 @@ extern pd_stack pd_stack_copy(pd_stack stack);
 
 /// @name Popping from stack
 
-
-
 /**
  Destroy a stack (getting rid of every item according to its type).
  

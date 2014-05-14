@@ -59,6 +59,7 @@ extern PDReferenceRef PDReferenceCreate(PDInteger obid, PDInteger genid);
  @param reference The reference.
  */
 extern PDInteger PDReferenceGetObjectID(PDReferenceRef reference);
+
 /**
  Get the generation ID for the reference.
  

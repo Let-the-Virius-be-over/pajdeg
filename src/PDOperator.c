@@ -29,13 +29,17 @@ char *PDOperatorSymbolsDelimiters = "()<>[]{}/%";               // (, ), <, >, [
 //char *PDOperatorSymbolsAlpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";        // a-zA-Z 
 //char *PDOperatorSymbolsAlphanumeric = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"; // a-zA-Z0-9
 
+PDInteger PDOperatorSymbolGlobUsers = 0;
 char *PDOperatorSymbolGlob = NULL;
 
 void PDOperatorSymbolGlobSetup()
 {
+    PDOperatorSymbolGlobUsers++;
+    if (PDOperatorSymbolGlobUsers > 1) return;
+    
     PDInteger i;
 
-    if (PDOperatorSymbolGlob != NULL) return;
+//    if (PDOperatorSymbolGlob != NULL) return;
     
     PDOperatorSymbolGlob = calloc(256, sizeof(char));
     for (i = strlen(&PDOperatorSymbolsWhitespace[1]); i >= 0; i--)
@@ -46,9 +50,12 @@ void PDOperatorSymbolGlobSetup()
 
 void PDOperatorSymbolGlobClear()
 {
-    if (PDOperatorSymbolGlob == NULL) return;
-    free(PDOperatorSymbolGlob);
-    PDOperatorSymbolGlob = NULL;
+    PDOperatorSymbolGlobUsers--;
+    if (PDOperatorSymbolGlobUsers == 0) {
+//    if (PDOperatorSymbolGlob == NULL) return;
+        free(PDOperatorSymbolGlob);
+        PDOperatorSymbolGlob = NULL;
+    }
 }
 
 char PDOperatorSymbolGlobDefine(char *str)

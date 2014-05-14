@@ -241,6 +241,11 @@ typedef const char         **PDID;
 typedef void (*PDDeallocator)(void *ob);
 
 /**
+ NOP function (e.g. used as NULL deallocator).
+ */
+extern void PDNOP(void*);
+
+/**
  Synchronization signature.
  
  Used in the PDParser to require synchronization of the given object instance, as it is about to be written to the output stream.
@@ -328,11 +333,56 @@ typedef struct PDBTree *PDBTreeRef;
  */
 
 /**
+ *  A selection in a PDF
+ *
+ *  @ingroup PDSELECTION
+ *
+ *  Although selections may span across multiple pages, this is currently ignored.
+ */
+struct PDSelection {
+    PDInteger page;
+    PDRect position;
+    const char *text;
+};
+
+/**
+ *  A PDF selection.
+ *
+ *  @ingroup PDSELECTION
+ */
+typedef struct PDSelection *PDSelectionRef;
+
+/**
+ *  Text search operator function signature, used by PDContentStream's text searcher.
+ *
+ *  @param selection Selection that was matched to the search string
+ *
+ *  @return Whether or not search should continue or abort
+ */
+typedef PDBool (*PDTextSearchOperatorFunc)(PDSelectionRef selection);
+
+/**
  A PDF object.
  
  @ingroup PDOBJECT
  */
 typedef struct PDObject *PDObjectRef;
+
+/**
+ A PDF page.
+ 
+ @ingroup PDPAGE
+ */
+typedef struct PDPage *PDPageRef;
+
+/**
+ *  An attachment to a foreign parser.
+ *
+ *  Attachments exist for the sole purpose of keeping track of which objects have been imported from the foreign parser already. 
+ *  Since many indirect object references are shared between multiple objects, the attachment ensures that a given object is only
+ *  imported once, even if several consecutive object imports are made. 
+ */
+typedef struct PDParserAttachment *PDParserAttachmentRef;
 
 /**
  A PDF object stream.
@@ -365,22 +415,26 @@ typedef enum {
  Function signature for content operators. 
  
  @ingroup PDCONTENTSTREAM
- @param cs   Content stream reference
- @param args Argument list
- @param argc Argument count
+ @param cs       Content stream reference
+ @param args     Argument list
+ @param argc     Argument count
+ @param inState  The top-most entry in the operation stack, if any
+ @param outState Pointer to the resulting state after this operation; only applies to operators that return PDOperatorStatePush
+ 
  @return State of operator (i.e. whether it pushes, pops, or does neither)
  */
-typedef PDOperatorState (*PDContentOperatorFunc)(PDContentStreamRef cs, const char **args, PDInteger argc);
+typedef PDOperatorState (*PDContentOperatorFunc)(PDContentStreamRef cs, void *userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState);
 
 /**
  The type of object.
  
  @ingroup PDOBJECT
  
- @note This enum is matched with CGPDFObject's type enum (Core Graphics)
+ @note This enum is matched with CGPDFObject's type enum (Core Graphics), with extensions
  @warning Not all types are currently used.
  */
 typedef enum {
+    PDObjectTypeNull        = 0,    ///< Null object, often used to indicate the type of a dictionary entry for a key that it doesn't contain
     PDObjectTypeUnknown     = 1,    ///< The type of the object has not (yet) been determined
     PDObjectTypeBoolean,            ///< A boolean.
     PDObjectTypeInteger,            ///< An integer.
@@ -390,6 +444,7 @@ typedef enum {
     PDObjectTypeArray,              ///< An array.
     PDObjectTypeDictionary,         ///< A dictionary. Most objects are considered dictionaries.
     PDObjectTypeStream,             ///< A stream.
+    PDObjectTypeReference,          ///< A reference to another object.
 } PDObjectType;
 
 /**

@@ -165,6 +165,7 @@ extern void PDStreamFilterRegisterDualFilter(const char *name, PDStreamDualFilte
  @param name The name of the filter.
  @param inputEnd Whether the input end or output end should be returned. The input end is the reader part (decoder) and the output end is the writer part (encoder). 
  @param options Options passed to the filter, in the form of a simplified pd_stack dictionary (with keys and values and no complex objects). A scanner-produced pd_stack dictionary can be converted into a stream filter options dictionary via PDStreamFilterGenerateOptionsFromDictionaryStack().
+ 
  @return A created PDStreamFilterRef or NULL if no match.
  
  @see PDStreamFilterGenerateOptionsFromDictionaryStack
@@ -200,31 +201,37 @@ extern PDBool PDStreamFilterDone(PDStreamFilterRef filter);
  
  @warning Performing multiple separate filtering operations is not done by calling PDStreamFilterBegin() at the start of each new operation. The purpose of PDStreamFilterBegin() is to tell the filter that new or additional data for one consecutive operation has been put into its input buffer. To reuse a filter, it must be deinitialized via PDStreamFilterDone(), and then reinitialized via PDStreamFilterInit().
  
- @param filter The filter.
+ @param filter The filter
+
+ @return Number of bytes produced
  */
 extern PDInteger PDStreamFilterBegin(PDStreamFilterRef filter);
 
 /**
  Proceed with a filter, meaning that it should continue filtering its input, which must not have been altered. This is called if a filter's output hits the output buffer capacity when processing its current input.
  
- @param filter The filter.
+ @param filter The filter
+ 
+ @return Number of bytes produced
  */
 extern PDInteger PDStreamFilterProceed(PDStreamFilterRef filter);
 
 /**
  Apply a filter to the given buffer, creating a new buffer and size. This is a convenience method for applying a filter (chain) to some data and getting a newly allocated buffer containing the results back, along with the result size.
  
- @param filter The filter to apply.
- @param src The source buffer.
- @param dstPtr The destination buffer pointer.
- @param len The length of the source buffer content.
- @param newlenPtr The filtered content length pointer.
+ @param filter          The filter to apply
+ @param src             The source buffer
+ @param dstPtr          The destination buffer pointer
+ @param len             The length of the source buffer content
+ @param newlenPtr       The filtered content length pointer
+ @param allocatedlenPtr The resulting allocation size of the destination buffer (optional, use NULL if unneeded)
+ 
  @return true on success, false on failure.
  */
-extern PDBool PDStreamFilterApply(PDStreamFilterRef filter, unsigned char *src, unsigned char **dstPtr, PDInteger len, PDInteger *newlenPtr);
+extern PDBool PDStreamFilterApply(PDStreamFilterRef filter, unsigned char *src, unsigned char **dstPtr, PDInteger len, PDInteger *newlenPtr, PDInteger *allocatedlenPtr);
 
 /**
- Create the inversion of the given filter, so that [data] -> filter -> inversion == [data]
+ Create the inversion of the given filter, so that invert(filter(data)) == data
  
  @param filter The filter to invert.
  @return Inversion filter, or NULL if the filter or any of its chained filters is unable to invert itself.

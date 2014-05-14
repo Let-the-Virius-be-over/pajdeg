@@ -27,7 +27,7 @@
 /**
  *  Create a new binary tree.
  *
- *  @param deallocator     The deallocator for tree entries.
+ *  @param deallocator     The deallocator for tree entries. If NULL, no deallocation will occur on tree destruction or entry replacement.
  *  @param expectedMinimum Expected minimum value.
  *  @param expectedMaximum Expected maximum value.
  *  @param intensity       Intensity (or density) of the tree.

@@ -24,6 +24,7 @@
 #include "PDReference.h"
 #include "PDBTree.h"
 #include "pd_stack.h"
+#include "PDParserAttachment.h"
 #include "PDCatalog.h"
 #include "PDStaticHash.h"
 #include "PDObjectStream.h"
@@ -56,7 +57,7 @@ void PDPipeDestroy(PDPipeRef pipe)
     free(pipe->pi);
     free(pipe->po);
     PDRelease(pipe->filter);
-    //pd_btree_destroy_with_deallocator(pipe->filter, PDRelease);
+    PDRelease(pipe->attachments);
     
     for (int i = 0; i < _PDFTypeCount; i++) {
         pd_stack stack = pipe->typeTasks[i];
@@ -94,6 +95,7 @@ PDPipeRef PDPipeCreateWithFilePaths(const char * inputFilePath, const char * out
     PDPipeRef pipe = PDAlloc(sizeof(struct PDPipe), PDPipeDestroy, true);
     pipe->pi = strdup(inputFilePath);
     pipe->po = strdup(outputFilePath);
+    pipe->attachments = PDBTreeCreate(PDRelease, 1, 10, 5);
     return pipe;
 }
 
@@ -390,4 +392,14 @@ const char *PDPipeGetInputFilePath(PDPipeRef pipe)
 const char *PDPipeGetOutputFilePath(PDPipeRef pipe)
 {
     return pipe->po;
+}
+
+PDParserAttachmentRef PDPipeConnectForeignParser(PDPipeRef pipe, PDParserRef foreignParser)
+{
+    PDParserAttachmentRef attachment = PDBTreeGet(pipe->attachments, (PDInteger)foreignParser);
+    if (NULL == attachment) {
+        attachment = PDParserAttachmentCreate(PDPipeGetParser(pipe), foreignParser);
+        PDBTreeInsert(pipe->attachments, (PDInteger)foreignParser, attachment);
+    }
+    return attachment;
 }

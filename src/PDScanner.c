@@ -57,6 +57,30 @@ void PDScannerSetLoopCap(PDInteger cap)
     PDScannerScanAttemptCap = cap;
 }
 
+void PDScannerDisallowGrowth(void *ts, PDScannerRef scanner, char **buf, PDInteger *size, PDInteger req)
+{}
+
+pd_stack PDScannerGenerateStackFromFixedBuffer(PDStateRef state, char *buf, PDInteger len)
+{
+    PDAssert(state); // crash = most likely forgot to call pd_pdf_implementation_use()
+    PDScannerRef tmpscan = PDScannerCreateWithState(state);
+    PDScannerContextPush(tmpscan, PDScannerDisallowGrowth);
+    tmpscan->buf = buf;
+    tmpscan->boffset = 0;
+    tmpscan->bsize = len;
+    tmpscan->fixedBuf = true;
+    
+    pd_stack stack;
+    if (! PDScannerPopStack(tmpscan, &stack)) {
+        stack = NULL;
+    }
+
+    PDScannerContextPop();
+    PDRelease(tmpscan);
+    
+    return stack;
+}
+
 void PDScannerDestroy(PDScannerRef scanner)
 {
     PDScannerDetachFilter(scanner);

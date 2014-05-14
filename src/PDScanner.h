@@ -70,6 +70,17 @@ extern void PDScannerAttachFixedSizeBuffer(PDScannerRef scanner, char *buf, PDIn
 /// @name Using
 
 /**
+ *  Set up a temporary scanner with the given root state, and process buf, returning a pd_stack entry after tearing down the scanner again.
+ *
+ *  @param state The root state
+ *  @param buf   Buffer
+ *  @param len   Length of buffer in bytes
+ *
+ *  @return pd_stack entry or NULL on failure
+ */
+extern pd_stack PDScannerGenerateStackFromFixedBuffer(PDStateRef state, char *buf, PDInteger len);
+
+/**
  Pop the next string. 
  
  @param scanner The scanner.

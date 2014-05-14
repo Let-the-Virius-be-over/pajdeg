@@ -172,7 +172,7 @@ void PDBTreeDestroy(PDBTreeRef tree)
 
 PDBTreeRef PDBTreeCreate(PDDeallocator deallocator, PDInteger expectedMinimum, PDInteger expectedMaximum, PDInteger intensity)
 {
-    PDAssert(deallocator);
+    if (deallocator == NULL) deallocator = PDNOP;
     PDBTreeRef tree = PDAlloc(sizeof(struct PDBTree), PDBTreeDestroy, true);
     tree->deallocator = deallocator;
     
