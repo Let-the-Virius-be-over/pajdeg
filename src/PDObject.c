@@ -77,7 +77,7 @@ void PDObjectDelete(PDObjectRef object)
     if (object->obclass != PDObjectClassCompressed) {
         object->skipObject = object->deleteObject = true;
     } else {
-        fprintf(stderr, "*** Pajdeg notice *** objects inside of object streams cannot be deleted");
+        fprintf(stderr, "*** Pajdeg notice *** objects inside of object streams cannot be deleted\n");
     }
 }
 

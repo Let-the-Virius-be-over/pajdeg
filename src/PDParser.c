@@ -171,7 +171,8 @@ pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, 
         
         PDTwinStreamFetchBranch(stream, (PDSize) containerOffset, len + 20, &tb);
         PDScannerRef streamrdr = PDScannerCreateWithState(pdfRoot);
-        PDScannerContextPush(stream, &PDTwinStreamDisallowGrowth);
+        PDScannerPushContext(streamrdr, stream, PDTwinStreamDisallowGrowth);
+//        PDScannerContextPush(stream, &PDTwinStreamDisallowGrowth);
         streamrdr->buf = tb;
         streamrdr->boffset = 0;
         streamrdr->bsize = len + 20;
@@ -181,7 +182,7 @@ pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, 
         PDScannerReadStream(streamrdr, len, rawBuf, len);
         PDRelease(streamrdr);
         PDTwinStreamCutBranch(stream, tb);
-        PDScannerContextPop();
+//        PDScannerContextPop();
         
         obstm = PDObjectStreamCreateWithObject(obstmObject);
         PDRelease(obstmObject);
@@ -214,7 +215,8 @@ pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, 
     PDTwinStreamFetchBranch(stream, (PDSize) offset, bufsize, &tb);
     
     PDScannerRef tmpscan = PDScannerCreateWithState(pdfRoot);
-    PDScannerContextPush(stream, &PDTwinStreamDisallowGrowth);
+    PDScannerPushContext(tmpscan, stream, PDTwinStreamDisallowGrowth);
+//    PDScannerContextPush(stream, &PDTwinStreamDisallowGrowth);
     tmpscan->buf = tb;
     tmpscan->boffset = 0;
     tmpscan->bsize = bufsize;
@@ -242,7 +244,7 @@ pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, 
     stream->outgrown = tmpscan->outgrown;
 
     PDRelease(tmpscan);
-    PDScannerContextPop();
+//    PDScannerContextPop();
     
     if (stream->outgrown) {
         // the object did not fit in our expected buffer, which means it's unusually big; we bump the buffer size to 6k if it's smaller, otherwise we consider this a failure
@@ -439,7 +441,7 @@ char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDObjectRe
     PDTwinStreamFetchBranch(parser->stream, (PDSize) offset, 10000 + len, &tb);
     
     PDScannerRef tmpscan = PDScannerCreateWithState(pdfRoot);
-    PDScannerContextPush(parser->stream, &PDTwinStreamDisallowGrowth);
+    PDScannerPushContext(tmpscan, parser->stream, PDTwinStreamDisallowGrowth);
     tmpscan->buf = tb;
     tmpscan->boffset = 0;
     tmpscan->bsize = 10000 + len;
@@ -492,7 +494,7 @@ char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDObjectRe
     PDTwinStreamCutBranch(parser->stream, tb);
     
     PDRelease(tmpscan);
-    PDScannerContextPop();
+//    PDScannerContextPop();
     
     return object->streamBuf;
 }

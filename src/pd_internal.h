@@ -446,7 +446,10 @@ struct PDScannerSymbol {
  The internal scanner structure.
  */
 struct PDScanner {
-    PDEnvRef   env;               ///< the current environment
+    PDEnvRef   env;             ///< the current environment
+    PDScannerBufFunc bufFunc;   ///< buffer function
+    void *bufFuncInfo;          ///< buffer function info object
+    pd_stack contextStack;      ///< context stack for buffer function/info
     
     pd_stack envStack;          ///< environment stack; e.g. root -> arb -> array -> arb -> ...
     pd_stack resultStack;       ///< results stack

@@ -369,14 +369,16 @@ static inline PDBool PDXTableFindStartXRef(PDXI X)
     
     xrefScanner = PDScannerCreateWithStateAndPopFunc(xrefSeeker, &PDScannerPopSymbolRev);
     
-    PDScannerContextPush(X->stream, &PDTwinStreamGrowInputBufferReversed);
+    PDScannerPushContext(xrefScanner, X->stream, PDTwinStreamGrowInputBufferReversed);
+//    PDScannerContextPush(X->stream, &PDTwinStreamGrowInputBufferReversed);
     
     // we expect a stack, because it should have skipped until it found startxref
 
     /// @todo If this is a corrupt PDF, or not a PDF at all, the scanner may end up scanning forever so we put a cap on # of loops -- 100 is overkill but who knows what crazy footers PDFs out there may have (the spec probably disallows that, though, so this should be investigated and truncated at some point)
     PDScannerSetLoopCap(100);
     if (! PDScannerPopStack(xrefScanner, &X->stack)) {
-        PDScannerContextPop();
+        PDRelease(xrefScanner);
+//        PDScannerContextPop();
         return false;
     }
     
@@ -389,7 +391,7 @@ static inline PDBool PDXTableFindStartXRef(PDXI X)
     
     // we're now ready to skip to the first XRef
     PDTWinStreamSetMethod(X->stream, PDTwinStreamRandomAccess);
-    PDScannerContextPop();
+//    PDScannerContextPop();
     
     return true;
 }
@@ -871,7 +873,8 @@ PDBool PDXTableFetchHeaders(PDXI X)
         PDTwinStreamSeek(X->stream, (PDSize)osstack->info);
         
         // set up scanner
-        X->scanner = PDScannerCreateWithState(pdfRoot);
+        X->scanner = PDTwinStreamCreateScanner(X->parser->stream, pdfRoot);
+//        X->scanner = PDScannerCreateWithState(pdfRoot);
         
         // if this is a v1.5 PDF, we may run into an object definition here; the object is the replacement for the trailer, and has a (usually compressed) stream of the XREF table
         if (PDScannerPopStack(X->scanner, &X->stack)) {
@@ -965,7 +968,8 @@ PDBool PDXTableFetchContent(PDXI X)
         PDTwinStreamSeek(X->stream, offs);
         
         // set up scanner
-        X->scanner = PDScannerCreateWithState(pdfRoot);
+        X->scanner = PDTwinStreamCreateScanner(X->parser->stream, pdfRoot);
+        //PDScannerCreateWithState(pdfRoot);
         
         // if this is a v1.5 PDF, we may run into an object definition here; the object is the replacement for the trailer, and has a (usually compressed) stream of the XREF table
         if (PDScannerPopStack(X->scanner, &X->stack)) {

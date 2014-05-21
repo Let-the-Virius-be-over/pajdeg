@@ -29,7 +29,7 @@ void PDTwinStreamRealign(PDTwinStreamRef ts);
 
 void PDTwinStreamDestroy(PDTwinStreamRef ts)
 {
-    PDScannerContextPop();
+//    PDScannerContextPop();
     
     PDRelease(ts->scanner);
     if (ts->sidebuf) free(ts->sidebuf);
@@ -42,13 +42,19 @@ PDTwinStreamRef PDTwinStreamCreate(FILE *fi, FILE *fo)
     ts->fi = fi;
     ts->fo = fo;
     
-    PDScannerContextPush(ts, &PDTwinStreamGrowInputBuffer);
     return ts;
 }
 
 //
 // configuring / querying
 //
+
+PDScannerRef PDTwinStreamCreateScanner(PDTwinStreamRef ts, PDStateRef state)
+{
+    PDScannerRef scanner = PDScannerCreateWithState(state);
+    PDScannerPushContext(scanner, ts, PDTwinStreamGrowInputBuffer);
+    return scanner;
+}
 
 PDScannerRef PDTwinStreamGetScanner(PDTwinStreamRef ts)
 {
@@ -59,6 +65,7 @@ PDScannerRef PDTwinStreamSetupScannerWithState(PDTwinStreamRef ts, PDStateRef st
 {
     PDRelease(ts->scanner);
     ts->scanner = PDScannerCreateWithState(state);
+    PDScannerPushContext(ts->scanner, ts, PDTwinStreamGrowInputBuffer);
     return ts->scanner;
 }
 

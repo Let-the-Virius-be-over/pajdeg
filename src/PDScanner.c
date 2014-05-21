@@ -29,27 +29,24 @@
 #include "pd_pdf_implementation.h" // <-- not ideal
 
 static PDInteger PDScannerScanAttemptCap = -1;
-static PDScannerBufFunc bufFunc = NULL;
-static void *bufFuncInfo;
-static pd_stack scannerContextStack = NULL;
 
 void PDScannerOperate(PDScannerRef scanner, PDOperatorRef op);
 void PDScannerScan(PDScannerRef scanner);
 
-void PDScannerContextPush(void *ctxInfo, PDScannerBufFunc ctxBufFunc)
+void PDScannerPushContext(PDScannerRef scanner, void *ctxInfo, PDScannerBufFunc ctxBufFunc)
 {
-    if (bufFunc) {
-        pd_stack_push_identifier(&scannerContextStack, (PDID)bufFunc);
-        pd_stack_push_identifier(&scannerContextStack, (PDID)bufFuncInfo);
+    if (scanner->bufFunc) {
+        pd_stack_push_identifier(&scanner->contextStack, (PDID)scanner->bufFunc);
+        pd_stack_push_identifier(&scanner->contextStack, (PDID)scanner->bufFuncInfo);
     }
-    bufFunc = ctxBufFunc;
-    bufFuncInfo = ctxInfo;
+    scanner->bufFunc = ctxBufFunc;
+    scanner->bufFuncInfo = ctxInfo;
 }
 
-void PDScannerContextPop(void)
+void PDScannerPopContext(PDScannerRef scanner)
 {
-    bufFuncInfo = pd_stack_pop_identifier(&scannerContextStack);
-    bufFunc = (PDScannerBufFunc)pd_stack_pop_identifier(&scannerContextStack);
+    scanner->bufFuncInfo = pd_stack_pop_identifier(&scanner->contextStack);
+    scanner->bufFunc = (PDScannerBufFunc)pd_stack_pop_identifier(&scanner->contextStack);
 }
 
 void PDScannerSetLoopCap(PDInteger cap)
@@ -64,7 +61,8 @@ pd_stack PDScannerGenerateStackFromFixedBuffer(PDStateRef state, char *buf, PDIn
 {
     PDAssert(state); // crash = most likely forgot to call pd_pdf_implementation_use()
     PDScannerRef tmpscan = PDScannerCreateWithState(state);
-    PDScannerContextPush(tmpscan, PDScannerDisallowGrowth);
+    PDScannerPushContext(tmpscan, tmpscan, PDScannerDisallowGrowth);
+//    PDScannerContextPush(tmpscan, PDScannerDisallowGrowth);
     tmpscan->buf = buf;
     tmpscan->boffset = 0;
     tmpscan->bsize = len;
@@ -75,7 +73,8 @@ pd_stack PDScannerGenerateStackFromFixedBuffer(PDStateRef state, char *buf, PDIn
         stack = NULL;
     }
 
-    PDScannerContextPop();
+    PDScannerPopContext(tmpscan);
+//    PDScannerContextPop();
     PDRelease(tmpscan);
     
     return stack;
@@ -94,6 +93,7 @@ void PDScannerDestroy(PDScannerRef scanner)
     pd_stack_destroy(&scanner->resultStack);
     pd_stack_destroy(&scanner->symbolStack);
     pd_stack_destroy(&scanner->garbageStack);
+    pd_stack_destroy(&scanner->contextStack);
     
     free(scanner->sym);
 }
@@ -248,7 +248,7 @@ void PDScannerPopSymbol(PDScannerRef scanner)
         if (bsize <= i) {
             scanner->outgrown |= scanner->fixedBuf;
             if (! scanner->fixedBuf) 
-                (*bufFunc)(bufFuncInfo, scanner, &buf, &bsize, 0);
+                (*scanner->bufFunc)(scanner->bufFuncInfo, scanner, &buf, &bsize, 0);
             if (bsize <= i) 
                 break;
         }
@@ -291,7 +291,7 @@ void PDScannerPopSymbol(PDScannerRef scanner)
             if (bsize <= i) {
                 scanner->outgrown |= scanner->fixedBuf;
                 if (! scanner->fixedBuf)
-                    (*bufFunc)(bufFuncInfo, scanner, &buf, &bsize, 0);
+                    (*scanner->bufFunc)(scanner->bufFuncInfo, scanner, &buf, &bsize, 0);
                 if (bsize <= i) 
                     break;
             }
@@ -348,7 +348,7 @@ void PDScannerPopSymbolRev(PDScannerRef scanner)
         if (i <= 0) {
             scanner->outgrown |= scanner->fixedBuf;
             if (! scanner->fixedBuf)
-                (*bufFunc)(bufFuncInfo, scanner, &buf, &bsize, 0);
+                (*scanner->bufFunc)(scanner->bufFuncInfo, scanner, &buf, &bsize, 0);
             if (bsize <= 1) 
                 break;
             i = bsize - 1;
@@ -410,7 +410,7 @@ void PDScannerReadUntilDelimiter(PDScannerRef scanner, PDBool delimiterIsNewline
         if (bsize <= i) {
             scanner->outgrown |= scanner->fixedBuf;
             if (! scanner->fixedBuf)
-                (*bufFunc)(bufFuncInfo, scanner, &buf,  &bsize, 0);
+                (*scanner->bufFunc)(scanner->bufFuncInfo, scanner, &buf,  &bsize, 0);
             if (bsize <= i)
                 break;
         }
@@ -439,7 +439,7 @@ void PDScannerReadUntilDelimiter(PDScannerRef scanner, PDBool delimiterIsNewline
         if (bsize <= i) {
             scanner->outgrown |= scanner->fixedBuf;
             if (! scanner->fixedBuf)
-                (*bufFunc)(bufFuncInfo, scanner, &buf,  &bsize, 0);
+                (*scanner->bufFunc)(scanner->bufFuncInfo, scanner, &buf,  &bsize, 0);
             if (bsize <= i) 
                 break;
         }
@@ -823,7 +823,7 @@ PDInteger PDScannerReadStream(PDScannerRef scanner, PDInteger bytes, char *dest,
     if (bsize - i < bytes) {
         scanner->outgrown |= scanner->fixedBuf;
         if (! scanner->fixedBuf) {
-            (*bufFunc)(bufFuncInfo, scanner, &buf, &bsize, bytes + i - bsize);
+            (*scanner->bufFunc)(scanner->bufFuncInfo, scanner, &buf, &bsize, bytes + i - bsize);
             scanner->buf = buf;
             scanner->bsize = bsize;
         }

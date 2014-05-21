@@ -207,23 +207,39 @@ extern PDInteger PDScannerReadStreamNext(PDScannerRef scanner, char *dest, PDInt
 /// @name Adjusting scanner / source
 
 /**
- Push a global scanner context.
- 
- Global scanner contexts, consisting of an info pointer and a buffer function; can be pushed to provide a temporary context e.g. for off-reading.
- 
- @note These are global. All instances of PDScannerRef will switch to using the pushed context and switch back when popped.
- 
- @param ctxInfo The info object. Can be anything, but in Pajdeg it is always a PDTwinStreamRef. It is passed on to the buffer function when called.
- @param ctxBufFunc The buffer function.
+ *  Push a new buffer context onto a scanner, keeping the old one on a stack.
+ *
+ *  @param scanner    Scanner
+ *  @param ctxInfo    Info object for the buffer function
+ *  @param ctxBufFunc Buffer function
  */
-extern void PDScannerContextPush(void *ctxInfo, PDScannerBufFunc ctxBufFunc);
+extern void PDScannerPushContext(PDScannerRef scanner, void *ctxInfo, PDScannerBufFunc ctxBufFunc);
 
 /**
- Pop global scanner context.
- 
- @see PDScannerContextPush
+ *  Pop the scanner's current context.
+ *
+ *  @param scanner Scanner
  */
-extern void PDScannerContextPop(void);
+extern void PDScannerPopContext(PDScannerRef scanner);
+
+///**
+// Push a global scanner context.
+// 
+// Global scanner contexts, consisting of an info pointer and a buffer function; can be pushed to provide a temporary context e.g. for off-reading.
+// 
+// @note These are global. All instances of PDScannerRef will switch to using the pushed context and switch back when popped.
+// 
+// @param ctxInfo The info object. Can be anything, but in Pajdeg it is always a PDTwinStreamRef. It is passed on to the buffer function when called.
+// @param ctxBufFunc The buffer function.
+// */
+//extern void PDScannerContextPush(void *ctxInfo, PDScannerBufFunc ctxBufFunc);
+//
+///**
+// Pop global scanner context.
+// 
+// @see PDScannerContextPush
+// */
+//extern void PDScannerContextPop(void);
 
 /**
  Set a cap on # of loops scanners make before considering a pop a failure.

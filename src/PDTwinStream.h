@@ -225,6 +225,16 @@ extern void PDTwinStreamInsertContent(PDTwinStreamRef ts, PDSize bytes, const ch
  */
 extern void PDTwinStreamPrune(PDTwinStreamRef ts, PDOffset mark);
 
+/**
+ *  Create a new scanner for use in this stream.
+ *
+ *  @param ts    The stream
+ *  @param state Root state
+ *
+ *  @return The new scanner, with is context set up to grow from this stream
+ */
+extern PDScannerRef PDTwinStreamCreateScanner(PDTwinStreamRef ts, PDStateRef state);
+
 /// @name Debugging
 
 #ifdef PD_DEBUG_TWINSTREAM_ASSERT_OBJECTS
