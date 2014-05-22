@@ -507,8 +507,8 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
     
     if (pdx->count == 0 || (sizeT >= pdx->typeSize && sizeO >= pdx->offsSize && sizeI >= pdx->genSize)) {
         // we can adopt the given sizes as is, as they won't force us to lose bytes
-        PDXTableSetSizes(pdx, sizeT, sizeO, sizeI);
-        aligned = true;
+        PDXTableSetSizes(pdx, sizeT > 0 ? sizeT : 1, sizeO, sizeI);
+        aligned = sizeT > 0;
     } else {
         // we may still have to resize the table to fit
         unsigned char maxT = sizeT > pdx->typeSize ? sizeT : pdx->typeSize;
@@ -604,16 +604,10 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
             for (i = 0; i < obcount; i++) {
                 // transfer 
                 transfer_pcs(dst, bufi, j, T);
-//#ifdef DEBUG
-                //PDXOffsetType mark = PDXGetOffsetForArbitraryRepresentation(bufi, sizeO);
-//#endif
+                if (sizeT == 0) dst[-1] = PDXTypeUsed;
                 transfer_pcs(dst, bufi, j, O);
                 transfer_pcs(dst, bufi, j, I);
                 PDAssert(((dst - xrefs) % pdx->width) == 0);
-//#ifdef DEBUG
-                //printf("force-aligned XREF entry: #%ld: %u (%d)\n", i+startob, PDXTableOffsetForID(pdx, startob+i), *PDXTableGenForID(pdx, startob+i));
-                //PDAssert(mark == PDXGetOffsetForID(pdx->xrefs, startob+i)); // crash = transfer failure
-//#endif
             }
         }
         
