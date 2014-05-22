@@ -17,6 +17,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
+#include <assert.h>
+
 #include "Pajdeg.h"
 #include "PDTwinStream.h"
 #include "PDScanner.h"

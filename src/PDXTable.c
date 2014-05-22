@@ -563,7 +563,7 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
             for (i = 0; i < pad; i++) \
                 dst[i] = 0; \
             for (i = 0; i < shr; i++) \
-                assert(src[i] == 0); \
+                PDAssert(src[i] == 0); \
             memcpy(&dst[pad], &src[shr], cap); \
             dst += pad + cap; \
             src += shr + cap
