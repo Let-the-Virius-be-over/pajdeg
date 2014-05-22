@@ -19,7 +19,7 @@ Tasks can be chained together, and appended to the stream at any time through ot
 
 ## Getting Started
 
-- [Download Pajdeg](zipball/master)
+- [Download Pajdeg](archive/master)
 - Check out examples directory
 - [Read Quick Start](wiki/Quick-Start)
 - 
