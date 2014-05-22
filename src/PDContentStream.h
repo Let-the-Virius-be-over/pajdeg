@@ -186,6 +186,16 @@ extern PDContentStreamRef PDContentStreamCreateTextSearch(PDObjectRef object, co
  */
 extern PDContentStreamRef PDContentStreamCreateStreamPrinter(PDObjectRef object, FILE *stream);
 
+/**
+ *  Create a content stream configured to write all string values of the stream into a string, allocated to fit any amount of content, then pointing *result to the string.
+ *
+ *  @param object Object whose content stream should have its text extracted
+ *  @param result Pointer to char * into which results are to be written
+ *
+ *  @return A pre-configured content stream
+ */
+extern PDContentStreamRef PDContentStreamCreateTextExtractor(PDObjectRef object, char **result);
+
 #endif
 
 /** @} */

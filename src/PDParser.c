@@ -559,6 +559,12 @@ void PDParserUpdateObject(PDParserRef parser)
 
     // push object def, unless it should be skipped
     if (! ob->skipObject) {
+        // we have to deal with the stream, in case we're post stream; the reason is that 
+        // ob's definition may change as a result of this
+        if (ob->hasStream && !ob->skipStream && !ob->ovrStream && parser->state == PDParserStateObjectPostStream) {
+            PDObjectSetStreamFiltered(ob, ob->streamBuf, ob->extractedLen);
+        }
+        
         if (ob->ovrDef) {
             PDTwinStreamInsertContent(parser->stream, ob->ovrDefLen, ob->ovrDef);
         } else {
@@ -602,15 +608,16 @@ void PDParserUpdateObject(PDParserRef parser)
             if (parser->state != PDParserStateObjectPostStream) {
                 PDScannerSkip(scanner, parser->streamLen);
             }
+            
             if (ob->skipStream || ob->ovrStream) {
                 PDTwinStreamDiscardContent(parser->stream);
             } 
             
             // we may be post-stream here, in which case we have to actually print the stream out as we've discarded the input version already
-            else if (parser->state == PDParserStateObjectPostStream) {
-                // we do this by setting the stream to itself; this applies filters and such, and also sets ovrStream flag (which is inserted as appropriate, below)
-                PDObjectSetStreamFiltered(ob, ob->streamBuf, ob->streamLen);
-            } else {
+            else if (parser->state != PDParserStateObjectPostStream) {
+//                // we do this by setting the stream to itself; this applies filters and such, and also sets ovrStream flag (which is inserted as appropriate, below)
+//                PDObjectSetStreamFiltered(ob, ob->streamBuf, ob->extractedLen);
+//            } else {
                 // we've just discarded "stream", so we have to put that in first of all
                 PDTwinStreamInsertContent(parser->stream, 7, "stream\n");
                 
@@ -643,7 +650,7 @@ void PDParserUpdateObject(PDParserRef parser)
                 //                                            012345 6
                 PDTwinStreamInsertContent(parser->stream, 7, "stream\n");
                 PDTwinStreamInsertContent(parser->stream, ob->ovrStreamLen, ob->ovrStream);
-                //                                             0123456789 0123456 7
+                //                                              0123456789 0123456 7
                 PDTwinStreamInsertContent(parser->stream, 18, "\nendstream\nendobj\n");
             } else {
                 // pass through endstream and endobj

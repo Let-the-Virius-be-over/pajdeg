@@ -71,7 +71,7 @@ void PDContentStreamAttachOperator(PDContentStreamRef cs, const char *opname, PD
     arr[0] = op;
     arr[1] = userInfo;
     if (opname) {
-        int oplen = strlen(opname);
+        unsigned long oplen = strlen(opname);
         
         PDBTreeInsert(cs->opertree, PDBT_KEY_STR(opname, oplen), arr);
     } else {
@@ -137,7 +137,6 @@ void PDContentStreamExecute(PDContentStreamRef cs)
                 case '[': termChar = ']'; break;
                 case '(': termChar = ')'; break;
             }
-//            termChar = stream[i];
         }
         
         if (termChar == 0 && (termed || i == len || PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobWhitespace)) {
@@ -187,7 +186,6 @@ void PDContentStreamExecute(PDContentStreamRef cs)
                 
                 // here, we believe we've run into an operator, so we throw away accumulated arguments and start anew
                 else {
-                    // unhandled operator; we may have a catch-all
                     pd_array_clear(cs->args);
                 }
                 
@@ -292,6 +290,90 @@ const pd_stack PDContentStreamGetOperators(PDContentStreamRef cs)
  '          Move to next line and show text
  "          Set word and character spacing, move to next line, and show text
  */
+
+typedef struct PDContentStreamTextExtractorUI *PDContentStreamTextExtractorUI;
+struct PDContentStreamTextExtractorUI {
+    char **result;
+    char *buf;
+    PDInteger offset;
+    PDInteger size;
+};
+
+static inline void PDContentStreamTextExtractorPrint(PDContentStreamTextExtractorUI tui, const char *str) 
+{
+    PDInteger len = strlen(str);
+    if (len > tui->size - tui->offset) {
+        // must alloc
+        tui->size = (tui->size + len) * 2;
+        *tui->result = tui->buf = realloc(tui->buf, tui->size);
+    }
+    strcpy(&tui->buf[tui->offset], &str[1]);
+    tui->offset += len - 1; // get rid of ( and replace ) with \n
+    tui->buf[tui->offset-1] = '\n';
+}
+
+PDOperatorState PDContentStreamTextExtractor_Tj(PDContentStreamRef cs, PDContentStreamTextExtractorUI userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+{
+    // these should have a single string as arg but we won't whine if that's not the case
+    for (PDInteger i = 0; i < argc; i++) {
+        PDContentStreamTextExtractorPrint(userInfo, args[i]);
+    }
+    return PDOperatorStateIndependent;
+}
+
+PDOperatorState PDContentStreamTextExtractor_TJ(PDContentStreamRef cs, PDContentStreamTextExtractorUI userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+{
+    // these are arrays of strings and offsets; we don't care about offsets
+    if (argc == 1 && args[0][0] == '[') {
+        PDBool inParens = false;
+        PDBool escaping = false;
+        const char *s = args[0];
+        PDInteger ix = strlen(s);
+        PDInteger j = 0;
+        char *string = malloc(ix);
+        string[j++] = '(';
+        
+        for (PDInteger i = 1; i < ix; i++) {
+            if (inParens) {
+                if (escaping) {
+                    escaping = false;
+                    string[j++] = s[i];
+                } 
+                else if (s[i] == '\\') escaping = true;
+                else if (s[i] == ')')  inParens = false;
+                else string[j++] = s[i];
+            } else {
+                inParens = s[i] == '(';
+            }
+        }
+        string[j++] = ')';
+        string[j] = 0;
+        PDContentStreamTextExtractorPrint(userInfo, string);
+        free(string);
+    } else {
+        for (PDInteger i = 0; i < argc; i++) {
+            if (args[i][0] == '(') 
+                PDContentStreamTextExtractorPrint(userInfo, args[i]);
+        }
+    }
+    
+    return PDOperatorStateIndependent;
+}
+
+PDContentStreamRef PDContentStreamCreateTextExtractor(PDObjectRef object, char **result)
+{
+    PDContentStreamRef cs = PDContentStreamCreateWithObject(object);
+    PDContentStreamTextExtractorUI teUI = malloc(sizeof(struct PDContentStreamTextExtractorUI));
+    teUI->result = result;
+    *result = teUI->buf = malloc(128);
+    teUI->offset = 0;
+    teUI->size = 128;
+    
+    PDContentStreamAttachOperator(cs, "Tj", (PDContentOperatorFunc)PDContentStreamTextExtractor_Tj, teUI);
+    PDContentStreamAttachOperator(cs, "TJ", (PDContentOperatorFunc)PDContentStreamTextExtractor_TJ, teUI);
+
+    return cs;
+}
 
 typedef struct PDContentStreamPrinterUI *PDContentStreamPrinterUIRef;
 struct PDContentStreamPrinterUI {
