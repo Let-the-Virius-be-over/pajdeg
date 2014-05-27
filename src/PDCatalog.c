@@ -24,6 +24,7 @@
 
 #include "pd_internal.h"
 #include "pd_stack.h"
+#include "pd_dict.h"
 
 void PDPageReferenceDestroy(PDPageReference * page)
 {
@@ -153,12 +154,13 @@ PDInteger PDCatalogGetPageCount(PDCatalogRef catalog)
     return catalog->count;
 }
 
-void PDCatalogInsertPage(PDCatalogRef catalog, PDInteger pageNumber, PDInteger pageObjectID)
+void PDCatalogInsertPage(PDCatalogRef catalog, PDInteger pageNumber, PDObjectRef pageObject)
 {
     if (catalog->count == catalog->capacity) {
         catalog->capacity += 5;
         catalog->kids = realloc(catalog->kids, sizeof(PDInteger) * catalog->capacity);
     }
+    PDInteger pageObjectID = PDObjectGetObID(pageObject);
     PDInteger t;
     for (PDInteger i = pageNumber - 1; i <= catalog->count; i++) {
         t = catalog->kids[i];

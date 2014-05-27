@@ -82,11 +82,13 @@ extern PDInteger PDCatalogGetPageCount(PDCatalogRef catalog);
  *  This does not affect the final representation of the output PDF in any way, but is here to ensure that
  *  the representation of a catalog is up to date with page modifications.
  *
+ *  @note The parents' (and grand parents') Count is not updated. This must be done separately.
+ *
  *  @param catalog      The catalog
  *  @param pageNumber   The page number (index starts at 1, not 0)
- *  @param pageObjectID The object ID representing the new page being inserted
+ *  @param pageObject   The page object being inserted
  */
-extern void PDCatalogInsertPage(PDCatalogRef catalog, PDInteger pageNumber, PDInteger pageObjectID);
+extern void PDCatalogInsertPage(PDCatalogRef catalog, PDInteger pageNumber, PDObjectRef pageObject);
 
 #endif
 

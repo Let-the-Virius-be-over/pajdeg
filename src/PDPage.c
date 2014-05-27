@@ -139,19 +139,32 @@ PDTaskResult PDPageInsertionTask(PDPipeRef pipe, PDTaskRef task, PDObjectRef obj
         
     }
         
-    pd_stack countEntry = pd_stack_get_dict_key(object->def, "Count", false);
-    PDInteger count = PDIntegerFromString(countEntry->prev->prev->info);
-    count++;
-    sprintf(buf, "%ld", count);
-    countEntry->prev->prev->info = strdup(buf);
-    
 //    PDObjectSetDictionaryEntry(object, "Count", buf);
     
     free(buf);
     PDRelease(importedObject);
-    if (neighbor) PDRelease(neighbor);
+    PDRelease(neighbor);
     
     // we can (must, in fact) unload this task as it only applies to a specific page
+    return PDTaskUnload;
+}
+
+PDTaskResult PDPageCountupTask(PDPipeRef pipe, PDTaskRef task, PDObjectRef object, void *info)
+{
+    // because every page add results in a countup task and we only need one (because parent is reused for each), we simply test if count is up to date and only update if it isn't
+    /// @todo Add a PDTaskSkipSame flag and make PDTaskResults OR-able where appropriate
+    PDObjectRef source = info;
+    
+    const char *realCount = PDObjectGetDictionaryEntry(source, "Count");
+    if (strcmp(realCount, PDObjectGetDictionaryEntry(object, "Count"))) {
+        PDObjectSetDictionaryEntry(object, "Count", realCount);
+//        pd_stack countEntry = pd_stack_get_dict_key(object->def, "Count", false);
+//        free(countEntry->prev->prev->info);
+//        countEntry->prev->prev->info = strdup(realCount);
+    }
+    
+    PDRelease(source);
+    
     return PDTaskUnload;
 }
 
@@ -179,7 +192,6 @@ PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageNum
     PDObjectSetDictionaryEntry(importedObject, "Parent", parentRef);
     PDInteger parentId = atol(parentRef);
     PDAssert(parentId); // crash = parentRef was not a <num> <num> R?
-//    PDObjectRef parent = PDParserLocateAndCreateObject(parser, parentId, true);
     
     PDObjectRef *userInfo = malloc(sizeof(PDObjectRef) * 2);
     userInfo[0] = (neighborPI == pageNumber ? neighbor : NULL);
@@ -188,9 +200,32 @@ PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageNum
     PDTaskSetInfo(task, userInfo);
     PDPipeAddTask(pipe, task);
     PDRelease(task);
-    
+
+    // also recursively update grand parents
+    PDObjectRef parent = PDParserLocateAndCreateObject(parser, parentId, true);
+    while (parent) {
+        char buf[16];
+        PDInteger count = 1 + PDIntegerFromString(PDObjectGetDictionaryEntry(parent, "Count"));
+        sprintf(buf, "%ld", (long)count);
+        PDObjectSetDictionaryEntry(parent, "Count", buf);
+        PDTaskRef task = PDTaskCreateMutatorForObject(parentId, PDPageCountupTask);
+        PDTaskSetInfo(task, PDRetain(parent));
+        PDPipeAddTask(pipe, task);
+        PDRelease(task);
+        
+        parentRef = PDObjectGetDictionaryEntry(parent, "Parent");
+        parent = NULL;
+        if (parentRef) {
+            parentId = PDIntegerFromString(parentRef);
+            parent = PDParserLocateAndCreateObject(parser, parentId, true);
+            if (NULL == parent) {
+                PDWarn("null page parent for id #%ld", (long)parentId);
+            }
+        }
+    }
+
     // update the catalog
-    PDCatalogInsertPage(cat, pageNumber, PDObjectGetObID(importedObject));
+    PDCatalogInsertPage(cat, pageNumber, importedObject);
     
     // finally, set up the new page and return it
     PDPageRef importedPage = PDPageCreateWithObject(parser, importedObject);
