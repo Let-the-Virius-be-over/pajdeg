@@ -158,9 +158,6 @@ PDTaskResult PDPageCountupTask(PDPipeRef pipe, PDTaskRef task, PDObjectRef objec
     const char *realCount = PDObjectGetDictionaryEntry(source, "Count");
     if (strcmp(realCount, PDObjectGetDictionaryEntry(object, "Count"))) {
         PDObjectSetDictionaryEntry(object, "Count", realCount);
-//        pd_stack countEntry = pd_stack_get_dict_key(object->def, "Count", false);
-//        free(countEntry->prev->prev->info);
-//        countEntry->prev->prev->info = strdup(realCount);
     }
     
     PDRelease(source);
