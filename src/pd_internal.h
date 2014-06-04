@@ -269,9 +269,11 @@ struct PDContentStream {
  Page internal structure
  */
 struct PDPage {
-    PDObjectRef ob;                     ///< the /Page object
-    PDParserRef parser;                 ///< the parser associated with the owning PDF document
-    PDObjectRef contentsObject;         ///< the object referenced by the /Contents key; NULL until explicitly requested
+    PDObjectRef  ob;           ///< the /Page object
+    PDParserRef  parser;       ///< the parser associated with the owning PDF document
+    PDInteger    contentCount; ///< # of content objects in the page
+    pd_array     contentRefs;  ///< array of content references for the page
+    PDObjectRef *contentObs;   ///< array of content objects for the page, or NULL if unfetched
 };
 
 /** @} */
