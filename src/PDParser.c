@@ -1073,7 +1073,7 @@ PDBool PDParserIterate(PDParserRef parser)
 PDObjectRef PDParserCreateObject(PDParserRef parser, pd_stack *queue)
 {
     size_t newiter, count, cap;
-    char *xrefs;
+//    char *xrefs;
     PDXTableRef table;
     
     // we enqueue the object rather than making it the current construct, if we have a construct already, or if it's supposed to be appended
@@ -1090,7 +1090,7 @@ PDObjectRef PDParserCreateObject(PDParserRef parser, pd_stack *queue)
     count = parser->mxt->count;
     cap = parser->mxt->cap;
     table = parser->mxt;
-    xrefs = table->xrefs;
+//    xrefs = table->xrefs;
     
     while (newiter < count && PDXTypeFreed != PDXTableGetTypeForID(table, newiter))
         newiter++;
@@ -1098,7 +1098,7 @@ PDObjectRef PDParserCreateObject(PDParserRef parser, pd_stack *queue)
         // we must realloc xref as it can't contain all the xrefs
         table->count = cap = cap + 1;
         PDXTableGrow(table, cap);
-        xrefs = table->xrefs;
+//        xrefs = table->xrefs;
 //        xrefs = table->xrefs = realloc(table->xrefs, table->width * cap);
     }
     PDXTableSetTypeForID(table, newiter, PDXTypeUsed);

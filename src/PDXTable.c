@@ -59,11 +59,28 @@ PDOffset PDXGetOffsetForArbitraryRepresentation(char *rep, PDInteger len)
 PDOffset PDXTableGetOffsetForID(PDXTableRef table, PDInteger obid)
 {
     unsigned char *o = (unsigned char *) &table->xrefs[table->offsAlign + obid * table->width];
+    
+    // the mask returns all-1 bits or all-0 bits based on the boolean expression; branch prediction should be very good here, but this alleviates the need for branching altogether
+#define mask(index)  (-(index < table->offsSize))
+#define shift(index) ((table->offsSize - index - 1) << 3)
+#define value(index) ((o[index] & mask(index)) << shift(index))
+    
+    PDOffset r = (value(3) | value(2) | value(1) | value(0));
 
+#undef mask
+#undef shift
+#undef value
+    
+    // if DEBUG, we ensure the above optimization actually matches the correct value by calculating it twice; this will go away in the near future
+#ifdef DEBUG
     // note: requires that offs size <= 4
 #define O(index, value) (((value) * (index < table->offsSize)) << (8 * (table->offsSize - index - 1)))
-    return (PDOffset)(O(3,o[3]) | O(2,o[2]) | O(1,o[1]) | O(0,o[0]));
+    PDOffset r2 = (PDOffset)(O(3,o[3]) | O(2,o[2]) | O(1,o[1]) | O(0,o[0]));
+    assert(r == r2);
 #undef O
+#endif
+    
+    return r;
 }
 
 #define _PDXSetTypeForID(xrefs, table, id, t)    *(PDXType*)&((xrefs)[id*table->width]) = t
@@ -97,22 +114,33 @@ void PDXTableSetOffsetForID(PDXTableRef table, PDInteger obid, PDOffset offset)
         mask <<= 8;
         shift += 8;
     }
-    // note: requires that offs size <= 4
-//    o[0] = (offset & 0xff000000) >> 24;
-//    o[1] = (offset & 0x00ff0000) >> 16;
-//    o[2] = (offset & 0x0000ff00) >> 8;
-//    o[3] = (offset & 0x000000ff);
-    PDAssert(PDXTableGetOffsetForID(table, obid) == offset);
 }
 
 PDInteger PDXTableGetGenForID(PDXTableRef table, PDInteger obid)
 {
     unsigned char *o = (unsigned char *) &table->xrefs[table->genAlign + obid * table->width];
     
+    // the mask returns all-1 bits or all-0 bits based on the boolean expression; branch prediction should be very good here, but this alleviates the need for branching altogether
+#define mask(index)  (-(index < table->genSize))
+#define shift(index) ((table->genSize - index - 1) << 3)
+#define value(index) ((o[index] & mask(index)) << shift(index))
+    
+    PDInteger r = (value(1) | value(0));
+    
+#undef mask
+#undef shift
+#undef value
+    
+    // if DEBUG, we ensure the above optimization actually matches the correct value by calculating it twice; this will go away in the near future
+#ifdef DEBUG
     // note: requires that gen size <= 2
 #define O(index, value) (((value) * (index < table->genSize)) << (8 * (table->genSize - index - 1)))
-    return (PDInteger)(O(1,o[1]) | O(0,o[0]));
+    PDInteger r2 = (PDInteger)(O(1,o[1]) | O(0,o[0]));
+    assert(r == r2);
 #undef O
+#endif
+    
+    return r;
 }
 
 void PDXTableSetGenForID(PDXTableRef table, PDInteger obid, PDInteger gen)
