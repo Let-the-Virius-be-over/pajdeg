@@ -307,9 +307,44 @@ static inline void PDContentStreamTextExtractorPrint(PDContentStreamTextExtracto
         tui->size = (tui->size + len) * 2;
         *tui->result = tui->buf = realloc(tui->buf, tui->size);
     }
-    strcpy(&tui->buf[tui->offset], &str[1]);
-    tui->offset += len - 1; // get rid of ( and replace ) with \n
-    tui->buf[tui->offset-1] = '\n';
+    
+    // for loop below required to handle \123 = char(123)
+
+    len--;
+    PDInteger eval = 0;
+    PDBool escaping = false;
+    PDInteger offs = tui->offset;
+    char *res = tui->buf;
+    
+    // loop from 1 to original len - 1 == len to ignore wrapping parens
+    for (PDInteger i = 1; i < len; i++) {
+        if (escaping) {
+            if (str[i] >= '0' && str[i] <= '9') {
+                eval = 8 * eval + str[i] - '0';
+            } else if (eval > 0) {
+                if (eval > 255) PDWarn("overflow eval in PDContentStreamTextExtractorPrint()");
+                escaping = false;
+                i--;
+                res[offs++] = eval;
+            } else {
+                PDNotice("unimplemented escape key passed as is in PDContentStreamTextExtractorPrint()");
+                escaping = false;
+                res[offs++] = '\\';
+                i--;
+            }
+        } else if (str[i] == '\\') {
+            escaping = true;
+            eval = 0;
+        } else {
+            res[offs++] = str[i];
+        }
+    }
+    res[offs++] = '\n';
+    res[offs] = 0;
+    
+//    strcpy(&tui->buf[tui->offset], &str[1]);
+    tui->offset = offs;
+//    tui->buf[tui->offset-1] = '\n';
 }
 
 PDOperatorState PDContentStreamTextExtractor_Tj(PDContentStreamRef cs, PDContentStreamTextExtractorUI userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)

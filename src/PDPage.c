@@ -37,7 +37,15 @@ void PDPageDestroy(PDPageRef page)
 {
     PDRelease(page->parser);
     PDRelease(page->ob);
-    PDRelease(page->contentsObject);
+
+    if (page->contentObs) {
+        for (PDInteger i = 0; i < page->contentCount; i++) {
+            PDRelease(page->contentObs[i]);
+        }
+        if (page->contentRefs) {
+            pd_array_destroy(page->contentRefs);
+        }
+    }
 }
 
 PDPageRef PDPageCreateForPageWithNumber(PDParserRef parser, PDInteger pageNumber)
@@ -63,7 +71,9 @@ PDPageRef PDPageCreateWithObject(PDParserRef parser, PDObjectRef object)
     PDPageRef page = PDAlloc(sizeof(struct PDPage), PDPageDestroy, false);
     page->parser = PDRetain(parser);
     page->ob = PDRetain(object);
-    page->contentsObject = NULL;
+    page->contentRefs = NULL;
+    page->contentObs = NULL;
+    page->contentCount = -1;
     return page;
 }
 
@@ -229,17 +239,40 @@ PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageNum
     return PDAutorelease(importedPage);
 }
 
-PDObjectRef PDPageGetContentsObject(PDPageRef page)
+PDInteger PDPageGetContentsObjectCount(PDPageRef page)
 {
-    if (page->contentsObject) return page->contentsObject;
-    
-    const char *contentsRef = PDObjectGetDictionaryEntry(page->ob, "Contents");
-    if (contentsRef) {
-        PDInteger contentsId = PDIntegerFromString(contentsRef);
-        page->contentsObject = PDParserLocateAndCreateObject(page->parser, contentsId, true);
+    if (page->contentCount == -1) PDPageGetContentsObjectAtIndex(page, 0);
+    return page->contentCount;
+}
+
+PDObjectRef PDPageGetContentsObjectAtIndex(PDPageRef page, PDInteger index)
+{
+    if (page->contentObs == NULL) {
+        // we need to set the array up first
+        pd_dict d = PDObjectGetDictionary(page->ob);
+        if (PDObjectTypeArray == pd_dict_get_type(d, "Contents")) {
+            page->contentRefs = pd_dict_get_copy(d, "Contents");
+            page->contentCount = pd_array_get_count(page->contentRefs);
+            page->contentObs = calloc(page->contentCount, sizeof(PDObjectRef));
+        } else {
+            const char *contentsRef = PDObjectGetDictionaryEntry(page->ob, "Contents");
+            if (contentsRef) {
+                page->contentCount = 1;
+                page->contentObs = malloc(sizeof(PDObjectRef));
+                PDInteger contentsId = PDIntegerFromString(contentsRef);
+                page->contentObs[0] = PDParserLocateAndCreateObject(page->parser, contentsId, true);
+            } else return NULL;
+        }
     }
     
-    return page->contentsObject;
+    PDAssert(index >= 0 && index < page->contentCount); // crash = index out of bounds
+    
+    if (NULL == page->contentObs[index]) {
+        PDInteger contentsId = PDIntegerFromString(pd_array_get_at_index(page->contentRefs, index));
+        page->contentObs[index] = PDParserLocateAndCreateObject(page->parser, contentsId, true);
+    }
+    
+    return page->contentObs[index];
 }
 
 PDRect PDPageGetMediaBox(PDPageRef page)

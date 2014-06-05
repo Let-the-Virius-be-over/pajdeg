@@ -85,13 +85,24 @@ extern PDPageRef PDPageCreateWithObject(PDParserRef parser, PDObjectRef object);
 extern PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageNumber);
 
 /**
- *  Fetch (if unfetched) and return the PDObject associated with the page's /Contents key.
+ *  Determine the number of content objects this page has.
  *
- *  @param page Page whose contents object is requested
+ *  @param page Page to be checked
  *
- *  @return The contents object
+ *  @return Number of content objects
  */
-extern PDObjectRef PDPageGetContentsObject(PDPageRef page);
+extern PDInteger PDPageGetContentsObjectCount(PDPageRef page);
+
+/**
+ *  Fetch (if unfetched) and return the index'th PDObject associated with the page's /Contents key.
+ *  A lot of pages only have a single contents object, but they are allowed to have an array of them, in which case the resulting page is rendered as if the array of streams were concatenated.
+ *
+ *  @param page  Page whose contents object is requested
+ *  @param index The index (starting at 0) of the contents object to fetch
+ *
+ *  @return The contents object for the given index, for the page
+ */
+extern PDObjectRef PDPageGetContentsObjectAtIndex(PDPageRef page, PDInteger index);
 
 /**
  *  Fetch the media box for the given page.
