@@ -111,3 +111,14 @@ void PDFlush(void)
 }
 
 void PDNOP(void *val) {}
+
+#ifdef PD_WARNINGS
+void _PDBreak()
+{
+    /*
+     * The sole purpose of this method is to be a gathering spot for break points triggered by calls to the PDError() macro.
+     * If you are not a Pajdeg developer, you shouldn't worry about this.
+     */
+    return;
+}
+#endif

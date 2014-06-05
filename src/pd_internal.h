@@ -754,6 +754,27 @@ struct PDStringConv {
 
 
 /**
+ @def PDError
+ Print an error to stderr, if user has turned on PD_WARNINGS.
+ 
+ @param args Formatted variable argument list.
+ */
+#ifndef PDError
+#   if defined(DEBUG) || defined(PD_WARNINGS)
+#       define PD_WARNINGS
+extern void _PDBreak();
+#       define PDError(args...) do {\
+            fprintf(stderr, "[pajdeg::error] %s:%d - ", __FILE__,__LINE__); \
+            fprintf(stderr, args); \
+            fprintf(stderr, "\n"); \
+            _PDBreak();\
+        } while (0)
+#   else
+#       define PDError(args...) 
+#   endif
+#endif
+
+/**
  @def PDWarn
  Print a warning to stderr, if user has turned on PD_WARNINGS.
  

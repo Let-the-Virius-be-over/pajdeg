@@ -80,7 +80,7 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
     parser->aiTree = PDBTreeCreate(NULL, 1, 50000, 10);
     
     if (! PDXTableFetchXRefs(parser)) {
-        PDWarn("PDF is invalid or in an unsupported format.");
+        PDError("PDF is invalid or in an unsupported format.");
         //PDAssert(0); // the PDF is invalid or in a format that isn't supported
         PDRelease(parser);
         return NULL;

@@ -204,7 +204,7 @@ void PDPipeAddTask(PDPipeRef pipe, PDTaskRef task)
         
         if (pipe->opened && ! PDParserIsObjectStillMutable(pipe->parser, key)) {
             // pipe's open and we've already passed the object being filtered
-            fprintf(stderr, "*** object %ld cannot be accessed as it has already been written ***\n", key);
+            PDError("*** object %ld cannot be accessed as it has already been written ***\n", key);
             PDParserIsObjectStillMutable(pipe->parser, key);
             PDAssert(0); // crash = logic is flawed; object in question should be fetched after preparing pipe rather than dynamically appending filters as data is obtained; worst case, do two passes (one where the id of the offending object is determined and one where the mutations are made)
         }

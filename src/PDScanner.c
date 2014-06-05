@@ -675,9 +675,9 @@ void PDScannerScan(PDScannerRef scanner)
             scanner->outgrown |= scanner->fixedBuf;
             if (! scanner->outgrown) {
                 if (sym->stype == PDOperatorSymbolExtEOB) {
-                    PDWarn("unexpected end of buffer encountered; resetting scanner\n");
+                    PDError("unexpected end of buffer encountered; resetting scanner\n");
                 } else {
-                    PDWarn("scanner failure! resetting!\n");
+                    PDError("scanner failure! resetting!\n");
                 }
             }
             struct PDOperator resetter;

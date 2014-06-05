@@ -218,7 +218,7 @@ PDInteger pd_crypto_unescape_explicit_len(char *str, int iend)
                         str[si] = str[i]; break;
                         
                     default: 
-                        PDWarn("unknown escape sequence: encryption may break: \\%c\n", str[i]);
+                        PDError("unknown escape sequence: encryption may break: \\%c\n", str[i]);
                         str[si] = str[i]; 
                         break;
                 }

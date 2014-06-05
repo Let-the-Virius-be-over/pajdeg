@@ -90,7 +90,7 @@ PDBool PDObjectStreamParseRawObjectStream(PDObjectStreamRef obstm, char *rawBuf)
     len = obstm->ob->streamLen;
     if (obstm->filter) {
         if (! PDStreamFilterApply(obstm->filter, (unsigned char *)rawBuf, (unsigned char **)&extractedBuf, len, &len, NULL)) {
-            PDWarn("PDStreamFilterApply() failed.");
+            PDError("PDStreamFilterApply() failed.");
             obstm->ob->streamBuf = NULL;
             obstm->ob->extractedLen = 0;
             obstm->n = 0;
