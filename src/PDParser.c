@@ -1266,6 +1266,11 @@ PDObjectRef PDParserGetInfoObject(PDParserRef parser)
     return parser->info;
 }
 
+PDObjectRef PDParserGetTrailerObject(PDParserRef parser)
+{
+    return parser->trailer;
+}
+
 PDCatalogRef PDParserGetCatalog(PDParserRef parser)
 {
     if (! parser->catalog) {

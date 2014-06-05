@@ -179,10 +179,19 @@ extern PDObjectRef PDParserGetRootObject(PDParserRef parser);
 /**
  Get an immutable reference to the info object for the input PDF, or NULL if the input PDF does not contain an info object.
  
- @param parser The parser.
- @return NULL or the info object reference.
+ @param parser The parser
+ @return NULL or the info object reference
  */
 extern PDObjectRef PDParserGetInfoObject(PDParserRef parser);
+
+/**
+ *  Get a mutable reference to the trailer object for the PDF.
+ *
+ *  @param parser The parser
+ *
+ *  @return The trailer object, which is written at the very end and is thus mutable until the PDF is finalized
+ */
+extern PDObjectRef PDParserGetTrailerObject(PDParserRef parser);
 
 /**
  Set up (if necessary) and return the PDCatalog object for the current PDF.
