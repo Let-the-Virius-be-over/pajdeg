@@ -715,11 +715,31 @@ void PDStringFromArrayEntry(pd_stack *s, PDStringConvRef scv)
     PDStringFromAnything();
 }
 
+void PDStringFromShortArray(pd_stack *s, PDStringConvRef scv) 
+{
+    PDStringGrow(10);
+    currchi = '[';
+    currchi = ' ';
+    
+    while (*s) {
+        PDStringFromAnything();
+        PDStringGrow(2);
+        currchi = ' ';
+    }
+    
+    currchi = ']';
+}
+
 void PDStringFromArbitrary(pd_stack *s, PDStringConvRef scv)
 {
-    PDID type = pd_stack_pop_identifier(s);
-    PDInteger hash = PDStaticHashIdx(converterTable, *type);
-    (*as(PDStringConverter, PDStaticHashValueForHash(converterTable, hash)))(s, scv);
+    // we accept arrays in short-hand format; if this has no identifier, it must be a stack of array entries
+    if ((*s)->type == PD_STACK_ID) {
+        PDID type = pd_stack_pop_identifier(s);
+        PDInteger hash = PDStaticHashIdx(converterTable, *type);
+        (*as(PDStringConverter, PDStaticHashValueForHash(converterTable, hash)))(s, scv);
+    } else {
+        PDStringFromShortArray(s, scv);
+    }
 }
 
 PDDeallocator PDDeallocatorNull;

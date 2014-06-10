@@ -53,6 +53,15 @@
 extern pd_array pd_array_with_capacity(PDInteger capacity);
 
 /**
+ *  Convert a pd_array into a pd_stack object
+ *
+ *  @param array The array to convert
+ *
+ *  @return A pd_stack fitting as input to e.g. pd_array_from_stack()
+ */
+extern pd_stack pd_array_to_stack(pd_array array);
+
+/**
  Clear the given array, removing all entries.
  
  @param arr The array.
@@ -197,6 +206,16 @@ extern void pd_array_append(pd_array array, const char *value);
 extern void pd_array_insert_at_index(pd_array array, PDInteger index, const char *value);
 
 /**
+ *  Get the index of the given string value, or -1 if the value is not in the array at all.
+ *
+ *  @param array Array to search through
+ *  @param value Value to search for
+ *
+ *  @return -1 if not found, otherwise the index of the first encounter of the given value
+ */
+extern PDInteger pd_array_get_index_of_value(pd_array array, const char *value);
+
+/**
  Delete element at the given index.
  
  @param array The array.
@@ -219,6 +238,8 @@ extern void pd_array_replace_at_index(pd_array array, PDInteger index, const cha
  @param array The array.
  */
 extern char *pd_array_to_string(pd_array array);
+
+extern void pd_array_print(pd_array array);
 
 #define encryptable(str) (strlen(str) > 0 && str[0] == '(' && str[strlen(str)-1] == ')')
 

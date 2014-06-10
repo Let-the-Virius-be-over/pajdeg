@@ -139,6 +139,15 @@ extern PDObjectType pd_dict_get_type(pd_dict dict, const char *key);
 extern void *pd_dict_get_copy(pd_dict dict, const char *key);
 
 /**
+ *  Set the given key to the value of the given raw (stack) value.
+ *
+ *  @param dict  The dictionary
+ *  @param key   The key
+ *  @param raw   The stack to insert
+ */
+extern void pd_dict_set_raw(pd_dict dict, const char *key, pd_stack raw);
+
+/**
  Delete entry for the given key. O(n)!
  
  @param dict The dict.

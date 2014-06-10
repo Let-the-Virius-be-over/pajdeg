@@ -102,6 +102,10 @@ static inline void *pd_container_spawn(pd_stack stack)
             }
             return NULL;
         }
+        if (stack->prev) {
+            // it's a short hand array
+            return pd_array_from_stack(stack);
+        }
         if (stack->type == PD_STACK_STRING) {
             return strdup(stack->info);
         }

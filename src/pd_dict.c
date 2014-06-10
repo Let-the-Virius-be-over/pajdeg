@@ -113,7 +113,7 @@ void pd_dict_crypto_remover(void *d, const void *key)
 
 ///
 
-void pd_dict_setter(void *d, const void *key, const char *value)
+PDInteger pd_dict_setter(void *d, const void *key, const char *value)
 {
     pd_dict dict = as(pd_dict, d);
     pd_dict_fetch_i(dict, key);
@@ -132,10 +132,11 @@ void pd_dict_setter(void *d, const void *key, const char *value)
         free(dict->values[i]);
         dict->values[i] = strdup(value);
     }
+    return i;
 }
 
 #ifdef PD_SUPPORT_CRYPTO
-void pd_dict_crypto_setter(void *d, const void *key, const char *value)
+PDInteger pd_dict_crypto_setter(void *d, const void *key, const char *value)
 {
     pd_dict dict = as(pd_dict, d);
     pd_crypto_instance ci = dict->info;
@@ -166,6 +167,8 @@ void pd_dict_crypto_setter(void *d, const void *key, const char *value)
         pd_crypto_encrypt(ci->crypto, ci->obid, ci->genid, &dict->values[i], decrypted, strlen(decrypted));
         free(decrypted);
     }
+    
+    return i;
 }
 #endif
 
@@ -358,6 +361,18 @@ void *pd_dict_get_copy(pd_dict dict, const char *key)
     if (NULL == stack) 
         return strdup(pd_dict_get(dict, key));
     return pd_container_spawn(stack);
+}
+
+void pd_dict_set_raw(pd_dict dict, const char *key, pd_stack raw)
+{
+    pd_stack entry = pd_stack_copy(raw);
+
+    pd_stack_set_global_preserve_flag(true);
+    const char *strval = PDStringFromComplex(&raw);
+    pd_stack_set_global_preserve_flag(false);
+
+    PDInteger index = (*dict->s)(dict, key, strval);
+    dict->vstacks[index] = entry;
 }
 
 void pd_dict_remove(pd_dict dict, const char *key)

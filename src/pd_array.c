@@ -94,7 +94,7 @@ void pd_array_crypto_remover(void *arr, const void *k)
 
 ///
 
-void pd_array_setter(void *arr, const void *k, const char *value)
+PDInteger pd_array_setter(void *arr, const void *k, const char *value)
 {
     pd_array array = as(pd_array, arr);
     PDInteger index = as(PDInteger, k);
@@ -102,10 +102,12 @@ void pd_array_setter(void *arr, const void *k, const char *value)
     free(array->values[index]);
     pd_stack_destroy(&array->vstacks[index]);
     array->values[index] = strdup(value);
+    
+    return index;
 }
 
 #ifdef PD_SUPPORT_CRYPTO
-void pd_array_crypto_setter(void *arr, const void *k, const char *value)
+PDInteger pd_array_crypto_setter(void *arr, const void *k, const char *value)
 {
     pd_array array = as(pd_array, arr);
     pd_crypto_instance ci = array->info;
@@ -122,6 +124,7 @@ void pd_array_crypto_setter(void *arr, const void *k, const char *value)
         pd_crypto_encrypt(ci->crypto, ci->obid, ci->genid, &array->values[index], decrypted, strlen(decrypted));
         free(decrypted);
     }
+    return index;
 }
 #endif
 
@@ -254,6 +257,7 @@ pd_array pd_array_from_stack(pd_stack stack)
     for (count = 0; s; s = s->prev)
         count++;
     pd_array arr = pd_array_with_capacity(count);
+    arr->count = count;
     
     s = stack;
     pd_stack_set_global_preserve_flag(true);
@@ -262,14 +266,26 @@ pd_array pd_array_from_stack(pd_stack stack)
             arr->values[count] = strdup(s->info);
             arr->vstacks[count] = NULL;
         } else {
-            entry = pd_stack_copy(s->info);
+            arr->vstacks[count] = entry = pd_stack_copy(s->info);
             arr->values[count] = PDStringFromComplex(&entry);
-            arr->vstacks[count] = entry;
         }
+        count++;
     }
     pd_stack_set_global_preserve_flag(false);
     
     return arr;
+}
+
+pd_stack pd_array_to_stack(pd_array array)
+{
+    pd_stack result = NULL;
+    for (PDInteger i = array->count-1; i >= 0; i--) {
+        if (array->vstacks[i])
+            pd_stack_push_stack(&result, pd_stack_copy(array->vstacks[i]));
+        else
+            pd_stack_push_key(&result, strdup((*array->g)(array, (const void *)i)));
+    }
+    return result;
 }
 
 pd_array pd_array_from_pdf_array_stack(pd_stack stack)
@@ -349,6 +365,14 @@ const char *pd_array_get_at_index(pd_array array, PDInteger index)
     return (*array->g)(array, (const void*)index);
 }
 
+PDInteger pd_array_get_index_of_value(pd_array array, const char *value)
+{
+    for (PDInteger i = 0; i < array->count; i++)
+        if (0 == strcmp(value, (*array->g)(array, (const void*)i))) 
+            return i;
+    return -1;
+}
+
 pd_stack pd_array_get_raw_at_index(pd_array array, PDInteger index)
 {
     return (*array->rg)(array, (const void*)index);
@@ -425,4 +449,13 @@ char *pd_array_to_string(pd_array array)
     str[len++] = ']';
     str[len] = 0;
     return str;
+}
+
+void pd_array_print(pd_array array)
+{
+    printf("(array %p; count = %ld) {\n", array, (long)array->count);
+    for (PDInteger i = 0; i < array->count; i++) {
+        printf("\t#%ld: %s\n", (long)i, pd_array_get_at_index(array, i));
+    }
+    printf("}\n");
 }

@@ -80,77 +80,37 @@ PDPageRef PDPageCreateWithObject(PDParserRef parser, PDObjectRef object)
 PDTaskResult PDPageInsertionTask(PDPipeRef pipe, PDTaskRef task, PDObjectRef object, void *info)
 {
     char *buf = malloc(64);
-    pd_stack s, t;
     
     PDObjectRef *userInfo = info;
     PDObjectRef neighbor = userInfo[0];
     PDObjectRef importedObject = userInfo[1];
     free(userInfo);
     
-    pd_stack kids = pd_stack_get_dict_key(object->def, "Kids", false);
-
+    pd_dict dict = PDObjectGetDictionary(object);
+    pd_array kids = pd_dict_get_copy(dict, "Kids");
+    pd_array_print(kids);
     if (NULL != neighbor) {
-        sprintf(buf, "%ld", PDObjectGetObID(neighbor));
-    }
-    
-    kids = kids->prev->prev->info;
-    
-    /*
-     stack<0x14cdde90> {
-     0x401394 ("array")
-     0x401388 ("entries")
-     stack<0x14cdeb90> {
-     stack<0x14cdead0> {
-     0x401398 ("ae")
-     ...
-     }
-     }
-     }
-     */
-    
-    kids = kids->prev->prev->info;
-    /*
-     stack<0x14cdeb90> {
-     stack<0x14cdead0> {
-     0x401398 ("ae")
-     ...
-     }
-     }
-     */
-    
-    if (neighbor) {
-    
-        pd_stack_for_each(kids, s) {
-            // we presume the array is valid and has an ae id at s
-            t = as(pd_stack, as(pd_stack, s->info)->prev)->info;
-            // we're now at another stack,
-            // [PD_REF, ID, GEN]
-            // which we also expect to be valid so we grab ID
-            if (0 == strcmp(t->prev->info, buf)) {
-                // found it; we now have to duplicate it and fix the id -- note that we fix the original, and leave the duplicate, to get the order right!
-                pd_stack dup = pd_stack_copy(s->info);
-                sprintf(buf, "%ld", PDObjectGetObID(importedObject));
-                free(t->prev->info);
-                t->prev->info = strdup(buf);
-                pd_stack_push_stack(&s->prev, dup);
-                break;
-            }
+        sprintf(buf, "%ld 0 R", PDObjectGetObID(neighbor));
+        PDInteger index = pd_array_get_index_of_value(kids, buf);
+        if (index < 0) {
+            // neighbor not in there
+            PDError("expected neighbor not found in Kids array");
+            PDRelease(neighbor);
+            neighbor = NULL;
+        } else {
+            sprintf(buf, "%ld 0 R", PDObjectGetObID(importedObject));
+            pd_array_insert_at_index(kids, index, buf);
         }
-
-    } else if (kids) {
-        
-        // find last entry in stack
-        for (s = kids; s->prev; s = s->prev) ;
-        pd_stack dup = pd_stack_copy(s->info);
-        sprintf(buf, "%ld", PDObjectGetObID(importedObject));
-        free(as(pd_stack, dup->prev->info)->prev->info);
-        as(pd_stack, dup->prev->info)->prev->info = strdup(buf);
-        pd_stack_push_stack(&s->prev, dup);
-        
     }
-        
-//    PDObjectSetDictionaryEntry(object, "Count", buf);
     
+    if (NULL == neighbor) {
+        sprintf(buf, "%ld 0 R", PDObjectGetObID(importedObject));
+        pd_array_append(kids, buf);
+    }
+    pd_array_print(kids);
+    
+    pd_dict_set_raw(dict, "Kids", pd_array_to_stack(kids));
+
     free(buf);
     PDRelease(importedObject);
     PDRelease(neighbor);

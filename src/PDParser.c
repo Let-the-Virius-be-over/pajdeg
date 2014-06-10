@@ -281,6 +281,8 @@ PDObjectRef PDParserLocateAndCreateObject(PDParserRef parser, PDInteger obid, PD
     pd_stack defs = PDParserLocateAndCreateDefinitionForObject(parser, obid, master);
     PDObjectRef obj = PDObjectCreateFromDefinitionsStack(obid, defs);
     obj->crypto = parser->crypto;
+    PDBTreeInsert(parser->aiTree, obid, obj);    
+    
     return obj;
 }
 

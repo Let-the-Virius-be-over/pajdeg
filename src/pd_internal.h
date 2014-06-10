@@ -508,7 +508,7 @@ typedef void (*_list_remover)(void *ref, const void *key);
 /**
  "Set object for key to value" signature for arrays/dictionaries.
  */
-typedef void (*_list_setter)(void *ref, const void *key, const char *value);
+typedef PDInteger (*_list_setter)(void *ref, const void *key, const char *value);
 
 /**
  "Make room at index" signature for arrays.
