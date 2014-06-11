@@ -295,6 +295,23 @@ typedef struct pd_array     *pd_array;
 typedef struct pd_dict      *pd_dict;
 
 /**
+ Crypto methods.
+ */
+typedef enum {
+    pd_crypto_method_none  = 0,
+    pd_crypto_method_rc4   = 1,
+    pd_crypto_method_aesv2 = 2,
+} pd_crypto_method;
+
+/**
+ Crypto authentication events.
+ */
+typedef enum {
+    pd_auth_event_none    = 0,
+    pd_auth_event_docopen = 1,
+} pd_auth_event;
+
+/**
  Cryptography module for PDF encryption/decryption.
  
  @note If PD_SUPPORT_CRYPTO is not set, this structure is a dummy object.

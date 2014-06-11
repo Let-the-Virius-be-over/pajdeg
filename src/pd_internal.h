@@ -570,23 +570,6 @@ struct pd_crypto_param {
 };
 
 /**
- Crypto methods.
- */
-typedef enum {
-    pd_crypto_method_none  = 0,
-    pd_crypto_method_rc4   = 1,
-    pd_crypto_method_aesv2 = 2,
-} pd_crypto_method;
-
-/**
- Crypto authentication events.
- */
-typedef enum {
-    pd_auth_event_none    = 0,
-    pd_auth_event_docopen = 1,
-} pd_auth_event;
-
-/**
  The internal crypto structure.
  */
 struct pd_crypto {

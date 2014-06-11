@@ -466,4 +466,39 @@ void pd_crypto_decrypt(pd_crypto crypto, PDInteger obid, PDInteger genid, char *
     pd_crypto_convert(crypto, obid, genid, data, len);
 }
 
+const char *pd_crypto_get_filter(pd_crypto crypto)
+{
+    return crypto->filter;
+}
+
+const char *pd_crypto_get_subfilter(pd_crypto crypto)
+{
+    return crypto->subfilter;
+}
+
+PDInteger pd_crypto_get_version(pd_crypto crypto)
+{
+    return crypto->version;
+}
+
+PDInteger pd_crypto_get_revision(pd_crypto crypto)
+{
+    return crypto->revision;
+}
+
+PDBool pd_crypto_get_encrypt_metadata_bool(pd_crypto crypto)
+{
+    return crypto->encryptMetadata;
+}
+
+pd_crypto_method pd_crypto_get_method(pd_crypto crypto)
+{
+    return crypto->cfMethod;
+}
+
+pd_auth_event pd_crypto_get_auth_event(pd_crypto crypto)
+{
+    return crypto->cfAuthEvent;
+}
+
 #endif
