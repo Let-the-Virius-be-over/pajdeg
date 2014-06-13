@@ -1,7 +1,7 @@
 //
 // pd_pdf_implementation.c
 //
-// Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
+// Copyright (c) 2012 - 2014 Karl-Johan Alm (http://github.com/kallewoof)
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -27,6 +27,11 @@
 #include "PDStaticHash.h"
 #include "PDStreamFilterFlateDecode.h"
 #include "PDStreamFilterPrediction.h"
+#include "PDReference.h"
+#include "PDString.h"
+#include "pd_dict.h"
+#include "pd_array.h"
+#include "PDCollection.h"
 
 void PDDeallocatorNullFunc(void *ob) {}
 
@@ -496,7 +501,7 @@ void pd_pdf_implementation_discard()
         PDRelease(arbStream);
         PDRelease(stringStream);
         
-        PDOperatorSymbolGlobClear();
+//        PDOperatorSymbolGlobClear();
         pd_pdf_conversion_discard();
     }
 }
@@ -599,6 +604,38 @@ char *PDStringFromComplex(pd_stack *complex)
     scv.allocBuf[scv.offs] = 0;
     
     return scv.allocBuf;
+}
+
+void *PDTypeCreateFromComplex(pd_stack *complex, PDObjectType *outType)
+{
+    PDObjectType type = PDObjectTypeUnknown;
+    void *result = NULL;
+    
+    if ((*complex)->type == PD_STACK_ID) {
+        PDID tid = pd_stack_pop_identifier(complex);
+        if (PDIdentifies(tid, PD_REF)) {
+            type = PDObjectTypeReference;
+            result = PDReferenceCreateFromStackDictEntry(*complex);
+        }
+        else if (PDIdentifies(tid, PD_HEXSTR)) {
+            type = PDObjectTypeString;
+            result = PDStringCreateWithHexString((*complex)->prev->info);
+        }
+        else if (PDIdentifies(tid, PD_DICT)) {
+            type = PDObjectTypeDictionary;
+            result = PDCollectionCreateWithDictionary(pd_dict_from_pdf_dict_stack(*complex));
+        }
+        else if (PDIdentifies(tid, PD_ARRAY)) {
+            type = PDObjectTypeArray;
+            result = PDCollectionCreateWithArray(pd_array_from_pdf_array_stack(*complex));
+        }
+        else {
+            PDError("uncaught type in PDTypeFromComplex()");
+        }
+    }
+    
+    if (outType) *outType = type;
+    return result;
 }
 
 PDObjectType PDObjectTypeFromIdentifier(PDID identifier)

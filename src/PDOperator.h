@@ -1,7 +1,7 @@
 //
 // PDOperator.h
 //
-// Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
+// Copyright (c) 2012 - 2014 Karl-Johan Alm (http://github.com/kallewoof)
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -48,20 +48,29 @@
 #define PDOperatorSymbolExtEOB          32  ///< End of buffer (usually synonymous with end of file) symbol
 
 /**
- Global symbol table, a 256 byte mapping of ASCII characters to their corresponding PDF symbol type as defined in the PDF 
- specification (v 1.7). 
+ Global symbol table, a 256 byte mapping of ASCII characters to their corresponding PDF symbol type as defined in the PDF specification (v 1.7). 
  */
 extern char *PDOperatorSymbolGlob;
 
 /**
- Set up the global symbol table. Multiple calls will have a retaining effect and must have balancing PDOperatorSymbolGlobClear() calls to avoid leaks.
+ Global HEX table, a 256 byte mapping of ASCII characters to their corresponding numeric values according to the hexademical system.
  */
-extern void PDOperatorSymbolGlobSetup();
+extern char *PDOperatorSymbolGlobHex;
 
 /**
- Clear the global symbol table. If multiple PDOperatorSymbolGlobSetup() calls were made, the table will remain.
+ Global de-HEX table, a 16 (NOT 256) byte mapping of 0 through 15, where 0..9 return '0'..'9' and 10..15 return 'A'..'F'
  */
-extern void PDOperatorSymbolGlobClear();
+extern char *PDOperatorSymbolGlobDehex;
+
+/**
+ Global escape table, a 256 byte mapping of ASCII characters to 1 for "no escape", 0 for "escape as code", and a character for "escape using this escape code".
+ */
+extern char *PDOperatorSymbolGlobEscaping;
+
+/**
+ Set up the global symbol table.
+ */
+extern void PDOperatorSymbolGlobSetup();
 
 /**
  Define the given symbol. Definitions detected are delimiters, numeric (including real) values, and (regular) symbols.

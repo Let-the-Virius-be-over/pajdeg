@@ -1,7 +1,7 @@
 //
 // PDType.c
 //
-// Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
+// Copyright (c) 2012 - 2014 Karl-Johan Alm (http://github.com/kallewoof)
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -81,7 +81,14 @@ void *PDRetain(void *pajdegObject)
     if (NULL == pajdegObject) return pajdegObject;
     PDTypeRef type = (PDTypeRef)pajdegObject - 1;
     PDTypeCheck("retained", NULL);
-    type->retainCount++;
+    
+    // if the most recent autoreleased object matches, we remove it from the autorelease pool rather than retain the object
+    if (arp != NULL && pajdegObject == arp->info) {
+        pd_stack_pop_identifier(&arp);
+    } else {
+        type->retainCount++;
+    }
+    
     return pajdegObject;
 }
 

@@ -1,7 +1,7 @@
 //
 // PDDefines.h
 //
-// Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
+// Copyright (c) 2012 - 2014 Karl-Johan Alm (http://github.com/kallewoof)
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -481,6 +481,42 @@ typedef enum {
  @ingroup PDREFERENCE
  */
 typedef struct PDReference  *PDReferenceRef;
+
+/**
+ The type of a string.
+ 
+ @ingroup PDSTRING
+ */
+typedef enum {
+    PDStringTypeRegular = 1,        ///< A regular string, escaped and NUL-terminated
+    PDStringTypeHex     = 2,        ///< A HEX string, NUL-terminated
+    PDStringTypeBinary  = 3,        ///< A binary string, which may or may not be NUL-terminated, and may contain any character
+} PDStringType;
+
+/**
+ A string object.
+ 
+ @ingroup PDSTRING
+ */
+typedef struct PDString  *PDStringRef;
+
+/**
+ The type of a collection.
+ 
+ @ingroup PDCOLLECTION
+ */
+typedef enum {
+    PDCollectionTypeArray = 1,      ///< A pd_array
+    PDCollectionTypeDictionary = 2, ///< A pd_dict
+    PDCollectionTypeStack = 3,      ///< A pd_stack
+} PDCollectionType;
+
+/**
+ A collection object.
+ 
+ @ingroup PDCOLLECTION
+ */
+typedef struct PDCollection *PDCollectionRef;
 
 /**
  @defgroup PDPIPE_CONCEPT Pajdeg Pipes

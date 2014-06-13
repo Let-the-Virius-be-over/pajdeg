@@ -1,7 +1,7 @@
 //
 // PDContentStream.c
 //
-// Copyright (c) 2014 Karl-Johan Alm (http://github.com/kallewoof)
+// Copyright (c) 2012 - 2014 Karl-Johan Alm (http://github.com/kallewoof)
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ void PDContentStreamDestroy(PDContentStreamRef cs)
     pd_stack_destroy(&cs->opers);
     pd_array_destroy(cs->args);
     
-    PDOperatorSymbolGlobClear();
+//    PDOperatorSymbolGlobClear();
 }
 
 PDContentStreamRef PDContentStreamCreateWithObject(PDObjectRef object)

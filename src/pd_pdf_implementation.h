@@ -1,7 +1,7 @@
 //
 // pd_pdf_implementation.h
 //
-// Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
+// Copyright (c) 2012 - 2014 Karl-Johan Alm (http://github.com/kallewoof)
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -110,10 +110,6 @@ extern PDStateRef stringStream;
 extern PDStateRef arbStream;
 
 /**
- Request 
- */
-
-/**
  Convert stack representation of complex object into PDF string.
  
  @warning Destroys target stack unless preserve flag is set.
@@ -124,6 +120,20 @@ extern PDStateRef arbStream;
  @see pd_stack_set_global_preserve_flag
  */
 extern char *PDStringFromComplex(pd_stack *complex);
+
+/**
+ *  Convert stack representation of complex object into an appropriate
+ *  object, whose type is written into outType. 
+ *
+ *  @note Returned strings are returned as PDString instances, arrays and dicts as PDCollection instances.
+ *  @note Returned object must be PDRelease()'d
+ *
+ *  @param complex Stack representation 
+ *  @param outType Pointer to PDObjectType into which the resulting type is written, or NULL if type is unnecessary
+ *
+ *  @return A newly created, retained object based on the encountered type.
+ */
+extern void *PDTypeCreateFromComplex(pd_stack *complex, PDObjectType *outType);
 
 /**
  Determine object type from identifier.

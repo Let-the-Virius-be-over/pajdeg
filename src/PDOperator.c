@@ -1,7 +1,7 @@
 //
 // PDOperator.c
 //
-// Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
+// Copyright (c) 2012 - 2014 Karl-Johan Alm (http://github.com/kallewoof)
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -29,33 +29,57 @@ char *PDOperatorSymbolsDelimiters = "()<>[]{}/%";               // (, ), <, >, [
 //char *PDOperatorSymbolsAlpha = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";        // a-zA-Z 
 //char *PDOperatorSymbolsAlphanumeric = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"; // a-zA-Z0-9
 
-PDInteger PDOperatorSymbolGlobUsers = 0;
 char *PDOperatorSymbolGlob = NULL;
+char *PDOperatorSymbolGlobHex = NULL;
+char *PDOperatorSymbolGlobEscaping = NULL;
+char *PDOperatorSymbolGlobDehex = NULL;
 
 void PDOperatorSymbolGlobSetup()
 {
-    PDOperatorSymbolGlobUsers++;
-    if (PDOperatorSymbolGlobUsers > 1) return;
+    if (PDOperatorSymbolGlob != NULL) return;
     
     PDInteger i;
-
-//    if (PDOperatorSymbolGlob != NULL) return;
     
     PDOperatorSymbolGlob = calloc(256, sizeof(char));
     for (i = strlen(&PDOperatorSymbolsWhitespace[1]); i >= 0; i--)
         PDOperatorSymbolGlob[(unsigned char)PDOperatorSymbolsWhitespace[i]] = PDOperatorSymbolGlobWhitespace;
     for (i = strlen(PDOperatorSymbolsDelimiters)-1; i >= 0; i--) 
         PDOperatorSymbolGlob[(unsigned char)PDOperatorSymbolsDelimiters[i]] = PDOperatorSymbolGlobDelimiter;
-}
+    
+    PDOperatorSymbolGlobHex = calloc(256, sizeof(char));
+    PDOperatorSymbolGlobDehex = calloc(16, sizeof(char));
+    PDOperatorSymbolGlobEscaping = calloc(256, sizeof(char));
 
-void PDOperatorSymbolGlobClear()
-{
-    PDOperatorSymbolGlobUsers--;
-    if (PDOperatorSymbolGlobUsers == 0) {
-//    if (PDOperatorSymbolGlob == NULL) return;
-        free(PDOperatorSymbolGlob);
-        PDOperatorSymbolGlob = NULL;
+    for (i = '0'; i <= '9'; i++) {
+        PDOperatorSymbolGlobDehex[i - '0'] = i;
+        PDOperatorSymbolGlobHex[i] = i - '0';
+        PDOperatorSymbolGlobEscaping[i] = 1;
     }
+    
+    char aAoffs = 'a' - 'A';
+    for (i = 'A'; i <= 'F'; i++) {
+        PDOperatorSymbolGlobDehex[10 + i - 'A'] = i;
+        PDOperatorSymbolGlobHex[i] = PDOperatorSymbolGlobHex[i + aAoffs] = 10 + i - 'A';
+        PDOperatorSymbolGlobEscaping[i] = PDOperatorSymbolGlobEscaping[i + aAoffs] = 1;
+    }
+
+    for (i = 'G'; i <= 'Z'; i++) {
+        PDOperatorSymbolGlobEscaping[i] = PDOperatorSymbolGlobEscaping[i + aAoffs] = 1;
+    }
+    
+#define _(z) PDOperatorSymbolGlobEscaping[z]
+    _('.') = _('_') = _(',') = _('!') = _('@') = _('#') = _('$') = _('%') = _('^') = _('&') = _('*') = _('-') = _('=') = _('+') = _('[') = _(']') = _('{') = _('}') = _(';') = _('\'') = _('"') = _('/') = _('<') = _('>') = _('~') = _('|') = 1;
+    _('\t') = 't';
+    _('\n') = 'n';
+    _('\r') = 'r';
+    _('\b') = 'b';
+    _('\\') = '\\';
+    _('f') = 'f';
+    _('a') = 'a';
+    _('(') = '(';
+    _(')') = ')';
+#undef _
+    
 }
 
 char PDOperatorSymbolGlobDefine(char *str)

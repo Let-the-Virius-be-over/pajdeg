@@ -1,7 +1,7 @@
 //
 // pd_internal.h
 //
-// Copyright (c) 2013 Karl-Johan Alm (http://github.com/kallewoof)
+// Copyright (c) 2012 - 2014 Karl-Johan Alm (http://github.com/kallewoof)
 // 
 // This program is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -710,6 +710,32 @@ struct PDPipe {
 struct PDReference {
     PDInteger obid;         ///< The object ID
     PDInteger genid;        ///< The generation number
+};
+
+/// @name String
+
+/**
+ Internal string structure.
+ 
+ @ingroup PDSTRING
+ */
+struct PDString {
+    PDStringType type;      ///< Type of the string
+    PDSize length;          ///< Length of the string
+    PDBool wrapped;         ///< Whether the string is wrapped
+    char *data;             ///< Buffer containing string data
+};
+
+/// @name Collection
+
+/**
+ Internal collection structure.
+ 
+ @ingroup PDCOLLECTION
+ */
+struct PDCollection {
+    PDCollectionType type;  ///< Type of the collection
+    void *data;             ///< Contained data, a pd_array or pd_dict object depending on type
 };
 
 /// @name Conversion (PDF specification)
