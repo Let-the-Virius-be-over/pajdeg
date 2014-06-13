@@ -25,6 +25,20 @@
 
 #ifdef PD_SUPPORT_CRYPTO
 
+void PDCryptoInstanceDestroy(PDCryptoInstanceRef ci)
+{
+}
+
+PDCryptoInstanceRef PDCryptoInstanceCreate(pd_crypto crypto, PDInteger obid, PDInteger gennum, void *info)
+{
+    PDCryptoInstanceRef ci = PDAlloc(sizeof(struct PDCryptoInstance), PDCryptoInstanceDestroy, false);
+    ci->crypto = crypto;
+    ci->obid = obid;
+    ci->genid = gennum;
+    ci->info = info;
+    return ci;
+}
+
 /*
 struct pd_crypto {
     // common values

@@ -295,6 +295,24 @@ typedef struct pd_array     *pd_array;
 typedef struct pd_dict      *pd_dict;
 
 /**
+ A low-performance array implementation.
+ 
+ @ingroup PDARRAY
+ 
+ The array construct.
+ */
+typedef struct PDArray      *PDArrayRef;
+
+/**
+ A low-performance dictionary implementation.
+ 
+ @ingroup PDDICTIONARY
+ 
+ The dictionary construct.
+ */
+typedef struct PDDictionary *PDDictionaryRef;
+
+/**
  Crypto methods.
  */
 typedef enum {
@@ -443,6 +461,46 @@ typedef enum {
 typedef PDOperatorState (*PDContentOperatorFunc)(PDContentStreamRef cs, void *userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState);
 
 /**
+ The PD instance type of a value.
+ 
+ @ingroup PDOBJECT
+ */
+typedef enum {
+    PDInstanceTypeUnset     =-2,    ///< The associated instance value has not been set yet
+    PDInstanceTypeUnknown   =-1,    ///< Undefined / non-allocated instance
+    PDInstanceTypeNull      = 0,    ///< NULL
+    PDInstanceTypeNumber    = 1,    ///< PDNumber
+    PDInstanceTypeString    = 2,    ///< PDString
+    PDInstanceTypeArray     = 3,    ///< PDArray
+    PDInstanceTypeDict      = 4,    ///< PDDictionary
+    PDInstanceTypeRef       = 5,    ///< PDReference
+    PDInstanceTypeObj       = 6,    ///< PDObject
+} PDInstanceType;
+
+/**
+ A container for an object with an associated instance type.
+ 
+ @ingroup PDOBJECT
+ */
+typedef struct PDContainer PDContainer;
+struct PDContainer {
+    PDInstanceType type;            ///< The type of value contained in this collection
+    void        *value;             ///< The actual value
+};
+
+/**
+ *  String printing signature.
+ *
+ *  Used to write PDInstance objects into a C string buffer.
+ */
+typedef PDInteger (*PDInstancePrinter)(void *inst, char **buf, PDInteger offs, PDInteger *cap);
+
+/**
+ *  String printer function pointer array, matching up with all non-negative PDInstanceType entries.
+ */
+extern PDInstancePrinter PDInstancePrinters[];
+
+/**
  The type of object.
  
  @ingroup PDOBJECT
@@ -492,6 +550,13 @@ typedef enum {
     PDStringTypeHex     = 2,        ///< A HEX string, NUL-terminated
     PDStringTypeBinary  = 3,        ///< A binary string, which may or may not be NUL-terminated, and may contain any character
 } PDStringType;
+
+/**
+ A number object.
+ 
+ @ingroup PDNUMBER
+ */
+typedef struct PDNumber  *PDNumberRef;
 
 /**
  A string object.

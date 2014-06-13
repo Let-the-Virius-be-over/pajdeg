@@ -42,7 +42,7 @@ const pd_stack pd_array_getter_raw(void *arr, const void *k)
 const char *pd_array_crypto_getter(void *arr, const void *k)
 {
     pd_array array = arr;
-    pd_crypto_instance ci = array->info;
+    PDCryptoInstanceRef ci = array->info;
     char **plain = ci->info;
     PDInteger index = as(PDInteger, k);
 
@@ -76,7 +76,7 @@ void pd_array_remover(void *arr, const void *k)
 void pd_array_crypto_remover(void *arr, const void *k)
 {
     pd_array array = as(pd_array, arr);
-    pd_crypto_instance ci = array->info;
+    PDCryptoInstanceRef ci = array->info;
     PDInteger index = as(PDInteger, k);
     char **plain = ci->info;
     
@@ -110,7 +110,7 @@ PDInteger pd_array_setter(void *arr, const void *k, const char *value)
 PDInteger pd_array_crypto_setter(void *arr, const void *k, const char *value)
 {
     pd_array array = as(pd_array, arr);
-    pd_crypto_instance ci = array->info;
+    PDCryptoInstanceRef ci = array->info;
     PDInteger index = as(PDInteger, k);
     char **plain = ci->info;
     
@@ -155,7 +155,7 @@ void pd_array_push_index(void *arr, PDInteger index)
 void pd_array_crypto_push_index(void *arr, PDInteger index)
 {
     pd_array array = as(pd_array, arr);
-    pd_crypto_instance ci = array->info;
+    PDCryptoInstanceRef ci = array->info;
     char **plain = ci->info;
     
     if (array->count == array->capacity) {
@@ -216,7 +216,7 @@ void pd_array_destroy(pd_array array)
 #ifdef PD_SUPPORT_CRYPTO
     if (array->info) {
         // we don't bother with signature juggling for this as it presumably happens relatively seldom (destruction of arrays, that is), compared to getting/setting
-        pd_crypto_instance ci = array->info;
+        PDCryptoInstanceRef ci = array->info;
         free(ci->info);
         free(ci);
     }
@@ -229,11 +229,7 @@ void pd_array_destroy(pd_array array)
 void pd_array_set_crypto(pd_array array, pd_crypto crypto, PDInteger objectID, PDInteger genNumber)
 {
 #ifdef PD_SUPPORT_CRYPTO
-    pd_crypto_instance ci = malloc(sizeof(struct pd_crypto_instance));
-    ci->info = calloc(array->capacity, sizeof(char *));
-    ci->crypto = crypto;
-    ci->obid = objectID;
-    ci->genid = genNumber;
+    PDCryptoInstanceRef ci = PDCryptoInstanceCreate(crypto, objectID, genNumber, calloc(array->capacity, sizeof(char *)));
     array->info = ci;
     array->g = pd_array_crypto_getter;
     array->s = pd_array_crypto_setter;

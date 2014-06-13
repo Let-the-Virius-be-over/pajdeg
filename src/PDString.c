@@ -20,6 +20,7 @@
 #include "Pajdeg.h"
 #include "PDString.h"
 #include "pd_stack.h"
+#include "pd_crypto.h"
 
 #include "pd_internal.h"
 
@@ -31,8 +32,8 @@ char *PDStringHexToBinary(char *string, PDSize len, PDBool wrapped, PDSize *outL
 char *PDStringHexToEscaped(char *string, PDSize len, PDBool wrapped);                       ///< "abc123"               -> "foo\123"
 char *PDStringEscapedToHex(char *string, PDSize len, PDBool wrapped);                       ///< "foo\123"              -> "abc123"
 char *PDStringEscapedToBinary(char *string, PDSize len, PDBool wrapped, PDSize *outLength); ///< "foo\123"              -> 01101010
-char *PDStringBinaryToHex(char *string, PDSize len);                                        ///< 01101010               -> "abc123"
-char *PDStringBinaryToEscaped(char *string, PDSize len);                                    ///< 01101010               -> "foo\123"
+char *PDStringBinaryToHex(char *string, PDSize len, PDBool wrapped);                        ///< 01101010               -> "abc123"
+char *PDStringBinaryToEscaped(char *string, PDSize len, PDBool wrapped);                    ///< 01101010               -> "foo\123"
 
 // Public
 
@@ -48,6 +49,9 @@ PDStringRef PDStringCreate(char *string)
     res->length = strlen(string);
     res->type = PDStringTypeRegular;
     res->wrapped = (string[0] == '(' && string[res->length-1] == ')');
+#ifdef PD_SUPPORT_CRYPTO
+    res->ci = NULL;
+#endif
     return res;
 }
 
@@ -58,6 +62,9 @@ PDStringRef PDStringCreateBinary(char *data, PDSize length)
     res->length = length;
     res->type = PDStringTypeBinary;
     res->wrapped = false;
+#ifdef PD_SUPPORT_CRYPTO
+    res->ci = NULL;
+#endif
     return res;
 }
 
@@ -68,6 +75,9 @@ PDStringRef PDStringCreateWithHexString(char *hex)
     res->length = strlen(hex);
     res->type = PDStringTypeHex;
     res->wrapped = (hex[0] == '<' && hex[res->length-1] == '>');
+#ifdef PD_SUPPORT_CRYPTO
+    res->ci = NULL;
+#endif
     return res;
 }
 
@@ -108,7 +118,7 @@ char *PDStringEscapedValue(PDStringRef string, PDBool wrap)
             return PDStringHexToEscaped(string->data, string->length, string->wrapped);
             
         case PDStringTypeBinary:
-            return PDStringBinaryToEscaped(string->data, string->length);
+            return PDStringBinaryToEscaped(string->data, string->length, wrap);
     }
     PDError("Invalid PDString type encountered: %d", string->type);
     PDAssert(0);
@@ -148,7 +158,7 @@ char *PDStringHexValue(PDStringRef string, PDBool wrap)
             return PDStringEscapedToHex(string->data, string->length, string->wrapped);
             
         case PDStringTypeBinary:
-            return PDStringBinaryToEscaped(string->data, string->length);
+            return PDStringBinaryToHex(string->data, string->length, wrap);
     }
     PDError("Invalid PDString type encountered: %d", string->type);
     PDAssert(0);
@@ -254,32 +264,39 @@ char *PDStringEscapedToBinary(char *string, PDSize len, PDBool wrapped, PDSize *
     return res;
 }
 
-char *PDStringBinaryToHex(char *string, PDSize len)
+char *PDStringBinaryToHex(char *string, PDSize len, PDBool wrapped)
 {
-    PDSize rescap = 1 + (len << 1);
+    PDSize rescap = 1 + (len << 1) + (wrapped << 1);
     if (rescap < 10) rescap = 10;
     PDSize reslen = 0;
     char *res = malloc(rescap);
     char ch;
     PDSize i;
     
+    if (wrapped) res[reslen++] = '<';
+    
     for (i = 0; i < len; i++) {
         ch = string[i];
         res[reslen++] = PDOperatorSymbolGlobDehex[ch >> 4];
         res[reslen++] = PDOperatorSymbolGlobDehex[ch & 0xf];
     }
+
+    if (wrapped) res[reslen++] = '>';
+
     res[reslen] = 0;
     return res;
 }
 
-char *PDStringBinaryToEscaped(char *string, PDSize len) 
+char *PDStringBinaryToEscaped(char *string, PDSize len, PDBool wrapped) 
 {
-    PDSize rescap = len << 1;
+    PDSize rescap = (len << 1) + (wrapped << 1);
     if (rescap < 10) rescap = 10;
     PDSize reslen = 0;
     char *res = malloc(rescap);
     char ch, e;
     PDSize i;
+    
+    if (wrapped) res[reslen++] = '(';
     
     for (i = 0; i < len; i++) {
         ch = string[i];
@@ -300,6 +317,9 @@ char *PDStringBinaryToEscaped(char *string, PDSize len)
             res = realloc(res, rescap);
         }
     }
+    
+    if (wrapped) res[reslen++] = ')';
+    
     res[reslen] = 0;
     return res;
 }
@@ -308,7 +328,7 @@ char *PDStringHexToEscaped(char *string, PDSize len, PDBool wrapped)
 {
     // currently we do this by going to binary format first
     char *tmp = PDStringHexToBinary(string, len, wrapped, &len);
-    char *res = PDStringBinaryToEscaped(tmp, len);
+    char *res = PDStringBinaryToEscaped(tmp, len, wrapped);
     free(tmp);
     return res;
 }
@@ -317,7 +337,82 @@ char *PDStringEscapedToHex(char *string, PDSize len, PDBool wrapped)
 {
     // currently we do this by going to binary format first
     char *tmp = PDStringEscapedToBinary(string, len, wrapped, &len);
-    char *res = PDStringBinaryToHex(tmp, len);
+    char *res = PDStringBinaryToHex(tmp, len, wrapped);
     free(tmp);
     return res;
 }
+
+PDInteger PDStringPrinter(void *inst, char **buf, PDInteger offs, PDInteger *cap)
+{
+    PDInstancePrinterInit(PDStringRef, 5 + i->length, 5 + i->length);
+
+#ifdef PD_SUPPORT_CRYPTO
+    if (i->ci && i->ci->crypto && ! i->encrypted) {
+        PDStringRef enc = PDStringCreateEncrypted(i);
+        offs = PDStringPrinter(enc, buf, offs, cap);
+        PDRelease(enc);
+        return offs;
+    }
+#endif
+    
+    char *str = i->data;
+    PDSize len = i->length;
+    if (i->type == PDStringTypeBinary) {
+        str = PDStringBinaryToEscaped(str, len, true);
+        len = strlen(str);
+        PDInstancePrinterRequire(1 + len, 1 + len);
+    }
+    
+    char *bv = *buf;
+    strcpy(&bv[offs], str);
+    return offs + len;
+}
+
+#pragma mark - Crypto
+
+#ifdef PD_SUPPORT_CRYPTO
+
+void PDStringAttachCrypto(PDStringRef string, pd_crypto crypto, PDInteger objectID, PDInteger genNumber, PDBool encrypted)
+{
+#ifdef PD_SUPPORT_CRYPTO
+    PDCryptoInstanceRef ci = PDCryptoInstanceCreate(crypto, objectID, genNumber, NULL);
+    string->ci = ci;
+    string->encrypted = encrypted;
+#endif
+}
+
+void PDStringAttachCryptoInstance(PDStringRef string, PDCryptoInstanceRef ci, PDBool encrypted)
+{
+#ifdef PD_SUPPORT_CRYPTO
+    string->ci = PDRetain(ci);
+    string->encrypted = encrypted;
+#endif
+}
+
+PDStringRef PDStringCreateEncrypted(PDStringRef string)
+{
+    if (NULL == string->ci || string->encrypted) return PDRetain(string);
+    
+    PDSize len;
+    char *str = PDStringBinaryValue(string, &len);
+    char *dst;
+    len = pd_crypto_encrypt(string->ci->crypto, string->ci->obid, string->ci->genid, &dst, str, len);
+    free(str);
+    PDStringRef encrypted = PDStringCreateBinary(dst, len);
+    PDStringAttachCryptoInstance(encrypted, string->ci, true);
+    return encrypted;
+}
+
+PDStringRef PDStringCreateDecrypted(PDStringRef string)
+{
+    if (NULL == string->ci || ! string->encrypted) return PDRetain(string);
+    
+    PDSize len;
+    char *data = PDStringBinaryValue(string, &len);
+    pd_crypto_convert(string->ci->crypto, string->ci->obid, string->ci->genid, data, len);
+    PDStringRef decrypted = PDStringCreate(data);
+    PDStringAttachCryptoInstance(decrypted, string->ci, false);
+    return decrypted;
+}
+
+#endif

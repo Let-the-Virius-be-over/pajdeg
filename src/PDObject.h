@@ -574,6 +574,8 @@ extern void PDObjectSetStreamEncrypted(PDObjectRef object, PDBool encrypted);
  */
 extern PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDInteger capacity);
 
+extern PDInteger PDObjectPrinter(void *inst, char **buf, PDInteger offs, PDInteger *cap);
+
 #endif
 
 /** @} */

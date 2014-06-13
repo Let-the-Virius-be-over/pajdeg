@@ -122,18 +122,16 @@ extern PDStateRef arbStream;
 extern char *PDStringFromComplex(pd_stack *complex);
 
 /**
- *  Convert stack representation of complex object into an appropriate
- *  object, whose type is written into outType. 
+ *  Convert stack representation of complex object into an appropriate object.
  *
  *  @note Returned strings are returned as PDString instances, arrays and dicts as PDCollection instances.
- *  @note Returned object must be PDRelease()'d
+ *  @note Returned entry's value must be PDRelease()'d
  *
  *  @param complex Stack representation 
- *  @param outType Pointer to PDObjectType into which the resulting type is written, or NULL if type is unnecessary
  *
- *  @return A newly created, retained object based on the encountered type.
+ *  @return A PDContainer struct with type and value set as appropriate.
  */
-extern void *PDTypeCreateFromComplex(pd_stack *complex, PDObjectType *outType);
+extern PDContainer PDContainerCreateFromComplex(pd_stack *complex);
 
 /**
  Determine object type from identifier.

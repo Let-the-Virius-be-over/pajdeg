@@ -77,7 +77,7 @@ void PDObjectDelete(PDObjectRef object)
     if (object->obclass != PDObjectClassCompressed) {
         object->skipObject = object->deleteObject = true;
     } else {
-        fprintf(stderr, "*** Pajdeg notice *** objects inside of object streams cannot be deleted\n");
+        PDError("Objects inside of object streams cannot be deleted");
     }
 }
 
@@ -580,5 +580,9 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
     return scv->offs;
 }
 
-
-
+PDInteger PDObjectPrinter(void *inst, char **buf, PDInteger offs, PDInteger *cap)
+{
+    PDInstancePrinterInit(PDObjectRef, 12, 50);
+    char *bv = *buf;
+    return offs + sprintf(&bv[offs], "%ld %ld R", i->obid, i->genid);;
+}

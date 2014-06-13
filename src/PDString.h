@@ -31,8 +31,8 @@
  @{
  */
 
-#ifndef INCLUDED_PDSTRING_h
-#define INCLUDED_PDSTRING_h
+#ifndef INCLUDED_PDSTRING_H
+#define INCLUDED_PDSTRING_H
 
 #include "PDDefines.h"
 
@@ -123,6 +123,46 @@ extern char *PDStringBinaryValue(PDStringRef string, PDSize *outLength);
  */
 extern char *PDStringHexValue(PDStringRef string, PDBool wrap);
 
-#endif
+#ifdef PD_SUPPORT_CRYPTO
+
+/**
+ *  Attach a crypto object to the string, and associate the array with a specific object. 
+ *  The encrypted flag is used to determine if the PDString is encrypted or not in its current state.
+ *
+ *  @param string    PDString instance whose crypto object is to be set
+ *  @param crypto    pd_crypto object
+ *  @param objectID  The object ID of the owning object
+ *  @param genNumber Generation number of the owning object
+ *  @param encrypted Whether string is encrypted or not, currently
+ */
+extern void PDStringAttachCrypto(PDStringRef string, pd_crypto crypto, PDInteger objectID, PDInteger genNumber, PDBool encrypted);
+
+/**
+ *  Create a PDString by encrypting string.
+ *
+ *  @note If string is already encrypted, or if no crypto has been attached, the string is retained and returned as is.
+ *
+ *  @param string PDString instance to encrypt
+ *
+ *  @return A retained encrypted PDStringRef for string
+ */
+extern PDStringRef PDStringCreateEncrypted(PDStringRef string);
+
+/**
+ *  Create a PDString by decrypting string.
+ *
+ *  @note If string is not encrypted, it is retained and returned as is.
+ *
+ *  @param string PDString instance
+ *
+ *  @return A retained decrypted PDStringRef for string
+ */
+extern PDStringRef PDStringCreateDecrypted(PDStringRef string);
+
+extern PDInteger PDStringPrinter(void *inst, char **buf, PDInteger offs, PDInteger *cap);
+
+#endif // PD_SUPPORT_CRYPTO
+
+#endif // INCLUDED_PDSTRING_H
 
 /** @} */

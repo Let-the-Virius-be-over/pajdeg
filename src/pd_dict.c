@@ -53,7 +53,7 @@ const pd_stack pd_dict_getter_raw(void *d, const void *key)
 const char *pd_dict_crypto_getter(void *d, const void *key)
 {
     pd_dict dict = as(pd_dict, d);
-    pd_crypto_instance ci = dict->info;
+    PDCryptoInstanceRef ci = dict->info;
     char **plain = ci->info;
 
     pd_dict_fetch_i(dict, key);
@@ -95,7 +95,7 @@ void pd_dict_crypto_remover(void *d, const void *key)
     pd_dict_fetch_i(dict, key);
     if (i == dict->count) return;
 
-    pd_crypto_instance ci = dict->info;
+    PDCryptoInstanceRef ci = dict->info;
     char **plain = ci->info;
     
     free(plain[i]);
@@ -139,7 +139,7 @@ PDInteger pd_dict_setter(void *d, const void *key, const char *value)
 PDInteger pd_dict_crypto_setter(void *d, const void *key, const char *value)
 {
     pd_dict dict = as(pd_dict, d);
-    pd_crypto_instance ci = dict->info;
+    PDCryptoInstanceRef ci = dict->info;
     char **plain = ci->info;
 
     pd_dict_fetch_i(dict, key);
@@ -199,7 +199,7 @@ void pd_dict_destroy(pd_dict dict)
 #ifdef PD_SUPPORT_CRYPTO
     if (dict->info) {
         // we don't bother with signature juggling for this as it presumably happens relatively seldom (destruction of dicts, that is), compared to getting/setting
-        pd_crypto_instance ci = dict->info;
+        PDCryptoInstanceRef ci = dict->info;
         free(ci->info);
         free(ci);
     }
@@ -219,11 +219,7 @@ void pd_dict_destroy(pd_dict dict)
 void pd_dict_set_crypto(pd_dict dict, pd_crypto crypto, PDInteger objectID, PDInteger genNumber)
 {
 #ifdef PD_SUPPORT_CRYPTO
-    pd_crypto_instance ci = malloc(sizeof(struct pd_crypto_instance));
-    ci->info = calloc(dict->capacity, sizeof(char *));
-    ci->crypto = crypto;
-    ci->obid = objectID;
-    ci->genid = genNumber;
+    PDCryptoInstanceRef ci = PDCryptoInstanceCreate(crypto, objectID, genNumber, calloc(dict->capacity, sizeof(char *)));
     dict->info = ci;
     dict->g = pd_dict_crypto_getter;
     //dict->rg = pd_dict_getter_raw; // already the case

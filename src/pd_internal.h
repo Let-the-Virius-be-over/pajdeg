@@ -76,7 +76,7 @@ extern PDObjectRef PDObjectCreate(PDInteger obid, PDInteger genid);
 #define PDTYPE_PTR_LEN  2
 #endif
 
-/*
+/**
  @cond IGNORE
  
  The PDType union. 
@@ -552,8 +552,57 @@ struct pd_dict {
 /**
  Crypto instance for arrays/dicts.
  */
-typedef struct pd_crypto_instance *pd_crypto_instance;
-struct pd_crypto_instance {
+typedef struct PDCryptoInstance *PDCryptoInstanceRef;
+
+extern PDCryptoInstanceRef PDCryptoInstanceCreate(pd_crypto crypto, PDInteger obid, PDInteger gennum, void *info);
+
+/**
+ *  Crypto object exchange function signature.
+ *
+ *  Used to hand crypto information to arbitrary objects.
+ */
+typedef void (*PDInstanceCryptoExchange)(void *inst, PDCryptoInstanceRef ci, PDBool encrypted);
+
+/**
+ *  Crypto object exchange function array, matching up with all non-negative PDInstanceType entries.
+ */
+extern PDInstanceCryptoExchange PDInstanceCryptoExchanges[];
+
+#endif
+
+/**
+ The internal array structure.
+ */
+struct PDArray {
+    PDInteger        count;     ///< Number of elements
+    PDInteger        capacity;  ///< Capacity of array
+    PDContainer     *values;    ///< Resolved values
+    pd_stack        *vstacks;   ///< Unresolved values in pd_stack form
+#ifdef PD_SUPPORT_CRYPTO
+    PDCryptoInstanceRef ci;     ///< Crypto instance, if array is encrypted
+#endif
+};
+
+/**
+ The internal dictionary structure.
+ */
+struct PDDictionary {
+    PDInteger        count;     ///< Number of entries
+    PDInteger        capacity;  ///< Capacity of dictionary
+    char           **keys;      ///< Keys
+    PDContainer     *values;    ///< Resolved values
+    pd_stack        *vstacks;   ///< Unresolved values in pd_stack form
+#ifdef PD_SUPPORT_CRYPTO
+    PDCryptoInstanceRef ci;     ///< Crypto instance, if dictionary is encrypted
+#endif
+};
+
+#ifdef PD_SUPPORT_CRYPTO
+
+/**
+ Crypto instance for arrays/dicts.
+ */
+struct PDCryptoInstance {
     pd_crypto crypto;           ///< Crypto object.
     PDInteger obid;             ///< Associated object ID.
     PDInteger genid;            ///< Associated generation number.
@@ -712,6 +761,22 @@ struct PDReference {
     PDInteger genid;        ///< The generation number
 };
 
+/// @name Number
+
+/**
+ Internal number structure.
+ 
+ @ingroup PDNUMBER
+ */
+struct PDNumber {
+    PDObjectType type;      ///< Type of the number
+    union {
+        PDInteger i;
+        PDReal r;
+        PDBool b;
+    };
+};
+
 /// @name String
 
 /**
@@ -724,7 +789,15 @@ struct PDString {
     PDSize length;          ///< Length of the string
     PDBool wrapped;         ///< Whether the string is wrapped
     char *data;             ///< Buffer containing string data
+#ifdef PD_SUPPORT_CRYPTO
+    PDCryptoInstanceRef ci;  ///< Crypto instance
+    PDBool encrypted;       ///< Flag indicating whether the string is encrypted or not, currently
+#endif
 };
+
+extern void PDStringAttachCryptoInstance(PDStringRef string, PDCryptoInstanceRef ci, PDBool encrypted);
+extern void PDArrayAttachCryptoInstance(PDArrayRef array, PDCryptoInstanceRef ci, PDBool encrypted);
+extern void PDDictionaryAttachCryptoInstance(PDDictionaryRef dictionary, PDCryptoInstanceRef ci, PDBool encrypted);
 
 /// @name Collection
 
@@ -865,6 +938,16 @@ extern void _PDBreak();
  @param ts The twin stream.
  */
 extern void PDTwinStreamAsserts(PDTwinStreamRef ts);
+
+#define PDInstancePrinterRequire(b, r) \
+    if (*cap - offs < b) { \
+        *cap += r; \
+        *buf = realloc(*buf, *cap); \
+    }
+
+#define PDInstancePrinterInit(itype, b, r) \
+    itype i = (itype) inst;\
+    PDInstancePrinterRequire(b, r)
 
 /**
  @def fmatox(x, ato)

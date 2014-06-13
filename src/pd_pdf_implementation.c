@@ -32,6 +32,10 @@
 #include "pd_dict.h"
 #include "pd_array.h"
 #include "PDCollection.h"
+#include "PDNumber.h"
+#include "PDObject.h"
+#include "PDArray.h"
+#include "PDDictionary.h"
 
 void PDDeallocatorNullFunc(void *ob) {}
 
@@ -606,39 +610,44 @@ char *PDStringFromComplex(pd_stack *complex)
     return scv.allocBuf;
 }
 
-void *PDTypeCreateFromComplex(pd_stack *complex, PDObjectType *outType)
+PDContainer PDContainerCreateFromComplex(pd_stack *complex)
 {
-    PDObjectType type = PDObjectTypeUnknown;
+    PDInstanceType type = PDInstanceTypeUnknown;
     void *result = NULL;
     
     if ((*complex)->type == PD_STACK_ID) {
         PDID tid = pd_stack_pop_identifier(complex);
         if (PDIdentifies(tid, PD_REF)) {
-            type = PDObjectTypeReference;
+            type = PDInstanceTypeRef;
             result = PDReferenceCreateFromStackDictEntry(*complex);
         }
         else if (PDIdentifies(tid, PD_HEXSTR)) {
-            type = PDObjectTypeString;
+            type = PDInstanceTypeString;
             result = PDStringCreateWithHexString((*complex)->prev->info);
         }
         else if (PDIdentifies(tid, PD_DICT)) {
-            type = PDObjectTypeDictionary;
+            type = PDInstanceTypeDict;
             result = PDCollectionCreateWithDictionary(pd_dict_from_pdf_dict_stack(*complex));
         }
         else if (PDIdentifies(tid, PD_ARRAY)) {
-            type = PDObjectTypeArray;
+            type = PDInstanceTypeArray;
             result = PDCollectionCreateWithArray(pd_array_from_pdf_array_stack(*complex));
         }
         else {
             PDError("uncaught type in PDTypeFromComplex()");
         }
-    } else {
-        // short array is the "default"
+    } else if ((*complex)->prev) {
+        // short array is the "default" when a prev exists and type != PD_STACK_ID
+        type = PDInstanceTypeArray;
         result = PDCollectionCreateWithArray(pd_array_from_stack(*complex));
+    } else if ((*complex)->type == PD_STACK_STRING) {
+        type = PDInstanceTypeString;
+        result = PDStringCreate((*complex)->info);
+    } else {
+        PDError("unable to create PDType from unknown complex structure");
     }
     
-    if (outType) *outType = type;
-    return result;
+    return (PDContainer) { type, result };
 }
 
 PDObjectType PDObjectTypeFromIdentifier(PDID identifier)
@@ -782,4 +791,34 @@ void PDStringFromArbitrary(pd_stack *s, PDStringConvRef scv)
     }
 }
 
+//PDInstanceTypeUnset     =-2,    ///< The associated instance value has not been set yet
+//PDInstanceTypeUnknown   =-1,    ///< Undefined / non-allocated instance
+//PDInstanceTypeNull      = 0,    ///< NULL
+//PDInstanceTypeNumber    = 1,    ///< PDNumber
+//PDInstanceTypeString    = 2,    ///< PDString
+//PDInstanceTypeArray     = 3,    ///< PDArray
+//PDInstanceTypeDict      = 4,    ///< PDDictionary
+//PDInstanceTypeRef       = 5,    ///< PDReference
+//PDInstanceTypeObj       = 6,    ///< PDObject
+
+PDInteger PDNullPrinter(void *inst, char **buf, PDInteger offs, PDInteger *cap)
+{
+    PDInstancePrinterRequire(5, 5);
+    char *bv = *buf;
+    strcpy(&bv[offs], "null");
+    return offs + 4;
+}
+
+void PDNullExchange(void *inst, PDCryptoInstanceRef ci, PDBool encrypted)
+{}
+
+PDInstancePrinter PDInstancePrinters [] = {PDNullPrinter, PDNumberPrinter, PDStringPrinter, PDArrayPrinter, PDDictionaryPrinter, PDReferencePrinter, PDObjectPrinter};
+
+#ifdef PD_SUPPORT_CRYPTO
+
+PDInstanceCryptoExchange PDInstanceCryptoExchanges[] = {PDNullExchange, PDNullExchange, (PDInstanceCryptoExchange)PDStringAttachCryptoInstance, (PDInstanceCryptoExchange)PDArrayAttachCryptoInstance, (PDInstanceCryptoExchange)PDDictionaryAttachCryptoInstance, PDNullExchange, PDNullExchange};
+
+#endif
+
 PDDeallocator PDDeallocatorNull;
+

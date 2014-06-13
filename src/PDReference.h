@@ -67,6 +67,8 @@ extern PDInteger PDReferenceGetObjectID(PDReferenceRef reference);
  */
 extern PDInteger PDReferenceGetGenerationID(PDReferenceRef reference);
 
+extern PDInteger PDReferencePrinter(void *inst, char **buf, PDInteger offs, PDInteger *cap);
+
 #endif
 
 /** @} */

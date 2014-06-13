@@ -57,3 +57,10 @@ PDInteger PDReferenceGetGenerationID(PDReferenceRef reference)
 {
     return reference->genid;
 }
+
+PDInteger PDReferencePrinter(void *inst, char **buf, PDInteger offs, PDInteger *cap)
+{
+    PDInstancePrinterInit(PDReferenceRef, 12, 50);
+    char *bv = *buf;
+    return offs + sprintf(&bv[offs], "%ld %ld R", i->obid, i->genid);;
+}
