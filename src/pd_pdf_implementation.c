@@ -632,6 +632,9 @@ void *PDTypeCreateFromComplex(pd_stack *complex, PDObjectType *outType)
         else {
             PDError("uncaught type in PDTypeFromComplex()");
         }
+    } else {
+        // short array is the "default"
+        result = PDCollectionCreateWithArray(pd_array_from_stack(*complex));
     }
     
     if (outType) *outType = type;
