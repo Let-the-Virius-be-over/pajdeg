@@ -138,7 +138,6 @@ PDCatalogRef PDCatalogCreateWithParserForObject(PDParserRef parser, PDObjectRef 
         return NULL;
     }
     PDCatalogAppendPages(catalog, &catalog->pages, defs);
-    //PDCatalogAppendPagesWithID(catalog, PDIntegerFromString(sref));
     
     return catalog;
 }
