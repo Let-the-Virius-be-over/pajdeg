@@ -257,28 +257,28 @@ PDInteger pd_crypto_unescape_explicit_len(char *str, int iend)
     return si;
 }
 
-pd_crypto_param pd_crypto_decode_param(const char *param)
-{
-    // param can be a (string with \escapes) or a <hex string>
-    pd_crypto_param cp;
-    cp.d = NULL;
-    cp.l = 0;
-    if (param == NULL || strlen(param) == 0) {
-        return cp;
-    }
-    
-    if (param[0] == '(') {
-        if (param[strlen(param)-1] != ')') {
-            // special case; sometimes encryption keys contain \0; invalid of course, as these must be escaped, but life is life
-            param = &param[1];
-        }
-        cp.d = (unsigned char *)strdup(param);
-        cp.l = pd_crypto_unescape((char *)cp.d);
-        return cp;
-    }
-
-    return pd_crypto_decode_pdf_hex(param);
-}
+//pd_crypto_param pd_crypto_decode_param(const char *param)
+//{
+//    // param can be a (string with \escapes) or a <hex string>
+//    pd_crypto_param cp;
+//    cp.d = NULL;
+//    cp.l = 0;
+//    if (param == NULL || strlen(param) == 0) {
+//        return cp;
+//    }
+//    
+//    if (param[0] == '(') {
+//        if (param[strlen(param)-1] != ')') {
+//            // special case; sometimes encryption keys contain \0; invalid of course, as these must be escaped, but life is life
+//            param = &param[1];
+//        }
+//        cp.d = (unsigned char *)strdup(param);
+//        cp.l = pd_crypto_unescape((char *)cp.d);
+//        return cp;
+//    }
+//
+//    return pd_crypto_decode_pdf_hex(param);
+//}
 
 pd_crypto pd_crypto_create(PDDictionaryRef trailerDict, PDDictionaryRef options)
 {

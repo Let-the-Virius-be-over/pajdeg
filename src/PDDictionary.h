@@ -98,6 +98,10 @@ extern void *PDDictionaryGetTypedEntry(PDDictionaryRef dictionary, const char *k
 #define PDDictionaryGetReference(d,k)   PDDictionaryGetTypedEntry(d,k,PDInstanceTypeRef)
 #define PDDictionaryGetObject(d,k)      PDDictionaryGetTypedEntry(d,k,PDInstanceTypeObj)
 
+#define PDDictionaryGetInteger(d,k)     PDNumberGetInteger(PDDictionaryGetNumber(d,k))
+#define PDDictionaryGetReal(d,k)        PDNumberGetReal(PDDictionaryGetNumber(d,k))
+#define PDDictionaryGetBool(d,k)        PDNumberGetBool(PDDictionaryGetNumber(d,k))
+
 /**
  *  Set value of given instance type for the given key in the dictionary.
  *

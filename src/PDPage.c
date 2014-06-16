@@ -32,6 +32,7 @@
 #include "PDCatalog.h"
 #include "PDArray.h"
 #include "PDDictionary.h"
+#include "PDNumber.h"
 
 void PDPageDestroy(PDPageRef page)
 {
@@ -42,9 +43,7 @@ void PDPageDestroy(PDPageRef page)
         for (PDInteger i = 0; i < page->contentCount; i++) {
             PDRelease(page->contentObs[i]);
         }
-        if (page->contentRefs) {
-            pd_array_destroy(page->contentRefs);
-        }
+        PDRelease(page->contentRefs);
     }
 }
 
@@ -79,39 +78,42 @@ PDPageRef PDPageCreateWithObject(PDParserRef parser, PDObjectRef object)
 
 PDTaskResult PDPageInsertionTask(PDPipeRef pipe, PDTaskRef task, PDObjectRef object, void *info)
 {
-    char *buf = malloc(64);
+//    char *buf = malloc(64);
     
     PDObjectRef *userInfo = info;
     PDObjectRef neighbor = userInfo[0];
     PDObjectRef importedObject = userInfo[1];
     free(userInfo);
     
-    pd_dict dict = PDObjectGetDictionary(object);
-    pd_array kids = pd_dict_get_copy(dict, "Kids");
-    pd_array_print(kids);
+    PDDictionaryRef dict = PDObjectGetDictionary(object);
+    PDArrayRef kids = PDDictionaryGetArray(dict, "Kids");
+//    pd_array_print(kids);
     if (NULL != neighbor) {
-        sprintf(buf, "%ld 0 R", PDObjectGetObID(neighbor));
-        PDInteger index = pd_array_get_index_of_value(kids, buf);
+//        sprintf(buf, "%ld 0 R", PDObjectGetObID(neighbor));
+        PDInteger index = PDArrayGetIndex(kids, neighbor);
+        //pd_array_get_index_of_value(kids, buf);
         if (index < 0) {
             // neighbor not in there
             PDError("expected neighbor not found in Kids array");
             PDRelease(neighbor);
             neighbor = NULL;
         } else {
-            sprintf(buf, "%ld 0 R", PDObjectGetObID(importedObject));
-            pd_array_insert_at_index(kids, index, buf);
+//            sprintf(buf, "%ld 0 R", PDObjectGetObID(importedObject));
+            PDArrayInsertAtIndex(kids, index, importedObject, PDInstanceTypeObj);
+//            pd_array_insert_at_index(kids, index, buf);
         }
     }
     
     if (NULL == neighbor) {
-        sprintf(buf, "%ld 0 R", PDObjectGetObID(importedObject));
-        pd_array_append(kids, buf);
+//        sprintf(buf, "%ld 0 R", PDObjectGetObID(importedObject));
+        PDArrayAppend(kids, importedObject, PDInstanceTypeObj);
+//        pd_array_append(kids, buf);
     }
-    pd_array_print(kids);
+//    pd_array_print(kids);
     
-    pd_dict_set_raw(dict, "Kids", pd_array_to_stack(kids));
+//    pd_dict_set_raw(dict, "Kids", pd_array_to_stack(kids));
 
-    free(buf);
+//    free(buf);
     PDRelease(importedObject);
     PDRelease(neighbor);
     
@@ -125,9 +127,15 @@ PDTaskResult PDPageCountupTask(PDPipeRef pipe, PDTaskRef task, PDObjectRef objec
     /// @todo Add a PDTaskSkipSame flag and make PDTaskResults OR-able where appropriate
     PDObjectRef source = info;
     
-    const char *realCount = PDObjectGetDictionaryEntry(source, "Count");
-    if (strcmp(realCount, PDObjectGetDictionaryEntry(object, "Count"))) {
-        PDObjectSetDictionaryEntry(object, "Count", realCount);
+    PDDictionaryRef obDict = PDObjectGetDictionary(object);
+    PDNumberRef realCountNum = PDDictionaryGetNumber(PDObjectGetDictionary(source), "Count");
+    PDInteger realCount = PDNumberGetInteger(realCountNum);
+    PDInteger obCount   = PDDictionaryGetInteger(obDict, "Count");
+    if (obCount == realCount) {
+        PDDictionarySetEntry(obDict, "Count", realCountNum, PDInstanceTypeNumber);
+//    const char *realCount = PDObjectGetDictionaryEntry(source, "Count");
+//    if (strcmp(realCount, PDObjectGetDictionaryEntry(object, "Count"))) {
+//        PDObjectSetDictionaryEntry(object, "Count", realCount);
     }
     
     PDRelease(source);
