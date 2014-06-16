@@ -24,7 +24,7 @@
 #include "PDObject.h"
 #include "PDBTree.h"
 #include "PDOperator.h"
-#include "pd_array.h"
+#include "PDArray.h"
 #include "pd_stack.h"
 
 void PDContentStreamOperationDestroy(PDContentStreamOperationRef op)

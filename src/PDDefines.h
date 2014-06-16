@@ -276,23 +276,23 @@ typedef union PDType *PDTypeRef;
  */
 typedef struct pd_stack      *pd_stack;
 
-/**
- A low-performance array implementation.
- 
- @ingroup pd_array
- 
- The pd_array.
- */
-typedef struct pd_array     *pd_array;
-
-/**
- A low-performance dictionary implementation.
- 
- @ingroup pd_dict
- 
- The pd_dict.
- */
-typedef struct pd_dict      *pd_dict;
+///**
+// A low-performance array implementation.
+// 
+// @ingroup pd_array
+// 
+// The pd_array.
+// */
+//typedef struct pd_array     *pd_array;
+//
+///**
+// A low-performance dictionary implementation.
+// 
+// @ingroup pd_dict
+// 
+// The pd_dict.
+// */
+//typedef struct pd_dict      *pd_dict;
 
 /**
  A low-performance array implementation.
@@ -571,8 +571,8 @@ typedef struct PDString  *PDStringRef;
  @ingroup PDCOLLECTION
  */
 typedef enum {
-    PDCollectionTypeArray = 1,      ///< A pd_array
-    PDCollectionTypeDictionary = 2, ///< A pd_dict
+    PDCollectionTypeArray = 1,      ///< A PDArrayRef
+    PDCollectionTypeDictionary = 2, ///< A PDDictionaryRef
     PDCollectionTypeStack = 3,      ///< A pd_stack
 } PDCollectionType;
 

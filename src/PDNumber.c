@@ -55,6 +55,7 @@ PDNumberRef PDNumberCreateWithBool(PDBool b)
 
 PDInteger PDNumberGetInteger(PDNumberRef n)
 {
+    if (n == NULL) return 0;
     switch (n->type) {
         case PDObjectTypeInteger:
             return n->i;
@@ -67,6 +68,7 @@ PDInteger PDNumberGetInteger(PDNumberRef n)
 
 PDReal PDNumberGetReal(PDNumberRef n)
 {
+    if (n == NULL) return 0;
     switch (n->type) {
         case PDObjectTypeInteger:
             return (PDReal)n->i;
@@ -79,6 +81,7 @@ PDReal PDNumberGetReal(PDNumberRef n)
 
 PDBool PDNumberGetBool(PDNumberRef n)
 {
+    if (n == NULL) return false;
     switch (n->type) {
         case PDObjectTypeInteger:
             return 0 != n->i;

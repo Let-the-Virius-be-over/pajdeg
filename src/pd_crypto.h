@@ -49,7 +49,7 @@
  @param options The pd_dict of the Encrypt dictionary of the given PDF.
  @return Instance with given options or NULL if unsupported.
  */
-extern pd_crypto pd_crypto_create(pd_dict trailerDict, pd_dict options);
+extern pd_crypto pd_crypto_create(PDDictionaryRef trailerDict, PDDictionaryRef options);
 
 /**
  Destroy crypto object, freeing up resources.

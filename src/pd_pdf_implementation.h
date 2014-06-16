@@ -124,7 +124,7 @@ extern char *PDStringFromComplex(pd_stack *complex);
 /**
  *  Convert stack representation of complex object into an appropriate object.
  *
- *  @note Returned strings are returned as PDString instances, arrays and dicts as PDCollection instances.
+ *  @note Returned strings are returned as PDString instances.
  *  @note Returned entry's value must be PDRelease()'d
  *
  *  @param complex Stack representation 

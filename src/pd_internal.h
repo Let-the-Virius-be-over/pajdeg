@@ -140,6 +140,7 @@ struct PDObject {
     PDObjectClass       obclass;        ///< object class (regular, compressed, or trailer)
     PDObjectType        type;           ///< data structure of def below
     void               *def;            ///< the object content
+    PDContainer         container;      ///< container for the instantiated definition, or NULL if not yet instantiated
     PDBool              hasStream;      ///< if set, object has a stream
     PDInteger           streamLen;      ///< length of stream (if one exists)
     PDInteger           extractedLen;   ///< length of extracted stream; -1 until stream has been fetched via the parser
@@ -148,8 +149,6 @@ struct PDObject {
     PDBool              skipObject;     ///< if set, entire object is discarded
     PDBool              deleteObject;   ///< if set, the object's XREF table slot is marked as free
     pd_stack            mutations;      ///< key/value stack of alterations to do when writing the object
-    pd_array            array;          ///< array content; set if the object is an array and has been instantiated
-    pd_dict             dict;           ///< dictionary content; set if the object is a dictionary and has been instantiated
     char               *ovrStream;      ///< stream override
     PDInteger           ovrStreamLen;   ///< length of ^
     PDBool              ovrStreamAlloc; ///< if set, ovrStream will be free()d by the object after use
@@ -252,7 +251,7 @@ extern void PDObjectStreamCommit(PDObjectStreamRef obstm);
 struct PDContentStream {
     PDObjectRef ob;                     ///< obstream object
     PDBTreeRef opertree;                ///< operator tree
-    pd_array args;                      ///< pending operator arguments
+    PDArrayRef args;                    ///< pending operator arguments
     pd_stack opers;                     ///< current operators stack
     const char *lastOperator;           ///< the last operator that was encountered
 };
@@ -272,7 +271,7 @@ struct PDPage {
     PDObjectRef  ob;           ///< the /Page object
     PDParserRef  parser;       ///< the parser associated with the owning PDF document
     PDInteger    contentCount; ///< # of content objects in the page
-    pd_array     contentRefs;  ///< array of content references for the page
+    PDArrayRef   contentRefs;  ///< array of content references for the page
     PDObjectRef *contentObs;   ///< array of content objects for the page, or NULL if unfetched
 };
 
@@ -490,62 +489,62 @@ struct pd_stack {
 };
 
 
-/**
- "Get string object for key" signature for arrays/dictionaries. (Arrays pass integers as keys.)
- */
-typedef const char *(*_list_getter)(void *ref, const void *key);
-
-/**
- "Get raw object for key" signature for arrays/dictionaries. (Arrays pass integers as keys.)
- */
-typedef const pd_stack (*_list_getter_raw)(void *ref, const void *key);
-
-/**
- "Remove object for key" signature for arrays/dictionaries. (Arrays pass integers as keys.)
- */
-typedef void (*_list_remover)(void *ref, const void *key);
-
-/**
- "Set object for key to value" signature for arrays/dictionaries.
- */
-typedef PDInteger (*_list_setter)(void *ref, const void *key, const char *value);
-
-/**
- "Make room at index" signature for arrays.
- */
-typedef void (*_list_push_index)(void *ref, PDInteger index);
-
-/**
- The internal array structure.
- */
-struct pd_array {
-    PDInteger        count;     ///< Number of elements
-    PDInteger        capacity;  ///< Capacity of array
-    char           **values;    ///< Content
-    pd_stack        *vstacks;   ///< Values in pd_stack form
-    _list_getter     g;         ///< Getter
-    _list_getter_raw rg;        ///< Raw getter
-    _list_setter     s;         ///< Setter
-    _list_remover    r;         ///< Remover
-    _list_push_index pi;        ///< Push-indexer
-    void            *info;      ///< Info object (used for encrypted arrays)
-};
-
-/**
- The internal dictionary structure.
- */
-struct pd_dict {
-    PDInteger        count;     ///< Number of entries
-    PDInteger        capacity;  ///< Capacity of dictionary
-    char           **keys;      ///< Keys
-    char           **values;    ///< Values
-    pd_stack        *vstacks;   ///< Values in pd_stack form
-    _list_getter     g;         ///< Getter
-    _list_getter_raw rg;        ///< Raw getter
-    _list_setter     s;         ///< Setter
-    _list_remover    r;         ///< Remover
-    void            *info;      ///< Info object (used for encrypted arrays)
-};
+///**
+// "Get string object for key" signature for arrays/dictionaries. (Arrays pass integers as keys.)
+// */
+//typedef const char *(*_list_getter)(void *ref, const void *key);
+//
+///**
+// "Get raw object for key" signature for arrays/dictionaries. (Arrays pass integers as keys.)
+// */
+//typedef const pd_stack (*_list_getter_raw)(void *ref, const void *key);
+//
+///**
+// "Remove object for key" signature for arrays/dictionaries. (Arrays pass integers as keys.)
+// */
+//typedef void (*_list_remover)(void *ref, const void *key);
+//
+///**
+// "Set object for key to value" signature for arrays/dictionaries.
+// */
+//typedef PDInteger (*_list_setter)(void *ref, const void *key, const char *value);
+//
+///**
+// "Make room at index" signature for arrays.
+// */
+//typedef void (*_list_push_index)(void *ref, PDInteger index);
+//
+///**
+// The internal array structure.
+// */
+//struct pd_array {
+//    PDInteger        count;     ///< Number of elements
+//    PDInteger        capacity;  ///< Capacity of array
+//    char           **values;    ///< Content
+//    pd_stack        *vstacks;   ///< Values in pd_stack form
+//    _list_getter     g;         ///< Getter
+//    _list_getter_raw rg;        ///< Raw getter
+//    _list_setter     s;         ///< Setter
+//    _list_remover    r;         ///< Remover
+//    _list_push_index pi;        ///< Push-indexer
+//    void            *info;      ///< Info object (used for encrypted arrays)
+//};
+//
+///**
+// The internal dictionary structure.
+// */
+//struct pd_dict {
+//    PDInteger        count;     ///< Number of entries
+//    PDInteger        capacity;  ///< Capacity of dictionary
+//    char           **keys;      ///< Keys
+//    char           **values;    ///< Values
+//    pd_stack        *vstacks;   ///< Values in pd_stack form
+//    _list_getter     g;         ///< Getter
+//    _list_getter_raw rg;        ///< Raw getter
+//    _list_setter     s;         ///< Setter
+//    _list_remover    r;         ///< Remover
+//    void            *info;      ///< Info object (used for encrypted arrays)
+//};
 
 #ifdef PD_SUPPORT_CRYPTO
 
@@ -799,17 +798,17 @@ extern void PDStringAttachCryptoInstance(PDStringRef string, PDCryptoInstanceRef
 extern void PDArrayAttachCryptoInstance(PDArrayRef array, PDCryptoInstanceRef ci, PDBool encrypted);
 extern void PDDictionaryAttachCryptoInstance(PDDictionaryRef dictionary, PDCryptoInstanceRef ci, PDBool encrypted);
 
-/// @name Collection
-
-/**
- Internal collection structure.
- 
- @ingroup PDCOLLECTION
- */
-struct PDCollection {
-    PDCollectionType type;  ///< Type of the collection
-    void *data;             ///< Contained data, a pd_array or pd_dict object depending on type
-};
+///// @name Collection
+//
+///**
+// Internal collection structure.
+// 
+// @ingroup PDCOLLECTION
+// */
+//struct PDCollection {
+//    PDCollectionType type;  ///< Type of the collection
+//    void *data;             ///< Contained data, 
+//};
 
 /// @name Conversion (PDF specification)
 

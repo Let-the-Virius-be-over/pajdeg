@@ -24,7 +24,7 @@
 
 #include "pd_internal.h"
 #include "pd_stack.h"
-#include "pd_dict.h"
+#include "PDDictionary.h"
 
 void PDPageReferenceDestroy(PDPageReference * page)
 {

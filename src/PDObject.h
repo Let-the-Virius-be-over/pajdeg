@@ -240,220 +240,46 @@ extern char *PDObjectGetValue(PDObjectRef object);
  
  @note If object is non-primitive (e.g. dictionary), this operation will at best leak memory and at worst crash.
  
- @param object The object.
+ @param object The object
  @param The new value of the primitive (string, integer, real, ...) object. 
  */
 extern void PDObjectSetValue(PDObjectRef object, const char *value);
 
-/// @name Dictionary objects
-
 /**
- Fetch the dictionary entry for the given key.
- 
- @warning Crashes if the object is not a dictionary.
- 
- @param object The object.
- @param key The dictionary key. Note that keys in a PDF dictionary are names, i.e. /Something, but the corresponding key in PDObjectRef is the string without the forward slash, i.e. "Something" in this case.
- */
-extern const char *PDObjectGetDictionaryEntry(PDObjectRef object, const char *key);
-
-/**
- Fetch the raw (pd_stack) dictionary entry for the given key.
- 
- @warning Crashes if the object is not a dictionary.
- 
- @param object The object.
- @param key The dictionary key. Note that keys in a PDF dictionary are names, i.e. /Something, but the corresponding key in PDObjectRef is the string without the forward slash, i.e. "Something" in this case.
- */
-extern const pd_stack PDObjectGetDictionaryEntryRaw(PDObjectRef object, const char *key);
-
-/**
- *  Get the object type of the entry for the given key. 
+ *  Get the instance type of the object.
  *
- *  @param object Dictionary object
- *  @param key    Key for the entry
+ *  @param object The object
  *
- *  @return PDObjectType enum value. PDObjectTypeNull is returned for missing keys.
+ *  @return Instance type value. PDInstanceTypeUnknown is returned if the instance type could not be determined.
  */
-extern PDObjectType PDObjectGetDictionaryEntryType(PDObjectRef object, const char *key);
+extern PDInstanceType PDObjectGetInstanceType(PDObjectRef object);
 
 /**
- *  Obtain a copy of the entry for the given key.
+ *  Get the container (simple struct with type and a pointer to the appropriate instance type) for the object
  *
- *  The type of the returned object can be determined using PDObjectGetDictionaryEntryType, and maps to the following types:
- *  - PDObjectTypeNull       -> NULL
- *  - PDObjectTypeUnknown    -> (not applicable)
- *  - PDObjectTypeBoolean    -> PDBool
- *  - PDObjectTypeInteger    -> PDInteger
- *  - PDObjectTypeReal       -> PDReal
- *  - PDObjectTypeName       -> const char *
- *  - PDObjectTypeString     -> const char *
- *  - PDObjectTypeArray      -> pd_array
- *  - PDObjectTypeDictionary -> pd_dict
- *  - PDObjectTypeStream     -> (not applicable)
- *  - PDObjectTypeReference  -> PDReference
+ *  @param object The object
  *
- *  @note Making changes to the copy naturally does not affect the object.
- *  @note The returned value must be released or freed accordingly.
- *
- *  @param object Dictionary object
- *  @param key    Key for the entry
- *
- *  @return A copy of the appropriate object
+ *  @return PDContainer with type and data
  */
-extern void *PDObjectCopyDictionaryEntry(PDObjectRef object, const char *key);
+extern PDContainer PDObjectGetContainer(PDObjectRef object);
 
 /**
- Set a dictionary key to a new value.
- 
- @note Expects object to be a dictionary.
- @note Value must be a null terminated string.
- 
- @param object  The object.
- @param key     The dictionary key.
- @param value   The string value, null terminated.
- */
-extern void PDObjectSetDictionaryEntry(PDObjectRef object, const char *key, const char *value);
-
-/**
- Delete a dictionary key. 
- 
- Does nothing if the key does not exist
- 
- @param object The object.
- @param key The key to delete.
- */
-extern void PDObjectRemoveDictionaryEntry(PDObjectRef object, const char *key);
-
-/**
- Get the element count of the dictionary object.
- 
- @warning Crashes if the object is not a dictionary.
- 
- @param object The object.
- */
-extern PDInteger PDObjectGetDictionaryCount(PDObjectRef object);
-
-/**
- Get internal pd_dict object used to represent the dictionary object.
- 
- @note The returned dictionary can be modified, but if the object modifications are mimicked, the object may need a schedule call directly, as it may not detect changes otherwise.
- 
- @param object The object.
- */
-extern pd_dict PDObjectGetDictionary(PDObjectRef object);
-
-/// @name Array objects
-
-/**
- Get internal pd_array object used to represent the array object.
- 
- @note The returned array can be modified, but if the object modifications are mimicked, the object may need a schedule call directly, as it may not detect changes otherwise.
- 
- @param object The object.
- */
-extern pd_array PDObjectGetArray(PDObjectRef object);
-
-/**
- Get the element count of the array object.
- 
- @warning Crashes if the object is not an array.
- 
- @param object The object.
- */
-extern PDInteger PDObjectGetArrayCount(PDObjectRef object);
-
-/**
- Fetch the array element at the given index.
- 
- @warning Crashes if the object is not an array.
- 
- @param object The object.
- @param index The array index.
- */
-extern const char *PDObjectGetArrayElementAtIndex(PDObjectRef object, PDInteger index);
-
-/**
- *  Fetch the raw (pd_stack) array element at the given index.
+ *  Get the dictionary of the object, or NULL if the object does not have a dictionary.
  *
- *  @warning Crashes if the object is not an array.
+ *  @param object The object
  *
- *  @param object The object.
- *  @param index  The array index.
- *
- *  @return pd_stack result of the given array element
+ *  @return PDDictionary instance for the object
  */
-extern const pd_stack PDObjectGetArrayElementRawAtIndex(PDObjectRef object, PDInteger index);
+extern PDDictionaryRef PDObjectGetDictionary(PDObjectRef object);
 
 /**
- *  Get the object type of the element at the given index. 
+ *  Get the array of the object, or NULL if the object does not have an array.
  *
- *  @param object Array object
- *  @param index  Element index
+ *  @param object The object
  *
- *  @return PDObjectType enum value.
+ *  @return PDArray instance for the object
  */
-extern PDObjectType PDObjectGetArrayElementTypeAtIndex(PDObjectRef object, PDInteger index);
-
-/**
- *  Obtain a copy of the entry for the given key.
- *
- *  The type of the returned object can be determined using PDObjectGetDictionaryEntryType, and maps to the following types:
- *  - PDObjectTypeNull       -> NULL
- *  - PDObjectTypeUnknown    -> (not applicable)
- *  - PDObjectTypeBoolean    -> PDBool
- *  - PDObjectTypeInteger    -> PDInteger
- *  - PDObjectTypeReal       -> PDReal
- *  - PDObjectTypeName       -> const char *
- *  - PDObjectTypeString     -> const char *
- *  - PDObjectTypeArray      -> pd_array
- *  - PDObjectTypeDictionary -> pd_dict
- *  - PDObjectTypeStream     -> (not applicable)
- *  - PDObjectTypeReference  -> PDReference
- *
- *  @note Making changes to the copy naturally does not affect the object.
- *  @note The returned value must be released or freed accordingly.
- *
- *  @param object Array object
- *  @param index  Element index
- *
- *  @return A copy of the appropriate object
- */
-extern void *PDObjectCopyArrayElementAtIndex(PDObjectRef object, PDInteger index);
-
-
-
-
-
-
-
-/**
- Add an element to the array object.
- 
- @note Expects object to be an array.
- @note Value must be a null terminated string.
- 
- @param object  The object.
- @param value   The string value, null terminated.
- */
-extern void PDObjectAddArrayElement(PDObjectRef object, const char *value);
-
-/**
- Delete the array element at the given index.
- 
- @param object The object.
- @param index The array index.
- */
-extern void PDObjectRemoveArrayElementAtIndex(PDObjectRef object, PDInteger index);
-
-/**
- Replace the value of the array element at the given index with a new value.
- 
- @param object The object.
- @param index The array index.
- @param value The replacement value.
- */
-extern void PDObjectSetArrayElement(PDObjectRef object, PDInteger index, const char *value);
+extern PDArrayRef PDObjectGetArray(PDObjectRef object);
 
 /// @name Miscellaneous
 

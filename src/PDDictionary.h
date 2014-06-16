@@ -91,6 +91,13 @@ extern PDContainer PDDictionaryGetEntry(PDDictionaryRef dictionary, const char *
  */
 extern void *PDDictionaryGetTypedEntry(PDDictionaryRef dictionary, const char *key, PDInstanceType type);
 
+#define PDDictionaryGetNumber(d,k)      PDDictionaryGetTypedEntry(d,k,PDInstanceTypeNumber)
+#define PDDictionaryGetString(d,k)      PDDictionaryGetTypedEntry(d,k,PDInstanceTypeString)
+#define PDDictionaryGetArray(d,k)       PDDictionaryGetTypedEntry(d,k,PDInstanceTypeArray)
+#define PDDictionaryGetDictionary(d,k)  PDDictionaryGetTypedEntry(d,k,PDInstanceTypeDict)
+#define PDDictionaryGetReference(d,k)   PDDictionaryGetTypedEntry(d,k,PDInstanceTypeRef)
+#define PDDictionaryGetObject(d,k)      PDDictionaryGetTypedEntry(d,k,PDInstanceTypeObj)
+
 /**
  *  Set value of given instance type for the given key in the dictionary.
  *

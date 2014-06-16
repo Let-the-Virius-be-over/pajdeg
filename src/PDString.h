@@ -89,7 +89,8 @@ extern PDStringRef PDStringCreateFromStringWithType(PDStringRef string, PDString
  *  Generate a C string containing the escaped contents of string and return it. 
  *  If wrap is set, the string is wrapped in parentheses.
  *
- *  @note The returned object must be freed.
+ *  @note The returned object (unless NULL) must be freed.
+ *  @note It is safe to pass a NULL string value. If string is NULL, NULL is returned.
  *
  *  @param string PDString instance
  *  @param wrap   Whether or not the returned string should be enclosed in parentheses
@@ -102,7 +103,8 @@ extern char *PDStringEscapedValue(PDStringRef string, PDBool wrap);
  *  Generate the binary value of string, writing its length to the PDSize pointed to by outLength and returning the 
  *  binary value.
  *
- *  @note The returned value must be freed.
+ *  @note The returned object (unless NULL) must be freed.
+ *  @note It is safe to pass a NULL string value. If string is NULL, NULL is returned.
  *
  *  @param string    PDString instance
  *  @param outLength Pointer to PDSize object into which the length of the returned binary data is to be written. May be NULL.
@@ -114,7 +116,8 @@ extern char *PDStringBinaryValue(PDStringRef string, PDSize *outLength);
 /**
  *  Generate a hex string based on the value of string, returning it.
  *
- *  @note The returned object must be freed.
+ *  @note The returned object (unless NULL) must be freed.
+ *  @note It is safe to pass a NULL string value. If string is NULL, NULL is returned.
  *
  *  @param string PDString instance
  *  @param wrap   Whether or not the returned string should be enclosed in less/greater-than signs
@@ -122,6 +125,10 @@ extern char *PDStringBinaryValue(PDStringRef string, PDSize *outLength);
  *  @return Hex string
  */
 extern char *PDStringHexValue(PDStringRef string, PDBool wrap);
+
+extern PDBool PDStringEqualsCString(PDStringRef string, const char *cString);
+
+extern PDBool PDStringEqualsString(PDStringRef string, PDStringRef string2);
 
 #ifdef PD_SUPPORT_CRYPTO
 

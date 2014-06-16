@@ -19,7 +19,10 @@
 
 #include "pd_crypto.h"
 #include "pd_internal.h"
-#include "pd_dict.h"
+#include "PDDictionary.h"
+#include "PDArray.h"
+#include "PDString.h"
+#include "PDNumber.h"
 #include "pd_md5.h"
 #include "pd_aes256.h"
 
@@ -154,33 +157,40 @@ void pd_crypto_destroy(pd_crypto crypto)
     free(crypto);
 }
 
-static char *HEX_TAB = NULL;
+//static char *HEX_TAB = NULL;
+//
+//pd_crypto_param pd_crypto_decode_pdf_hex(const char *hexstr)
+//{
+//    pd_crypto_param cp;
+//    cp.d = NULL;
+//    cp.l = 0;
+//    if (hexstr == NULL) return cp;
+//    
+//    if (HEX_TAB == NULL) {
+//        HEX_TAB = malloc(256 * sizeof(char));
+//        for (int i = 0; i < 256; i++) HEX_TAB[i] = -1;
+//        for (int i = 0; i < 10; i++) HEX_TAB['0' + i] = i;
+//        for (int i = 10; i < 16; i++) HEX_TAB['a' + i - 10] = HEX_TAB['A' + i - 10] = i;
+//    }
+//    int rlen = 0;
+//    int len = (int) strlen(hexstr);
+//    cp.d = malloc(len);
+//    int i = 0;
+//    
+//    while (i < len && -1 == HEX_TAB[hexstr[i]]) i++;
+//    while (i + 1 < len && -1 != HEX_TAB[hexstr[i]]) {
+//        cp.d[rlen++] = HEX_TAB[hexstr[i]] * 16 + HEX_TAB[hexstr[i+1]];
+//        i += 2;
+//    }
+//    cp.d = realloc(cp.d, rlen+1);
+//    cp.l = rlen;
+//    return cp;
+//}
 
-pd_crypto_param pd_crypto_decode_pdf_hex(const char *hexstr)
+pd_crypto_param pd_crypto_from_string(PDStringRef string)
 {
     pd_crypto_param cp;
-    cp.d = NULL;
-    cp.l = 0;
-    if (hexstr == NULL) return cp;
-    
-    if (HEX_TAB == NULL) {
-        HEX_TAB = malloc(256 * sizeof(char));
-        for (int i = 0; i < 256; i++) HEX_TAB[i] = -1;
-        for (int i = 0; i < 10; i++) HEX_TAB['0' + i] = i;
-        for (int i = 10; i < 16; i++) HEX_TAB['a' + i - 10] = HEX_TAB['A' + i - 10] = i;
-    }
-    int rlen = 0;
-    int len = (int) strlen(hexstr);
-    cp.d = malloc(len);
-    int i = 0;
-    
-    while (i < len && -1 == HEX_TAB[hexstr[i]]) i++;
-    while (i + 1 < len && -1 != HEX_TAB[hexstr[i]]) {
-        cp.d[rlen++] = HEX_TAB[hexstr[i]] * 16 + HEX_TAB[hexstr[i+1]];
-        i += 2;
-    }
-    cp.d = realloc(cp.d, rlen+1);
-    cp.l = rlen;
+    cp.d = (unsigned char *) PDStringBinaryValue(string, &cp.l);
     return cp;
 }
 
@@ -270,7 +280,7 @@ pd_crypto_param pd_crypto_decode_param(const char *param)
     return pd_crypto_decode_pdf_hex(param);
 }
 
-pd_crypto pd_crypto_create(pd_dict trailerDict, pd_dict options)
+pd_crypto pd_crypto_create(PDDictionaryRef trailerDict, PDDictionaryRef options)
 {
     /*
     1 0 obj
@@ -297,20 +307,25 @@ pd_crypto pd_crypto_create(pd_dict trailerDict, pd_dict options)
      */
     pd_crypto crypto = malloc(sizeof(struct pd_crypto));
     
-    const char *fid = pd_dict_get(trailerDict, "ID");
-    crypto->identifier = pd_crypto_decode_pdf_hex(fid);
+    PDArrayRef fid = PDDictionaryGetArray(trailerDict, "ID");   // [ <abc123> <def456> ]
+    PDStringRef fid1 = PDArrayGetString(fid, 0);                // <abc123>
     
+    crypto->identifier = pd_crypto_from_string(fid1);
+    //pd_crypto_decode_pdf_hex(fid);
+        
     // read from dict
-    crypto->filter = strdup_null(pd_dict_get(options, "Filter"));
-    crypto->subfilter = strdup_null(pd_dict_get(options, "SubFilter"));
-    crypto->version = PDIntegerFromString(pd_dict_get(options, "V"));
-    crypto->length = PDIntegerFromString(pd_dict_get(options, "Length"));
-    crypto->encryptMetadata = pd_dict_get(options, "EncryptMetadata") && 0 == strcmp(pd_dict_get(options, "EncryptMetadata"), "true");
-    
-    crypto->revision = PDIntegerFromString(pd_dict_get(options, "R"));
-    crypto->owner = pd_crypto_decode_param(pd_dict_get(options, "O"));
-    crypto->user = pd_crypto_decode_param(pd_dict_get(options, "U"));
-    crypto->privs = (int32_t) PDIntegerFromString(pd_dict_get(options, "P"));
+    crypto->filter = PDStringEscapedValue(PDDictionaryGetString(options, "Filter"), false);
+    crypto->subfilter = PDStringEscapedValue(PDDictionaryGetString(options, "SubFilter"), false);
+    crypto->version = PDNumberGetInteger(PDDictionaryGetNumber(options, "V"));
+    crypto->length = PDNumberGetInteger(PDDictionaryGetNumber(options, "Length"));
+    crypto->encryptMetadata = PDNumberGetBool(PDDictionaryGetNumber(options, "EncryptMetadata"));
+//    crypto->encryptMetadata = PDDictionaryRef_get(options, "EncryptMetadata") && 0 == strcmp(PDDictionaryRef_get(options, "EncryptMetadata"), "true");
+
+    crypto->revision = PDNumberGetInteger(PDDictionaryGetNumber(options, "R"));
+    crypto->owner = pd_crypto_from_string(PDDictionaryGetString(options, "O"));
+    crypto->user = pd_crypto_from_string(PDDictionaryGetString(options, "U"));
+    crypto->privs = (int32_t) PDNumberGetInteger(PDDictionaryGetNumber(options, "P"));
+//    crypto->privs = (int32_t) PDIntegerFromString(PDDictionaryRef_get(options, "P"));
     
     // fix defaults where appropriate
     if (crypto->version == 0) crypto->version = 1; // we do not support the default as it is undocumented and no longer supported by the official specification
@@ -324,21 +339,28 @@ pd_crypto pd_crypto_create(pd_dict trailerDict, pd_dict options)
     
     // for version = 4, there may be a crypt filter (CF) dict
     if (crypto->version == 4) {
-        pd_stack cfs = pd_dict_get_raw(options, "CF");
-        if (cfs) {
-            pd_dict cf =  pd_dict_from_pdf_dict_stack(cfs);
-            pd_stack stdcfs = pd_dict_get_raw(cf, "StdCF");
-            if (stdcfs) {
-                pd_dict stdcf = pd_dict_from_pdf_dict_stack(stdcfs);
-                if (pd_dict_get(stdcf, "Length")) crypto->cfLength = PDIntegerFromString(pd_dict_get(stdcf, "Length"));
-                const char *cfm = pd_dict_get(stdcf, "CFM");
+        PDDictionaryRef cf = PDDictionaryGetDictionary(options, "CF");
+//        pd_stack cfs = PDDictionaryRef_get_raw(options, "CF");
+        if (cf) {
+//            PDDictionaryRef cf =  PDDictionaryRef_from_pdf_dict_stack(cfs);
+            PDDictionaryRef stdcf = PDDictionaryGetDictionary(cf, "StdCF");
+//            pd_stack stdcfs = PDDictionaryRef_get_raw(cf, "StdCF");
+            if (stdcf) {
+//                PDDictionaryRef stdcf = PDDictionaryRef_from_pdf_dict_stack(stdcfs);
+                PDNumberRef n = PDDictionaryGetNumber(stdcf, "Length");
+                if (n) crypto->cfLength = PDNumberGetInteger(n);
+//                if (PDDictionaryRef_get(stdcf, "Length")) crypto->cfLength = PDIntegerFromString(PDDictionaryRef_get(stdcf, "Length"));
+                PDStringRef cfm = PDDictionaryGetString(stdcf, "CFM");
+//                const char *cfm = PDDictionaryRef_get(stdcf, "CFM");
                 if (cfm) {
-                    if      (0 == strcmp(cfm, "/AESV2")) crypto->cfMethod = pd_crypto_method_aesv2;
-                    else if (0 == strcmp(cfm, "/V2")) crypto->cfMethod = pd_crypto_method_rc4;
-                    else if (0 == strcmp(cfm, "/None")) crypto->cfMethod = pd_crypto_method_none;
+                    char *cfms = PDStringEscapedValue(cfm, false);
+                    if      (0 == strcmp(cfms, "/AESV2")) crypto->cfMethod = pd_crypto_method_aesv2;
+                    else if (0 == strcmp(cfms, "/V2")) crypto->cfMethod = pd_crypto_method_rc4;
+                    else if (0 == strcmp(cfms, "/None")) crypto->cfMethod = pd_crypto_method_none;
                     else {
-                        PDWarn("unknown crypt filter method: %s", cfm);
+                        PDWarn("unknown crypt filter method: %s", cfms);
                     }
+                    free(cfms);
                 }
             }
         }

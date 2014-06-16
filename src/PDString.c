@@ -105,6 +105,8 @@ PDStringRef PDStringCreateFromStringWithType(PDStringRef string, PDStringType ty
 
 char *PDStringEscapedValue(PDStringRef string, PDBool wrap)
 {
+    if (string == NULL) return NULL;
+    
     switch (string->type) {
         case PDStringTypeRegular:
             if (wrap == string->wrapped)
@@ -127,6 +129,8 @@ char *PDStringEscapedValue(PDStringRef string, PDBool wrap)
 
 char *PDStringBinaryValue(PDStringRef string, PDSize *outLength)
 {
+    if (string == NULL) return NULL;
+    
     switch (string->type) {
         case PDStringTypeBinary:
             if (outLength) *outLength = string->length;
@@ -145,6 +149,8 @@ char *PDStringBinaryValue(PDStringRef string, PDSize *outLength)
 
 char *PDStringHexValue(PDStringRef string, PDBool wrap)
 {
+    if (string == NULL) return NULL;
+    
     switch (string->type) {
         case PDStringTypeHex:
             if (wrap == string->wrapped) 
@@ -366,6 +372,51 @@ PDInteger PDStringPrinter(void *inst, char **buf, PDInteger offs, PDInteger *cap
     char *bv = *buf;
     strcpy(&bv[offs], str);
     return offs + len;
+}
+
+PDBool PDStringEqualsCString(PDStringRef string, const char *cString)
+{
+    PDBool result;
+    
+    // we don't touch the string unless it's in HEX format
+    if (string->type == PDStringTypeHex) {
+        PDNotice("comparison with HEX encoded string affects performance");
+        char *esc = PDStringEscapedValue(string, false);
+        result = 0 == strcmp(esc, cString);
+        free(esc);
+    } else {
+        result = 0 == strncmp(cString, string->data, string->length);
+    }
+    
+    return result;
+}
+
+PDBool PDStringEqualsString(PDStringRef string, PDStringRef string2)
+{
+    PDBool releaseString2 = false;
+    if (string->type != string2->type) {
+        // we don't want to convert TO hex format, ever, unless both are hex already
+        if (string->type == PDStringTypeHex) return PDStringEqualsString(string2, string);
+        
+        string2 = PDStringCreateFromStringWithType(string2, string->type);
+        releaseString2 = true;
+    }
+    
+    PDSize len1 = string->length - (string->wrapped<<1);
+    PDSize len2 = string2->length - (string2->wrapped<<1);
+    
+    PDBool result = false;
+    
+    if (len1 == len2) {
+        PDInteger start1 = string->wrapped;
+        PDInteger start2 = string2->wrapped;
+        
+        result = 0 == strncmp(&string->data[start1], &string2->data[start2], len1);
+    }    
+    
+    if (releaseString2) PDRelease(string2);
+    
+    return result;
 }
 
 #pragma mark - Crypto

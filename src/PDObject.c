@@ -26,8 +26,8 @@
 #include "pd_pdf_private.h"
 #include "PDStreamFilter.h"
 #include "PDObject.h"
-#include "pd_array.h"
-#include "pd_dict.h"
+#include "PDArray.h"
+#include "PDDictionary.h"
 
 void PDObjectDestroy(PDObjectRef object)
 {

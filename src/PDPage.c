@@ -30,8 +30,8 @@
 #include "PDParser.h"
 #include "PDParserAttachment.h"
 #include "PDCatalog.h"
-#include "pd_array.h"
-#include "pd_dict.h"
+#include "PDArray.h"
+#include "PDDictionary.h"
 
 void PDPageDestroy(PDPageRef page)
 {

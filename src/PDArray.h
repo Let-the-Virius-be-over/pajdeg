@@ -102,6 +102,13 @@ extern PDContainer PDArrayGetElement(PDArrayRef array, PDInteger index);
  */
 extern void *PDArrayGetTypedElement(PDArrayRef array, PDInteger index, PDInstanceType type);
 
+#define PDArrayGetNumber(a,i)      PDArrayGetTypedElement(a,i,PDInstanceTypeNumber)
+#define PDArrayGetString(a,i)      PDArrayGetTypedElement(a,i,PDInstanceTypeString)
+#define PDArrayGetArray(a,i)       PDArrayGetTypedElement(a,i,PDInstanceTypeArray)
+#define PDArrayGetDictionary(a,i)  PDArrayGetTypedElement(a,i,PDInstanceTypeDict)
+#define PDArrayGetReference(a,i)   PDArrayGetTypedElement(a,i,PDInstanceTypeRef)
+#define PDArrayGetObject(a,i)      PDArrayGetTypedElement(a,i,PDInstanceTypeObj)
+
 /**
  *  Append value of given instance type to the end of the array.
  *

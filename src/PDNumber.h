@@ -40,6 +40,7 @@ extern PDNumberRef PDNumberCreateWithInteger(PDInteger i);
 extern PDNumberRef PDNumberCreateWithReal(PDReal r);
 extern PDNumberRef PDNumberCreateWithBool(PDBool b);
 
+// NULL n safe
 extern PDInteger PDNumberGetInteger(PDNumberRef n);
 extern PDReal PDNumberGetReal(PDNumberRef n);
 extern PDBool PDNumberGetBool(PDNumberRef n);
