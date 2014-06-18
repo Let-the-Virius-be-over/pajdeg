@@ -75,14 +75,26 @@
  
  @param pajdegObject A previously retained or created `PD` object.
  */
+#ifdef DEBUG_PD_RELEASES
+#define PDRelease(ob) _PDReleaseDebug(__FILE__,__LINE__,ob)
+extern void _PDReleaseDebug(const char *file, int lineNumber, void *pajdegObject);
+extern void PDReleaseFunc(void *pajdegObject);
+#else
 extern void PDRelease(void *pajdegObject);
+#define PDReleaseFunc PDRelease
+#endif
 
 /**
  Retain a Pajdeg object.
  
  @param pajdegObject A `PD` object.
  */
+#ifdef DEBUG_PD_RELEASES
+#define PDRetain(ob) _PDRetainDebug(__FILE__,__LINE__,ob)
+extern void *_PDRetainDebug(const char *file, int lineNumber, void *pajdegObject);
+#else
 extern void *PDRetain(void *pajdegObject);
+#endif
 
 /**
  Autorelease a Pajdeg object.
@@ -93,7 +105,21 @@ extern void *PDRetain(void *pajdegObject);
  
  @param pajdegObject The object that should, at some point, be released once.
  */
+#ifdef DEBUG_PD_RELEASES
+#define PDAutorelease(ob) _PDAutoreleaseDebug(__FILE__,__LINE__,ob)
+extern void *_PDAutoreleaseDebug(const char *file, int lineNumber, void *pajdegObject);
+#else
 extern void *PDAutorelease(void *pajdegObject);
+#endif
+
+/**
+ *  Resolve the PDInstanceType of the given object.
+ *
+ *  @param pajdegObject The object whose type should be resolved
+ *
+ *  @return PDInstanceType for the given object
+ */
+extern PDInstanceType PDResolve(void *pajdegObject);
 
 #endif
 

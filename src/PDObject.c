@@ -26,14 +26,14 @@
 #include "pd_pdf_private.h"
 #include "PDStreamFilter.h"
 #include "PDObject.h"
+#include "PDNumber.h"
 #include "PDArray.h"
 #include "PDDictionary.h"
+#include "PDString.h"
 
 void PDObjectDestroy(PDObjectRef object)
 {
-    if (object->array) pd_array_destroy(object->array);
-    if (object->dict) pd_dict_destroy(object->dict);
-    pd_stack_destroy(&object->mutations);
+    PDRelease(object->inst);
     
     if (object->type == PDObjectTypeString)
         free(object->def);
@@ -49,7 +49,7 @@ void PDObjectDestroy(PDObjectRef object)
 
 PDObjectRef PDObjectCreate(PDInteger obid, PDInteger genid)
 {
-    PDObjectRef ob = PDAlloc(sizeof(struct PDObject), PDObjectDestroy, true);
+    PDObjectRef ob = PDAllocTyped(PDInstanceTypeObj, sizeof(struct PDObject), PDObjectDestroy, true);
     //PDObjectRef ob = calloc(1, sizeof(struct PDObject));
     ob->obid = obid;
     ob->genid = genid;
@@ -115,6 +115,21 @@ void PDObjectSetType(PDObjectRef object, PDObjectType type)
 
 PDObjectType PDObjectDetermineType(PDObjectRef object)
 {
+    if (object->inst) {
+        object->type = PDObjectTypeUnknown;
+        switch (PDResolve(object->inst)) {
+            case PDInstanceTypeString:  object->type = PDObjectTypeString; break;
+            case PDInstanceTypeRef:     object->type = PDObjectTypeReference; break;
+            case PDInstanceTypeArray:   object->type = PDObjectTypeArray; break;
+            case PDInstanceTypeDict:    object->type = PDObjectTypeDictionary; break;
+            case PDInstanceTypeNumber:  object->type = ((PDNumberRef)object->inst)->type; break;
+            case PDInstanceTypeObj:     object->type = PDObjectTypeReference; break;
+            default:
+                break;
+        }
+        if (object->type != PDObjectTypeUnknown) return object->type;
+    }
+    
     pd_stack st = object->def;
     if (st == NULL) return object->type;
     
@@ -208,9 +223,12 @@ char *PDObjectGetStream(PDObjectRef object)
     return object->streamBuf;
 }
 
-char *PDObjectGetValue(PDObjectRef object)
+void *PDObjectGetValue(PDObjectRef object)
 {
-    return object->def;
+    if (object->inst) return object->inst;
+    pd_stack def = object->def;
+    if (object->def) object->inst = PDInstanceCreateFromComplex(&def);
+    return object->inst ? object->inst : object->def;
 }
 
 void PDObjectSetValue(PDObjectRef object, const char *value)
@@ -221,170 +239,65 @@ void PDObjectSetValue(PDObjectRef object, const char *value)
     object->def = strdup(value);
 }
 
-void PDObjectInstantiateDictionary(PDObjectRef object)
-{
-    object->dict = pd_dict_from_pdf_dict_stack(object->def);
-    object->type = PDObjectTypeDictionary;
 #ifdef PD_SUPPORT_CRYPTO
-    if (object->crypto) {
-        pd_dict_set_crypto(object->dict, object->crypto, object->obid, object->genid);
+PDCryptoInstanceRef PDObjectGetCryptoInstance(PDObjectRef object)
+{
+    if (object->crypto && ! object->cryptoInstance)
+        object->cryptoInstance = PDCryptoInstanceCreate(object->crypto, object->obid, object->genid, NULL);
+    return object->cryptoInstance;
+}
+#endif
+
+void PDObjectInstantiate(PDObjectRef object)
+{
+    pd_stack s = object->def;
+    object->inst = PDInstanceCreateFromComplex(&s);
+    if (object->type == PDObjectTypeUnknown) {
+        PDObjectDetermineType(object);
+    }
+//    object->dict = pd_dict_from_pdf_dict_stack(object->def);
+//    object->type = PDObjectTypeDictionary;
+#ifdef PD_SUPPORT_CRYPTO
+    if (object->crypto && object->inst) {
+        (*PDInstanceCryptoExchanges[PDResolve(object->inst)])(object->inst, PDObjectGetCryptoInstance(object), true);
     }
 #endif
 }
 
-void PDObjectInstantiateArray(PDObjectRef object)
+PDDictionaryRef PDObjectGetDictionary(PDObjectRef object)
 {
-    object->array = pd_array_from_pdf_array_stack(object->def);
-    object->type = PDObjectTypeArray;
-#ifdef PD_SUPPORT_CRYPTO
-    if (object->crypto) {
-        pd_array_set_crypto(object->array, object->crypto, object->obid, object->genid);
+    if (NULL == object->inst) {
+        PDObjectInstantiate(object);
+        if (NULL == object->inst) {
+            object->type = PDObjectTypeDictionary;
+            object->inst = PDDictionaryCreateWithCapacity(3);
+        }
+    }
+    if (object->type == PDObjectTypeUnknown) 
+        PDObjectDetermineType(object);
+#ifdef DEBUG
+    if (object->type != PDObjectTypeDictionary) {
+        if (object->inst)
+            PDNotice("request for object dictionary (type = %d) but object type = %d", PDInstanceTypeDict, PDResolve(object->inst));
+        else
+            PDNotice("request for object dictionary but inst is null");
     }
 #endif
+    return object->type == PDObjectTypeDictionary ? object->inst : NULL;
 }
 
-const char *PDObjectGetDictionaryEntry(PDObjectRef object, const char *key)
+PDArrayRef PDObjectGetArray(PDObjectRef object)
 {
-    if (NULL == object->dict) {
-        PDObjectInstantiateDictionary(object);
+    if (NULL == object->inst) {
+        PDObjectInstantiate(object);
+        if (NULL == object->inst) {
+            object->type = PDObjectTypeArray;
+            object->inst = PDArrayCreateWithCapacity(3);
+        }
     }
-    
-    return pd_dict_get(object->dict, key);
-}
-
-const pd_stack PDObjectGetDictionaryEntryRaw(PDObjectRef object, const char *key)
-{
-    if (NULL == object->dict) {
-        PDObjectInstantiateDictionary(object);
-    }
-    
-    return pd_dict_get_raw(object->dict, key);
-}
-
-PDObjectType PDObjectGetDictionaryEntryType(PDObjectRef object, const char *key)
-{
-    if (NULL == object->dict) {
-        PDObjectInstantiateDictionary(object);
-    }
-    
-    return pd_dict_get_type(object->dict, key);
-}
-
-void *PDObjectCopyDictionaryEntry(PDObjectRef object, const char *key)
-{
-    if (NULL == object->dict) {
-        PDObjectInstantiateDictionary(object);
-    }
-    
-    return pd_dict_get_copy(object->dict, key);
-}
-
-
-void PDObjectSetDictionaryEntry(PDObjectRef object, const char *key, const char *value)
-{
-    if (NULL == object->dict) {
-        PDObjectInstantiateDictionary(object);
-    }
-    
-    pd_dict_set(object->dict, key, value);
-}
-
-void PDObjectRemoveDictionaryEntry(PDObjectRef object, const char *key)
-{
-    if (NULL == object->dict) {
-        PDObjectInstantiateDictionary(object);
-    }
-    
-    pd_dict_remove(object->dict, key);
-}
-
-pd_dict PDObjectGetDictionary(PDObjectRef object)
-{
-    if (NULL == object->dict) {
-        PDObjectInstantiateDictionary(object);
-    }
-    return object->dict;
-}
-
-pd_array PDObjectGetArray(PDObjectRef object)
-{
-    if (NULL == object->array) {
-        PDObjectInstantiateArray(object);
-    }
-    return object->array;
-}
-
-PDInteger PDObjectGetDictionaryCount(PDObjectRef object)
-{
-    if (NULL == object->dict) {
-        PDObjectInstantiateDictionary(object);
-    }
-
-    return pd_dict_get_count(object->dict);
-}
-
-PDInteger PDObjectGetArrayCount(PDObjectRef object)
-{
-    if (NULL == object->array)
-        PDObjectInstantiateArray(object);
-    
-    return pd_array_get_count(object->array);
-}
-
-const char *PDObjectGetArrayElementAtIndex(PDObjectRef object, PDInteger index)
-{
-    if (NULL == object->array) 
-        PDObjectInstantiateArray(object);
-    
-    return pd_array_get_at_index(object->array, index);
-}
-
-const pd_stack PDObjectGetArrayElementRawAtIndex(PDObjectRef object, PDInteger index)
-{
-    if (NULL == object->array)
-        PDObjectInstantiateArray(object);
-    
-    return pd_array_get_raw_at_index(object->array, index);
-}
-
-PDObjectType PDObjectGetArrayElementTypeAtIndex(PDObjectRef object, PDInteger index)
-{
-    if (NULL == object->array)
-        PDObjectInstantiateArray(object);
-    
-    return pd_array_get_type_at_index(object->array, index);
-}
-
-void *PDObjectCopyArrayElementAtIndex(PDObjectRef object, PDInteger index)
-{
-    if (NULL == object->array)
-        PDObjectInstantiateArray(object);
-    
-    return pd_array_get_copy_at_index(object->array, index);
-}
-
-void PDObjectAddArrayElement(PDObjectRef object, const char *value)
-{
-    if (NULL == object->array)
-        PDObjectInstantiateArray(object);
-    
-    pd_array_append(object->array, value);
-}
-
-void PDObjectRemoveArrayElementAtIndex(PDObjectRef object, PDInteger index)
-{
-    if (NULL == object->array) 
-        PDObjectInstantiateArray(object);
-    
-    pd_array_remove_at_index(object->array, index);
-}
-
-void PDObjectSetArrayElement(PDObjectRef object, PDInteger index, const char *value)
-{
-    if (NULL == object->array) 
-        PDObjectInstantiateArray(object);
-    
-    pd_array_replace_at_index(object->array, index, value);
+    if (object->type == PDObjectTypeUnknown) 
+        PDObjectDetermineType(object);
+    return object->type == PDObjectTypeArray ? object->inst : NULL;
 }
 
 void PDObjectReplaceWithString(PDObjectRef object, char *str, PDInteger len)
@@ -404,57 +317,45 @@ void PDObjectSetStream(PDObjectRef object, char *str, PDInteger len, PDBool incl
     object->ovrStreamLen = len;
     object->ovrStreamAlloc = allocated;
     if (includeLength)  {
-        char *lenstr = malloc(30);
-        sprintf(lenstr, "%ld", len);
-        PDObjectSetDictionaryEntry(object, "Length", lenstr);
-        free(lenstr);
+//        char *lenstr = malloc(30);
+//        sprintf(lenstr, "%ld", len);
+        PDNumberRef lenNum = PDNumberCreateWithInteger(len);
+        PDDictionarySetEntry(PDObjectGetDictionary(object), "Length", lenNum);
+        PDRelease(lenNum);
+//        PDDictionarySetEntry(PDObjectGetDictionary(object), "Length", lenstr);
+//        free(lenstr);
     }
 }
 
 PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len)
 {
     // Need to get /Filter and /DecodeParms
-    const char *filter = PDObjectGetDictionaryEntry(object, "Filter");
+    PDDictionaryRef obdict = PDObjectGetDictionary(object);
+    PDStringRef filter = PDDictionaryGetString(obdict, "Filter");
+    
+//    const char *filter = PDDictionaryGetEntry(PDObjectGetDictionary(object), "Filter");
     
     if (NULL == filter) {
         // no filter
         PDObjectSetStream(object, str, len, true, false);
         return true;
-    } else filter = &filter[1]; // get rid of name slash
+    } 
+//    else filter = &filter[1]; // get rid of name slash
 
-    const char *decodeParms = PDObjectGetDictionaryEntry(object, "DecodeParms");
-    
-    pd_stack options = NULL;
-    if (NULL != decodeParms) {
-        /// @todo At some point this (all values as strings) should not be as roundabout as it is but it will do for now.
-        
-        PDScannerRef scanner = PDScannerCreateWithState(pdfRoot);
-        PDScannerAttachFixedSizeBuffer(scanner, (char*)decodeParms, strlen(decodeParms));
-        pd_stack optsDict;
-        if (! PDScannerPopStack(scanner, &optsDict)) {
-            PDWarn("Unable to pop dictionary stack from decode parameters: %s", decodeParms);
-            PDAssert(0);
-            optsDict = NULL;
-        }
-        if (optsDict) {
-            options = PDStreamFilterGenerateOptionsFromDictionaryStack(optsDict);
-            pd_stack_destroy(&optsDict);
-        }
-        PDRelease(scanner);
-    }
+    PDDictionaryRef decodeParms = PDDictionaryGetDictionary(obdict, "DecodeParms");
+//    const char *decodeParms = PDDictionaryGetEntry(PDObjectGetDictionary(object), "DecodeParms");
     
     PDBool success = true;
-    PDStreamFilterRef sf = PDStreamFilterObtain(filter, false, options);
+    PDStreamFilterRef sf = PDStreamFilterObtain(PDStringEscapedValue(filter, false), false, decodeParms);
     if (NULL == sf) {
         // we don't support this filter, at all
-        pd_stack_destroy(&options);
         success = false;
     } 
     
     if (success) success = PDStreamFilterInit(sf);
     // if !success, filter did not initialize properly
 
-    if (success) success = (sf->compatible);
+    success &= sf->compatible;
     // if !success, filter was not compatible with options
 
     char *filtered = NULL;
@@ -471,31 +372,52 @@ PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len)
 
 void PDObjectSetFlateDecodedFlag(PDObjectRef object, PDBool state)
 {
+    if (object->inst == NULL) PDObjectGetDictionary(object);
+    
     if (state) {
-        PDObjectSetDictionaryEntry(object, "Filter", "/FlateDecode");
+        PDDictionarySetEntry(object->inst, "Filter", "/FlateDecode");
     } else {
-        PDObjectRemoveDictionaryEntry(object, "Filter");
-        PDObjectRemoveDictionaryEntry(object, "DecodeParms");
+        PDDictionaryDeleteEntry(object->inst, "Filter");
+        PDDictionaryDeleteEntry(object->inst, "DecodeParms");
     }
 }
 
 void PDObjectSetPredictionStrategy(PDObjectRef object, PDPredictorType strategy, PDInteger columns)
 {
-    char buf[52];
-    sprintf(buf, "<</Predictor %d /Columns %ld>>", strategy, columns);
-    PDObjectSetDictionaryEntry(object, "DecodeParms", buf);
+    if (object->inst == NULL) PDObjectGetDictionary(object);
+    
+    PDDictionaryRef pred = PDDictionaryCreateWithCapacity(2);
+    PDDictionarySetEntry(pred, "Predictor", PDNumberWithInteger(strategy));
+    PDDictionarySetEntry(pred, "Columns", PDNumberWithInteger(columns));
+    PDDictionarySetEntry(object->inst, "DecodeParms", pred);
+//    char buf[52];
+//    sprintf(buf, "<</Predictor %d /Columns %ld>>", strategy, columns);
+//    PDDictionarySetEntry(PDObjectGetDictionary(object), "DecodeParms", buf);
 }
 
 void PDObjectSetStreamEncrypted(PDObjectRef object, PDBool encrypted)
 {
+    if (object->inst == NULL) PDObjectGetDictionary(object);
+    
     if (object->encryptedDoc) {
         if (encrypted) {
             // we don't support encryption except in that we undo our no-encryption stuff below
-            PDObjectRemoveDictionaryEntry(object, "Filter");
-            PDObjectRemoveDictionaryEntry(object, "DecodeParms");
+            // the above isn't strictly the case anymore, but we still don't support encrypting unepcrypted PDFs, or changing their encryption parameters
+            PDDictionaryDeleteEntry(object->inst, "Filter");
+            PDDictionaryDeleteEntry(object->inst, "DecodeParms");
         } else {
-            PDObjectSetDictionaryEntry(object, "Filter", "[/Crypt]");
-            PDObjectSetDictionaryEntry(object, "DecodeParms", "<</Type /CryptFilterDecodeParms /Name /Identity>>");
+            PDArrayRef filterArray = PDArrayCreateWithCapacity(1);
+            PDArrayAppend(filterArray, PDStringWithCString(strdup("/Crypt")));
+            PDDictionarySetEntry(object->inst, "Filter", filterArray);
+            PDRelease(filterArray);
+//            PDDictionarySetEntry(PDObjectGetDictionary(object), "Filter", "[/Crypt]");
+            
+            PDDictionaryRef decodeParms = PDDictionaryCreateWithCapacity(2);
+            PDDictionarySetEntry(decodeParms, "Type", PDStringWithCString("/CryptFilterDecodeParms"));
+            PDDictionarySetEntry(decodeParms, "Name", PDStringWithCString("/Identity"));
+            PDDictionarySetEntry(object->inst, "DecodeParms", decodeParms);
+            PDRelease(decodeParms);
+//            PDDictionarySetEntry(PDObjectGetDictionary(object), "DecodeParms", "<</Type /CryptFilterDecodeParms /Name /Identity>>");
         }
     }
 }
@@ -525,38 +447,39 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
     }
     switch (object->type) {
         case PDObjectTypeDictionary:
-            if (NULL == object->dict) {
-                // no dict probably means we can to-string but this needs to be tested; for now we instantiate dict and use that
-                object->dict = pd_dict_from_pdf_dict_stack(object->def);
-            } 
+            if (object->inst == NULL) {
+                PDObjectGetDictionary(object);
+            }
             
-            val = pd_dict_to_string(object->dict);
+            val = PDDictionaryToString(object->inst);
+            
+//            if (NULL == object->dict) {
+//                // no dict probably means we can to-string but this needs to be tested; for now we instantiate dict and use that
+//                object->dict = pd_dict_from_pdf_dict_stack(object->def);
+//            } 
+//            
+//            val = pd_dict_to_string(object->dict);
             i = strlen(val);
             PDStringGrow(i + i);
             putstr(val, i);
+            free(val);
             break;
             
         case PDObjectTypeArray:
-            if (NULL == object->array) {
-                // no array means we can just to-string it right away
-                pd_stack_set_global_preserve_flag(true);
-                stack = object->def;
-                val = PDStringFromComplex(&stack);
-                pd_stack_set_global_preserve_flag(false);
-                PDStringGrow(1 + strlen(val));
-                putfmt("%s", val);
-                break;
+            if (object->inst == NULL) {
+                PDObjectGetArray(object);
             }
             
-            val = pd_array_to_string(object->array);
+            val = PDArrayToString(object->inst);
             i = strlen(val);
             PDStringGrow(1 + i);
             putstr(val, i);
+            free(val);
             break;
             
         case PDObjectTypeString:
             PDStringGrow(2 + strlen((char*)object->def));
-            putfmt("%s\n", (char*)object->def);
+            putfmt("%s", (char*)object->def);
             break;
             
         default:

@@ -30,7 +30,7 @@ void PDStreamFilterRegisterDualFilter(const char *name, PDStreamDualFilterConstr
     pd_stack_push_identifier(&filterRegistry, (PDID)name);
 }
 
-PDStreamFilterRef PDStreamFilterObtain(const char *name, PDBool inputEnd, pd_stack options)
+PDStreamFilterRef PDStreamFilterObtain(const char *name, PDBool inputEnd, PDDictionaryRef options)
 {
     pd_stack iter = filterRegistry;
     while (iter && strcmp(iter->info, name)) iter = iter->prev->prev;
@@ -47,7 +47,8 @@ void PDStreamFilterDestroy(PDStreamFilterRef filter)
     if (filter->initialized) 
         (*filter->done)(filter);
     
-    pd_stack_destroy(&filter->options);
+    PDRelease(filter->options);
+//    pd_stack_destroy(&filter->options);
     
     if (filter->bufOutOwned)
         free(filter->bufOutOwned);
@@ -60,12 +61,12 @@ PDStreamFilterRef PDStreamFilterAlloc(void)
     return PDAlloc(sizeof(struct PDStreamFilter), PDStreamFilterDestroy, false);
 }
 
-PDStreamFilterRef PDStreamFilterCreate(PDStreamFilterFunc init, PDStreamFilterFunc done, PDStreamFilterFunc begin, PDStreamFilterFunc proceed, PDStreamFilterPrcs createInversion, pd_stack options)
+PDStreamFilterRef PDStreamFilterCreate(PDStreamFilterFunc init, PDStreamFilterFunc done, PDStreamFilterFunc begin, PDStreamFilterFunc proceed, PDStreamFilterPrcs createInversion, PDDictionaryRef options)
 {
     PDStreamFilterRef filter = PDAlloc(sizeof(struct PDStreamFilter), PDStreamFilterDestroy, true);
     filter->growthHint = 1.f;
     filter->compatible = true;
-    filter->options = options;
+    filter->options = PDRetain(options);
     filter->init = init;
     filter->done = done;
     filter->begin = begin;
@@ -314,26 +315,26 @@ PDStreamFilterRef PDStreamFilterCreateInversionForFilter(PDStreamFilterRef filte
     return result;
 }
 
-pd_stack PDStreamFilterGenerateOptionsFromDictionaryStack(pd_stack dictStack)
-{
-    if (dictStack == NULL) return NULL;
-    
-    pd_stack stack = NULL;
-    pd_stack iter = dictStack->prev->prev->info;
-    pd_stack entry;
-    pd_stack_set_global_preserve_flag(true);
-    while (iter) {
-        entry = iter->info;
-        char *value = (entry->prev->prev->type == PD_STACK_STACK 
-                       ? PDStringFromComplex(entry->prev->prev->info)
-                       : strdup(entry->prev->prev->info));
-        pd_stack_push_key(&stack, value);
-        pd_stack_push_key(&stack, strdup(entry->prev->info));
-        iter = iter->prev;
-    }
-    pd_stack_set_global_preserve_flag(false);
-    return stack;
-}
+//pd_stack PDStreamFilterGenerateOptionsFromDictionaryStack(pd_stack dictStack)
+//{
+//    if (dictStack == NULL) return NULL;
+//    
+//    pd_stack stack = NULL;
+//    pd_stack iter = dictStack->prev->prev->info;
+//    pd_stack entry;
+//    pd_stack_set_global_preserve_flag(true);
+//    while (iter) {
+//        entry = iter->info;
+//        char *value = (entry->prev->prev->type == PD_STACK_STACK 
+//                       ? PDStringFromComplex(entry->prev->prev->info)
+//                       : strdup(entry->prev->prev->info));
+//        pd_stack_push_key(&stack, value);
+//        pd_stack_push_key(&stack, strdup(entry->prev->info));
+//        iter = iter->prev;
+//    }
+//    pd_stack_set_global_preserve_flag(false);
+//    return stack;
+//}
 /*
      stack<0x172adcd0> {
          0x46d0ac ("dict")

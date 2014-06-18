@@ -30,14 +30,15 @@
     PDInteger index; \
     for (index = dict->count-1; index >= 0; index--) \
         if (0 == strcmp(key, dict->keys[index])) \
-            break
+            break;\
 
 void PDDictionaryDestroy(PDDictionaryRef dict)
 {
     for (PDInteger i = dict->count-1; i >= 0; i--) {
         free(dict->keys[i]);
-        if (dict->values[i].type > 0)
-            PDRelease(dict->values[i].value);
+        PDRelease(dict->values[i]);
+//        if (dict->values[i].type > 0)
+//            PDRelease(dict->values[i].value);
         pd_stack_destroy(&dict->vstacks[i]);
     }
     
@@ -52,7 +53,7 @@ void PDDictionaryDestroy(PDDictionaryRef dict)
 
 PDDictionaryRef PDDictionaryCreateWithCapacity(PDInteger capacity)
 {
-    PDDictionaryRef dict = PDAlloc(sizeof(struct PDDictionary), PDDictionaryDestroy, false);
+    PDDictionaryRef dict = PDAllocTyped(PDInstanceTypeDict, sizeof(struct PDDictionary), PDDictionaryDestroy, false);
     
     if (capacity < 1) capacity = 1;
     
@@ -62,7 +63,7 @@ PDDictionaryRef PDDictionaryCreateWithCapacity(PDInteger capacity)
     dict->count = 0;
     dict->capacity = capacity;
     dict->keys = malloc(sizeof(char *) * capacity);
-    dict->values = malloc(sizeof(PDContainer) * capacity);
+    dict->values = malloc(sizeof(void *) * capacity);
     dict->vstacks = malloc(sizeof(pd_stack) * capacity);
     return dict;
 }
@@ -72,6 +73,33 @@ PDDictionaryRef PDDictionaryCreateWithComplex(pd_stack stack)
     if (stack == NULL) {
         // empty dictionary
         return PDDictionaryCreateWithCapacity(1);
+    }
+    
+    // this may be an entry that is a dictionary inside another dictionary; if so, we should see something like
+    /*
+stack<0x15778480> {
+   0x532c24 ("de")
+   DecodeParms
+    stack<0x157785e0> {
+       0x532c20 ("dict")
+       0x532c1c ("entries")
+        stack<0x15778520> {
+            stack<0x15778510> {
+               0x532c24 ("de")
+               Columns
+               3
+            }
+            stack<0x15778590> {
+               0x532c24 ("de")
+               Predictor
+               12
+            }
+        }
+    }
+}
+     */
+    if (PDIdentifies(stack->info, PD_DE)) {
+        stack = stack->prev->prev->info;
     }
     
     // we may have the DICT identifier
@@ -150,13 +178,13 @@ PDDictionaryRef PDDictionaryCreateWithComplex(pd_stack stack)
         dict->keys[count] = strdup(entry->info);
         entry = entry->prev;
         if (entry->type == PD_STACK_STRING) {
-            dict->values[count] = (PDContainer) { PDInstanceTypeString, PDStringCreate(strdup(entry->info)) };
+            dict->values[count] = PDStringCreate(strdup(entry->info));
             dict->vstacks[count] = NULL;
         } else {
             dict->vstacks[count] = /*entry =*/ pd_stack_copy(entry->info);
 //            entry->info = NULL;
 //            entry = dict->vstacks[count];
-            dict->values[count].type = PDInstanceTypeUnset; // PDStringFromComplex(&entry);
+            dict->values[count] = NULL; // PDStringFromComplex(&entry);
         }
         count++;
     }
@@ -176,17 +204,26 @@ PDInteger PDDictionaryGetCount(PDDictionaryRef dictionary)
     return dictionary->count;
 }
 
-PDContainer PDDictionaryGetEntry(PDDictionaryRef dictionary, const char *key)
+char **PDDictionaryGetKeys(PDDictionaryRef dictionary)
+{
+    return dictionary->keys;
+}
+
+void *PDDictionaryGetEntry(PDDictionaryRef dictionary, const char *key)
 {
     PDDictionaryFetchI(dictionary, key);
+    if (index < 0) return NULL;
     
-    PDContainer *ctr = &dictionary->values[index];
-    if (ctr->type == PDInstanceTypeUnset) {
+    if (! dictionary->values[index]) {
         if (dictionary->vstacks[index] != NULL) {
             pd_stack entry = dictionary->vstacks[index];
             pd_stack_set_global_preserve_flag(true);
-            dictionary->values[index] = PDContainerCreateFromComplex(&entry);
+            dictionary->values[index] = PDInstanceCreateFromComplex(&entry);
             pd_stack_set_global_preserve_flag(false);
+#ifdef PD_SUPPORT_CRYPTO
+            if (dictionary->values[index] && dictionary->ci) 
+                (*PDInstanceCryptoExchanges[PDResolve(dictionary->values[index])])(dictionary->values[index], dictionary->ci, true);
+#endif
         }
     }
     
@@ -195,17 +232,19 @@ PDContainer PDDictionaryGetEntry(PDDictionaryRef dictionary, const char *key)
 
 void *PDDictionaryGetTypedEntry(PDDictionaryRef dictionary, const char *key, PDInstanceType type)
 {
-    PDContainer ctr = PDDictionaryGetEntry(dictionary, key);
-    return ctr.type == type ? ctr.value : NULL;
+    void *ctr = PDDictionaryGetEntry(dictionary, key);
+    return ctr && PDResolve(ctr) == type ? ctr : NULL;
 }
 
-void PDDictionarySetEntry(PDDictionaryRef dictionary, const char *key, void *value, PDInstanceType type)
+void PDDictionarySetEntry(PDDictionaryRef dictionary, const char *key, void *value)
 {
     PDDictionaryFetchI(dictionary, key);
+    if (index == -1) index = dictionary->count;
+    
     if (index == dictionary->count && dictionary->count == dictionary->capacity) {
         dictionary->capacity += dictionary->capacity + 1;
         dictionary->keys = realloc(dictionary->keys, sizeof(char *) * dictionary->capacity);
-        dictionary->values = realloc(dictionary->values, sizeof(PDContainer) * dictionary->capacity);
+        dictionary->values = realloc(dictionary->values, sizeof(void *) * dictionary->capacity);
         dictionary->vstacks = realloc(dictionary->vstacks, sizeof(pd_stack) * dictionary->capacity);
     }
     
@@ -214,22 +253,21 @@ void PDDictionarySetEntry(PDDictionaryRef dictionary, const char *key, void *val
         dictionary->count++;
     } else {
         // clear out old value
-        if (dictionary->values[index].type > 0)
-            PDRelease(dictionary->values[index].value);
+        PDRelease(dictionary->values[index]);
         pd_stack_destroy(&dictionary->vstacks[index]);
     }
     
     dictionary->keys[index] = strdup(key);
-    dictionary->values[index] = (PDContainer) { type, value };
+    dictionary->values[index] = PDRetain(value);
     dictionary->vstacks[index] = NULL;
 }
 
 void PDDictionaryDeleteEntry(PDDictionaryRef dictionary, const char *key)
 {
     PDDictionaryFetchI(dictionary, key);
+    if (index < 0) return;
     
-    if (dictionary->values[index].type > 0)
-        PDRelease(dictionary->values[index].value);
+    PDRelease(dictionary->values[index]);
     pd_stack_destroy(&dictionary->vstacks[index]);
     dictionary->count--;
     for (PDInteger i = index; i < dictionary->count; i++) {
@@ -271,11 +309,11 @@ PDInteger PDDictionaryPrinter(void *inst, char **buf, PDInteger offs, PDInteger 
         strcpy(&bv[offs], i->keys[j]);
         offs += klen;
         bv[offs++] = ' ';
-        if (i->values[j].type == PDInstanceTypeUnset && i->vstacks[j]) {
+        if (! i->values[j] && i->vstacks[j]) {
             PDDictionaryGetEntry(i, i->keys[j]);
         }
-        if (i->values[j].type >= 0) {
-            offs = (*PDInstancePrinters[i->values[j].type])(i->values[j].value, buf, offs, cap);
+        if (i->values[j]) {
+            offs = (*PDInstancePrinters[PDResolve(i->values[j])])(i->values[j], buf, offs, cap);
         }
         PDInstancePrinterRequire(4, 4);
         bv[offs++] = ' ';
@@ -292,8 +330,8 @@ void PDDictionaryAttachCrypto(PDDictionaryRef dictionary, pd_crypto crypto, PDIn
 {
     dictionary->ci = PDCryptoInstanceCreate(crypto, objectID, genNumber, NULL);
     for (PDInteger i = 0; i < dictionary->count; i++) {
-        if (dictionary->values[i].type > 0) 
-            (*PDInstanceCryptoExchanges[dictionary->values[i].type])(dictionary->values[i].value, dictionary->ci, false);
+        if (dictionary->values[i]) 
+            (*PDInstanceCryptoExchanges[PDResolve(dictionary->values[i])])(dictionary->values[i], dictionary->ci, false);
     }
 }
 
@@ -301,8 +339,8 @@ void PDDictionaryAttachCryptoInstance(PDDictionaryRef dictionary, PDCryptoInstan
 {
     dictionary->ci = PDRetain(ci);
     for (PDInteger i = 0; i < dictionary->count; i++) {
-        if (dictionary->values[i].type > 0) 
-            (*PDInstanceCryptoExchanges[dictionary->values[i].type])(dictionary->values[i].value, dictionary->ci, false);
+        if (dictionary->values[i]) 
+            (*PDInstanceCryptoExchanges[PDResolve(dictionary->values[i])])(dictionary->values[i], dictionary->ci, false);
     }
 }
 

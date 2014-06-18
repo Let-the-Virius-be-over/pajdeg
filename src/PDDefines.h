@@ -27,8 +27,6 @@
 
 #include <sys/types.h>
 
-#include "PDType.h"
-
 /**
   Support zlib compression for filters.
   */
@@ -63,7 +61,7 @@
  
  The PD_NOTICES directive turns on printing of notices (PDInfo output) to stderr. Must be turned on explicitly.
  */
-// #define PD_NOTICES
+ #define PD_NOTICES
 
 /**
  @def PD_ASSERTS
@@ -95,13 +93,13 @@
  
  This is done by seeking to the specified offset, reading in a chunk of data, and comparing said data to the expected object. Needless to say, expensive, but excellent starting point to determine if a PDF is broken or not (XREF table tends to break "first").
  */
-//#define DEBUG_PARSER_CHECK_XREFS
+#define DEBUG_PARSER_CHECK_XREFS
 
 /**
  @def DEBUG_SCANNER_SYMBOLS
  Prints to stdout every symbol scanned when reading input, tabbed and surrounded in asterixes (e.g. "           * startxref *").
  */
-//#define DEBUG_SCANNER_SYMBOLS
+#define DEBUG_SCANNER_SYMBOLS
 
 /**
  @def DEBUG_PDTYPES
@@ -110,6 +108,14 @@
  Keeping this enabled is recommended, even for production code, unless it's very stable.
  */
 #define DEBUG_PDTYPES
+
+/**
+ @def DEBUG_PD_RELEASES
+ Adds debug information to all release calls to track down over-releases and invalid releases and such.
+ 
+ This should be disabled unless you are debugging Pajdeg code.
+ */
+//#define DEBUG_PD_RELEASES
 
 /**
  @defgroup CORE_GRP Core types
@@ -204,12 +210,12 @@ struct PDRect {
 /**
  Convert an array string [a b c d] into a PDRect.
  */
-#define PDRectReadFromArrayString(rect, str) sscanf(str, "[%f %f %f %f]", &rect.a.x, &rect.a.y, &rect.b.x, &rect.b.y)
+//#define PDRectReadFromArrayString(rect, str) sscanf(str, "[%f %f %f %f]", &rect.a.x, &rect.a.y, &rect.b.x, &rect.b.y)
 
 /**
  Convert a PDRect into an [a b c d] array string.
  */
-#define PDRectWriteToArrayString(rect, str) sprintf(str, "[%f %f %f %f]", rect.a.x, rect.a.y, rect.b.x, rect.b.y)
+//#define PDRectWriteToArrayString(rect, str) sprintf(str, "[%f %f %f %f]", rect.a.x, rect.a.y, rect.b.x, rect.b.y)
 
 /**
  Identifier type.
@@ -451,14 +457,13 @@ typedef enum {
  
  @ingroup PDCONTENTSTREAM
  @param cs       Content stream reference
- @param args     Argument list
- @param argc     Argument count
+ @param args     Arguments as PDArray
  @param inState  The top-most entry in the operation stack, if any
  @param outState Pointer to the resulting state after this operation; only applies to operators that return PDOperatorStatePush
  
  @return State of operator (i.e. whether it pushes, pops, or does neither)
  */
-typedef PDOperatorState (*PDContentOperatorFunc)(PDContentStreamRef cs, void *userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState);
+typedef PDOperatorState (*PDContentOperatorFunc)(PDContentStreamRef cs, void *userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState);
 
 /**
  The PD instance type of a value.
@@ -476,17 +481,6 @@ typedef enum {
     PDInstanceTypeRef       = 5,    ///< PDReference
     PDInstanceTypeObj       = 6,    ///< PDObject
 } PDInstanceType;
-
-/**
- A container for an object with an associated instance type.
- 
- @ingroup PDOBJECT
- */
-typedef struct PDContainer PDContainer;
-struct PDContainer {
-    PDInstanceType type;            ///< The type of value contained in this collection
-    void        *value;             ///< The actual value
-};
 
 /**
  *  String printing signature.
@@ -520,6 +514,7 @@ typedef enum {
     PDObjectTypeDictionary,         ///< A dictionary. Most objects are considered dictionaries.
     PDObjectTypeStream,             ///< A stream.
     PDObjectTypeReference,          ///< A reference to another object.
+    PDObjectTypeSize,               ///< A size (not in CGPDFObject type)
 } PDObjectType;
 
 /**
@@ -826,5 +821,7 @@ typedef void(*PDScannerBufFunc)(void *info, PDScannerRef scanner, char **buf, PD
 typedef void(*PDScannerPopFunc)(PDScannerRef scanner);
 
 /** @} // PDSCANNER_CONCEPT */
+
+#include "PDType.h"
 
 #endif

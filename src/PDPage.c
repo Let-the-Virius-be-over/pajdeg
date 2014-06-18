@@ -54,7 +54,7 @@ PDPageRef PDPageCreateForPageWithNumber(PDParserRef parser, PDInteger pageNumber
     PDObjectRef ob = PDParserLocateAndCreateObject(parser, obid, true);
     PDPageRef page = PDPageCreateWithObject(parser, ob);
     
-//    const char *contentsRef = PDObjectGetDictionaryEntry(ob, "Contents");
+//    const char *contentsRef = PDDictionaryGetEntry(PDObjectGetDictionary(ob), "Contents");
 //    assert(contentsRef);
 //    PDObjectRef contentsOb = PDParserLocateAndCreateObject(parser, PDIntegerFromString(contentsRef), true);
 //    char *stream = PDParserLocateAndFetchObjectStreamForObject(parser, contentsOb);
@@ -99,14 +99,14 @@ PDTaskResult PDPageInsertionTask(PDPipeRef pipe, PDTaskRef task, PDObjectRef obj
             neighbor = NULL;
         } else {
 //            sprintf(buf, "%ld 0 R", PDObjectGetObID(importedObject));
-            PDArrayInsertAtIndex(kids, index, importedObject, PDInstanceTypeObj);
+            PDArrayInsertAtIndex(kids, index, importedObject);
 //            pd_array_insert_at_index(kids, index, buf);
         }
     }
     
     if (NULL == neighbor) {
 //        sprintf(buf, "%ld 0 R", PDObjectGetObID(importedObject));
-        PDArrayAppend(kids, importedObject, PDInstanceTypeObj);
+        PDArrayAppend(kids, importedObject);
 //        pd_array_append(kids, buf);
     }
 //    pd_array_print(kids);
@@ -128,14 +128,14 @@ PDTaskResult PDPageCountupTask(PDPipeRef pipe, PDTaskRef task, PDObjectRef objec
     PDObjectRef source = info;
     
     PDDictionaryRef obDict = PDObjectGetDictionary(object);
-    PDNumberRef realCountNum = PDDictionaryGetNumber(PDObjectGetDictionary(source), "Count");
+    PDNumberRef realCountNum = PDDictionaryGetEntry(PDObjectGetDictionary(source), "Count");
     PDInteger realCount = PDNumberGetInteger(realCountNum);
     PDInteger obCount   = PDDictionaryGetInteger(obDict, "Count");
     if (obCount == realCount) {
-        PDDictionarySetEntry(obDict, "Count", realCountNum, PDInstanceTypeNumber);
-//    const char *realCount = PDObjectGetDictionaryEntry(source, "Count");
-//    if (strcmp(realCount, PDObjectGetDictionaryEntry(object, "Count"))) {
-//        PDObjectSetDictionaryEntry(object, "Count", realCount);
+        PDDictionarySetEntry(obDict, "Count", realCountNum);
+//    const char *realCount = PDDictionaryGetEntry(PDObjectGetDictionary(source), "Count");
+//    if (strcmp(realCount, PDDictionaryGetEntry(PDObjectGetDictionary(object), "Count"))) {
+//        PDDictionarySetEntry(PDObjectGetDictionary(object), "Count", realCount);
     }
     
     PDRelease(source);
@@ -152,7 +152,6 @@ PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageNum
     
     // we start by importing the object and its indirect companions over into the target parser
     PDObjectRef importedObject = PDParserAttachmentImportObject(attachment, page->ob, (const char *[]) {"Parent"}, 1);
-    //PDParserImportObject(parser, page->parser, page->ob, (const char *[]) {"Parent"}, 1);
     
     // we now try to hook it up with a neighboring page's parent; what better neighbor than the page index itself, unless it exceeds the page count?
     PDCatalogRef cat = PDParserGetCatalog(parser);
@@ -162,11 +161,16 @@ PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageNum
     
     PDInteger neighborObID = PDCatalogGetObjectIDForPage(cat, neighborPI);
     PDObjectRef neighbor = PDParserLocateAndCreateObject(parser, neighborObID, true);
-    const char *parentRef = PDObjectGetDictionaryEntry(neighbor, "Parent");
+    PDDictionaryRef neighDict = PDObjectGetDictionary(neighbor);
+    PDDictionaryRef ioDict = PDObjectGetDictionary(importedObject);
+    PDReferenceRef parentRef = PDDictionaryGetReference(neighDict, "Parent");
+//    const char *parentRef = PDDictionaryGetEntry(PDObjectGetDictionary(neighbor), "Parent");
     PDAssert(parentRef); // crash = ??? no such page? no parent? can pages NOT have parents?
-    PDObjectSetDictionaryEntry(importedObject, "Parent", parentRef);
-    PDInteger parentId = atol(parentRef);
-    PDAssert(parentId); // crash = parentRef was not a <num> <num> R?
+    PDDictionarySetEntry(ioDict, "Parent", parentRef);
+//    PDDictionarySetEntry(PDObjectGetDictionary(importedObject), "Parent", parentRef);
+    
+    PDInteger parentId = PDReferenceGetObjectID(parentRef);
+//    PDAssert(parentId); // crash = parentRef was not a <num> <num> R?
     
     PDObjectRef *userInfo = malloc(sizeof(PDObjectRef) * 2);
     userInfo[0] = (neighborPI == pageNumber ? neighbor : NULL);
@@ -179,19 +183,22 @@ PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageNum
     // also recursively update grand parents
     PDObjectRef parent = PDParserLocateAndCreateObject(parser, parentId, true);
     while (parent) {
-        char buf[16];
-        PDInteger count = 1 + PDIntegerFromString(PDObjectGetDictionaryEntry(parent, "Count"));
-        sprintf(buf, "%ld", (long)count);
-        PDObjectSetDictionaryEntry(parent, "Count", buf);
+//        char buf[16];
+        PDDictionaryRef parentDict = PDObjectGetDictionary(parent);
+        PDNumberRef count = PDNumberCreateWithInteger(1 + PDDictionaryGetInteger(parentDict, "Count"));
+//        PDInteger count = 1 + PDIntegerFromString(PDDictionaryGetEntry(PDObjectGetDictionary(parent), "Count"));
+//        sprintf(buf, "%ld", (long)count);
+//        PDDictionarySetEntry(PDObjectGetDictionary(parent), "Count", buf);
+        PDDictionarySetEntry(parentDict, "Count", count);
         PDTaskRef task = PDTaskCreateMutatorForObject(parentId, PDPageCountupTask);
         PDTaskSetInfo(task, PDRetain(parent));
         PDPipeAddTask(pipe, task);
         PDRelease(task);
         
-        parentRef = PDObjectGetDictionaryEntry(parent, "Parent");
+        parentRef = PDDictionaryGetReference(parentDict, "Parent");
         parent = NULL;
         if (parentRef) {
-            parentId = PDIntegerFromString(parentRef);
+            parentId = PDReferenceGetObjectID(parentRef); //PDIntegerFromString(parentRef);
             parent = PDParserLocateAndCreateObject(parser, parentId, true);
             if (NULL == parent) {
                 PDWarn("null page parent for id #%ld", (long)parentId);
@@ -217,17 +224,21 @@ PDObjectRef PDPageGetContentsObjectAtIndex(PDPageRef page, PDInteger index)
 {
     if (page->contentObs == NULL) {
         // we need to set the array up first
-        pd_dict d = PDObjectGetDictionary(page->ob);
-        if (PDObjectTypeArray == pd_dict_get_type(d, "Contents")) {
-            page->contentRefs = pd_dict_get_copy(d, "Contents");
-            page->contentCount = pd_array_get_count(page->contentRefs);
+        PDDictionaryRef d = PDObjectGetDictionary(page->ob);
+//        pd_dict d = PDObjectGetDictionary(page->ob);
+        void *contentsValue = PDDictionaryGetEntry(d, "Contents");
+        if (PDResolve(contentsValue) == PDInstanceTypeArray) {
+//        if (PDObjectTypeArray == pd_dict_get_type(d, "Contents")) {
+//            page->contentRefs = pd_dict_get_copy(d, "Contents");
+            page->contentRefs = PDRetain(contentsValue);
+            page->contentCount = PDArrayGetCount(contentsValue);
             page->contentObs = calloc(page->contentCount, sizeof(PDObjectRef));
         } else {
-            const char *contentsRef = PDObjectGetDictionaryEntry(page->ob, "Contents");
-            if (contentsRef) {
+//            const char *contentsRef = PDDictionaryGetEntry(PDObjectGetDictionary(page->ob), "Contents");
+            if (contentsValue) {
                 page->contentCount = 1;
                 page->contentObs = malloc(sizeof(PDObjectRef));
-                PDInteger contentsId = PDIntegerFromString(contentsRef);
+                PDInteger contentsId = PDReferenceGetObjectID(contentsValue);
                 page->contentObs[0] = PDParserLocateAndCreateObject(page->parser, contentsId, true);
             } else return NULL;
         }
@@ -236,8 +247,10 @@ PDObjectRef PDPageGetContentsObjectAtIndex(PDPageRef page, PDInteger index)
     PDAssert(index >= 0 && index < page->contentCount); // crash = index out of bounds
     
     if (NULL == page->contentObs[index]) {
-        PDInteger contentsId = PDIntegerFromString(pd_array_get_at_index(page->contentRefs, index));
-        page->contentObs[index] = PDParserLocateAndCreateObject(page->parser, contentsId, true);
+        PDReferenceRef contentsRef = PDArrayGetReference(page->contentRefs, index);
+//        PDInteger contentsId = PDArrayGetInteger(page->contentRefs, index);
+//        PDInteger contentsId = PDIntegerFromString(pd_array_get_at_index(page->contentRefs, index));
+        page->contentObs[index] = PDParserLocateAndCreateObject(page->parser, PDReferenceGetObjectID(contentsRef), true);
     }
     
     return page->contentObs[index];
@@ -246,21 +259,29 @@ PDObjectRef PDPageGetContentsObjectAtIndex(PDPageRef page, PDInteger index)
 PDRect PDPageGetMediaBox(PDPageRef page)
 {
     PDRect rect = (PDRect) {{0,0}, {612,792}};
-    if (PDObjectTypeArray == PDObjectGetDictionaryEntryType(page->ob, "MediaBox")) {
-        pd_array arr = PDObjectCopyDictionaryEntry(page->ob, "MediaBox");
-        if (4 == pd_array_get_count(arr)) {
+    PDDictionaryRef obdict = PDObjectGetDictionary(page->ob);
+    void *mediaBoxValue = PDDictionaryGetEntry(obdict, "MediaBox");
+    if (mediaBoxValue && PDInstanceTypeArray == PDResolve(mediaBoxValue)) {
+//    if (PDObjectTypeArray == PDObjectGetDictionaryEntryType(page->ob, "MediaBox")) {
+//        pd_array arr = PDObjectCopyDictionaryEntry(page->ob, "MediaBox");
+//        if (4 == pd_array_get_count(arr)) {
+        if (4 == PDArrayGetCount(mediaBoxValue)) {
             rect = (PDRect) {
                 {
-                    PDRealFromString(pd_array_get_at_index(arr, 0)),
-                    PDRealFromString(pd_array_get_at_index(arr, 1))
+                    PDNumberGetReal(PDArrayGetElement(mediaBoxValue, 0)),
+                    PDNumberGetReal(PDArrayGetElement(mediaBoxValue, 1)),
+//                    PDRealFromString(pd_array_get_at_index(arr, 0)),
+//                    PDRealFromString(pd_array_get_at_index(arr, 1))
                 },
                 {
-                    PDRealFromString(pd_array_get_at_index(arr, 2)),
-                    PDRealFromString(pd_array_get_at_index(arr, 3))
+                    PDNumberGetReal(PDArrayGetElement(mediaBoxValue, 2)),
+                    PDNumberGetReal(PDArrayGetElement(mediaBoxValue, 3)),
+//                    PDRealFromString(pd_array_get_at_index(arr, 2)),
+//                    PDRealFromString(pd_array_get_at_index(arr, 3))
                 }
             };
         } else {
-            PDNotice("invalid count for MediaBox array: %ld (require 4: x1, y1, x2, y2)", pd_array_get_count(arr));
+            PDNotice("invalid count for MediaBox array: %ld (require 4: x1, y1, x2, y2)", PDArrayGetCount(mediaBoxValue));
         }
     }
     return rect;

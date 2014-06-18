@@ -33,7 +33,9 @@
 #include "PDXTable.h"
 #include "PDCatalog.h"
 #include "pd_crypto.h"
-#include "pd_dict.h"
+#include "PDDictionary.h"
+#include "PDString.h"
+#include "PDNumber.h"
 #include "PDScanner.h"
 
 void PDParserDestroy(PDParserRef parser)
@@ -288,42 +290,50 @@ PDObjectRef PDParserLocateAndCreateObject(PDParserRef parser, PDInteger obid, PD
 
 void PDParserFetchStreamLengthFromObjectDictionary(PDParserRef parser, pd_stack entry)
 {
-    entry = entry->prev->prev;
-    if (entry->type == PD_STACK_STACK) {
-        PDInteger refid;
-        pd_stack stack;
-        // this is a reference length
-        // e, Length, { ref, 1, 2 }
-        entry = entry->info;
-        PDAssert(PDIdentifies(entry->info, PD_REF));
-        refid = pd_stack_peek_int(entry->prev);
-        
-        stack = PDParserLocateAndCreateDefinitionForObject(parser, refid, false);
-        parser->streamLen = pd_stack_pop_int(&stack);
+    void *val = PDInstanceCreateFromComplex(&entry);
+    if (PDInstanceTypeRef == PDResolve(val)) {
+        PDInteger refid = PDReferenceGetObjectID(val);
+        PDObjectRef ref = PDParserLocateAndCreateObject(parser, refid, false);
+        parser->streamLen = PDNumberGetInteger(PDObjectGetValue(ref));
+        PDRelease(ref);
     } else {
-        char *string;
-        // e, Length, 116
-        string = entry->info;
-        parser->streamLen = atol(string);
-        PDAssert(parser->streamLen > 0 || !strcmp("0", string));
+        // val is a PDNumber
+        parser->streamLen = PDNumberGetInteger(val);
     }
+    PDRelease(val);
+//    entry = entry->prev->prev;
+//    if (entry->type == PD_STACK_STACK) {
+//        PDInteger refid;
+//        pd_stack stack;
+//        // this is a reference length
+//        // e, Length, { ref, 1, 2 }
+//        entry = entry->info;
+//        PDAssert(PDIdentifies(entry->info, PD_REF));
+//        refid = pd_stack_peek_int(entry->prev);
+//        
+//        stack = PDParserLocateAndCreateDefinitionForObject(parser, refid, false);
+//        parser->streamLen = pd_stack_pop_int(&stack);
+//    } else {
+//        char *string;
+//        // e, Length, 116
+//        string = entry->info;
+//        parser->streamLen = atol(string);
+//        PDAssert(parser->streamLen > 0 || !strcmp("0", string));
+//    }
 }
 
-void PDParserPrepareStreamData(PDParserRef parser, PDObjectRef ob, PDInteger len, const char *filterName, char *rawBuf)
+void PDParserPrepareStreamData(PDParserRef parser, PDObjectRef ob, PDInteger len, PDStringRef filterName, char *rawBuf)
 {
     if (parser->crypto) {
         pd_crypto_convert(parser->crypto, ob->obid, ob->genid, rawBuf, len);
     }
     
     if (filterName) {
-        filterName = &filterName[1];
-        pd_stack filterOpts = pd_stack_get_dict_key(ob->def, "DecodeParms", false);
-        if (filterOpts) 
-            filterOpts = PDStreamFilterGenerateOptionsFromDictionaryStack(filterOpts->prev->prev->info);
-        PDStreamFilterRef filter = PDStreamFilterObtain(filterName, true, filterOpts);
+        PDDictionaryRef filterOpts = PDDictionaryGetEntry(PDObjectGetDictionary(ob), "DecodeParms");
+        PDStreamFilterRef filter = PDStreamFilterObtain(PDStringEscapedValue(filterName, false), true, filterOpts);
         
         if (NULL == filter) {
-            PDWarn("Unknown filter \"%s\" is ignored.", filterName);
+            PDWarn("Unknown filter \"%s\" is ignored.", PDStringEscapedValue(filterName, false));
         } else {
             PDInteger allocated;
             char *extractedBuf;
@@ -360,7 +370,7 @@ char *PDParserFetchCurrentObjectStream(PDParserRef parser, PDInteger obid)
     PDAssert(parser->state == PDParserStateObjectAppendix);
     
     PDInteger len = parser->streamLen;
-    const char *filterName = PDObjectGetDictionaryEntry(parser->construct, "Filter");
+    PDStringRef filterName = PDDictionaryGetEntry(PDObjectGetDictionary(parser->construct), "Filter");
 
     char *rawBuf = malloc(len + 1);
     PDScannerReadStream(parser->scanner, len, rawBuf, len);
@@ -399,17 +409,18 @@ void PDParserClarifyObjectStreamExistence(PDParserRef parser, PDObjectRef object
     if (object->type == PDObjectTypeUnknown) 
         PDObjectDetermineType(object);
     if (! object->hasStream && object->type == PDObjectTypeDictionary) {
-        const char *length = PDObjectGetDictionaryEntry(object, "Length");
-        if (length) {
+        void *lengthValue = PDDictionaryGetEntry(PDObjectGetDictionary(object), "Length");
+        if (lengthValue) {
             // length could be a ref, or a number
-            PDInteger lenOb, lenGen, lenInt;
-            if (2 == sscanf(length, "%ld %ld R", &lenOb, &lenGen)) {
+            PDInteger lenInt;
+            
+            if (PDResolve(lengthValue) == PDInstanceTypeRef) {
                 // it's a ref, fetch it
-                pd_stack lenDef = PDParserLocateAndCreateDefinitionForObject(parser, lenOb, true);
+                pd_stack lenDef = PDParserLocateAndCreateDefinitionForObject(parser, PDReferenceGetObjectID(lengthValue), true);
                 const char *realLength = pd_stack_pop_key(&lenDef);
                 lenInt = PDIntegerFromString(realLength);
             } else {
-                lenInt = PDIntegerFromString(length);
+                lenInt = PDNumberGetInteger(lengthValue); //PDIntegerFromString(length);
             }
             object->hasStream = lenInt > 0;
             object->streamLen = lenInt;
@@ -431,7 +442,7 @@ char *PDParserLocateAndFetchObjectStreamForObject(PDParserRef parser, PDObjectRe
     if (object->extractedLen != -1) return object->streamBuf;
 
     PDInteger len = object->streamLen;
-    const char *filterName = PDObjectGetDictionaryEntry(object, "Filter");
+    PDStringRef filterName = PDDictionaryGetEntry(PDObjectGetDictionary(object), "Filter");
     
     char *rawBuf = malloc(len + 1);
     
@@ -1157,7 +1168,7 @@ PDObjectRef PDParserConstructObject(PDParserRef parser)
     if (PDScannerPopStack(scanner, &stack)) {
         object->def = stack;
         object->type = PDObjectTypeFromIdentifier(stack->info);
-
+        
         if (parser->encryptRef && parser->obid == parser->encryptRef->obid) {
             // this is an encryption dictionary; those have a Length field that is not the length of the object stream
             parser->streamLen = 0;

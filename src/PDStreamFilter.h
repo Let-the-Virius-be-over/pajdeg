@@ -108,7 +108,7 @@ typedef PDStreamFilterRef (*PDStreamFilterPrcs)(PDStreamFilterRef filter);
  
  If inputEnd is set, the reader variant is returned, otherwise the writer variant is returned.
  */
-typedef PDStreamFilterRef (*PDStreamDualFilterConstr)(PDBool inputEnd, pd_stack options);
+typedef PDStreamFilterRef (*PDStreamDualFilterConstr)(PDBool inputEnd, PDDictionaryRef options);
 
 /**
  The stream filter struct.
@@ -120,7 +120,7 @@ struct PDStreamFilter {
     PDBool hasInput;                    ///< Whether the filter has pending input that, for capacity reasons, has not been added to the buffer yet.
     PDBool finished;                    ///< Whether the filter is finished.
     PDBool failing;                     ///< Whether the filter is failing to handle its input.
-    pd_stack options;                 ///< Filter options
+    PDDictionaryRef options;            ///< Filter options
     void *data;                         ///< User info object.
     unsigned char *bufIn;               ///< Input buffer.
     unsigned char *bufOut;              ///< Output buffer.
@@ -128,9 +128,9 @@ struct PDStreamFilter {
     PDInteger bufOutCapacity;           ///< Output buffer capacity.
     PDStreamFilterFunc init;            ///< Initialization function. Called once before first use.
     PDStreamFilterFunc done;            ///< Deinitialization function. Called once after last use.
-    PDStreamFilterFunc begin;         ///< Processing function. Called any number of times, at most once per new input buffer.
+    PDStreamFilterFunc begin;           ///< Processing function. Called any number of times, at most once per new input buffer.
     PDStreamFilterFunc proceed;         ///< Proceed function. Called any number of times to request more output from last begin call.
-    PDStreamFilterPrcs createInversion;       ///< Inversion function. Returns, if possible, a filter chain that reverts the current filter.
+    PDStreamFilterPrcs createInversion; ///< Inversion function. Returns, if possible, a filter chain that reverts the current filter.
     PDStreamFilterRef nextFilter;       ///< The next filter that should receive the output end of this filter as its input, or NULL if no such requirement exists.
     float growthHint;                   ///< The growth hint is an indicator for how the filter expects the size of its resulting data to be relative to the unfiltered data. 
     unsigned char *bufOutOwned;         ///< Internal output buffer, that will be freed on destruction. This is used internally for chained filters.
@@ -145,11 +145,11 @@ struct PDStreamFilter {
  @param begin The begin function; called once when new data is put into bufIn. Returns # of bytes stored into output buffer.
  @param proceed The proceed function; called repeatedly after a begin call was made, until the filter returns 0 lengths. Returns # of bytes stored into output buffer.
  @param createInversion The inversion function; calling this will produce a filter that inverts this filter.
- @param options Options passed to the filter, in the form of a simplified pd_stack dictionary (with keys and values and no complex objects). A scanner-produced pd_stack dictionary can be converted into a stream filter options dictionary via PDStreamFilterGenerateOptionsFromDictionaryStack().
+ @param options Options passed to the filter, in the form of a dictionary.
  
  @see PDStreamFilterGenerateOptionsFromDictionaryStack
  */
-extern PDStreamFilterRef PDStreamFilterCreate(PDStreamFilterFunc init, PDStreamFilterFunc done, PDStreamFilterFunc begin, PDStreamFilterFunc proceed, PDStreamFilterPrcs createInversion, pd_stack options);
+extern PDStreamFilterRef PDStreamFilterCreate(PDStreamFilterFunc init, PDStreamFilterFunc done, PDStreamFilterFunc begin, PDStreamFilterFunc proceed, PDStreamFilterPrcs createInversion, PDDictionaryRef options);
 
 /**
  Register a dual filter with a given name.
@@ -170,7 +170,7 @@ extern void PDStreamFilterRegisterDualFilter(const char *name, PDStreamDualFilte
  
  @see PDStreamFilterGenerateOptionsFromDictionaryStack
  */
-extern PDStreamFilterRef PDStreamFilterObtain(const char *name, PDBool inputEnd, pd_stack options);
+extern PDStreamFilterRef PDStreamFilterObtain(const char *name, PDBool inputEnd, PDDictionaryRef options);
 
 /**
  Append a filter to the filter, causing a chain.
@@ -238,15 +238,15 @@ extern PDBool PDStreamFilterApply(PDStreamFilterRef filter, unsigned char *src, 
  */
 extern PDStreamFilterRef PDStreamFilterCreateInversionForFilter(PDStreamFilterRef filter);
 
-/**
- Convert a PDScanner dictionary stack into a stream filter options stack.
- 
- @note The original stack remains untouched.
- 
- @param dictStack The dictionary stack to convert
- @return New allocated stack suited for stream filter options.
- */
-extern pd_stack PDStreamFilterGenerateOptionsFromDictionaryStack(pd_stack dictStack);
+///**
+// Convert a PDScanner dictionary stack into a stream filter options stack.
+// 
+// @note The original stack remains untouched.
+// 
+// @param dictStack The dictionary stack to convert
+// @return New allocated stack suited for stream filter options.
+// */
+//extern pd_stack PDStreamFilterGenerateOptionsFromDictionaryStack(pd_stack dictStack);
 
 /**
  Allocate an uninitialized, non-zeroed stream filter object.

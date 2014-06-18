@@ -28,7 +28,7 @@ void PDReferenceDestroy(PDReferenceRef reference)
 
 PDReferenceRef PDReferenceCreateFromStackDictEntry(pd_stack stack)
 {
-    PDReferenceRef ref = PDAlloc(sizeof(struct PDReference), PDReferenceDestroy, false);
+    PDReferenceRef ref = PDAllocTyped(PDInstanceTypeRef, sizeof(struct PDReference), PDReferenceDestroy, false);
     
     // ("de"), <key>, {ref, 789, 0}
     if (PDIdentifies(stack->info, PD_DE))
@@ -42,7 +42,7 @@ PDReferenceRef PDReferenceCreateFromStackDictEntry(pd_stack stack)
 
 PDReferenceRef PDReferenceCreate(PDInteger obid, PDInteger genid)
 {
-    PDReferenceRef ref = PDAlloc(sizeof(struct PDReference), PDReferenceDestroy, false);
+    PDReferenceRef ref = PDAllocTyped(PDInstanceTypeRef, sizeof(struct PDReference), PDReferenceDestroy, false);
     ref->obid = obid;
     ref->genid = genid;
     return ref;

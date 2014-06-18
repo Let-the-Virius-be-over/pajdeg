@@ -65,6 +65,15 @@ extern PDArrayRef PDArrayCreateWithStackList(pd_stack stack);
  */
 extern PDArrayRef PDArrayCreateWithComplex(pd_stack stack);
 
+///**
+// *  Create a copy of the given array.
+// *
+// *  @param array The array to copy
+// *
+// *  @return A new array, identical to array
+// */
+//extern PDArrayRef PDArrayCopy(PDArrayRef array);
+
 /**
  *  Clear the given array, removing all entries.
  *
@@ -82,14 +91,14 @@ extern void PDArrayClear(PDArrayRef array);
 extern PDInteger PDArrayGetCount(PDArrayRef array);
 
 /**
- *  Return the element at the given index as an instance container.
+ *  Return the element at the given index.
  *
  *  @param array The array
  *  @param index The index of the element to retrieve
  *
- *  @return Instance container, with value set to an object of the given type
+ *  @return An appropriate object.
  */
-extern PDContainer PDArrayGetElement(PDArrayRef array, PDInteger index);
+extern void *PDArrayGetElement(PDArrayRef array, PDInteger index);
 
 /**
  *  Return the element at the given index, provided that it's of the given type. Otherwise return NULL.
@@ -102,31 +111,31 @@ extern PDContainer PDArrayGetElement(PDArrayRef array, PDInteger index);
  */
 extern void *PDArrayGetTypedElement(PDArrayRef array, PDInteger index, PDInstanceType type);
 
-#define PDArrayGetNumber(a,i)      PDArrayGetTypedElement(a,i,PDInstanceTypeNumber)
+//#define PDArrayGetNumber(a,i)      PDArrayGetTypedElement(a,i,PDInstanceTypeNumber)
 #define PDArrayGetString(a,i)      PDArrayGetTypedElement(a,i,PDInstanceTypeString)
 #define PDArrayGetArray(a,i)       PDArrayGetTypedElement(a,i,PDInstanceTypeArray)
 #define PDArrayGetDictionary(a,i)  PDArrayGetTypedElement(a,i,PDInstanceTypeDict)
 #define PDArrayGetReference(a,i)   PDArrayGetTypedElement(a,i,PDInstanceTypeRef)
 #define PDArrayGetObject(a,i)      PDArrayGetTypedElement(a,i,PDInstanceTypeObj)
 
+#define PDArrayGetInteger(a,i)     PDNumberGetInteger(PDArrayGetElement(a,i))
+
 /**
- *  Append value of given instance type to the end of the array.
+ *  Append value to the end of the array.
  *
  *  @param array The array
  *  @param value The value
- *  @param type  The instance type of value
  */
-extern void PDArrayAppend(PDArrayRef array, void *value, PDInstanceType type);
+extern void PDArrayAppend(PDArrayRef array, void *value);
 
 /**
- *  Insert value of given instance type at the given index in the array.
+ *  Insert value at the given index in the array.
  *
  *  @param array The array
  *  @param index The index at which to insert the value
  *  @param value The value
- *  @param type  The instance type of value
  */
-extern void PDArrayInsertAtIndex(PDArrayRef array, PDInteger index, void *value, PDInstanceType type);
+extern void PDArrayInsertAtIndex(PDArrayRef array, PDInteger index, void *value);
 
 /**
  *  Get the index of the given value in the array, or -1 if the value was not found.
@@ -147,14 +156,13 @@ extern PDInteger PDArrayGetIndex(PDArrayRef array, void *value);
 extern void PDArrayDeleteAtIndex(PDArrayRef array, PDInteger index);
 
 /**
- *  Replace the element at the given index with value of the given instance type.
+ *  Replace the element at the given index with value.
  *
  *  @param array The array
  *  @param index The index whose value should be overwritten
  *  @param value The new value
- *  @param type  The instance type of the new value
  */
-extern void PDArrayReplaceAtIndex(PDArrayRef array, PDInteger index, void *value, PDInstanceType type);
+extern void PDArrayReplaceAtIndex(PDArrayRef array, PDInteger index, void *value);
 
 /**
  *  Generate a C string formatted according to the PDF specification for this array.

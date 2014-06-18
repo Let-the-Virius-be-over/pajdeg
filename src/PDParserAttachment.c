@@ -70,7 +70,7 @@ PDParserAttachmentRef PDParserAttachmentCreate(PDParserRef parser, PDParserRef f
     PDParserAttachmentRef attachment = PDAlloc(sizeof(struct PDParserAttachment), PDParserAttachmentDestroy, false);
     attachment->nativeParser = parser;
     attachment->foreignParser = foreignParser;
-    attachment->obMap = PDBTreeCreate(PDRelease, 1, 5000, 10);
+    attachment->obMap = PDBTreeCreate(PDReleaseFunc, 1, 5000, 10);
     
     attachment->next = NULL;
     attachment->prev = PDParserAttachmentTail;

@@ -26,6 +26,7 @@
 #include "PDOperator.h"
 #include "PDArray.h"
 #include "pd_stack.h"
+#include "PDString.h"
 
 void PDContentStreamOperationDestroy(PDContentStreamOperationRef op)
 {
@@ -48,7 +49,8 @@ void PDContentStreamDestroy(PDContentStreamRef cs)
     PDRelease(cs->ob);
     PDRelease(cs->opertree);
     pd_stack_destroy(&cs->opers);
-    pd_array_destroy(cs->args);
+    PDRelease(cs->args);
+//    pd_array_destroy(cs->args);
     
 //    PDOperatorSymbolGlobClear();
 }
@@ -61,7 +63,7 @@ PDContentStreamRef PDContentStreamCreateWithObject(PDObjectRef object)
     cs->ob = PDRetain(object);
     cs->opertree = PDBTreeCreate(free, 0, 10000000, 4);
     cs->opers = NULL;
-    cs->args = pd_array_with_capacity(8);
+    cs->args = PDArrayCreateWithCapacity(8);//pd_array_with_capacity(8);
     return cs;
 }
 
@@ -109,9 +111,7 @@ void PDContentStreamExecute(PDContentStreamRef cs)
     PDContentOperatorFunc op;
     PDContentStreamOperationRef operation;
     PDInteger strlen;
-    PDInteger argc;
     void **arr;
-    const char **args;
     char *str;
     pd_stack inStack, outStack;
 
@@ -125,7 +125,8 @@ void PDContentStreamExecute(PDContentStreamRef cs)
 
     pd_stack *opers = &cs->opers;
     pd_stack_destroy(opers);
-    pd_array_clear(cs->args);
+    PDArrayClear(cs->args);
+//    pd_array_clear(cs->args);
 
     for (PDInteger i = 0; i <= len; i++) {
         if (termChar) {
@@ -151,8 +152,8 @@ void PDContentStreamExecute(PDContentStreamRef cs)
                 
                 // have we matched a string to an operator?
                 if (arr) {
-                    argc     = pd_array_get_count(cs->args);
-                    args     = pd_array_create_args(cs->args);
+//                    argc     = pd_array_get_count(cs->args);
+//                    args     = pd_array_create_args(cs->args);
                     outStack = NULL;
                     inStack  = NULL;
 
@@ -163,10 +164,9 @@ void PDContentStreamExecute(PDContentStreamRef cs)
                     
                     cs->lastOperator = str;
                     op = arr[0];
-                    PDOperatorState state = (*op)(cs, arr[1], args, argc, inStack, &outStack);
+                    PDOperatorState state = (*op)(cs, arr[1], cs->args, inStack, &outStack);
                     
-                    free(args);
-                    pd_array_clear(cs->args);
+                    PDArrayClear(cs->args);
                     
                     if (state == PDOperatorStatePush) {
                         operation = PDContentStreamOperationCreate(strdup(str), outStack);
@@ -181,15 +181,18 @@ void PDContentStreamExecute(PDContentStreamRef cs)
                 
                 // we conditionally stuff arguments for numeric values and '/' somethings only; we do this to prevent a function from getting a ton of un-handled operators as arguments
                 else if (argValue) {
-                    pd_array_append(cs->args, str);
+                    PDArrayAppend(cs->args, PDStringCreate(str));
+                    str = NULL;
                 } 
                 
                 // here, we believe we've run into an operator, so we throw away accumulated arguments and start anew
                 else {
-                    pd_array_clear(cs->args);
+                    PDArrayClear(cs->args);
                 }
                 
-                free(str);
+                if (str) {
+                    free(str);
+                }
             }
             
             mark = i + 1;

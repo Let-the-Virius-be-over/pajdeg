@@ -21,11 +21,51 @@
 #include "pd_internal.h"
 #include "PDType.h"
 #include "pd_stack.h"
+#include "PDBTree.h"
+#include "pd_pdf_implementation.h"
 
 static pd_stack arp = NULL;
 
 // if you are having issues with a non-PDTypeRef being mistaken for a PDTypeRef, you can enable DEBUG_PDTYPES_BREAK to stop the assertion from happening and instead returning a NULL value (for the value-returning functions)
 //#define DEBUG_PDTYPES_BREAK
+
+#ifdef DEBUG_PD_RELEASES
+
+PDBTreeRef _retrels = NULL;
+
+void _PDDebugLogRetrelCall(const char *op, const char *file, int lineNo, void *ob)
+{
+    if (_retrels == NULL) {
+        _retrels = PDBTreeCreate(PDDeallocatorNull, 0, 0x1fffffff, 10);
+    }
+    pd_stack entry = PDBTreeGet(_retrels, (PDInteger)ob);
+    pd_stack_push_identifier(&entry, (PDID)lineNo);
+    pd_stack_push_key(&entry, strdup(file));
+    pd_stack_push_identifier(&entry, (PDID)op);
+    PDBTreeInsert(_retrels, (PDInteger)ob, entry);
+}
+
+void _PDDebugLogDisplay(void *ob)
+{
+    if (_retrels == NULL) return;
+    pd_stack entry = PDBTreeGet(_retrels, (PDInteger)ob);
+    if (entry) {
+        printf("Retain/release log for %p:\n", ob);
+        printf("op:         line:  file:\n");
+        while (entry) {
+            char *op = (char *)entry->info ; entry = entry->prev;
+            char *file = (char *)entry->info ; entry = entry->prev;
+            int lineNo = (int)entry->info ; entry = entry->prev;
+            printf("%11s %6d %s\n", op, lineNo, file);
+        }
+    } else {
+        printf("(no log for %p!)\n", ob);
+    }
+}
+#else
+#define _PDDebugLogRetrelCall(...) 
+#define _PDDebugLogDisplay(ob) 
+#endif
 
 #ifdef DEBUG_PDTYPES
 char *PDC = "PAJDEG";
@@ -48,6 +88,7 @@ void breakHere()
 #define PDTypeCheck(cmd, err_ret) \
     if (type->pdc != PDC) { \
         fprintf(stderr, "*** error : object being " cmd " is not a valid PDType instance : %p ***\n", pajdegObject); \
+        _PDDebugLogDisplay(pajdegObject); \
         PDTypeCheckFailed(err_ret); \
     }
 
@@ -55,30 +96,62 @@ void breakHere()
 #define PDTypeCheck(cmd) 
 #endif
 
-void *PDAlloc(PDSize size, void *dealloc, PDBool zeroed)
+void *PDAllocTyped(PDInstanceType it, PDSize size, void *dealloc, PDBool zeroed)
 {
     PDTypeRef chunk = (zeroed ? calloc(1, sizeof(union PDType) + size) : malloc(sizeof(union PDType) + size));
+#ifdef DEBUG_PDTYPES
     chunk->pdc = PDC;
+#endif
+    chunk->it = it;
     chunk->retainCount = 1;
     chunk->dealloc = dealloc;
     return chunk + 1;
 }
 
+void *PDAlloc(PDSize size, void *dealloc, PDBool zeroed)
+{
+    return PDAllocTyped(PDInstanceTypeUnset, size, dealloc, zeroed);
+}
+
+#ifdef DEBUG_PD_RELEASES
+void PDReleaseFunc(void *pajdegObject) 
+{
+    _PDReleaseDebug("--", 0, pajdegObject);
+}
+
+void _PDReleaseDebug(const char *file, int lineNumber, void *pajdegObject)
+#else
 void PDRelease(void *pajdegObject)
+#endif
 {
     if (NULL == pajdegObject) return;
+    _PDDebugLogRetrelCall("release", file, lineNumber, pajdegObject);
     PDTypeRef type = (PDTypeRef)pajdegObject - 1;
     PDTypeCheck("released", /* void */);
     type->retainCount--;
+#ifdef DEBUG
+    // over-autorelease check
+    pd_stack s;
+    pd_stack_for_each(arp, s) {
+        void *pdo = s->info;
+        PDTypeRef t2 = (PDTypeRef)pdo - 1;
+        PDAssert(t2->retainCount > 0); // crash = over-releasing autoreleased object
+    }
+#endif
     if (type->retainCount == 0) {
         (*type->dealloc)(pajdegObject);
         free(type);
     }
 }
 
+#ifdef DEBUG_PD_RELEASES
+extern void *_PDRetainDebug(const char *file, int lineNumber, void *pajdegObject)
+#else
 void *PDRetain(void *pajdegObject)
+#endif
 {
     if (NULL == pajdegObject) return pajdegObject;
+    _PDDebugLogRetrelCall("retain", file, lineNumber, pajdegObject);
     PDTypeRef type = (PDTypeRef)pajdegObject - 1;
     PDTypeCheck("retained", NULL);
     
@@ -92,14 +165,30 @@ void *PDRetain(void *pajdegObject)
     return pajdegObject;
 }
 
+#ifdef DEBUG_PD_RELEASES
+void *_PDAutoreleaseDebug(const char *file, int lineNumber, void *pajdegObject)
+#else
 void *PDAutorelease(void *pajdegObject)
+#endif
 {
+    if (NULL == pajdegObject) return NULL;
+    _PDDebugLogRetrelCall("autorelease", file, lineNumber, pajdegObject);
+    
 #ifdef DEBUG_PDTYPES
     PDTypeRef type = (PDTypeRef)pajdegObject - 1;
     PDTypeCheck("autoreleased", NULL);
 #endif
     pd_stack_push_identifier(&arp, pajdegObject);
     return pajdegObject;
+}
+
+PDInstanceType PDResolve(void *pajdegObject)
+{
+    if (NULL == pajdegObject) return PDInstanceTypeNull;
+    
+    PDTypeRef type = (PDTypeRef)pajdegObject - 1;
+    PDTypeCheck("resolve", NULL);
+    return type->it;
 }
 
 PDInteger PDGetRetainCount(void *pajdegObject)

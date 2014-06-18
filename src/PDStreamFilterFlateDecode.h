@@ -47,17 +47,17 @@
 /**
  Set up a stream filter for FlateDecode compression.
  */
-extern PDStreamFilterRef PDStreamFilterFlateDecodeCompressCreate(pd_stack options);
+extern PDStreamFilterRef PDStreamFilterFlateDecodeCompressCreate(PDDictionaryRef options);
 
 /**
  Set up stream filter for FlateDecode decompression.
  */
-extern PDStreamFilterRef PDStreamFilterFlateDecodeDecompressCreate(pd_stack options);
+extern PDStreamFilterRef PDStreamFilterFlateDecodeDecompressCreate(PDDictionaryRef options);
 
 /**
  Set up a stream filter for FlateDecode based on inputEnd boolean. 
  */
-extern PDStreamFilterRef PDStreamFilterFlateDecodeConstructor(PDBool inputEnd, pd_stack options);
+extern PDStreamFilterRef PDStreamFilterFlateDecodeConstructor(PDBool inputEnd, PDDictionaryRef options);
 
 #endif
 

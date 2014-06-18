@@ -24,6 +24,7 @@
 #include "PDReference.h"
 #include "PDBTree.h"
 #include "pd_stack.h"
+#include "PDDictionary.h"
 #include "PDParserAttachment.h"
 #include "PDCatalog.h"
 #include "PDStaticHash.h"
@@ -95,7 +96,7 @@ PDPipeRef PDPipeCreateWithFilePaths(const char * inputFilePath, const char * out
     PDPipeRef pipe = PDAlloc(sizeof(struct PDPipe), PDPipeDestroy, true);
     pipe->pi = strdup(inputFilePath);
     pipe->po = strdup(outputFilePath);
-    pipe->attachments = PDBTreeCreate(PDRelease, 1, 10, 5);
+    pipe->attachments = PDBTreeCreate(PDReleaseFunc, 1, 10, 5);
     return pipe;
 }
 
@@ -252,7 +253,7 @@ PDBool PDPipePrepare(PDPipeRef pipe)
     pipe->parser = PDParserCreateWithStream(pipe->stream);
     
     if (pipe->parser) {
-        pipe->filter = PDBTreeCreate(PDRelease, 1, pipe->parser->mxt->count, 3);
+        pipe->filter = PDBTreeCreate(PDReleaseFunc, 1, pipe->parser->mxt->count, 3);
     }
 
     return pipe->stream && pipe->parser;
@@ -341,7 +342,7 @@ PDInteger PDPipeExecute(PDPipeRef pipe)
                 // @todo this really needs to be streamlined; for starters, a PDState object could be used to set up types instead of O(n)'ing
                 obj = PDParserConstructObject(parser);
                 if (PDObjectTypeDictionary == PDObjectGetType(obj)) {
-                    pt = PDObjectGetDictionaryEntry(obj, "Type");
+                    pt = PDDictionaryGetEntry(PDObjectGetDictionary(obj), "Type");
                     if (pt) {
                         //printf("pt = %s\n", pt);
                         for (pti = 1; pti < _PDFTypeCount; pti++) // not = 0, because 0 = NULL and is reserved for 'unfiltered'

@@ -25,6 +25,10 @@
 #include "pd_internal.h"
 #include "pd_stack.h"
 #include "PDDictionary.h"
+#include "PDArray.h"
+#include "PDNumber.h"
+#include "PDString.h"
+#include "pd_pdf_implementation.h"
 
 void PDPageReferenceDestroy(PDPageReference * page)
 {
@@ -42,23 +46,27 @@ void PDCatalogDestroy(PDCatalogRef catalog)
     free(catalog->kids);
 }
 
-void PDCatalogAppendPages(PDCatalogRef catalog, PDPageReference *pages, pd_stack defs)
+void PDCatalogAppendPages(PDCatalogRef catalog, PDPageReference *pages, PDDictionaryRef ddict)
 {
+//    pd_stack s = defs;
+//    PDDictionaryRef ddict = PDInstanceCreateFromComplex(&s);
     pages->collection = true;
     PDParserRef parser = catalog->parser;
     
-    PDInteger count = PDIntegerFromString(pd_stack_get_dict_key(defs, "Count", false)->prev->prev->info);
+    PDInteger count = PDNumberGetInteger(PDDictionaryGetEntry(ddict, "Count"));
+//    PDInteger count = PDIntegerFromString(pd_stack_get_dict_key(defs, "Count", false)->prev->prev->info);
     PDAssert(count > 0);
     if (count + catalog->count >= catalog->capacity) {
         catalog->capacity = catalog->count + count;
         catalog->kids = realloc(catalog->kids, sizeof(PDInteger) * catalog->capacity);
     }
     
-    pd_stack kidsStack = pd_stack_get_dict_key(defs, "Kids", true);
-    pd_stack_destroy(&defs);
-    pd_stack kidsArr = pd_stack_get_arr(kidsStack);
+    PDArrayRef kidsArray = PDDictionaryGetEntry(ddict, "Kids");
+//    pd_stack kidsStack = pd_stack_get_dict_key(defs, "Kids", true);
+//    pd_stack_destroy(&defs);
+//    pd_stack kidsArr = pd_stack_get_arr(kidsStack);
     
-    PDInteger lcount = pages->count = pd_stack_get_count(kidsArr); //PDObjectGetArrayCount(kidsArray);
+    PDInteger lcount = pages->count = PDArrayGetCount(kidsArray); //PDArrayGetCount(PDObjectGetArray(kidsArray));
     
     PDInteger *ckids = catalog->kids;
     PDPageReference *kids = pages->kids = malloc(sizeof(PDPageReference) * lcount);
@@ -81,29 +89,36 @@ void PDCatalogAppendPages(PDCatalogRef catalog, PDPageReference *pages, pd_stack
          }
      }
      */
-    pd_stack stack, iter;
-    PDInteger i = 0;
+//    pd_stack stack;
     PDInteger oid;
-    pd_stack_for_each(kidsArr, iter) {
-        stack = as(pd_stack, as(pd_stack, iter->info)->prev->info)->prev;
-        oid = PDIntegerFromString(stack->info);
-        defs = PDParserLocateAndCreateDefinitionForObject(parser, oid, true);
+    for (PDInteger i = 0; i < lcount; i++) {
+        PDReferenceRef ref = PDArrayGetElement(kidsArray, i);
+        oid = PDReferenceGetObjectID(ref);
+//        stack = as(pd_stack, as(pd_stack, iter->info)->prev->info)->prev;
+//        oid = PDIntegerFromString(stack->info);
+        pd_stack defs = PDParserLocateAndCreateDefinitionForObject(parser, oid, true);
         PDAssert(defs); // crash = above function is failing; it may start failing if an object is "weird", or if the code to fetch objects is broken (e.g. PDScanner, PDTwinStream, or even PDParser)
-        char *type = as(pd_stack, pd_stack_get_dict_key(defs, "Type", false)->prev->prev->info)->prev->info;
-        if (0 == strcmp(type, "Pages")) {
-            PDCatalogAppendPages(catalog, &kids[i], defs);
+        PDDictionaryRef kdict = PDInstanceCreateFromComplex(&defs);
+        pd_stack_destroy(&defs);
+        PDStringRef type = PDDictionaryGetEntry(kdict, "Type");
+//        char *type = as(pd_stack, pd_stack_get_dict_key(defs, "Type", false)->prev->prev->info)->prev->info;
+        if (PDStringEqualsCString(type, "Pages")) {
+//        if (0 == strcmp(type, "Pages")) {
+            PDCatalogAppendPages(catalog, &kids[i], kdict);
         } else {
             ckids[catalog->count++] = oid;
             kids[i].collection = false;
             kids[i].obid = oid;
-            kids[i].genid = PDIntegerFromString(stack->prev->info);
-            pd_stack_destroy(&defs);
+            kids[i].genid = PDReferenceGetGenerationID(ref); //PDIntegerFromString(stack->prev->info);
+//            pd_stack_destroy(&defs);
         }
-        i++;
+        PDRelease(kdict);
+//        i++;
     }
-    pd_stack_destroy(&kidsStack);
+    
+//    pd_stack_destroy(&kidsStack);
     /*for (PDInteger i = 0; i < count; i++) {
-     //sref = PDObjectGetArrayElementAtIndex(kidsArray, i); // 2 0 R
+     //sref = PDArrayGetElement(PDObjectGetArray(kidsArray), i); // 2 0 R
      stack = pd_stack_get_arr_element(kidsStack, i);
      kids[i] = PDIntegerFromString(sref);
      }
@@ -113,7 +128,7 @@ void PDCatalogAppendPages(PDCatalogRef catalog, PDPageReference *pages, pd_stack
 
 PDCatalogRef PDCatalogCreateWithParserForObject(PDParserRef parser, PDObjectRef catalogObject)
 {
-    const char *sref;
+    PDReferenceRef sref;
     
     PDCatalogRef catalog = PDAlloc(sizeof(struct PDCatalog), PDCatalogDestroy, false);
     catalog->parser = parser;
@@ -125,19 +140,23 @@ PDCatalogRef PDCatalogCreateWithParserForObject(PDParserRef parser, PDObjectRef 
     // catalogObject has the form
     //  << /Type /Catalog /Pages 3 0 R >>
     // so the first thing we do is fetch that /Pages object
-    sref = PDObjectGetDictionaryEntry(catalogObject, "Pages");
+    PDDictionaryRef coDict = PDObjectGetDictionary(catalogObject);
+    sref = PDDictionaryGetEntry(coDict, "Pages");
     PDAssert(sref != NULL); // catalogObject is most likely not a valid catalog
 
     // the Pages object looks like:
     //  << /Type /Pages /MediaBox [0 0 1024 768] /Count 1 /Kids [ 2 0 R ] >>
     // note that MediaBox is currently ignored
     
-    pd_stack defs = PDParserLocateAndCreateDefinitionForObject(parser, PDIntegerFromString(sref), true);
+    pd_stack defs = PDParserLocateAndCreateDefinitionForObject(parser, PDReferenceGetObjectID(sref), true);
     if (! defs) {
         PDRelease(catalog);
         return NULL;
     }
-    PDCatalogAppendPages(catalog, &catalog->pages, defs);
+    PDDictionaryRef dict = PDInstanceCreateFromComplex(&defs);
+    PDCatalogAppendPages(catalog, &catalog->pages, dict);
+    pd_stack_destroy(&defs);
+    PDRelease(dict);
     
     return catalog;
 }

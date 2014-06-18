@@ -71,14 +71,23 @@ extern void PDDictionaryClear(PDDictionaryRef dictionary);
 extern PDInteger PDDictionaryGetCount(PDDictionaryRef dictionary);
 
 /**
- *  Return the entry at the given index as an instance container.
+ *  Get all the keys in the dictionary, as char**.
+ *
+ *  @param dictionary The dictionary
+ *
+ *  @return Char* array
+ */
+extern char **PDDictionaryGetKeys(PDDictionaryRef dictionary);
+
+/**
+ *  Return the entry at the given index.
  *
  *  @param dictionary The dictionary
  *  @param key        The key
  *
- *  @return Instance container, with value set to an object of the given type
+ *  @return Appropriate object.
  */
-extern PDContainer PDDictionaryGetEntry(PDDictionaryRef dictionary, const char *key);
+extern void *PDDictionaryGetEntry(PDDictionaryRef dictionary, const char *key);
 
 /**
  *  Return the entry at the given index, provided that it's of the given type. Otherwise return NULL.
@@ -91,26 +100,23 @@ extern PDContainer PDDictionaryGetEntry(PDDictionaryRef dictionary, const char *
  */
 extern void *PDDictionaryGetTypedEntry(PDDictionaryRef dictionary, const char *key, PDInstanceType type);
 
-#define PDDictionaryGetNumber(d,k)      PDDictionaryGetTypedEntry(d,k,PDInstanceTypeNumber)
+//#define PDDictionaryGetNumber(d,k)      PDDictionaryGetTypedEntry(d,k,PDInstanceTypeNumber)
 #define PDDictionaryGetString(d,k)      PDDictionaryGetTypedEntry(d,k,PDInstanceTypeString)
 #define PDDictionaryGetArray(d,k)       PDDictionaryGetTypedEntry(d,k,PDInstanceTypeArray)
 #define PDDictionaryGetDictionary(d,k)  PDDictionaryGetTypedEntry(d,k,PDInstanceTypeDict)
 #define PDDictionaryGetReference(d,k)   PDDictionaryGetTypedEntry(d,k,PDInstanceTypeRef)
 #define PDDictionaryGetObject(d,k)      PDDictionaryGetTypedEntry(d,k,PDInstanceTypeObj)
 
-#define PDDictionaryGetInteger(d,k)     PDNumberGetInteger(PDDictionaryGetNumber(d,k))
-#define PDDictionaryGetReal(d,k)        PDNumberGetReal(PDDictionaryGetNumber(d,k))
-#define PDDictionaryGetBool(d,k)        PDNumberGetBool(PDDictionaryGetNumber(d,k))
+#define PDDictionaryGetInteger(d,k)     PDNumberGetInteger(PDDictionaryGetEntry(d,k))
 
 /**
- *  Set value of given instance type for the given key in the dictionary.
+ *  Set value of for the given key in the dictionary.
  *
  *  @param dictionary The dictionary
  *  @param key        The key
  *  @param value      The value
- *  @param type       The instance type of value
  */
-extern void PDDictionarySetEntry(PDDictionaryRef dictionary, const char *key, void *value, PDInstanceType type);
+extern void PDDictionarySetEntry(PDDictionaryRef dictionary, const char *key, void *value);
 
 /**
  *  Delete the value for the given key.

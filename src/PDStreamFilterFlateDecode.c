@@ -24,6 +24,7 @@
 #include "pd_stack.h"
 #include "PDStreamFilterFlateDecode.h"
 #include "zlib.h"
+#include "PDDictionary.h"
 
 PDInteger fd_compress_init(PDStreamFilterRef filter)
 {
@@ -31,26 +32,21 @@ PDInteger fd_compress_init(PDStreamFilterRef filter)
         return true;
     
     if (filter->options) {
-        pd_stack iter = filter->options;
-        while (iter) {
-            if (!strcmp(iter->info, "Predictor")) {
-                // we need a predictor as well
-                PDStreamFilterRef predictor = PDStreamFilterObtain(iter->info, false, filter->options);
-                if (predictor) {
-                    // untie this from ourselves or we will destroy it twice
-                    filter->options = NULL;
-                    // because prediction has to come before compression we do a swap-a-roo here
-                    PDStreamFilterRef newSelf = PDStreamFilterAlloc();          // new field for us
-                    memcpy(newSelf, filter, sizeof(struct PDStreamFilter));     // move us there
-                    memcpy(filter, predictor, sizeof(struct PDStreamFilter));   // replace old us with predictor
-                    filter->nextFilter = newSelf;                               // set new us as predictor's next
-                    predictor->options = NULL;                                  // clear OLD predictor's options or destroyed twice
-                    PDRelease(predictor);
-                    return (*filter->init)(filter);                             // init predictor, not us
-                }
-                break;
+        PDDictionaryRef options = filter->options;
+        void *value = PDDictionaryGetEntry(options, "Predictor");
+        if (value) {
+            // we need a predictor as well
+            PDStreamFilterRef predictor = PDStreamFilterObtain("Predictor", false, filter->options);
+            if (predictor) {
+                // because prediction has to come before compression we do a swap-a-roo here
+                PDStreamFilterRef newSelf = PDStreamFilterAlloc();          // new field for us
+                memcpy(newSelf, filter, sizeof(struct PDStreamFilter));     // move us there
+                memcpy(filter, predictor, sizeof(struct PDStreamFilter));   // replace old us with predictor
+                filter->nextFilter = newSelf;                               // set new us as predictor's next
+                PDRelease(predictor);
+                return (*filter->init)(filter);                             // init predictor, not us
+                // from above return, we come into init for predictor, which has an uninitialized next (our new self), which it initializes; since we return here, though, that does not result in double initialization
             }
-            iter = iter->prev->prev;
         }
     }
     
@@ -76,18 +72,11 @@ PDInteger fd_decompress_init(PDStreamFilterRef filter)
         return true;
     
     if (filter->options) {
-        pd_stack iter = filter->options;
-        while (iter) {
-            if (!strcmp(iter->info, "Predictor")) {
-                // we need a predictor as well
-                filter->nextFilter = PDStreamFilterObtain(iter->info, true, filter->options);
-                if (filter->nextFilter) {
-                    // untie this from ourselves or we will destroy it twice
-                    filter->options = NULL;
-                }
-                break;
-            }
-            iter = iter->prev->prev;
+        PDDictionaryRef options = filter->options;
+        void *value = PDDictionaryGetEntry(options, "Predictor");
+        if (value) {
+            // we need a predictor as well
+            filter->nextFilter = PDStreamFilterObtain("Predictor", true, filter->options);
         }
     }
     
@@ -239,17 +228,17 @@ PDStreamFilterRef fd_decompress_invert(PDStreamFilterRef filter)
     return PDStreamFilterFlateDecodeCompressCreate(NULL);
 }
 
-PDStreamFilterRef PDStreamFilterFlateDecodeCompressCreate(pd_stack options)
+PDStreamFilterRef PDStreamFilterFlateDecodeCompressCreate(PDDictionaryRef options)
 {
     return PDStreamFilterCreate(fd_compress_init, fd_compress_done, fd_compress_begin, fd_compress_proceed, fd_compress_invert, options);
 }
 
-PDStreamFilterRef PDStreamFilterFlateDecodeDecompressCreate(pd_stack options)
+PDStreamFilterRef PDStreamFilterFlateDecodeDecompressCreate(PDDictionaryRef options)
 {
     return PDStreamFilterCreate(fd_decompress_init, fd_decompress_done, fd_decompress_begin, fd_decompress_proceed, fd_decompress_invert, options);
 }
 
-PDStreamFilterRef PDStreamFilterFlateDecodeConstructor(PDBool inputEnd, pd_stack options)
+PDStreamFilterRef PDStreamFilterFlateDecodeConstructor(PDBool inputEnd, PDDictionaryRef options)
 {
     return (inputEnd
             ? PDStreamFilterFlateDecodeDecompressCreate(options)

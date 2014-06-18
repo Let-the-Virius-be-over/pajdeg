@@ -28,6 +28,9 @@
 #include "PDStreamFilter.h"
 #include "PDObjectStream.h"
 #include "PDBTree.h"
+#include "PDDictionary.h"
+#include "PDString.h"
+#include "PDNumber.h"
 
 #include "pd_crypto.h" // temporary!
 
@@ -61,17 +64,21 @@ PDObjectStreamRef PDObjectStreamCreateWithObject(PDObjectRef object)
 {
     PDObjectStreamRef obstm = PDAlloc(sizeof(struct PDObjectStream), PDObjectStreamDestroy, false);
     obstm->ob = PDRetain(object);
-    obstm->n = PDIntegerFromString(PDObjectGetDictionaryEntry(object, "N"));
-    obstm->first = PDIntegerFromString(PDObjectGetDictionaryEntry(object, "First"));
-    obstm->constructs = PDBTreeCreate(PDRelease, obstm->first, obstm->first + obstm->n, obstm->n/3);
+    PDDictionaryRef obd = PDObjectGetDictionary(object);
+    obstm->n = PDDictionaryGetInteger(obd, "N");
+    obstm->first = PDDictionaryGetInteger(obd, "First");
+    obstm->constructs = PDBTreeCreate(PDReleaseFunc, obstm->first, obstm->first + obstm->n, obstm->n/3);
     
-    const char *filterName = PDObjectGetDictionaryEntry(object, "Filter");
+    PDStringRef filterName = PDDictionaryGetString(obd, "Filter");
+//    const char *filterName = PDDictionaryGetEntry(PDObjectGetDictionary(object), "Filter");
     if (filterName) {
-        filterName = &filterName[1]; // get rid of name slash
-        pd_stack decodeParms = pd_stack_get_dict_key(object->def, "DecodeParms", false);
-        if (decodeParms) 
-            decodeParms = PDStreamFilterGenerateOptionsFromDictionaryStack(decodeParms);
-        obstm->filter = PDStreamFilterObtain(filterName, true, decodeParms);
+        char *filterString = PDStringEscapedValue(filterName, false);
+//        filterName = &filterName[1]; // get rid of name slash
+//        pd_stack decodeParms = pd_stack_get_dict_key(object->def, "DecodeParms", false);
+        PDDictionaryRef decodeParms = PDDictionaryGetDictionary(obd, "DecodeParms");
+//        if (decodeParms) 
+//            decodeParms = PDStreamFilterGenerateOptionsFromDictionary(decodeParms);
+        obstm->filter = PDStreamFilterObtain(filterString, true, decodeParms);
     } else {
         obstm->filter = NULL;
     }
@@ -223,7 +230,6 @@ void PDObjectStreamCommit(PDObjectStreamRef obstm)
     for (i = 0; i < n; i++) {
         if (elements[i].def == NULL) {
             PDObjectRef ob = PDBTreeGet(obstm->constructs, elements[i].obid);
-            //pd_btree_fetch(obstm->constructs, elements[i].obid);
             len = PDObjectGenerateDefinition(ob, (char**)&elements[i].def, 0);
             len--; // objects add \n after def; don't want two \n's
         } else {
@@ -241,12 +247,16 @@ void PDObjectStreamCommit(PDObjectStreamRef obstm)
     }
     
     // update keys
-    sprintf(hbuf, "%ld", headerlen);
-    PDObjectSetDictionaryEntry(streamOb, "First", hbuf);
+//    sprintf(hbuf, "%ld", headerlen);
+    PDDictionaryRef obd = PDObjectGetDictionary(streamOb);
+    PDNumberRef num = PDNumberCreateWithInteger(headerlen);
+    PDDictionarySetEntry(obd, "First", num);
+    PDRelease(num);
+//    PDDictionarySetEntry(PDObjectGetDictionary(streamOb), "First", hbuf);
     
     // generate stream
     len = headerlen + offs;
-    if (len == 0) return; // this will never happen (in theory), but this line gets rid of CLANG warnings
+    if (len == 0) return; // CLANG warnings
     content = malloc(len);
     
     // header

@@ -29,6 +29,10 @@
 #include "PDObject.h"
 #include "PDStreamFilter.h"
 #include "pd_pdf_implementation.h"
+#include "PDDictionary.h"
+#include "PDArray.h"
+#include "PDString.h"
+#include "PDNumber.h"
 
 #define xrefalloc(tbl, cap, width)           malloc((cap) * (width) + 1); tbl->allocx = (cap) * (width) + 1
 #define xrefrealloc(tbl, xref, cap, width)   realloc(xref, (cap) * (width) + 1); tbl->allocx = (cap) * (width) + 1
@@ -182,6 +186,7 @@ struct PDXI {
     PDScannerRef scanner;       ///< scanner
     pd_stack queue;             ///< queue of byte offsets at which as yet unparsed XREFs are located
     pd_stack stack;             ///< generic stack
+    PDDictionaryRef dict;       ///< generic dictionary
     PDTwinStreamRef stream;     ///< stream
     PDReferenceRef rootRef;     ///< reference to root object
     PDReferenceRef infoRef;     ///< reference to info object
@@ -200,6 +205,7 @@ struct PDXI {
     NULL, \
     parser, \
     parser->scanner, \
+    NULL, \
     NULL, \
     NULL, \
     parser->stream, \
@@ -263,15 +269,19 @@ PDBool PDXTableInsertXRef(PDParserRef parser)
     
     PDObjectRef tob = parser->trailer;
     
-    sprintf(obuf, "%lu", parser->mxt->count);
-    PDObjectSetDictionaryEntry(tob, "Size", obuf);
-    PDObjectRemoveDictionaryEntry(tob, "Prev");
-    PDObjectRemoveDictionaryEntry(tob, "XRefStm");
+//    sprintf(obuf, "%lu", parser->mxt->count);
+    PDDictionaryRef tobd = PDObjectGetDictionary(tob);
+    PDDictionarySetEntry(tobd, "Size", PDNumberWithSize(parser->mxt->count));
+    PDDictionaryDeleteEntry(tobd, "Prev");
+    PDDictionaryDeleteEntry(tobd, "XRefStm");
+//    PDDictionarySetEntry(PDObjectGetDictionary(tob), "Size", obuf);
+//    PDDictionaryDeleteEntry(PDObjectGetDictionary(tob), "Prev");
+//    PDDictionaryDeleteEntry(PDObjectGetDictionary(tob), "XRefStm");
     
     char *string = NULL;
     len = PDObjectGenerateDefinition(tob, &string, 0);
     // overwrite "0 0 obj" 
-    //     with "trailer"
+    //      with "trailer"
     memcpy(string, "trailer", 7);
     PDTwinStreamInsertContent(stream, len, string); 
     free(string);
@@ -293,13 +303,19 @@ PDBool PDXTableInsertXRefStream(PDParserRef parser)
     PDXTableSetOffsetForID(mxt, trailer->obid, (PDOffset)parser->oboffset);
     PDXTableSetTypeForID(mxt, trailer->obid, PDXTypeUsed);
     
-    sprintf(obuf, "%lu", mxt->count);
-    PDObjectSetDictionaryEntry(trailer, "Size", obuf);
-    PDObjectSetDictionaryEntry(trailer, "W", PDXTableWEntry(mxt));
+    PDDictionaryRef tobd = PDObjectGetDictionary(trailer);
+//    sprintf(obuf, "%lu", mxt->count);
+    PDDictionarySetEntry(tobd, "Size", PDNumberWithSize(mxt->count));
+    PDDictionarySetEntry(tobd, "W", PDStringWithCString(PDXTableWEntry(mxt)));
+//    PDDictionarySetEntry(PDObjectGetDictionary(trailer), "Size", obuf);
+//    PDDictionarySetEntry(PDObjectGetDictionary(trailer), "W", PDXTableWEntry(mxt));
 
-    PDObjectRemoveDictionaryEntry(trailer, "Prev");
-    PDObjectRemoveDictionaryEntry(trailer, "Index");
-    PDObjectRemoveDictionaryEntry(trailer, "XRefStm");
+    PDDictionaryDeleteEntry(tobd, "Prev");
+    PDDictionaryDeleteEntry(tobd, "Index");
+    PDDictionaryDeleteEntry(tobd, "XRefStm");
+//    PDDictionaryDeleteEntry(PDObjectGetDictionary(trailer), "Prev");
+//    PDDictionaryDeleteEntry(PDObjectGetDictionary(trailer), "Index");
+//    PDDictionaryDeleteEntry(PDObjectGetDictionary(trailer), "XRefStm");
 
     // override filters/decode params always -- better than risk passing something on by mistake that makes the xref stream unreadable
     PDObjectSetFlateDecodedFlag(trailer, true);
@@ -427,12 +443,16 @@ static inline PDBool PDXTableFindStartXRef(PDXI X)
 // a 1.5 ob stream header; pull in the definition, skip past stream, then move on
 static inline PDBool PDXTableReadXRefStreamHeader(PDXI X)
 {
+    PDRelease(X->dict);
     pd_stack_pop_identifier(&X->stack);
     X->mtobid = pd_stack_pop_int(&X->stack);
     pd_stack_destroy(&X->stack);
     PDScannerPopStack(X->scanner, &X->stack);
+    pd_stack s = X->stack;
+    X->dict = PDInstanceCreateFromComplex(&s);
     PDScannerAssertString(X->scanner, "stream");
-    PDInteger len = PDIntegerFromString(pd_stack_get_dict_key(X->stack, "Length", false)->prev->prev->info);
+    PDInteger len = PDNumberGetInteger(PDDictionaryGetEntry(X->dict, "Length"));
+//    PDInteger len = PDIntegerFromString(pd_stack_get_dict_key(X->stack, "Length", false)->prev->prev->info);
     PDScannerSkip(X->scanner, len);
     PDTwinStreamAdvance(X->stream, X->stream->cursor + X->scanner->boffset);
     
@@ -454,14 +474,17 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
     char *bufi;
     PDBool aligned;
     PDInteger len;
-    pd_stack byteWidths;
-    pd_stack index;
-    pd_stack filterOpts;
+    PDArrayRef byteWidths;
+//    pd_stack index;
+    PDArrayRef index;
+    PDDictionaryRef filterOpts;
     PDInteger startob;
     PDInteger obcount;
-    pd_stack filterDef;
+//    pd_stack filterDef;
+    PDStringRef filterName;
     PDInteger j;
     PDInteger i;
+    PDInteger indexCtr, indexCount;
     PDInteger sizeT;
     PDInteger sizeO;
     PDInteger sizeI;
@@ -485,21 +508,31 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
     pdx->obid = pd_stack_pop_int(&X->stack);
     pd_stack_destroy(&X->stack);
     PDScannerPopStack(X->scanner, &X->stack);
+    pd_stack s = X->stack;
+    PDRelease(X->dict);
+    X->dict = PDInstanceCreateFromComplex(&s);
+
     PDScannerAssertString(X->scanner, "stream");
-    len = PDIntegerFromString(pd_stack_get_dict_key(X->stack, "Length", false)->prev->prev->info);
-    byteWidths = pd_stack_get_dict_key(X->stack, "W", false);
-    index = pd_stack_get_dict_key(X->stack, "Index", false);
-    filterDef = pd_stack_get_dict_key(X->stack, "Filter", false);
-    size = PDIntegerFromString(pd_stack_get_dict_key(X->stack, "Size", false)->prev->prev->info);
+    len = PDNumberGetInteger(PDDictionaryGetEntry(X->dict, "Length"));
+//    len = PDIntegerFromString(pd_stack_get_dict_key(X->stack, "Length", false)->prev->prev->info);
+    byteWidths = PDDictionaryGetEntry(X->dict, "W");
+//    byteWidths = pd_stack_get_dict_key(X->stack, "W", false);
+    index = PDDictionaryGetEntry(X->dict, "Index");
+//    index = pd_stack_get_dict_key(X->stack, "Index", false);
+//    filterDef = pd_stack_get_dict_key(X->stack, "Filter", false);
+    filterName = PDDictionaryGetEntry(X->dict, "Filter");
+    size = PDNumberGetInteger(PDDictionaryGetEntry(X->dict, "Size"));
+//    size = PDIntegerFromString(pd_stack_get_dict_key(X->stack, "Size", false)->prev->prev->info);
     
     PDStreamFilterRef filter = NULL;
-    if (filterDef) {
+    if (filterName) {
         // ("name"), "filter name"
-        filterDef = as(pd_stack, filterDef->prev->prev->info)->prev;
-        filterOpts = pd_stack_get_dict_key(X->stack, "DecodeParms", false);
-        if (filterOpts) 
-            filterOpts = PDStreamFilterGenerateOptionsFromDictionaryStack(filterOpts->prev->prev->info);
-        filter = PDStreamFilterObtain(filterDef->info, true, filterOpts);
+        filterOpts = PDDictionaryGetEntry(X->dict, "DecodeParms");
+//        filterDef = as(pd_stack, filterDef->prev->prev->info)->prev;
+//        filterOpts = PDDictionaryCreateWithComplex(pd_stack_get_dict_key(X->stack, "DecodeParms", false));
+//        if (filterOpts) 
+//            filterOpts = PDStreamFilterGenerateOptionsFromDictionaryStack(filterOpts->prev->prev->info);
+        filter = PDStreamFilterObtain(filterName->data, true, filterOpts);
     }
     
     if (filter) {
@@ -528,10 +561,10 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
     
     // process buf
     
-    byteWidths = as(pd_stack, byteWidths->prev->prev->info)->prev->prev->info;
-    sizeT = PDIntegerFromString(as(pd_stack, byteWidths->info)->prev->info);
-    sizeO = PDIntegerFromString(as(pd_stack, byteWidths->prev->info)->prev->info);
-    sizeI = PDIntegerFromString(as(pd_stack, byteWidths->prev->prev->info)->prev->info);
+//    byteWidths = as(pd_stack, byteWidths->prev->prev->info)->prev->prev->info;
+    sizeT = PDNumberGetInteger(PDArrayGetElement(byteWidths, 0)); // PDIntegerFromString(as(pd_stack, byteWidths->info)->prev->info);
+    sizeO = PDNumberGetInteger(PDArrayGetElement(byteWidths, 1)); // PDIntegerFromString(as(pd_stack, byteWidths->prev->info)->prev->info);
+    sizeI = PDNumberGetInteger(PDArrayGetElement(byteWidths, 2)); //PDIntegerFromString(as(pd_stack, byteWidths->prev->prev->info)->prev->info);
     
     if (pdx->count == 0 || (sizeT >= pdx->typeSize && sizeO >= pdx->offsSize && sizeI >= pdx->genSize)) {
         // we can adopt the given sizes as is, as they won't force us to lose bytes
@@ -601,20 +634,25 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
     // index, which is optional, can fine tune startob/obcount; it defaults to [0 Size]
 
 #define index_pop() \
-    startob = PDIntegerFromString(as(pd_stack, index->info)->prev->info); \
-    obcount = PDIntegerFromString(as(pd_stack, index->prev->info)->prev->info); \
-    index = index->prev->prev
+        startob = PDNumberGetInteger(PDArrayGetElement(index, indexCtr));\
+        obcount = PDNumberGetInteger(PDArrayGetElement(index, indexCtr+1));\
+        indexCtr += 2
+//    startob = PDIntegerFromString(as(pd_stack, index->info)->prev->info); \
+//    obcount = PDIntegerFromString(as(pd_stack, index->prev->info)->prev->info); \
+//    index = index->prev->prev
     
     startob = 0;
     obcount = size;
+    indexCtr = 0;
+    indexCount = index ? PDArrayGetCount(index) : 0;
 
-    if (index) {
-        // move beyond header
-        index = as(pd_stack, index->prev->prev->info)->prev->prev->info;
-        // some crazy PDF creators out there may think it's a lovely idea to put an empty index in; if they do, we will presume they meant the default [0 Size]
-        if (index) {
-            index_pop();
-        }
+    if (indexCtr < indexCount) {
+//        // move beyond header
+//        index = as(pd_stack, index->prev->prev->info)->prev->prev->info;
+//        // some crazy PDF creators out there may think it's a lovely idea to put an empty index in; if they do, we will presume they meant the default [0 Size]
+//        if (index) {
+        index_pop();
+//        }
     }
     
     xrefs = pdx->xrefs;
@@ -640,9 +678,8 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
         }
         
         obcount = 0;
-        if (index) {
+        if (indexCtr < indexCount) {
             index_pop();
-            PDAssert(obcount > 0);
         }
     } while (obcount > 0);
     
@@ -824,39 +861,55 @@ static inline PDBool PDXTableReadXRefContent(PDXI X)
 static inline void PDXTableParseTrailer(PDXI X)
 {
     // if we have no Root or Info yet, grab them if found
-    pd_stack dictStack;
-    if (X->rootRef == NULL && (dictStack = pd_stack_get_dict_key(X->stack, "Root", false))) {
-        X->rootRef = PDReferenceCreateFromStackDictEntry(dictStack->prev->prev->info);
+//    pd_stack dictStack;
+    PDDictionaryRef dict = PDInstanceCreateFromComplex(&X->stack);
+    if (X->rootRef == NULL && PDDictionaryGetEntry(dict, "Root")) {
+        X->rootRef = PDDictionaryGetEntry(dict, "Root");
     }
-    if (X->infoRef == NULL && (dictStack = pd_stack_get_dict_key(X->stack, "Info", false))) {
-        X->infoRef = PDReferenceCreateFromStackDictEntry(dictStack->prev->prev->info);
+    if (X->infoRef == NULL && PDDictionaryGetEntry(dict, "Info")) {
+        X->infoRef = PDDictionaryGetEntry(dict, "Info");
     }
-    if (X->encryptRef == NULL && (dictStack = pd_stack_get_dict_key(X->stack, "Encrypt", false))) {
-        X->encryptRef = PDReferenceCreateFromStackDictEntry(dictStack->prev->prev->info);
+    if (X->encryptRef == NULL && PDDictionaryGetEntry(dict, "Encrypt")) {
+        X->encryptRef = PDDictionaryGetEntry(dict, "Encrypt");
     }
+//    if (X->rootRef == NULL && (dictStack = pd_stack_get_dict_key(X->stack, "Root", false))) {
+//        X->rootRef = PDReferenceCreateFromStackDictEntry(dictStack->prev->prev->info);
+//    }
+//    if (X->infoRef == NULL && (dictStack = pd_stack_get_dict_key(X->stack, "Info", false))) {
+//        X->infoRef = PDReferenceCreateFromStackDictEntry(dictStack->prev->prev->info);
+//    }
+//    if (X->encryptRef == NULL && (dictStack = pd_stack_get_dict_key(X->stack, "Encrypt", false))) {
+//        X->encryptRef = PDReferenceCreateFromStackDictEntry(dictStack->prev->prev->info);
+//    }
     
     // a Prev key may or may not exist, in which case we want to hit it
-    pd_stack prev = pd_stack_get_dict_key(X->stack, "Prev", false);
-    if (prev) {
-        // e, Prev, 116
-        char *s = prev->prev->prev->info;
-        pd_stack_push_identifier(&X->queue, (PDID)PDSizeFromString(s));
-    } 
+    if (PDDictionaryGetEntry(dict, "Prev")) {
+        pd_stack_push_identifier(&X->queue, (PDID)PDNumberGetSize(PDDictionaryGetEntry(dict, "Prev")));
+    }
+//    pd_stack prev = pd_stack_get_dict_key(X->stack, "Prev", false);
+//    if (prev) {
+//        // e, Prev, 116
+//        char *s = prev->prev->prev->info;
+//        pd_stack_push_identifier(&X->queue, (PDID)PDSizeFromString(s));
+//    } 
     
     // For 1.5+ PDF:s, an XRefStm may exist; it takes precedence over Prev, but does not override Prev
-    if ((dictStack = pd_stack_get_dict_key(X->stack, "XRefStm", false))) {
-        /// @todo FIND A CASE WHERE XRefStm EXISTS!
-        char *s = dictStack->prev->prev->info;
-        PDSize xrefStreamOffs = PDSizeFromString(s);
-        // X->queue is a queue of objects newer-to-older, which means pushing the XRefStm entry after pushing the Prev entry will do the right thing (XRefStm takes precedence, Prev is not skipped)
-        pd_stack_push_identifier(&X->queue, (PDID)xrefStreamOffs);
+    if (PDDictionaryGetEntry(dict, "XRefStm")) {
+        pd_stack_push_identifier(&X->queue, (PDID)PDNumberGetSize(PDDictionaryGetEntry(dict, "XRefStm")));
     }
+//    if ((dictStack = pd_stack_get_dict_key(X->stack, "XRefStm", false))) {
+//        char *s = dictStack->prev->prev->info;
+//        PDSize xrefStreamOffs = PDSizeFromString(s);
+//        // X->queue is a queue of objects newer-to-older, which means pushing the XRefStm entry after pushing the Prev entry will do the right thing (XRefStm takes precedence, Prev is not skipped)
+//        pd_stack_push_identifier(&X->queue, (PDID)xrefStreamOffs);
+//    }
     
     // update the trailer object in case additional info is included
-    // TODO: determine if spec requires this or if the last trailer is the whole truth
+    // TODO: determine if spec requires this or if the last trailer is the whole truth (considering the inability to update (see below), this may have been resolved)
     if (X->trailer->def == NULL) {
         X->trailer->obid = X->mtobid;
         X->trailer->def = X->stack;
+        X->trailer->inst = dict;
     } else {
         /// @todo Disabled this part; the master trailer has to contain vital stuff or Pajdeg loses it; this will e.g. put a bunch of stream related stuff into the regular trailer if a PDF has mixed XRef streams and plaintext XRefs
 #if 0
@@ -864,13 +917,14 @@ static inline void PDXTableParseTrailer(PDXI X)
         char *value;
         pd_stack iter = X->stack; 
         while (pd_stack_get_next_dict_key(&iter, &key, &value)) {
-            if (NULL == PDObjectGetDictionaryEntry(X->trailer, key)) {
-                PDObjectSetDictionaryEntry(X->trailer, key, value);
+            if (NULL == PDDictionaryGetEntry(PDObjectGetDictionary(X->trailer), key)) {
+                PDDictionarySetEntry(PDObjectGetDictionary(X->trailer), key, value);
             }
             free(value);
         }
 #endif
         pd_stack_destroy(&X->stack);
+        PDRelease(dict);
     }
 }
 
@@ -1080,9 +1134,9 @@ PDBool PDXTableFetchXRefs(PDParserRef parser)
     
     parser->xrefnewiter = 1;
     
-    parser->rootRef = X.rootRef;
-    parser->infoRef = X.infoRef;
-    parser->encryptRef = X.encryptRef;
+    parser->rootRef = PDRetain(X.rootRef);
+    parser->infoRef = PDRetain(X.infoRef);
+    parser->encryptRef = PDRetain(X.encryptRef);
     
     // we've got all the xrefs so we can switch back to the readwritable method
     PDTWinStreamSetMethod(X.stream, PDTwinStreamReadWrite);

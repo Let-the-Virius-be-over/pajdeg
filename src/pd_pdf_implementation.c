@@ -43,6 +43,8 @@ PDInteger users = 0;
 PDStateRef pdfRoot, xrefSeeker, stringStream, arbStream;
 
 const char * PD_META       = "meta";
+const char * PD_STRING     = "string";
+const char * PD_NUMBER     = "number";
 const char * PD_NAME       = "name";
 const char * PD_OBJ        = "obj";
 const char * PD_REF        = "ref";
@@ -72,6 +74,8 @@ void PDStringFromArray(pd_stack *s, PDStringConvRef scv);
 void PDStringFromArrayEntry(pd_stack *s, PDStringConvRef scv);
 void PDStringFromArbitrary(pd_stack *s, PDStringConvRef scv);
 void PDStringFromName(pd_stack *s, PDStringConvRef scv);
+void PDStringFromNumber(pd_stack *s, PDStringConvRef scv);
+void PDStringFromString(pd_stack *s, PDStringConvRef scv);
 
 void PDPDFSetupConverters();
 void PDPDFClearConverters();
@@ -204,6 +208,8 @@ void pd_pdf_implementation_use()
                                                    PDDef(//PDOperatorBreak,
                                                          PDOperatorMark,
                                                          and PDOperatorPushState, paren,
+                                                         and PDOperatorPopValue,
+                                                         and PDOperatorPushComplex, &PD_STRING,
                                                          and PDOperatorPopState),
                                                    "S[",
                                                    PDDef(PDOperatorPushState, array,
@@ -254,6 +260,8 @@ void pd_pdf_implementation_use()
                                                          and PDOperatorPopState),
                                                    "F",
                                                    PDDef(PDOperatorPushbackSymbol,
+                                                         and PDOperatorPopValue,
+                                                         and PDOperatorPushComplex, &PD_NUMBER,
                                                          and PDOperatorPopState)));
         
         //
@@ -359,9 +367,11 @@ void pd_pdf_implementation_use()
                                                          and PDOperatorPushComplex, &PD_REF,
                                                          and PDOperatorPopState),
                                                    "F", 
-                                                   PDDef(PDOperatorPushbackSymbol,
-                                                         and PDOperatorPushbackValue,
-                                                         and PDOperatorPopState))); // this was not an obj ref
+                                                   PDDef(PDOperatorPushbackSymbol,      // we ran into the sequence "<num1> <num2> <???>": first we put <???> back on symbol stack 
+                                                         and PDOperatorPushbackValue,   // then we grab <num2> from the value stack and put that back on the symbol stack too
+                                                         and PDOperatorPopValue,        // then we pop <num1> and make a PD_NUMBER complex based on it
+                                                         and PDOperatorPushComplex, &PD_NUMBER,
+                                                         and PDOperatorPopState)));
         
         
         //
@@ -538,7 +548,7 @@ void PDPDFSetupConverters()
         return;
     }
     
-    converterTable = PDStaticHashCreate(9, (void*[]) {
+    converterTable = PDStaticHashCreate(11, (void*[]) {
         (void*)PD_META,     // 1
         (void*)PD_OBJ,      // 2
         (void*)PD_REF,      // 3
@@ -548,6 +558,8 @@ void PDPDFSetupConverters()
         (void*)PD_ARRAY,    // 7
         (void*)PD_AE,       // 8
         (void*)PD_NAME,     // 9
+        (void*)PD_NUMBER,   // 10
+        (void*)PD_STRING,   // 11
     }, (void*[]) {
         &PDStringFromMeta,          // 1
         &PDStringFromObj,           // 2
@@ -558,11 +570,13 @@ void PDPDFSetupConverters()
         &PDStringFromArray,         // 7
         &PDStringFromArrayEntry,    // 8
         &PDStringFromName,          // 9
+        &PDStringFromNumber,        // 10
+        &PDStringFromString,        // 11
     });
     
     PDStaticHashDisownKeysValues(converterTable, true, true);
     
-    typeTable = PDStaticHashCreate(9, (void*[]) {
+    typeTable = PDStaticHashCreate(11, (void*[]) {
         (void*)PD_META,     // 1
         (void*)PD_OBJ,      // 2
         (void*)PD_REF,      // 3
@@ -572,6 +586,8 @@ void PDPDFSetupConverters()
         (void*)PD_ARRAY,    // 7
         (void*)PD_AE,       // 8
         (void*)PD_NAME,     // 9
+        (void*)PD_NUMBER,   // 10
+        (void*)PD_STRING,   // 11
     }, (void*[]) {
         (void*)PDObjectTypeString,
         (void*)PDObjectTypeString,
@@ -582,6 +598,8 @@ void PDPDFSetupConverters()
         (void*)PDObjectTypeArray,
         (void*)PDObjectTypeString,
         (void*)PDObjectTypeName,
+        (void*)PDObjectTypeInteger,
+        (void*)PDObjectTypeString,
     });
 
     PDStaticHashDisownKeysValues(typeTable, true, true);
@@ -610,44 +628,82 @@ char *PDStringFromComplex(pd_stack *complex)
     return scv.allocBuf;
 }
 
-PDContainer PDContainerCreateFromComplex(pd_stack *complex)
+void *PDInstanceCreateFromComplex(pd_stack *complex)
 {
-    PDInstanceType type = PDInstanceTypeUnknown;
+//    PDStringRef str;
     void *result = NULL;
+    if (*complex == NULL) return NULL;
     
     if ((*complex)->type == PD_STACK_ID) {
-        PDID tid = pd_stack_pop_identifier(complex);
+        PDID tid = (*complex)->info; // pd_stack_pop_identifier(complex);
         if (PDIdentifies(tid, PD_REF)) {
-            type = PDInstanceTypeRef;
             result = PDReferenceCreateFromStackDictEntry(*complex);
         }
         else if (PDIdentifies(tid, PD_HEXSTR)) {
-            type = PDInstanceTypeString;
-            result = PDStringCreateWithHexString((*complex)->prev->info);
+            char *str = (*complex)->prev->info;
+            PDInteger len = strlen(str);
+            char *rewrapped = malloc(3 + len);
+            rewrapped[0] = '<';
+            strcpy(&rewrapped[1], str);
+            rewrapped[len+1] = '>';
+            rewrapped[len+2] = 0;
+            result = PDStringCreateWithHexString(rewrapped);//(strdup((*complex)->prev->info));
+        }
+        else if (PDIdentifies(tid, PD_NAME)) {
+            char *buf = malloc(2 + strlen((*complex)->prev->info));
+            buf[0] = '/';
+            strcpy(&buf[1], (*complex)->prev->info);
+            result = PDStringCreate(buf);
+        }
+        else if (PDIdentifies(tid, PD_STRING)) {
+            result = PDStringCreate(strdup((*complex)->prev->info));
+//            PDStringForceWrappedState(str, false);
+//            result = PDStringCreateFromStringWithType(str, PDStringTypeRegular, true);
+//            PDRelease(str);
+        }
+        else if (PDIdentifies(tid, PD_NUMBER)) {
+            result = PDNumberCreateWithCString((*complex)->prev->info);
         }
         else if (PDIdentifies(tid, PD_DICT)) {
-            type = PDInstanceTypeDict;
-            result = PDCollectionCreateWithDictionary(pd_dict_from_pdf_dict_stack(*complex));
+            result = PDDictionaryCreateWithComplex(*complex);
+//            result = PDCollectionCreateWithDictionary(pd_dict_from_pdf_dict_stack(*complex));
         }
         else if (PDIdentifies(tid, PD_ARRAY)) {
-            type = PDInstanceTypeArray;
-            result = PDCollectionCreateWithArray(pd_array_from_pdf_array_stack(*complex));
+            result = PDArrayCreateWithComplex(*complex);
+//            result = PDCollectionCreateWithArray(pd_array_from_pdf_array_stack(*complex));
+        }
+        else if (PDIdentifies(tid, PD_DE)) {
+            *complex = (*complex)->prev->prev->info;
+            result = PDInstanceCreateFromComplex(complex);
+        }
+        else if (PDIdentifies(tid, PD_AE)) {
+            *complex = (*complex)->prev->info;
+            result = PDInstanceCreateFromComplex(complex);
         }
         else {
             PDError("uncaught type in PDTypeFromComplex()");
         }
     } else if ((*complex)->prev) {
         // short array is the "default" when a prev exists and type != PD_STACK_ID
-        type = PDInstanceTypeArray;
-        result = PDCollectionCreateWithArray(pd_array_from_stack(*complex));
+        result = PDArrayCreateWithStackList(*complex);
+//        result = PDCollectionCreateWithArray(pd_array_from_stack(*complex));
     } else if ((*complex)->type == PD_STACK_STRING) {
-        type = PDInstanceTypeString;
-        result = PDStringCreate((*complex)->info);
+        // a stack string can be a number of things:
+        // 1. true, false or null
+        // 2. actually that's it, nowadays
+        char *value = (*complex)->info;
+        if      (0 == strcmp(value, "true"))  result = PDNumberCreateWithBool(true);
+        else if (0 == strcmp(value, "false")) result = PDNumberCreateWithBool(false);
+        else if (0 == strcmp(value, "null"))  result = PDStringCreate(strdup(value));
+        else {
+            PDError("unknown string value type %s", value);
+            result = PDStringCreate(strdup((*complex)->info));
+        }
     } else {
         PDError("unable to create PDType from unknown complex structure");
     }
     
-    return (PDContainer) { type, result };
+    return result;
 }
 
 PDObjectType PDObjectTypeFromIdentifier(PDID identifier)
@@ -682,6 +738,24 @@ void PDStringFromName(pd_stack *s, PDStringConvRef scv)
     currchi = '/';
     putstr(namestr, len);
     PDDeallocateViaStackDealloc(namestr);
+}
+
+void PDStringFromNumber(pd_stack *s, PDStringConvRef scv)
+{
+    char *str = pd_stack_pop_key(s);
+    PDInteger len = strlen(str);
+    PDStringGrow(len + 1);
+    putstr(str, len);
+    PDDeallocateViaStackDealloc(str);
+}
+
+void PDStringFromString(pd_stack *s, PDStringConvRef scv)
+{
+    char *str = pd_stack_pop_key(s);
+    PDInteger len = strlen(str);
+    PDStringGrow(len + 1);
+    putstr(str, len);
+    PDDeallocateViaStackDealloc(str);
 }
 
 void PDStringFromHexString(pd_stack *s, PDStringConvRef scv)

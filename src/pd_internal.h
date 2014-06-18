@@ -71,9 +71,9 @@ extern PDObjectRef PDObjectCreate(PDInteger obid, PDInteger genid);
  The length of PDType, in pointers.
  */
 #ifdef DEBUG_PDTYPES
-#define PDTYPE_PTR_LEN  3
+#define PDTYPE_PTR_LEN  4
 #else
-#define PDTYPE_PTR_LEN  2
+#define PDTYPE_PTR_LEN  3
 #endif
 
 /**
@@ -92,6 +92,7 @@ union PDType {
 #ifdef DEBUG_PDTYPES
         char *pdc;                  // Pajdeg signature
 #endif
+        PDInstanceType it;          // Instance type, if any.
         PDInteger retainCount;      // Retain count. If the retain count of an object hits zero, the object is disposed of.
         PDDeallocator dealloc;      // Deallocation method.
     };
@@ -108,6 +109,16 @@ union PDType {
  @param zeroed Whether the allocated block should be zeroed or not. If true, calloc is used to allocate the memory.
  */
 extern void *PDAlloc(PDSize size, void *dealloc, PDBool zeroed);
+
+/**
+ Allocate a new PDType object with a defined instance type, with given size and deallocator.
+
+ @param it Instance type.
+ @param size Size of object.
+ @param dealloc Dealloc method as a (*)(void*).
+ @param zeroed Whether the allocated block should be zeroed or not. If true, calloc is used to allocate the memory.
+ */
+extern void *PDAllocTyped(PDInstanceType it, PDSize size, void *dealloc, PDBool zeroed);
 
 /**
  Flush autoreleased pool.
@@ -128,6 +139,29 @@ extern char *PDC;
 #   define PDTYPE_ASSERT(ob) 
 #endif
 
+#ifdef PD_SUPPORT_CRYPTO
+
+/**
+ Crypto instance for arrays/dicts.
+ */
+typedef struct PDCryptoInstance *PDCryptoInstanceRef;
+
+extern PDCryptoInstanceRef PDCryptoInstanceCreate(pd_crypto crypto, PDInteger obid, PDInteger gennum, void *info);
+
+/**
+ *  Crypto object exchange function signature.
+ *
+ *  Used to hand crypto information to arbitrary objects.
+ */
+typedef void (*PDInstanceCryptoExchange)(void *inst, PDCryptoInstanceRef ci, PDBool encrypted);
+
+/**
+ *  Crypto object exchange function array, matching up with all non-negative PDInstanceType entries.
+ */
+extern PDInstanceCryptoExchange PDInstanceCryptoExchanges[];
+
+#endif
+
 /**
  Object internal structure
  
@@ -140,7 +174,7 @@ struct PDObject {
     PDObjectClass       obclass;        ///< object class (regular, compressed, or trailer)
     PDObjectType        type;           ///< data structure of def below
     void               *def;            ///< the object content
-    PDContainer         container;      ///< container for the instantiated definition, or NULL if not yet instantiated
+    void               *inst;           ///< instance of def, or NULL if not yet instantiated
     PDBool              hasStream;      ///< if set, object has a stream
     PDInteger           streamLen;      ///< length of stream (if one exists)
     PDInteger           extractedLen;   ///< length of extracted stream; -1 until stream has been fetched via the parser
@@ -148,7 +182,6 @@ struct PDObject {
     PDBool              skipStream;     ///< if set, even if an object has a stream, the stream (including keywords) is skipped when written to output
     PDBool              skipObject;     ///< if set, entire object is discarded
     PDBool              deleteObject;   ///< if set, the object's XREF table slot is marked as free
-    pd_stack            mutations;      ///< key/value stack of alterations to do when writing the object
     char               *ovrStream;      ///< stream override
     PDInteger           ovrStreamLen;   ///< length of ^
     PDBool              ovrStreamAlloc; ///< if set, ovrStream will be free()d by the object after use
@@ -158,7 +191,10 @@ struct PDObject {
     char               *refString;      ///< reference string, cached from calls to 
     PDSynchronizer      synchronizer;   ///< synchronizer callback, called right before the object is serialized and written to the output stream
     const void         *syncInfo;       ///< user info object for synchronizer callback (usually a class instance, for wrappers)
-    pd_crypto           crypto;         ///< crypto instance, if available
+#ifdef PD_SUPPORT_CRYPTO
+    pd_crypto           crypto;         ///< crypto object, if available
+    PDCryptoInstanceRef cryptoInstance; ///< crypto instance, if set up
+#endif
 };
 
 //
@@ -546,36 +582,13 @@ struct pd_stack {
 //    void            *info;      ///< Info object (used for encrypted arrays)
 //};
 
-#ifdef PD_SUPPORT_CRYPTO
-
-/**
- Crypto instance for arrays/dicts.
- */
-typedef struct PDCryptoInstance *PDCryptoInstanceRef;
-
-extern PDCryptoInstanceRef PDCryptoInstanceCreate(pd_crypto crypto, PDInteger obid, PDInteger gennum, void *info);
-
-/**
- *  Crypto object exchange function signature.
- *
- *  Used to hand crypto information to arbitrary objects.
- */
-typedef void (*PDInstanceCryptoExchange)(void *inst, PDCryptoInstanceRef ci, PDBool encrypted);
-
-/**
- *  Crypto object exchange function array, matching up with all non-negative PDInstanceType entries.
- */
-extern PDInstanceCryptoExchange PDInstanceCryptoExchanges[];
-
-#endif
-
 /**
  The internal array structure.
  */
 struct PDArray {
     PDInteger        count;     ///< Number of elements
     PDInteger        capacity;  ///< Capacity of array
-    PDContainer     *values;    ///< Resolved values
+    void           **values;    ///< Resolved values
     pd_stack        *vstacks;   ///< Unresolved values in pd_stack form
 #ifdef PD_SUPPORT_CRYPTO
     PDCryptoInstanceRef ci;     ///< Crypto instance, if array is encrypted
@@ -589,7 +602,7 @@ struct PDDictionary {
     PDInteger        count;     ///< Number of entries
     PDInteger        capacity;  ///< Capacity of dictionary
     char           **keys;      ///< Keys
-    PDContainer     *values;    ///< Resolved values
+    void           **values;    ///< Resolved values
     pd_stack        *vstacks;   ///< Unresolved values in pd_stack form
 #ifdef PD_SUPPORT_CRYPTO
     PDCryptoInstanceRef ci;     ///< Crypto instance, if dictionary is encrypted
@@ -609,32 +622,23 @@ struct PDCryptoInstance {
 };
 
 /**
- Crypto sequence parameter.
- */
-typedef struct pd_crypto_param pd_crypto_param;
-struct pd_crypto_param {
-    unsigned char *d;
-    unsigned long l;
-};
-
-/**
  The internal crypto structure.
  */
 struct pd_crypto {
     // common values
-    pd_crypto_param identifier; ///< PDF /ID found in the trailer dictionary
-    char     *filter;           ///< filter name
-    char     *subfilter;        ///< sub-filter name
+    PDStringRef identifier;     ///< PDF /ID found in the trailer dictionary
+    PDStringRef filter;         ///< filter name
+    PDStringRef subfilter;      ///< sub-filter name
     PDInteger version;          ///< algorithm version (V key in PDFs)
     PDInteger length;           ///< length of the encryption key, in bits; must be a multiple of 8 in the range 40 - 128; default = 40
     
     // standard security handler 
     PDInteger revision;         ///< revision ("R") of algorithm: 2 if version < 2 and perms have no 3 or greater values, 3 if version is 2 or 3, or P has rev 3 stuff, 4 if version = 4
-    pd_crypto_param owner;      ///< owner string ("O"), 32-byte string based on owner and user passwords, used to compute encryption key and determining whether a valid owner password was entered
-    pd_crypto_param user;       ///< user string ("U"), 32-byte string based on user password, used in determining whether to prompt the user for a password and whether given password was a valid user or owner password
+    PDStringRef owner;          ///< owner string ("O"), 32-byte string based on owner and user passwords, used to compute encryption key and determining whether a valid owner password was entered
+    PDStringRef user;           ///< user string ("U"), 32-byte string based on user password, used in determining whether to prompt the user for a password and whether given password was a valid user or owner password
     int32_t privs;              ///< privileges (see Table 3.20 in PDF spec v 1.7, p. 123-124)
     PDBool encryptMetadata;     ///< whether metadata should be encrypted or not ("/EncryptMetadata true")
-    pd_crypto_param enckey;     ///< encryption key
+    PDStringRef enckey;         ///< encryption key
     
     // standard crypt filter
     PDInteger cfLength;         ///< crypt filter length, e.g. 16 for AESV2
@@ -773,6 +777,7 @@ struct PDNumber {
         PDInteger i;
         PDReal r;
         PDBool b;
+        PDSize s;
     };
 };
 
@@ -788,9 +793,10 @@ struct PDString {
     PDSize length;          ///< Length of the string
     PDBool wrapped;         ///< Whether the string is wrapped
     char *data;             ///< Buffer containing string data
+    PDStringRef alt;        ///< Alternative representation
 #ifdef PD_SUPPORT_CRYPTO
-    PDCryptoInstanceRef ci;  ///< Crypto instance
-    PDBool encrypted;       ///< Flag indicating whether the string is encrypted or not, currently
+    PDCryptoInstanceRef ci; ///< Crypto instance
+    PDBool encrypted;       ///< Flag indicating whether the string is encrypted or not; the value of this flag is UNDEFINED if ci == NULL
 #endif
 };
 

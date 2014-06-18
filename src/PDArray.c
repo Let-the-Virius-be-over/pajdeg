@@ -29,7 +29,7 @@
 void PDArrayDestroy(PDArrayRef array)
 {
     for (PDInteger i = array->count-1; i >= 0; i--) {
-        PDRelease(array->values[i].value);
+        PDRelease(array->values[i]);
         pd_stack_destroy(&array->vstacks[i]);
     }
     
@@ -43,7 +43,7 @@ void PDArrayDestroy(PDArrayRef array)
 
 PDArrayRef PDArrayCreateWithCapacity(PDInteger capacity)
 {
-    PDArrayRef arr = PDAlloc(sizeof(struct PDArray), PDArrayDestroy, false);
+    PDArrayRef arr = PDAllocTyped(PDInstanceTypeArray, sizeof(struct PDArray), PDArrayDestroy, false);
     
     if (capacity < 1) capacity = 1;
     
@@ -52,7 +52,7 @@ PDArrayRef PDArrayCreateWithCapacity(PDInteger capacity)
 #endif
     arr->count = 0;
     arr->capacity = capacity;
-    arr->values = malloc(sizeof(PDContainer) * capacity);
+    arr->values = malloc(sizeof(void *) * capacity);
     arr->vstacks = malloc(sizeof(pd_stack) * capacity);
     return arr;
 }
@@ -78,12 +78,12 @@ PDArrayRef PDArrayCreateWithStackList(pd_stack stack)
     pd_stack_set_global_preserve_flag(true);
     for (count = 0; s; s = s->prev) {
         if (s->type == PD_STACK_STRING) {
-            arr->values[count] = (PDContainer) { PDInstanceTypeString, PDStringCreate(strdup(s->info)) };
+            arr->values[count] = PDStringCreate(strdup(s->info));
 //            arr->values[count] =  // strdup(s->info);
             arr->vstacks[count] = NULL;
         } else {
             arr->vstacks[count] = /*entry =*/ pd_stack_copy(s->info);
-            arr->values[count].type = PDInstanceTypeUnset; //NULL;//PDContainerCreateFromComplex(&entry);
+            arr->values[count] = NULL; //NULL;//PDContainerCreateFromComplex(&entry);
         }
         count++;
     }
@@ -138,11 +138,11 @@ stack<0x14cdde90> {
     for (count = 0; s; s = s->prev) {
         entry = as(pd_stack, s->info)->prev;
         if (entry->type == PD_STACK_STRING) {
-            arr->values[count] = (PDContainer) { PDInstanceTypeString, PDStringCreate(strdup(entry->info)) };
+            arr->values[count] = PDStringCreate(strdup(entry->info));
             arr->vstacks[count] = NULL;
         } else {
             arr->vstacks[count] = /*entry =*/ pd_stack_copy(entry->info);
-            arr->values[count].type = PDInstanceTypeUnset; //PDStringFromComplex(&entry);
+            arr->values[count] = NULL; //PDStringFromComplex(&entry);
         }
         count++;
     }
@@ -162,18 +162,18 @@ PDInteger PDArrayGetCount(PDArrayRef array)
     return array->count;
 }
 
-PDContainer PDArrayGetElement(PDArrayRef array, PDInteger index)
+void *PDArrayGetElement(PDArrayRef array, PDInteger index)
 {
-    PDContainer *ctr = &array->values[index];
-    if (ctr->type == PDInstanceTypeUnset) {
+    void *ctr = array->values[index];
+    if (NULL == ctr) {
         if (array->vstacks[index] != NULL) {
             pd_stack entry = array->vstacks[index];
             pd_stack_set_global_preserve_flag(true);
-            array->values[index] = PDContainerCreateFromComplex(&entry);
+            array->values[index] = PDInstanceCreateFromComplex(&entry);
             pd_stack_set_global_preserve_flag(false);
 #ifdef PD_SUPPORT_CRYPTO
-            if (array->values[index].type > 0 && array->ci) 
-                (*PDInstanceCryptoExchanges[array->values[index].type])(array->values[index].value, array->ci, true);
+            if (array->values[index] && array->ci) 
+                (*PDInstanceCryptoExchanges[PDResolve(array->values[index])])(array->values[index], array->ci, true);
 #endif
         }
     }
@@ -183,15 +183,15 @@ PDContainer PDArrayGetElement(PDArrayRef array, PDInteger index)
 
 void *PDArrayGetTypedElement(PDArrayRef array, PDInteger index, PDInstanceType type)
 {
-    PDContainer ctr = PDArrayGetElement(array, index);
-    return ctr.type == type ? ctr.value : NULL;
+    void *ctr = PDArrayGetElement(array, index);
+    return PDResolve(ctr) == type ? ctr : NULL;
 }
 
 void PDArrayPushIndex(PDArrayRef array, PDInteger index) 
 {
     if (array->count == array->capacity) {
         array->capacity += array->capacity + 1;
-        array->values = realloc(array->values, sizeof(PDContainer) * array->capacity);
+        array->values = realloc(array->values, sizeof(void *) * array->capacity);
         array->vstacks = realloc(array->vstacks, sizeof(pd_stack) * array->capacity);
     }
     
@@ -200,31 +200,30 @@ void PDArrayPushIndex(PDArrayRef array, PDInteger index)
         array->vstacks[i] = array->vstacks[i-1];
     }
     
-    array->values[index].type = PDInstanceTypeUnset;
+    array->values[index] = NULL;
     array->vstacks[index] = NULL;
     
     array->count++;
 }
 
-void PDArrayAppend(PDArrayRef array, void *value, PDInstanceType type)
+void PDArrayAppend(PDArrayRef array, void *value)
 {
-    PDArrayInsertAtIndex(array, array->count, value, type);
+    PDArrayInsertAtIndex(array, array->count, value);
 }
 
-void PDArrayInsertAtIndex(PDArrayRef array, PDInteger index, void *value, PDInstanceType type)
+void PDArrayInsertAtIndex(PDArrayRef array, PDInteger index, void *value)
 {
 #ifdef PD_SUPPORT_CRYPTO
-    if (array->ci) (*PDInstanceCryptoExchanges[type])(value, array->ci, false);
+    if (array->ci) (*PDInstanceCryptoExchanges[PDResolve(value)])(value, array->ci, false);
 #endif
     PDArrayPushIndex(array, index);
-    array->values[index].type = type;
-    array->values[index].value = PDRetain(value);
+    array->values[index] = PDRetain(value);
 }
 
 PDInteger PDArrayGetIndex(PDArrayRef array, void *value)
 {
     for (PDInteger i = 0; i < array->count; i++) {
-        if (value == array->values[i].value) return i;
+        if (value == array->values[i]) return i;
     }
     
     return -1;
@@ -232,8 +231,7 @@ PDInteger PDArrayGetIndex(PDArrayRef array, void *value)
 
 void PDArrayDeleteAtIndex(PDArrayRef array, PDInteger index)
 {
-    if (array->values[index].type > 0)
-        PDRelease(array->values[index].value);
+    PDRelease(array->values[index]);
     pd_stack_destroy(&array->vstacks[index]);
     array->count--;
     for (PDInteger i = index; i < array->count; i++) {
@@ -242,20 +240,18 @@ void PDArrayDeleteAtIndex(PDArrayRef array, PDInteger index)
     }
 }
 
-void PDArrayReplaceAtIndex(PDArrayRef array, PDInteger index, void *value, PDInstanceType type)
+void PDArrayReplaceAtIndex(PDArrayRef array, PDInteger index, void *value)
 {
-    if (array->values[index].type > 0)
-        PDRelease(array->values[index].value);
+    PDRelease(array->values[index]);
     
     if (array->vstacks[index]) {
         pd_stack_destroy(&array->vstacks[index]);
         array->vstacks[index] = NULL;
     }
     
-    array->values[index].type = type;
-    array->values[index].value = PDRetain(value);
+    array->values[index] = PDRetain(value);
 #ifdef PD_SUPPORT_CRYPTO
-    if (array->ci) (*PDInstanceCryptoExchanges[type])(value, array->ci, false);
+    if (array->ci) (*PDInstanceCryptoExchanges[PDResolve(value)])(value, array->ci, false);
 #endif
 }
 
@@ -283,11 +279,11 @@ extern PDInteger PDArrayPrinter(void *inst, char **buf, PDInteger offs, PDIntege
     bv[offs++] = '[';
     bv[offs++] = ' ';
     for (PDInteger j = 0; j < i->count; j++) {
-        if (i->values[j].type == PDInstanceTypeUnset && i->vstacks[j]) {
+        if (! i->values[j] && i->vstacks[j]) {
             PDArrayGetElement(i, j);
         }
-        if (i->values[j].type >= 0) {
-            offs = (*PDInstancePrinters[i->values[j].type])(i->values[j].value, buf, offs, cap);
+        if (i->values[j]) {
+            offs = (*PDInstancePrinters[PDResolve(i->values[j])])(i->values[j], buf, offs, cap);
         }
         PDInstancePrinterRequire(3, 3);
         bv = *buf;
@@ -306,8 +302,8 @@ void PDArrayAttachCrypto(PDArrayRef array, pd_crypto crypto, PDInteger objectID,
 {
     array->ci = PDCryptoInstanceCreate(crypto, objectID, genNumber, NULL);
     for (PDInteger i = 0; i < array->count; i++) {
-        if (array->values[i].type > 0) 
-            (*PDInstanceCryptoExchanges[array->values[i].type])(array->values[i].value, array->ci, false);
+        if (array->values[i]) 
+            (*PDInstanceCryptoExchanges[PDResolve(array->values[i])])(array->values[i], array->ci, false);
     }
 }
 
@@ -315,8 +311,8 @@ void PDArrayAttachCryptoInstance(PDArrayRef array, PDCryptoInstanceRef ci, PDBoo
 {
     array->ci = PDRetain(ci);
     for (PDInteger i = 0; i < array->count; i++) {
-        if (array->values[i].type > 0) 
-            (*PDInstanceCryptoExchanges[array->values[i].type])(array->values[i].value, array->ci, false);
+        if (array->values[i]) 
+            (*PDInstanceCryptoExchanges[PDResolve(array->values[i])])(array->values[i], array->ci, false);
     }
 }
 

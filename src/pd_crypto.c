@@ -112,7 +112,7 @@ void pd_crypto_generate_enckey(pd_crypto crypto, const char *user_pass)
     pd_md5_update(&md5ctx, buf, 32);
     
     // pass owner hash
-    pd_md5_update(&md5ctx, crypto->owner.d, (unsigned int)crypto->owner.l);
+    pd_md5_update(&md5ctx, (unsigned char *) crypto->owner->data, (unsigned int)crypto->owner->length);
     
     // append privs as 4-byte int, LSB first
     buf[0] = crypto->privs & 0xff;
@@ -122,7 +122,7 @@ void pd_crypto_generate_enckey(pd_crypto crypto, const char *user_pass)
     pd_md5_update(&md5ctx, buf, 4);
     
     // pass file identifier to md5
-    pd_md5_update(&md5ctx, crypto->identifier.d, (unsigned int)crypto->identifier.l);
+    pd_md5_update(&md5ctx, (unsigned char *) crypto->identifier->data, (unsigned int)crypto->identifier->length);
     
     if (crypto->revision > 3 && !crypto->encryptMetadata) {
         buf[0] = buf[1] = buf[2] = buf[3] = 0xff;
@@ -142,18 +142,19 @@ void pd_crypto_generate_enckey(pd_crypto crypto, const char *user_pass)
     unsigned char *enckey = malloc(1 + eklen);
     memcpy(enckey, buf, eklen);
     enckey[eklen] = 0;
-    crypto->enckey.d = enckey;
-    crypto->enckey.l = crypto->length/8;
+    crypto->enckey = PDStringCreateBinary((char *)enckey, crypto->length/8);
+//    crypto->enckey.d = enckey;
+//    crypto->enckey.l = crypto->length/8;
 }
 
 void pd_crypto_destroy(pd_crypto crypto)
 {
-    if (crypto->filter) free(crypto->filter);
-    if (crypto->subfilter) free(crypto->subfilter);
-    if (crypto->owner.d) free(crypto->owner.d);
-    if (crypto->user.d) free(crypto->user.d);
-    if (crypto->identifier.d) free(crypto->identifier.d);
-    if (crypto->enckey.d) free(crypto->enckey.d);
+    PDRelease(crypto->filter);
+    PDRelease(crypto->subfilter);
+    PDRelease(crypto->owner);
+    PDRelease(crypto->user);
+    PDRelease(crypto->identifier);
+    PDRelease(crypto->enckey);
     free(crypto);
 }
 
@@ -186,13 +187,6 @@ void pd_crypto_destroy(pd_crypto crypto)
 //    cp.l = rlen;
 //    return cp;
 //}
-
-pd_crypto_param pd_crypto_from_string(PDStringRef string)
-{
-    pd_crypto_param cp;
-    cp.d = (unsigned char *) PDStringBinaryValue(string, &cp.l);
-    return cp;
-}
 
 PDInteger pd_crypto_unescape(char *str)
 {
@@ -309,29 +303,28 @@ pd_crypto pd_crypto_create(PDDictionaryRef trailerDict, PDDictionaryRef options)
     
     PDArrayRef fid = PDDictionaryGetArray(trailerDict, "ID");   // [ <abc123> <def456> ]
     PDStringRef fid1 = PDArrayGetString(fid, 0);                // <abc123>
-    
-    crypto->identifier = pd_crypto_from_string(fid1);
+    crypto->identifier = PDStringCreateBinaryFromString(fid1);
+//    crypto->identifier = pd_crypto_from_string(fid1);
     //pd_crypto_decode_pdf_hex(fid);
         
     // read from dict
-    crypto->filter = PDStringEscapedValue(PDDictionaryGetString(options, "Filter"), false);
-    crypto->subfilter = PDStringEscapedValue(PDDictionaryGetString(options, "SubFilter"), false);
-    crypto->version = PDNumberGetInteger(PDDictionaryGetNumber(options, "V"));
-    crypto->length = PDNumberGetInteger(PDDictionaryGetNumber(options, "Length"));
-    crypto->encryptMetadata = PDNumberGetBool(PDDictionaryGetNumber(options, "EncryptMetadata"));
-//    crypto->encryptMetadata = PDDictionaryRef_get(options, "EncryptMetadata") && 0 == strcmp(PDDictionaryRef_get(options, "EncryptMetadata"), "true");
+    crypto->filter = PDRetain(PDDictionaryGetString(options, "Filter"));
+    crypto->subfilter = PDRetain(PDDictionaryGetString(options, "SubFilter"));
+    crypto->version = PDNumberGetInteger(PDDictionaryGetEntry(options, "V"));
+    crypto->length = PDNumberGetInteger(PDDictionaryGetEntry(options, "Length"));
+    crypto->encryptMetadata = PDNumberGetBool(PDDictionaryGetEntry(options, "EncryptMetadata"));
 
-    crypto->revision = PDNumberGetInteger(PDDictionaryGetNumber(options, "R"));
-    crypto->owner = pd_crypto_from_string(PDDictionaryGetString(options, "O"));
-    crypto->user = pd_crypto_from_string(PDDictionaryGetString(options, "U"));
-    crypto->privs = (int32_t) PDNumberGetInteger(PDDictionaryGetNumber(options, "P"));
+    crypto->revision = PDNumberGetInteger(PDDictionaryGetEntry(options, "R"));
+    crypto->owner = PDStringCreateBinaryFromString(PDDictionaryGetString(options, "O"));
+    crypto->user = PDStringCreateBinaryFromString(PDDictionaryGetString(options, "U"));
+    crypto->privs = (int32_t) PDNumberGetInteger(PDDictionaryGetEntry(options, "P"));
 //    crypto->privs = (int32_t) PDIntegerFromString(PDDictionaryRef_get(options, "P"));
     
     // fix defaults where appropriate
     if (crypto->version == 0) crypto->version = 1; // we do not support the default as it is undocumented and no longer supported by the official specification
     if (crypto->length < 40 || crypto->length > 128) crypto->length = 40;
     
-    crypto->enckey = (pd_crypto_param){NULL, 0};
+    crypto->enckey = NULL;
     
     crypto->cfLength = 0;
     crypto->cfMethod = pd_crypto_method_rc4;
@@ -347,7 +340,7 @@ pd_crypto pd_crypto_create(PDDictionaryRef trailerDict, PDDictionaryRef options)
 //            pd_stack stdcfs = PDDictionaryRef_get_raw(cf, "StdCF");
             if (stdcf) {
 //                PDDictionaryRef stdcf = PDDictionaryRef_from_pdf_dict_stack(stdcfs);
-                PDNumberRef n = PDDictionaryGetNumber(stdcf, "Length");
+                PDNumberRef n = PDDictionaryGetEntry(stdcf, "Length");
                 if (n) crypto->cfLength = PDNumberGetInteger(n);
 //                if (PDDictionaryRef_get(stdcf, "Length")) crypto->cfLength = PDIntegerFromString(PDDictionaryRef_get(stdcf, "Length"));
                 PDStringRef cfm = PDDictionaryGetString(stdcf, "CFM");
@@ -360,7 +353,6 @@ pd_crypto pd_crypto_create(PDDictionaryRef trailerDict, PDDictionaryRef options)
                     else {
                         PDWarn("unknown crypt filter method: %s", cfms);
                     }
-                    free(cfms);
                 }
             }
         }
@@ -429,13 +421,13 @@ void pd_crypto_convert(pd_crypto crypto, PDInteger obid, PDInteger genid, char *
     
 //2. Treating the object number and generation number as binary integers, extend the original n-byte encryption key to n + 5 bytes by appending the low-order 3 bytes of the object number and the low-order 2 bytes of the generation number in that order, low-order byte first. (n is 5 unless the value of V in the encryption dictionary is greater than 1, in which case n is the value of Length divided by 8.)
     
-    if (crypto->enckey.d == NULL) 
+    if (crypto->enckey == NULL) 
         pd_crypto_generate_enckey(crypto, "");
     
     PDInteger klen = crypto->version == 1 ? 5 : crypto->length/8;
     PDInteger kext = crypto->cfMethod == pd_crypto_method_aesv2 ? 9 : 5;
     char *key = malloc(klen + kext < 32 ? 32 : klen + kext);
-    memcpy(key, crypto->enckey.d, crypto->enckey.l);
+    memcpy(key, crypto->enckey->data, crypto->enckey->length);
     key[klen++] = obid & 0xff;
     key[klen++] = (obid>>8) & 0xff;
     key[klen++] = (obid>>16) & 0xff;
@@ -502,12 +494,12 @@ void pd_crypto_decrypt(pd_crypto crypto, PDInteger obid, PDInteger genid, char *
     pd_crypto_convert(crypto, obid, genid, data, len);
 }
 
-const char *pd_crypto_get_filter(pd_crypto crypto)
+PDStringRef pd_crypto_get_filter(pd_crypto crypto)
 {
     return crypto->filter;
 }
 
-const char *pd_crypto_get_subfilter(pd_crypto crypto)
+PDStringRef pd_crypto_get_subfilter(pd_crypto crypto)
 {
     return crypto->subfilter;
 }

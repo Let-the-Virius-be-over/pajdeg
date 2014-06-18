@@ -46,11 +46,11 @@
 /**
  Set up stream filter for unprediction.
  */
-extern PDStreamFilterRef PDStreamFilterUnpredictionCreate(pd_stack options);
+extern PDStreamFilterRef PDStreamFilterUnpredictionCreate(PDDictionaryRef options);
 /**
  Set up a stream filter for prediction based on inputEnd boolean. 
  */
-extern PDStreamFilterRef PDStreamFilterPredictionConstructor(PDBool inputEnd, pd_stack options);
+extern PDStreamFilterRef PDStreamFilterPredictionConstructor(PDBool inputEnd, PDDictionaryRef options);
 
 #endif
 

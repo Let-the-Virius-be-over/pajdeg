@@ -125,13 +125,13 @@ extern char *PDStringFromComplex(pd_stack *complex);
  *  Convert stack representation of complex object into an appropriate object.
  *
  *  @note Returned strings are returned as PDString instances.
- *  @note Returned entry's value must be PDRelease()'d
+ *  @note Returned entry must be PDRelease()'d
  *
  *  @param complex Stack representation 
  *
- *  @return A PDContainer struct with type and value set as appropriate.
+ *  @return An appropriate object. Use PDResolve() to determine its type.
  */
-extern PDContainer PDContainerCreateFromComplex(pd_stack *complex);
+extern void *PDInstanceCreateFromComplex(pd_stack *complex);
 
 /**
  Determine object type from identifier.

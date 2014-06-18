@@ -19,6 +19,8 @@
 
 #include "pd_internal.h"
 #include "pd_stack.h"
+#include "PDDictionary.h"
+#include "PDNumber.h"
 
 #include "PDStreamFilterPrediction.h"
 
@@ -44,22 +46,12 @@ PDInteger pred_init(PDStreamFilterRef filter)
     filter->data = pred;
     
     // parse options
-    pd_stack iter = filter->options;
-    while (iter) {
-        if (!strcmp(iter->info, "Columns"))         pred->columns = PDIntegerFromString(iter->prev->info);
-        else if (!strcmp(iter->info, "Predictor"))  pred->predictor = (PDPredictorType)PDIntegerFromString(iter->prev->info);
-        /*else if (!strcmp(iter->info, "Widths")) {
-         PDInteger *widths = iter->prev->info;
-         pred->byteWidth  = (pred->typeWidth = widths[0]);
-         pred->byteWidth += (pred->offsWidth = widths[1]);
-         pred->byteWidth += (pred->genWidth = widths[2]);
-         }*/
-        else {
-            PDWarn("Unknown option ignored: %s\n", iter->info);
-            filter->compatible = false;
-        }
-        iter = iter->prev->prev;
-    }
+    PDDictionaryRef dict = filter->options;
+    PDNumberRef n;
+    n = PDDictionaryGetEntry(dict, "Columns");
+    if (n) pred->columns = PDNumberGetInteger(n);
+    n = PDDictionaryGetEntry(dict, "Predictor");
+    if (n) pred->predictor = (PDPredictorType)PDNumberGetInteger(n);
     
     // we only support given predictors; as more are encountered, support will be added
     switch (pred->predictor) {
@@ -246,22 +238,17 @@ PDInteger unpred_begin(PDStreamFilterRef filter)
 
 PDStreamFilterRef pred_invert_with_options(PDStreamFilterRef filter, PDBool inputEnd)
 {
+    PDNumberRef num;
     PDPredictorRef pred = filter->data;
-    char colstr[6];
-    char predstr[6];
-    sprintf(colstr, "%ld", pred->columns);
-    sprintf(predstr, "%d", pred->predictor);
     
-    pd_stack opts = NULL;
-    pd_stack_push_key(&opts, strdup(colstr));
-    pd_stack_push_key(&opts, strdup("Columns"));
-    pd_stack_push_key(&opts, strdup(predstr));
-    pd_stack_push_key(&opts, strdup("Predictor"));
+    PDDictionaryRef opts = PDDictionaryCreateWithCapacity(2);
+    num = PDNumberCreateWithInteger(pred->predictor);
+    PDDictionarySetEntry(opts, "Predictor", num);
+    PDRelease(num);
+    num = PDNumberCreateWithInteger(pred->columns);
+    PDDictionarySetEntry(opts, "Columns", num);
+    PDRelease(num);
     
-    /*pd_stack opts = (pd_stack_create_from_definition
-                       (PDDef(colstr, "Columns",
-                              predstr, "Predictor")));
-    */
     return PDStreamFilterPredictionConstructor(inputEnd, opts);
 }
 
@@ -275,17 +262,17 @@ PDStreamFilterRef unpred_invert(PDStreamFilterRef filter)
     return pred_invert_with_options(filter, false);
 }
 
-PDStreamFilterRef PDStreamFilterUnpredictionCreate(pd_stack options)
+PDStreamFilterRef PDStreamFilterUnpredictionCreate(PDDictionaryRef options)
 {
     return PDStreamFilterCreate(unpred_init, unpred_done, unpred_begin, unpred_proceed, unpred_invert, options);
 }
 
-PDStreamFilterRef PDStreamFilterPredictionCreate(pd_stack options)
+PDStreamFilterRef PDStreamFilterPredictionCreate(PDDictionaryRef options)
 {
     return PDStreamFilterCreate(pred_init, pred_done, pred_begin, pred_proceed, pred_invert, options);
 }
 
-PDStreamFilterRef PDStreamFilterPredictionConstructor(PDBool inputEnd, pd_stack options)
+PDStreamFilterRef PDStreamFilterPredictionConstructor(PDBool inputEnd, PDDictionaryRef options)
 {
     return (inputEnd
             ? PDStreamFilterUnpredictionCreate(options)

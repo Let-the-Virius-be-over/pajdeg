@@ -80,10 +80,33 @@ extern PDStringRef PDStringCreateWithHexString(char *hex);
  *
  *  @param string PDString instance used in transformation
  *  @param type   String type to transform to
+ *  @param wrap   Whether the string should be wrapped ("()" for escaped, "<>" for hex)
  *
  *  @return A PDString whose value is identical to that of string, and whose type is the given type
  */
-extern PDStringRef PDStringCreateFromStringWithType(PDStringRef string, PDStringType type);
+extern PDStringRef PDStringCreateFromStringWithType(PDStringRef string, PDStringType type, PDBool wrap);
+
+/**
+ *  Force the wrapped state of a string. 
+ *  Normally, when a regular string is set up, its 'wrapped' flag is set to true if the string is equal
+ *  to "(whatever)", but in some rare instances, the wrapped string is "((value))", which unwrapped 
+ *  appears as "(value)", but is interpreted as "value"; wrapped = true.  
+ *
+ *  @param string  PDString
+ *  @param wrapped The wrapped state of the PDString
+ */
+extern void PDStringForceWrappedState(PDStringRef string, PDBool wrapped);
+
+/**
+ *  Short hand for creating a binary string from an existing PDStringRef
+ *
+ *  @param string String whose binary form is desired
+ *
+ *  @return Binary PDString object
+ */
+#define PDStringCreateBinaryFromString(string) PDStringCreateFromStringWithType(string, PDStringTypeBinary, false)
+
+#define PDStringWithCString(cString) PDAutorelease(PDStringCreate(cString))
 
 /**
  *  Generate a C string containing the escaped contents of string and return it. 
@@ -131,6 +154,15 @@ extern PDBool PDStringEqualsCString(PDStringRef string, const char *cString);
 extern PDBool PDStringEqualsString(PDStringRef string, PDStringRef string2);
 
 #ifdef PD_SUPPORT_CRYPTO
+
+/**
+ *  Determine if the given string is currently encrypted or not.
+ *
+ *  @param string String to check
+ *
+ *  @return true if encrypted, false if not
+ */
+extern PDBool PDStringIsEncrypted(PDStringRef string);
 
 /**
  *  Attach a crypto object to the string, and associate the array with a specific object. 

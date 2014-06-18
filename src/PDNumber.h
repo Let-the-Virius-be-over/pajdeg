@@ -36,12 +36,22 @@
 
 #include "PDDefines.h"
 
+// retained variants
 extern PDNumberRef PDNumberCreateWithInteger(PDInteger i);
+extern PDNumberRef PDNumberCreateWithSize(PDSize s);
 extern PDNumberRef PDNumberCreateWithReal(PDReal r);
 extern PDNumberRef PDNumberCreateWithBool(PDBool b);
+extern PDNumberRef PDNumberCreateWithCString(const char *cString);
+
+// autoreleased variants
+#define PDNumberWithInteger(i)  PDAutorelease(PDNumberCreateWithInteger(i))
+#define PDNumberWithSize(s)     PDAutorelease(PDNumberCreateWithSize(s))
+#define PDNumberWithReal(r)     PDAutorelease(PDNumberCreateWithReal(r))
+#define PDNumberWithBool(b)     PDAutorelease(PDNumberCreateWithBool(b))
 
 // NULL n safe
 extern PDInteger PDNumberGetInteger(PDNumberRef n);
+extern PDSize PDNumberGetSize(PDNumberRef n);
 extern PDReal PDNumberGetReal(PDNumberRef n);
 extern PDBool PDNumberGetBool(PDNumberRef n);
 

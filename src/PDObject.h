@@ -69,7 +69,7 @@
  
  void finish_asynchronous_thing(PDObjectRef object, PDInteger *asyncDone)
  {
-    PDObjectSetDictionaryEntry(object, "Foo", "bar");
+    PDDictionarySetEntry(PDObjectGetDictionary(object), "Foo", "bar");
     *asyncDone = 1;
  }
  @endcode
@@ -226,14 +226,12 @@ extern PDBool PDObjectHasTextStream(PDObjectRef object);
 extern char *PDObjectGetStream(PDObjectRef object);
 
 /**
- Fetch the value of the given object.
- 
- @note If object is non-primitive (e.g. dictionary), the returned value is not a proper string.
+ Fetch the value of the given object, as an instantiation of the appropriate type, or as a char* if the object is represented as a pure string (this is the case for some constants, such as null).
  
  @param object The object.
- @return The value of the primitive (string, integer, real, ...) object. 
+ @return The appropriate instance type. Use PDResolve() to determine its type.
  */
-extern char *PDObjectGetValue(PDObjectRef object);
+extern void *PDObjectGetValue(PDObjectRef object);
 
 /**
  Set the value of the given object.
@@ -255,13 +253,14 @@ extern void PDObjectSetValue(PDObjectRef object, const char *value);
 extern PDInstanceType PDObjectGetInstanceType(PDObjectRef object);
 
 /**
- *  Get the container (simple struct with type and a pointer to the appropriate instance type) for the object
+ *  Get the instance for the object's definition. The instance is a PDDictionary, PDArray, PDString, etc. depending on what the
+ *  object's definition looks like.
  *
  *  @param object The object
  *
- *  @return PDContainer with type and data
+ *  @return Appropriate object type. Use PDResolve() to determine its type if unsure.
  */
-extern PDContainer PDObjectGetContainer(PDObjectRef object);
+extern void *PDObjectGetInstance(PDObjectRef object);
 
 /**
  *  Get the dictionary of the object, or NULL if the object does not have a dictionary.

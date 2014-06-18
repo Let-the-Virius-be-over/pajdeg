@@ -158,8 +158,8 @@ extern void pd_crypto_decrypt(pd_crypto crypto, PDInteger obid, PDInteger genid,
  */
 extern void pd_crypto_convert(pd_crypto crypto, PDInteger obid, PDInteger genid, char *data, PDInteger len);
 
-extern const char *pd_crypto_get_filter(pd_crypto crypto);
-extern const char *pd_crypto_get_subfilter(pd_crypto crypto);
+extern PDStringRef pd_crypto_get_filter(pd_crypto crypto);
+extern PDStringRef pd_crypto_get_subfilter(pd_crypto crypto);
 extern PDInteger pd_crypto_get_version(pd_crypto crypto);
 extern PDInteger pd_crypto_get_revision(pd_crypto crypto);
 extern PDBool pd_crypto_get_encrypt_metadata_bool(pd_crypto crypto);
