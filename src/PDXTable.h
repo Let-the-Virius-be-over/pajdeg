@@ -109,7 +109,7 @@ struct PDXTable {
     unsigned char genAlign;   ///< gen ID align
     unsigned char width;      ///< width of table entry
     
-    char *w;                ///< The W entry, if set.
+    PDArrayRef w;             ///< The W entry, if set.
 };
 
 /**
@@ -261,7 +261,7 @@ extern PDBool PDXTableInsert(PDParserRef parser);
 /**
  Get the W entry for the table.
  */
-extern char *PDXTableWEntry(PDXTableRef table);
+extern PDArrayRef PDXTableWEntry(PDXTableRef table);
 
 /**
  Set the type, offset, and gen sizes for the table.

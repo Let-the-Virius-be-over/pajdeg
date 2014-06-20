@@ -173,7 +173,7 @@ void PDContentStreamExecute(PDContentStreamRef cs)
                         pd_stack_push_object(opers, operation);
 //                        pd_stack_push_key(opers, str);
                     } else if (state == PDOperatorStatePop) {
-                        PDAssert(cs->opers != NULL); // crash = imbalanced push/pops (too many pops!)
+//                        PDAssert(cs->opers != NULL); // crash = imbalanced push/pops (too many pops!)
                         PDRelease(pd_stack_pop_object(opers));
 //                        free(pd_stack_pop_key(opers));
                     }
@@ -206,7 +206,7 @@ const pd_stack PDContentStreamGetOperators(PDContentStreamRef cs)
     return cs->opers;
 }
 
-//typedef PDOperatorState (*PDContentOperatorFunc)(PDContentStreamRef cs, void *userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState);
+//typedef PDOperatorState (*PDContentOperatorFunc)(PDContentStreamRef cs, void *userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState);
 
 //PDOperatorState PDContentStreamTextSearch_
 //
@@ -349,23 +349,26 @@ static inline void PDContentStreamTextExtractorPrint(PDContentStreamTextExtracto
     tui->offset = offs;
 //    tui->buf[tui->offset-1] = '\n';
 }
+//(PDContentStreamRef cs, void *userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState);
 
-PDOperatorState PDContentStreamTextExtractor_Tj(PDContentStreamRef cs, PDContentStreamTextExtractorUI userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamTextExtractor_Tj(PDContentStreamRef cs, PDContentStreamTextExtractorUI userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     // these should have a single string as arg but we won't whine if that's not the case
+    PDInteger argc = PDArrayGetCount(args);
     for (PDInteger i = 0; i < argc; i++) {
-        PDContentStreamTextExtractorPrint(userInfo, args[i]);
+        PDContentStreamTextExtractorPrint(userInfo, PDStringEscapedValue(PDArrayGetElement(args, i), false));
     }
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamTextExtractor_TJ(PDContentStreamRef cs, PDContentStreamTextExtractorUI userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamTextExtractor_TJ(PDContentStreamRef cs, PDContentStreamTextExtractorUI userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     // these are arrays of strings and offsets; we don't care about offsets
-    if (argc == 1 && args[0][0] == '[') {
+    PDInteger argc = PDArrayGetCount(args);
+    if (argc == 1 && PDStringEscapedValue(PDArrayGetElement(args, 0), false)[0] == '[') {
         PDBool inParens = false;
         PDBool escaping = false;
-        const char *s = args[0];
+        const char *s = PDStringEscapedValue(PDArrayGetElement(args, 0), false);
         PDInteger ix = strlen(s);
         PDInteger j = 0;
         char *string = malloc(ix);
@@ -390,8 +393,9 @@ PDOperatorState PDContentStreamTextExtractor_TJ(PDContentStreamRef cs, PDContent
         free(string);
     } else {
         for (PDInteger i = 0; i < argc; i++) {
-            if (args[i][0] == '(') 
-                PDContentStreamTextExtractorPrint(userInfo, args[i]);
+            PDStringRef s = PDArrayGetElement(args, i);
+            if (PDStringIsWrapped(s)) 
+                PDContentStreamTextExtractorPrint(userInfo, PDStringEscapedValue(s, true));
         }
     }
     
@@ -425,287 +429,302 @@ struct PDContentStreamPrinterUI {
 #define PDContentStreamPrinterPushSpacing(ui) ui->spacing[ui->spacingIndex++] = ' '; ui->spacing[ui->spacingIndex] = 0
 #define PDContentStreamPrinterPopSpacing(ui)  ui->spacing[--ui->spacingIndex] = 0
 
-PDOperatorState PDContentStreamPrinter_q(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_q(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sq  \tSave graphics state\n", userInfo->spacing);
     PDContentStreamPrinterPushSpacing(userInfo);
     return PDOperatorStatePush;
 }
 
-PDOperatorState PDContentStreamPrinter_Q(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_Q(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     PDContentStreamPrinterPopSpacing(userInfo);
     fprintf(userInfo->stream, "%sQ  \tRestore graphics state\n", userInfo->spacing);
     return PDOperatorStatePop;
 }
 
-PDOperatorState PDContentStreamPrinter_re(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_re(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sre \tAppend rectangle to path: (%s, %s - %s, %s)\n", userInfo->spacing, args[0], args[1], args[2], args[3]);
+    PDInteger len = 128;
+    char *buf = malloc(len);
+    PDArrayPrinter(args, &buf, 0, &len);
+    fprintf(userInfo->stream, "%sre \tAppend rectangle to path: %s\n", userInfo->spacing, buf);
+    free(buf);
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_w(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_w(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sw  \tSet line width: %s\n", userInfo->spacing, args[0]);
+    fprintf(userInfo->stream, "%sw  \tSet line width: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false));
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_W(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_W(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sW  \tSet clipping path using nonzero winding number rule\n", userInfo->spacing);
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_n(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_n(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sn  \tEnd path without filling or stroking\n", userInfo->spacing);
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_cs(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_cs(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%scs \t(PDF 1.1) Set color space for nonstroking operations: %s\n", userInfo->spacing, args[0]);
+    fprintf(userInfo->stream, "%scs \t(PDF 1.1) Set color space for nonstroking operations: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false));
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_CS(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_CS(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sCS \t(PDF 1.1) Set color space for stroking operations: %s\n", userInfo->spacing, args[0]);
+    fprintf(userInfo->stream, "%sCS \t(PDF 1.1) Set color space for stroking operations: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false));
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_scn(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_scn(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sscn\t(PDF 1.2) Set color for nonstroking operations (ICCBased and special color spaces):", userInfo->spacing);
+    PDInteger argc = PDArrayGetCount(args);
     for (PDInteger i = 0; i < argc; i++) 
-        fprintf(userInfo->stream, " %s", args[i]);
+        fprintf(userInfo->stream, " %s", PDStringEscapedValue(PDArrayGetElement(args, i), false));
     fputs("\n", userInfo->stream);
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_SCN(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_SCN(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sSCN\t(PDF 1.2) Set color for stroking operations (ICCBased and special color spaces):", userInfo->spacing);
+    PDInteger argc = PDArrayGetCount(args);
     for (PDInteger i = 0; i < argc; i++) 
-        fprintf(userInfo->stream, " %s", args[i]);
+        fprintf(userInfo->stream, " %s", PDStringEscapedValue(PDArrayGetElement(args, i), false));
     fputs("\n", userInfo->stream);
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_sc(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_sc(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%ssc \t(PDF 1.1) Set color for nonstroking operations: RGB=%s %s %s\n", userInfo->spacing, args[0], args[1], args[2]);
+    PDInteger len = 128;
+    char *buf = malloc(len);
+    PDArrayPrinter(args, &buf, 0, &len);
+    fprintf(userInfo->stream, "%ssc \t(PDF 1.1) Set color for nonstroking operations: RGB=%s\n", userInfo->spacing, buf);
+    free(buf);
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_BT(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_BT(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sBT \tBegin text object\n", userInfo->spacing);
     PDContentStreamPrinterPushSpacing(userInfo);
     return PDOperatorStatePush;
 }
 
-PDOperatorState PDContentStreamPrinter_Tm(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_Tm(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, 
             "%sTm \tSet text matrix and text line matrix: Tm = Tlm = [ %10s %10s 0 ]\n"
             "%s   \t                                                 [ %10s %10s 0 ]\n"
-            "%s   \t                                                 [ %10s %10s 1 ]\n", userInfo->spacing, args[0], args[1], userInfo->spacing, args[2], args[3], userInfo->spacing, args[4], args[5]);
+            "%s   \t                                                 [ %10s %10s 1 ]\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false), PDStringEscapedValue(PDArrayGetElement(args, 1), false), userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 2), false), PDStringEscapedValue(PDArrayGetElement(args, 3), false), userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 4), false), PDStringEscapedValue(PDArrayGetElement(args, 5), false));
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_Tf(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_Tf(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sTf \tSet text font and size: font = %s, size = %s\n", userInfo->spacing, args[0], args[1]);
+    fprintf(userInfo->stream, "%sTf \tSet text font and size: font = %s, size = %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false), PDStringEscapedValue(PDArrayGetElement(args, 1), false));
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_Tj(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_Tj(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sTj \tShow text:", userInfo->spacing);
-    for (PDInteger i = 0; i < argc; i++) 
-        fprintf(userInfo->stream, " %s", args[i]);
-    fputs("\n", userInfo->stream);
+    PDInteger len = 128;
+    char *buf = malloc(len);
+    PDArrayPrinter(args, &buf, 0, &len);
+    fprintf(userInfo->stream, "%sTj \tShow text: %s", userInfo->spacing, buf);
+    free(buf);
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_TJ(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_TJ(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sTJ \tShow text, allowing individual glyph positioning:", userInfo->spacing);
-    for (PDInteger i = 0; i < argc; i++) 
-        fprintf(userInfo->stream, " %s", args[i]);
-    fputs("\n", userInfo->stream);
+    PDInteger len = 128;
+    char *buf = malloc(len);
+    PDArrayPrinter(args, &buf, 0, &len);
+    fprintf(userInfo->stream, "%sTJ \tShow text, allowing individual glyph positioning: %s", userInfo->spacing, buf);
+    free(buf);
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_ET(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_ET(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     PDContentStreamPrinterPopSpacing(userInfo);
     fprintf(userInfo->stream, "%sET \tEnd text object\n", userInfo->spacing);
     return PDOperatorStatePop;
 }
 
-PDOperatorState PDContentStreamPrinter_m(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_m(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sm  \tBegin new subpath: move to (%s,%s)\n", userInfo->spacing, args[0], args[1]);
+    const char *a0 = PDStringEscapedValue(PDArrayGetElement(args, 0), false);
+    const char *a1 = PDStringEscapedValue(PDArrayGetElement(args, 1), false);
+    fprintf(userInfo->stream, "%sm  \tBegin new subpath: move to (%s,%s)\n", userInfo->spacing, a0, a1);
     
-    userInfo->startX = userInfo->posX = PDRealFromString(args[0]);
-    userInfo->startY = userInfo->posY = PDRealFromString(args[1]);
+    userInfo->startX = userInfo->posX = PDRealFromString(a0);
+    userInfo->startY = userInfo->posY = PDRealFromString(a1);
 
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_h(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_h(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sh  \tClose subpath: draw line from pos to start: (%.1f,%.1f) - (%.1f,%.1f)\n", userInfo->spacing, userInfo->posX, userInfo->posY, userInfo->startX, userInfo->startX);
     
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_Td(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_Td(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sTd \tMove text position to start of next line with current line offset: (%s,%s)\n", userInfo->spacing, args[0], args[1]);
+    fprintf(userInfo->stream, "%sTd \tMove text position to start of next line with current line offset: (%s,%s)\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false), PDStringEscapedValue(PDArrayGetElement(args, 1), false));
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_TD(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_TD(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sTD \tMove text position and set leading: (%s,%s)\n", userInfo->spacing, args[0], args[1]);
+    fprintf(userInfo->stream, "%sTD \tMove text position and set leading: (%s,%s)\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false), PDStringEscapedValue(PDArrayGetElement(args, 1), false));
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_Tc(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_Tc(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sTc \tSet character spacing: %s\n", userInfo->spacing, args[0]);
+    fprintf(userInfo->stream, "%sTc \tSet character spacing: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false));
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_Tw(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_Tw(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sTc \tSet word spacing: %s\n", userInfo->spacing, args[0]);
+    fprintf(userInfo->stream, "%sTc \tSet word spacing: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false));
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_Tstar(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_Tstar(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sT* \tMove to start of next text line\n", userInfo->spacing);
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_l(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_l(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sl  \tAppend straight line segment to path: line (%.1f,%.1f) - (%s,%s)\n", userInfo->spacing, userInfo->posX, userInfo->posY, args[0], args[1]);
+    fprintf(userInfo->stream, "%sl  \tAppend straight line segment to path: line (%.1f,%.1f) - (%s,%s)\n", userInfo->spacing, userInfo->posX, userInfo->posY, PDStringEscapedValue(PDArrayGetElement(args, 0), false), PDStringEscapedValue(PDArrayGetElement(args, 1), false));
     
-    userInfo->posX = PDRealFromString(args[0]);
-    userInfo->posY = PDRealFromString(args[1]);
+    userInfo->posX = PDRealFromString(PDStringEscapedValue(PDArrayGetElement(args, 0), false)); //PDRealFromString(PDStringEscapedValue(PDArrayGetElement(args, 0), false));
+    userInfo->posY = PDRealFromString(PDStringEscapedValue(PDArrayGetElement(args, 1), false)); // PDRealFromString(PDStringEscapedValue(PDArrayGetElement(args, 1), false));
 
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_f(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_f(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sf  \tFill path using nonzero winding number rule\n", userInfo->spacing);
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_cm(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_cm(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, 
             "%scm \tConcatenate matrix to current transformation matrix: [ %10s %10s 0 ]\n"
             "%s   \t                                                     [ %10s %10s 0 ]\n"
-            "%s   \t                                                     [ %10s %10s 1 ]\n", userInfo->spacing, args[0], args[1], userInfo->spacing, args[2], args[3], userInfo->spacing, args[4], args[5]);
+            "%s   \t                                                     [ %10s %10s 1 ]\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false), PDStringEscapedValue(PDArrayGetElement(args, 1), false), userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 2), false), PDStringEscapedValue(PDArrayGetElement(args, 3), false), userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 4), false), PDStringEscapedValue(PDArrayGetElement(args, 5), false));
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_gs(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_gs(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sgs \t(PDF 1.2) Set parameters from graphics state parameter dictionary: %s\n", userInfo->spacing, args[0]);
+    fprintf(userInfo->stream, "%sgs \t(PDF 1.2) Set parameters from graphics state parameter dictionary: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false));
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_Do(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_Do(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sDo \tInvoke named XObject: %s\n", userInfo->spacing, args[0]);
+    fprintf(userInfo->stream, "%sDo \tInvoke named XObject: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false));
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_BX(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_BX(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sBX \t(PDF 1.1) Begin compatibility section\n", userInfo->spacing);
     PDContentStreamPrinterPushSpacing(userInfo);
     return PDOperatorStatePush;
 }
 
-PDOperatorState PDContentStreamPrinter_EX(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_EX(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     PDContentStreamPrinterPopSpacing(userInfo);
     fprintf(userInfo->stream, "%sEX \t(PDF 1.1) End compatibility section\n", userInfo->spacing);
     return PDOperatorStatePop;
 }
 
-PDOperatorState PDContentStreamPrinter_sh(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_sh(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%ssh \t(PDF 1.3) Paint area defined by shading pattern: %s\n", userInfo->spacing, args[0]);
+    fprintf(userInfo->stream, "%ssh \t(PDF 1.3) Paint area defined by shading pattern: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false));
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_S(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_S(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sS  \tStroke path\n", userInfo->spacing);
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_g(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_g(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sg  \tSet gray level for nonstroking operations: %s\n", userInfo->spacing, args[0]);
+    fprintf(userInfo->stream, "%sg  \tSet gray level for nonstroking operations: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false));
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_G(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_G(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sG  \tSet gray level for stroking operations: %s\n", userInfo->spacing, args[0]);
+    fprintf(userInfo->stream, "%sG  \tSet gray level for stroking operations: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false));
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_c(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_c(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sc  \tAppend curved segment to path (three control points): (%s,%s) - (%s,%s) - (%s,%s)\n", userInfo->spacing, args[0], args[1], args[2], args[3], args[4], args[5]);
+    fprintf(userInfo->stream, "%sc  \tAppend curved segment to path (three control points): (%s,%s) - (%s,%s) - (%s,%s)\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false), PDStringEscapedValue(PDArrayGetElement(args, 1), false), PDStringEscapedValue(PDArrayGetElement(args, 2), false), PDStringEscapedValue(PDArrayGetElement(args, 3), false), PDStringEscapedValue(PDArrayGetElement(args, 4), false), PDStringEscapedValue(PDArrayGetElement(args, 5), false));
     
-    userInfo->posX = PDRealFromString(args[4]);
-    userInfo->posY = PDRealFromString(args[5]);
+    userInfo->posX = PDRealFromString(PDStringEscapedValue(PDArrayGetElement(args, 4), false));
+    userInfo->posY = PDRealFromString(PDStringEscapedValue(PDArrayGetElement(args, 5), false));
     
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_v(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_v(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sv  \tAppend curved segment to path (initial point replicated): (%.1f,%.1f) - (%s,%s) - (%s,%s)\n", userInfo->spacing, userInfo->posX, userInfo->posY, args[0], args[1], args[2], args[3]);
+    fprintf(userInfo->stream, "%sv  \tAppend curved segment to path (initial point replicated): (%.1f,%.1f) - (%s,%s) - (%s,%s)\n", userInfo->spacing, userInfo->posX, userInfo->posY, PDStringEscapedValue(PDArrayGetElement(args, 0), false), PDStringEscapedValue(PDArrayGetElement(args, 1), false), PDStringEscapedValue(PDArrayGetElement(args, 2), false), PDStringEscapedValue(PDArrayGetElement(args, 3), false));
     
-    userInfo->posX = PDRealFromString(args[2]);
-    userInfo->posY = PDRealFromString(args[3]);
+    userInfo->posX = PDRealFromString(PDStringEscapedValue(PDArrayGetElement(args, 2), false));
+    userInfo->posY = PDRealFromString(PDStringEscapedValue(PDArrayGetElement(args, 3), false));
 
     return PDOperatorStateIndependent;
 }
 
-PDOperatorState PDContentStreamPrinter_y(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_y(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sy  \tAppend curved segment to path (final point replicated): (%s,%s) - (%.1f,%.1f) - (%s,%s)\n", userInfo->spacing, args[0], args[1], userInfo->posX, userInfo->posY, args[2], args[3]);
+    fprintf(userInfo->stream, "%sy  \tAppend curved segment to path (final point replicated): (%s,%s) - (%.1f,%.1f) - (%s,%s)\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false), PDStringEscapedValue(PDArrayGetElement(args, 1), false), userInfo->posX, userInfo->posY, PDStringEscapedValue(PDArrayGetElement(args, 2), false), PDStringEscapedValue(PDArrayGetElement(args, 3), false));
     
-    userInfo->posX = PDRealFromString(args[2]);
-    userInfo->posY = PDRealFromString(args[3]);
+    userInfo->posX = PDRealFromString(PDStringEscapedValue(PDArrayGetElement(args, 2), false));
+    userInfo->posY = PDRealFromString(PDStringEscapedValue(PDArrayGetElement(args, 3), false));
     
     return PDOperatorStateIndependent;
 }
 
 //--------------------------------
 
-PDOperatorState PDContentStreamPrinter_catchall(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, const char **args, PDInteger argc, pd_stack inState, pd_stack *outState)
+PDOperatorState PDContentStreamPrinter_catchall(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "[warning: missing implementation for operator \"%s\":", cs->lastOperator);
-    for (PDInteger i = 0; i < argc; i++) 
-        fprintf(userInfo->stream, " %s", args[i]);
-    fputs("]\n", userInfo->stream);
+    PDInteger len = 128;
+    char *buf = malloc(len);
+    PDArrayPrinter(args, &buf, 0, &len);
+    fprintf(userInfo->stream, "[warning: missing implementation for operator \"%s\": %s]\n", cs->lastOperator, buf);
+    free(buf);
 
     return PDOperatorStateIndependent;
 }

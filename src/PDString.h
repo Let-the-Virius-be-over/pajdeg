@@ -49,6 +49,15 @@
 extern PDStringRef PDStringCreate(char *string);
 
 /**
+ *  Create a PDString from an existing, escaped name. Names differ from regular strings in one single way: they have a slash prefix. Beyond that, they can be wrapped or non-wrapped, just like normal.
+ *
+ *  @param name Name string, with or without prefix slash, with or without wrapping.
+ *
+ *  @return New PDString instance for name
+ */
+extern PDStringRef PDStringCreateWithName(char *name);
+
+/**
  *  Create a PDString from an existing, unescaped or binary string of the given length.
  *
  *  @note Ownership of the data is taken, and the data is freed when the PDString object is released.
@@ -108,50 +117,70 @@ extern void PDStringForceWrappedState(PDStringRef string, PDBool wrapped);
 
 #define PDStringWithCString(cString) PDAutorelease(PDStringCreate(cString))
 
+#define PDStringWithName(name) PDAutorelease(PDStringCreateWithName(name))
+
 /**
  *  Generate a C string containing the escaped contents of string and return it. 
  *  If wrap is set, the string is wrapped in parentheses.
  *
- *  @note The returned object (unless NULL) must be freed.
+ *  @note The returned string should not be freed.
  *  @note It is safe to pass a NULL string value. If string is NULL, NULL is returned.
  *
  *  @param string PDString instance
  *  @param wrap   Whether or not the returned string should be enclosed in parentheses
  *
- *  @return Escaped NUL-terminated C string
+ *  @return Escaped NUL-terminated C string.
  */
 extern char *PDStringEscapedValue(PDStringRef string, PDBool wrap);
+
+/**
+ *  Generate a C string containing the escaped contents of string as a name, i.e. with a forward slash preceding it.
+ *  If wrap is set, the string (after forward slash) is wrapped in parentheses.
+ *
+ *  @note The returned string should not be freed.
+ *  @note It is safe to pass a NULL string value. If string is NULL, NULL is returned.
+ *
+ *  @param string PDString instance
+ *  @param wrap   Whether or not the returned string should be enclosed in parentheses
+ *
+ *  @return Escaped NUL-terminated C string with a forward slash prefix.
+ */
+extern char *PDStringNameValue(PDStringRef string, PDBool wrap);
 
 /**
  *  Generate the binary value of string, writing its length to the PDSize pointed to by outLength and returning the 
  *  binary value.
  *
- *  @note The returned object (unless NULL) must be freed.
+ *  @note The returned string should not be freed.
  *  @note It is safe to pass a NULL string value. If string is NULL, NULL is returned.
  *
  *  @param string    PDString instance
  *  @param outLength Pointer to PDSize object into which the length of the returned binary data is to be written. May be NULL.
  *
- *  @return C string pointer to binary data
+ *  @return C string pointer to binary data.
  */
 extern char *PDStringBinaryValue(PDStringRef string, PDSize *outLength);
 
 /**
  *  Generate a hex string based on the value of string, returning it.
  *
- *  @note The returned object (unless NULL) must be freed.
+ *  @note The returned string should not be freed.
  *  @note It is safe to pass a NULL string value. If string is NULL, NULL is returned.
  *
  *  @param string PDString instance
  *  @param wrap   Whether or not the returned string should be enclosed in less/greater-than signs
  *
- *  @return Hex string
+ *  @return Hex string.
  */
 extern char *PDStringHexValue(PDStringRef string, PDBool wrap);
 
 extern PDBool PDStringEqualsCString(PDStringRef string, const char *cString);
 
 extern PDBool PDStringEqualsString(PDStringRef string, PDStringRef string2);
+
+extern PDBool PDStringIsWrapped(PDStringRef string);
+
+extern PDStringType PDStringGetType(PDStringRef string);
 
 #ifdef PD_SUPPORT_CRYPTO
 

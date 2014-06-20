@@ -61,7 +61,7 @@
  
  The PD_NOTICES directive turns on printing of notices (PDInfo output) to stderr. Must be turned on explicitly.
  */
- #define PD_NOTICES
+//#define PD_NOTICES
 
 /**
  @def PD_ASSERTS
@@ -93,7 +93,7 @@
  
  This is done by seeking to the specified offset, reading in a chunk of data, and comparing said data to the expected object. Needless to say, expensive, but excellent starting point to determine if a PDF is broken or not (XREF table tends to break "first").
  */
-#define DEBUG_PARSER_CHECK_XREFS
+//#define DEBUG_PARSER_CHECK_XREFS
 
 /**
  @def DEBUG_SCANNER_SYMBOLS
@@ -541,9 +541,10 @@ typedef struct PDReference  *PDReferenceRef;
  @ingroup PDSTRING
  */
 typedef enum {
-    PDStringTypeRegular = 1,        ///< A regular string, escaped and NUL-terminated
+    PDStringTypeEscaped = 1,        ///< A regular string, escaped and NUL-terminated
     PDStringTypeHex     = 2,        ///< A HEX string, NUL-terminated
     PDStringTypeBinary  = 3,        ///< A binary string, which may or may not be NUL-terminated, and may contain any character
+    PDStringTypeName    = 4,        ///< A regular string prefixed with a forward slash
 } PDStringType;
 
 /**

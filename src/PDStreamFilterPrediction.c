@@ -238,16 +238,11 @@ PDInteger unpred_begin(PDStreamFilterRef filter)
 
 PDStreamFilterRef pred_invert_with_options(PDStreamFilterRef filter, PDBool inputEnd)
 {
-    PDNumberRef num;
     PDPredictorRef pred = filter->data;
     
     PDDictionaryRef opts = PDDictionaryCreateWithCapacity(2);
-    num = PDNumberCreateWithInteger(pred->predictor);
-    PDDictionarySetEntry(opts, "Predictor", num);
-    PDRelease(num);
-    num = PDNumberCreateWithInteger(pred->columns);
-    PDDictionarySetEntry(opts, "Columns", num);
-    PDRelease(num);
+    PDDictionarySetEntry(opts, "Predictor", PDNumberWithInteger(pred->predictor));
+    PDDictionarySetEntry(opts, "Columns", PDNumberWithInteger(pred->columns));
     
     return PDStreamFilterPredictionConstructor(inputEnd, opts);
 }

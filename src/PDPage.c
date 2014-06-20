@@ -190,6 +190,8 @@ PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageNum
 //        sprintf(buf, "%ld", (long)count);
 //        PDDictionarySetEntry(PDObjectGetDictionary(parent), "Count", buf);
         PDDictionarySetEntry(parentDict, "Count", count);
+        PDRelease(count);
+        
         PDTaskRef task = PDTaskCreateMutatorForObject(parentId, PDPageCountupTask);
         PDTaskSetInfo(task, PDRetain(parent));
         PDPipeAddTask(pipe, task);

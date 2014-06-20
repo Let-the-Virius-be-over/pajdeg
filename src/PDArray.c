@@ -222,8 +222,37 @@ void PDArrayInsertAtIndex(PDArrayRef array, PDInteger index, void *value)
 
 PDInteger PDArrayGetIndex(PDArrayRef array, void *value)
 {
+    PDInteger obid, genid;
+    PDInstanceType it = PDResolve(value);
+    if (it == PDInstanceTypeObj) { 
+        PDObjectRef ob = value;
+        obid = ob->obid;
+        genid = ob->genid;
+    } else if (it == PDInstanceTypeRef) {
+        PDReferenceRef ref = value;
+        obid = ref->obid;
+        genid = ref->genid;
+    } else {
+        for (PDInteger i = 0; i < array->count; i++) {
+            if (value == PDArrayGetElement(array, i)) return i;
+        }
+        
+        return -1;
+    }
+    
+    void *v;
+    PDReferenceRef ref2;
+    PDObjectRef ob;
     for (PDInteger i = 0; i < array->count; i++) {
-        if (value == array->values[i]) return i;
+        v = PDArrayGetElement(array, i);
+        ref2 = v;
+        ob = v;
+        
+        it = PDResolve(v);
+        if ((v == value) || 
+            (it == PDInstanceTypeRef && ref2->obid == obid && ref2->genid == genid) ||
+            (it == PDInstanceTypeObj && ob->obid == obid && ob->genid == genid))
+            return i;
     }
     
     return -1;

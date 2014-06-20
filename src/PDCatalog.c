@@ -96,10 +96,11 @@ void PDCatalogAppendPages(PDCatalogRef catalog, PDPageReference *pages, PDDictio
         oid = PDReferenceGetObjectID(ref);
 //        stack = as(pd_stack, as(pd_stack, iter->info)->prev->info)->prev;
 //        oid = PDIntegerFromString(stack->info);
-        pd_stack defs = PDParserLocateAndCreateDefinitionForObject(parser, oid, true);
-        PDAssert(defs); // crash = above function is failing; it may start failing if an object is "weird", or if the code to fetch objects is broken (e.g. PDScanner, PDTwinStream, or even PDParser)
-        PDDictionaryRef kdict = PDInstanceCreateFromComplex(&defs);
-        pd_stack_destroy(&defs);
+        PDObjectRef kob = PDParserLocateAndCreateObject(parser, oid, true);
+//        pd_stack defs = PDParserLocateAndCreateDefinitionForObject(parser, oid, true);
+//        PDAssert(defs); // crash = above function is failing; it may start failing if an object is "weird", or if the code to fetch objects is broken (e.g. PDScanner, PDTwinStream, or even PDParser)
+        PDDictionaryRef kdict = PDObjectGetDictionary(kob); //PDInstanceCreateFromComplex(&defs);
+//        pd_stack_destroy(&defs);
         PDStringRef type = PDDictionaryGetEntry(kdict, "Type");
 //        char *type = as(pd_stack, pd_stack_get_dict_key(defs, "Type", false)->prev->prev->info)->prev->info;
         if (PDStringEqualsCString(type, "Pages")) {
@@ -112,7 +113,7 @@ void PDCatalogAppendPages(PDCatalogRef catalog, PDPageReference *pages, PDDictio
             kids[i].genid = PDReferenceGetGenerationID(ref); //PDIntegerFromString(stack->prev->info);
 //            pd_stack_destroy(&defs);
         }
-        PDRelease(kdict);
+        PDRelease(kob);
 //        i++;
     }
     
@@ -148,15 +149,18 @@ PDCatalogRef PDCatalogCreateWithParserForObject(PDParserRef parser, PDObjectRef 
     //  << /Type /Pages /MediaBox [0 0 1024 768] /Count 1 /Kids [ 2 0 R ] >>
     // note that MediaBox is currently ignored
     
-    pd_stack defs = PDParserLocateAndCreateDefinitionForObject(parser, PDReferenceGetObjectID(sref), true);
-    if (! defs) {
+    PDObjectRef pages = PDParserLocateAndCreateObject(parser, PDReferenceGetObjectID(sref), true);
+//    pd_stack defs = PDParserLocateAndCreateDefinitionForObject(parser, PDReferenceGetObjectID(sref), true);
+    if (! pages) {
+        PDWarn("null pages object for catalog");
         PDRelease(catalog);
         return NULL;
     }
-    PDDictionaryRef dict = PDInstanceCreateFromComplex(&defs);
+    PDDictionaryRef dict = PDObjectGetDictionary(pages); //PDInstanceCreateFromComplex(&defs);
     PDCatalogAppendPages(catalog, &catalog->pages, dict);
-    pd_stack_destroy(&defs);
-    PDRelease(dict);
+//    pd_stack_destroy(&defs);
+//    PDRelease(dict);
+    PDRelease(pages);
     
     return catalog;
 }

@@ -650,15 +650,15 @@ void *PDInstanceCreateFromComplex(pd_stack *complex)
             result = PDStringCreateWithHexString(rewrapped);//(strdup((*complex)->prev->info));
         }
         else if (PDIdentifies(tid, PD_NAME)) {
-            char *buf = malloc(2 + strlen((*complex)->prev->info));
-            buf[0] = '/';
-            strcpy(&buf[1], (*complex)->prev->info);
-            result = PDStringCreate(buf);
+//            char *buf = malloc(2 + strlen((*complex)->prev->info));
+//            buf[0] = '/';
+//            strcpy(&buf[1], (*complex)->prev->info);
+            result = PDStringCreateWithName(strdup((*complex)->prev->info));
         }
         else if (PDIdentifies(tid, PD_STRING)) {
             result = PDStringCreate(strdup((*complex)->prev->info));
 //            PDStringForceWrappedState(str, false);
-//            result = PDStringCreateFromStringWithType(str, PDStringTypeRegular, true);
+//            result = PDStringCreateFromStringWithType(str, PDStringTypeEscaped, true);
 //            PDRelease(str);
         }
         else if (PDIdentifies(tid, PD_NUMBER)) {

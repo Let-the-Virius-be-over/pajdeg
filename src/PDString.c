@@ -26,14 +26,24 @@
 
 // Private declarations
 
-char *PDStringWrappedValue(const char *string, PDSize len, char left, char right);          ///< "..."                  -> "L...R"
-char *PDStringUnwrappedValue(const char *string, PDSize len);                               ///< "(...)", "<...>", .... -> "..."
-char *PDStringHexToBinary(char *string, PDSize len, PDBool wrapped, PDSize *outLength);     ///< "abc123"               -> 01101010
-char *PDStringHexToEscaped(char *string, PDSize len, PDBool wrapped);                       ///< "abc123"               -> "foo\123"
-char *PDStringEscapedToHex(char *string, PDSize len, PDBool wrapped);                       ///< "foo\123"              -> "abc123"
-char *PDStringEscapedToBinary(char *string, PDSize len, PDBool wrapped, PDSize *outLength); ///< "foo\123"              -> 01101010
-char *PDStringBinaryToHex(char *string, PDSize len, PDBool wrapped);                        ///< 01101010               -> "abc123"
-char *PDStringBinaryToEscaped(char *string, PDSize len, PDBool wrapped);                    ///< 01101010               -> "foo\123"
+char *PDStringTransform(const char *string, PDSize len, PDBool hasPrefix, PDBool hasWrapping, char addPrefix, char addLeft, char addRight);
+
+//char *PDStringWrappedValue(const char *string, PDSize len, char prefix, char left, char right);     ///< "..."                  -> "L...R"
+//char *PDStringUnwrappedValue(const char *string, PDSize len, PDBool hasPrefix, char prefix);        ///< "(...)", "<...>", .... -> "..."
+// hex->*
+char *PDStringHexToBinary(char *string, PDSize len, PDBool hasW, PDSize *outLength);                ///< "abc123"               -> 01101010
+char *PDStringHexToEscaped(char *string, PDSize len, PDBool hasW, PDBool addW, char prefix);        ///< "abc123"               -> "foo\123"
+// esc->*
+char *PDStringEscapedToHex(char *string, PDSize len, PDBool hasW, PDBool addW);                     ///< "foo\123"              -> "abc123"
+char *PDStringEscapedToBinary(char *string, PDSize len, PDBool hasW, PDSize *outLength);            ///< "foo\123"              -> 01101010
+char *PDStringEscapedToName(char *string, PDSize len, PDBool hasW, PDBool addW);                    ///< "foo\123"              -> "/foo\123"
+// bin->*
+char *PDStringBinaryToEscaped(char *string, PDSize len, PDBool addW, char prefix);                  ///< 01101010               -> "foo\123"
+char *PDStringBinaryToHex(char *string, PDSize len, PDBool addW);                                   ///< 01101010               -> "abc123"
+// name->*
+char *PDStringNameToEscaped(char *string, PDSize len, PDBool hasW, PDBool addW);                    ///< "/foo123"              -> "foo123"
+char *PDStringNameToHex(char *string, PDSize len, PDBool hasW, PDBool addW);                        ///< "/foo123"              -> "abc123"
+char *PDStringNameToBinary(char *string, PDSize len, PDBool hasW, PDSize *outLength);               ///< "/foo123"              -> "01101010"
 
 // Public
 
@@ -60,6 +70,9 @@ void PDStringVerifyOwnership(char *string, PDSize len)
 
 PDStringRef PDStringCreate(char *string)
 {
+//    int i;char c[123];if (2 < sscanf(string, "%d %d R%s", &i, &i, c)) {
+//        printf("");
+//    }
 #ifdef DEBUG
     PDStringVerifyOwnership(string, strlen(string));
 #endif
@@ -68,8 +81,35 @@ PDStringRef PDStringCreate(char *string)
     res->data = string;
     res->alt = NULL;
     res->length = strlen(string);
-    res->type = PDStringTypeRegular;
+    res->type = PDStringTypeEscaped;
     res->wrapped = (string[0] == '(' && string[res->length-1] == ')');
+#ifdef PD_SUPPORT_CRYPTO
+    res->ci = NULL;
+#endif
+    return res;
+}
+
+PDStringRef PDStringCreateWithName(char *name)
+{
+#ifdef DEBUG
+    PDStringVerifyOwnership(name, strlen(name));
+#endif
+    
+    if (name[0] != '/') {
+        // names always include '/' in the data
+        char *fixedName = malloc(strlen(name) + 2);
+        fixedName[0] = '/';
+        strcpy(&fixedName[1], name);
+        free(name);
+        name = fixedName;
+    }
+    
+    PDStringRef res = PDAllocTyped(PDInstanceTypeString, sizeof(struct PDString), PDStringDestroy, false);
+    res->data = name;
+    res->alt = NULL;
+    res->length = strlen(name);
+    res->type = PDStringTypeName;
+    res->wrapped = res->length > 1 && (name[1] == '(' && name[res->length-1] == ')');
 #ifdef PD_SUPPORT_CRYPTO
     res->ci = NULL;
 #endif
@@ -124,8 +164,12 @@ PDStringRef PDStringCreateFromStringWithType(PDStringRef string, PDStringType ty
     PDSize len;
     PDStringRef result;
     switch (type) {
-        case PDStringTypeRegular:
+        case PDStringTypeEscaped:
             result = PDStringCreate(strdup(PDStringEscapedValue(string, wrap)));
+            break;
+            
+        case PDStringTypeName:
+            result = PDStringCreateWithName(strdup(PDStringNameValue(string, wrap)));
             break;
 
         case PDStringTypeHex:
@@ -147,8 +191,18 @@ PDStringRef PDStringCreateFromStringWithType(PDStringRef string, PDStringType ty
 
 void PDStringForceWrappedState(PDStringRef string, PDBool wrapped)
 {
-    PDAssert(string->type == PDStringTypeRegular); // crash = attempt to set wrapped state for a string whose wrapping is never ambiguous (only regular/escaped strings are)
+    PDAssert(string->type == PDStringTypeEscaped); // crash = attempt to set wrapped state for a string whose wrapping is never ambiguous (only regular/escaped strings are)
     string->wrapped = wrapped;
+}
+
+PDBool PDStringIsWrapped(PDStringRef string)
+{
+    return string->wrapped;
+}
+
+PDStringType PDStringGetType(PDStringRef string)
+{
+    return string->type;
 }
 
 char *PDStringEscapedValue(PDStringRef string, PDBool wrap)
@@ -156,30 +210,74 @@ char *PDStringEscapedValue(PDStringRef string, PDBool wrap)
     if (string == NULL) return NULL;
     
     // see if we have what is asked for already
-    if (string->type == PDStringTypeRegular && string->wrapped == wrap) {
+    if (string->type == PDStringTypeEscaped && string->wrapped == wrap) {
         return string->data;
-    } else if (string->alt && string->alt->type == PDStringTypeRegular && string->alt->wrapped == wrap) {
+    } else if (string->alt && string->alt->type == PDStringTypeEscaped && string->alt->wrapped == wrap) {
         return string->alt->data;
     } 
     
     // we don't, so set up alternative; we use the PDString which offers the easiest conversion, which is
-    //  escaped strings, then binary strings, then hex strings
-    PDStringRef source = ((string->alt && (string->alt->type == PDStringTypeRegular || string->type == PDStringTypeHex))
+    //  escaped strings, then names, then binary strings, then hex strings
+    PDStringRef source = ((string->alt && (string->alt->type == PDStringTypeEscaped || string->type == PDStringTypeHex || (string->alt->type == PDStringTypeName && string->type != PDStringTypeEscaped)))
                           ? string->alt
                           : string);
     
     char *data;
     if (source->type == PDStringTypeBinary)
-        data = PDStringBinaryToEscaped(source->data, source->length, wrap);
+        data = PDStringBinaryToEscaped(source->data, source->length, wrap, 0);
     else if (source->type == PDStringTypeHex)
-        data = PDStringHexToEscaped(source->data, source->length, wrap);
-    else if (wrap) 
-        data = PDStringWrappedValue(source->data, source->length, '(', ')');
+        data = PDStringHexToEscaped(source->data, source->length, source->wrapped, wrap, 0);
     else 
-        data = PDStringUnwrappedValue(source->data, source->length);
+        data = PDStringTransform(source->data, source->length, source->type == PDStringTypeName, source->wrapped, 0, wrap ? '(' : 0, wrap ? ')' : 0);
+        
+//        if (source->type == PDStringTypeName) 
+//        data = PDStringNameToEscaped(source->data, source->length, source->wrapped, wrap);
+//    else if (wrap) 
+//        data = PDStringWrappedValue(source->data, source->length, 0, '(', ')');
+//    else 
+//        data = PDStringUnwrappedValue(source->data, source->length, false, 0);
 
     PDRelease(string->alt);
     string->alt = PDStringCreate(data);
+#ifdef PD_SUPPORT_CRYPTO
+    if (string->ci) PDStringAttachCryptoInstance(string->alt, string->ci, string->encrypted);
+#endif
+    return data;
+}
+
+char *PDStringNameValue(PDStringRef string, PDBool wrap)
+{
+    if (string == NULL) return NULL;
+    
+    // see if we have what is asked for already
+    if (string->type == PDStringTypeName && string->wrapped == wrap) {
+        return string->data;
+    } else if (string->alt && string->alt->type == PDStringTypeName && string->alt->wrapped == wrap) {
+        return string->alt->data;
+    } 
+    
+    // we don't, so set up alternative; we use the PDString which offers the easiest conversion, which is
+    //  names, escaped strings, then binary strings, then hex strings
+    PDStringRef source = ((string->alt && (string->alt->type == PDStringTypeName || string->type == PDStringTypeHex || (string->alt->type == PDStringTypeEscaped && string->type != PDStringTypeName)))
+                          ? string->alt
+                          : string);
+    
+    char *data;
+    if (source->type == PDStringTypeBinary)
+        data = PDStringBinaryToEscaped(source->data, source->length, wrap, '/');
+    else if (source->type == PDStringTypeHex)
+        data = PDStringHexToEscaped(source->data, source->length, source->wrapped, wrap, '/');
+    else 
+        data = PDStringTransform(source->data, source->length, source->type == PDStringTypeName, source->wrapped, '/', wrap ? '(' : 0, wrap ? ')' : 0);
+//    else if (source->type == PDStringTypeEscaped) 
+//        data = PDStringEscapedToName(source->data, source->length, source->wrapped, wrap);
+//    else if (wrap) 
+//        data = PDStringWrappedValue(source->data, source->length, '/', '(', ')');
+//    else 
+//        data = PDStringUnwrappedValue(source->data, source->length, source->type == PDStringTypeName, '/');
+    
+    PDRelease(string->alt);
+    string->alt = PDStringCreateWithName(data);
 #ifdef PD_SUPPORT_CRYPTO
     if (string->ci) PDStringAttachCryptoInstance(string->alt, string->ci, string->encrypted);
 #endif
@@ -198,15 +296,17 @@ char *PDStringBinaryValue(PDStringRef string, PDSize *outLength)
     } 
     
     // we don't, so set up alternative; we use the PDString which offers the easiest conversion, which is
-    //  hex strings, then regular strings
-    PDStringRef source = ((string->alt && string->type == PDStringTypeRegular)
+    //  hex strings, then regular strings, then names
+    PDStringRef source = ((string->alt && (string->alt->type == PDStringTypeHex || string->type == PDStringTypeName))
                           ? string->alt
                           : string);
     
     char *data;
     PDSize len;
-    if (source->type == PDStringTypeRegular)
+    if (source->type == PDStringTypeEscaped)
         data = PDStringEscapedToBinary(source->data, source->length, source->wrapped, &len);
+    else if (source->type == PDStringTypeName)
+        data = PDStringNameToBinary(source->data, source->length, source->wrapped, &len);
     else
         data = PDStringHexToBinary(source->data, source->length, source->wrapped, &len);
     
@@ -232,20 +332,24 @@ char *PDStringHexValue(PDStringRef string, PDBool wrap)
     } 
     
     // we don't, so set up alternative; we use the PDString which offers the easiest conversion, which is
-    //  hex strings, then binary strings, then regular strings
-    PDStringRef source = ((string->alt && (string->alt->type == PDStringTypeHex || string->type == PDStringTypeRegular))
+    //  hex strings, then binary strings, then regular strings, then names
+    PDStringRef source = ((string->alt && (string->alt->type == PDStringTypeHex || string->type == PDStringTypeName || (string->alt->type == PDStringTypeBinary && string->type != PDStringTypeHex)))
                           ? string->alt
                           : string);
     
     char *data;
     if (source->type == PDStringTypeBinary)
         data = strdup(PDStringBinaryToHex(source->data, source->length, wrap));
-    else if (source->type == PDStringTypeRegular)
-        data = strdup(PDStringEscapedToHex(source->data, source->length, wrap));
-    else if (wrap) 
-        data = PDStringWrappedValue(source->data, source->length, '<', '>');
-    else 
-        data = PDStringUnwrappedValue(source->data, source->length);
+    else if (source->type == PDStringTypeEscaped)
+        data = strdup(PDStringEscapedToHex(source->data, source->length, source->wrapped, wrap));
+    else if (source->type == PDStringTypeName)
+        data = strdup(PDStringNameToHex(source->data, source->length, source->wrapped, wrap));
+    else
+        data = PDStringTransform(source->data, source->length, false, source->wrapped, 0, wrap ? '<' : 0, wrap ? '>' : 0);
+//        if (wrap) 
+//        data = PDStringWrappedValue(source->data, source->length, 0, '<', '>');
+//    else 
+//        data = PDStringUnwrappedValue(source->data, source->length, false, 0);
     
     PDRelease(string->alt);
     string->alt = PDStringCreateWithHexString(data);
@@ -257,20 +361,45 @@ char *PDStringHexValue(PDStringRef string, PDBool wrap)
 
 // Private
 
-char *PDStringWrappedValue(const char *string, PDSize len, char left, char right)
+char *PDStringTransform(const char *string, PDSize len, PDBool hasPrefix, PDBool hasWrapping, char addPrefix, char addLeft, char addRight)
 {
-    char *res = malloc(len + 3);
-    res[0] = left;
-    strcpy(&res[1], string);
-    res[len+1] = right;
-    res[len+2] = 0;
-    return res;
+    // determine offset for copying from string
+    PDSize copyoffs = hasPrefix + hasWrapping;
+    // determine bytes to copy from string
+    PDSize copysize = len - copyoffs - hasWrapping;
+    // determine alloc requirement of new string; the requirement is the current length minus existing plr plus new plr (and 1 for NUL)
+    PDSize allocreq = len + 1 - copyoffs - hasWrapping + (addPrefix!=0) + (addLeft!=0) + (addRight!=0);
+    PDInteger index = 0;
+    char *result = malloc(allocreq);
+    result[index] = addPrefix;                              index += (addPrefix!=0);
+    result[index] = addLeft;                                index += (addLeft!=0);
+    strncpy(&result[index], &string[copyoffs], copysize);   index += copysize;
+    result[index] = addRight;                               index += (addRight!=0);
+    result[index] = 0;
+    return result;
 }
 
-char *PDStringUnwrappedValue(const char *string, PDSize len)
-{
-    return strndup(&string[1], len-2);
-}
+//char *PDStringWrappedValue(const char *string, PDSize len, char prefix, char left, char right)
+//{
+//    PDInteger index = prefix != 0;
+//    char *res = malloc(len + index + 3);
+//    res[0] = prefix;
+//    res[index++] = left;
+//    strcpy(&res[index], string);
+//    res[len+1] = right;
+//    res[len+2] = 0;    
+//    return res;
+//}
+//
+//char *PDStringUnwrappedValue(const char *string, PDSize len, PDBool hasPrefix, char prefix)
+//{
+//    if (prefix) {
+//        char *unwrapped = malloc(len); // actual len+1 = NUL, actual len+2 = prefix char
+//        unwrapped[0] = prefix;
+//        strncpy(&unwrapped[1], &string[1+hasPrefix], len-2-hasPrefix);
+//        return unwrapped;
+//    } else return strndup(&string[1+hasPrefix], len-2-hasPrefix);
+//}
 
 char *PDStringHexToBinary(char *string, PDSize len, PDBool wrapped, PDSize *outLength)
 {
@@ -358,6 +487,31 @@ char *PDStringEscapedToBinary(char *string, PDSize len, PDBool wrapped, PDSize *
     return res;
 }
 
+char *PDStringNameToBinary(char *string, PDSize len, PDBool wrapped, PDSize *outLength)
+{
+    return PDStringEscapedToBinary(&string[1], len-1, wrapped, outLength);
+}
+
+char *PDStringBinaryToName(char *string, PDSize len, PDBool wrapped)
+{
+    return PDStringBinaryToEscaped(string, len, wrapped, '/');
+}
+
+char *PDStringEscapedToName(char *string, PDSize len, PDBool hasW, PDBool addW)
+{
+    return PDStringTransform(string, len, false, hasW, '/', addW ? '(' : 0, addW ? ')' : 0);
+}
+
+char *PDStringNameToEscaped(char *string, PDSize len, PDBool hasW, PDBool addW)
+{
+    return PDStringTransform(string, len, true, hasW, 0, addW ? '(' : 0, addW ? ')' : 0);
+}
+
+char *PDStringNameToHex(char *string, PDSize len, PDBool hasW, PDBool addW)
+{
+    return PDStringEscapedToHex(&string[1], len-1, hasW, addW);
+}
+
 char *PDStringBinaryToHex(char *string, PDSize len, PDBool wrapped)
 {
     PDSize rescap = 1 + (len << 1) + (wrapped << 1);
@@ -381,16 +535,17 @@ char *PDStringBinaryToHex(char *string, PDSize len, PDBool wrapped)
     return res;
 }
 
-char *PDStringBinaryToEscaped(char *string, PDSize len, PDBool wrapped) 
+char *PDStringBinaryToEscaped(char *string, PDSize len, PDBool addW, char prefix)
 {
-    PDSize rescap = (len << 1) + (wrapped << 1);
+    PDSize rescap = (len << 1) + (addW << 1) + (prefix != 0);
     if (rescap < 10) rescap = 10;
     PDSize reslen = 0;
     char *res = malloc(rescap);
     char ch, e;
     PDSize i;
     
-    if (wrapped) res[reslen++] = '(';
+    if (prefix) res[reslen++] = prefix;
+    if (addW) res[reslen++] = '(';
     
     for (i = 0; i < len; i++) {
         ch = string[i];
@@ -412,26 +567,26 @@ char *PDStringBinaryToEscaped(char *string, PDSize len, PDBool wrapped)
         }
     }
     
-    if (wrapped) res[reslen++] = ')';
+    if (addW) res[reslen++] = ')';
     
     res[reslen] = 0;
     return res;
 }
 
-char *PDStringHexToEscaped(char *string, PDSize len, PDBool wrapped)
+char *PDStringHexToEscaped(char *string, PDSize len, PDBool hasW, PDBool addW, char prefix)
 {
     // currently we do this by going to binary format first
-    char *tmp = PDStringHexToBinary(string, len, wrapped, &len);
-    char *res = PDStringBinaryToEscaped(tmp, len, wrapped);
+    char *tmp = PDStringHexToBinary(string, len, hasW, &len);
+    char *res = PDStringBinaryToEscaped(tmp, len, addW, prefix);
     free(tmp);
     return res;
 }
 
-char *PDStringEscapedToHex(char *string, PDSize len, PDBool wrapped)
+char *PDStringEscapedToHex(char *string, PDSize len, PDBool hasW, PDBool addW)
 {
     // currently we do this by going to binary format first
-    char *tmp = PDStringEscapedToBinary(string, len, wrapped, &len);
-    char *res = PDStringBinaryToHex(tmp, len, wrapped);
+    char *tmp = PDStringEscapedToBinary(string, len, hasW, &len);
+    char *res = PDStringBinaryToHex(tmp, len, addW);
     free(tmp);
     return res;
 }
@@ -448,6 +603,13 @@ PDInteger PDStringPrinter(void *inst, char **buf, PDInteger offs, PDInteger *cap
         return offs;
     }
 #endif
+    
+    if ((i->type == PDStringTypeEscaped || i->type == PDStringTypeHex) && ! i->wrapped) {
+        PDStringRef wrapped = PDStringCreateFromStringWithType(i, i->type, true);
+        offs = PDStringPrinter(wrapped, buf, offs, cap);
+        PDRelease(wrapped);
+        return offs;
+    }
     
     char *bv = *buf;
     strcpy(&bv[offs], i->data);
@@ -477,9 +639,9 @@ PDBool PDStringEqualsCString(PDStringRef string, const char *cString)
 {
     PDBool result;
     
-    PDStringRef compat = PDStringCreateFromStringWithType(string, PDStringTypeRegular, false);
+    PDStringRef compat = PDStringCreateFromStringWithType(string, cString[0] == '/' ? PDStringTypeName : PDStringTypeEscaped, false);
     
-    result = 0 == strncmp(cString, string->data, string->length);
+    result = 0 == strcmp(cString, compat->data);
     
     PDRelease(compat);
     

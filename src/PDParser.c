@@ -79,7 +79,7 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
     parser->stream = stream;
     parser->state = PDParserStateBase;
     parser->success = true;
-    parser->aiTree = PDBTreeCreate(NULL, 1, 50000, 10);
+    parser->aiTree = PDBTreeCreate(PDReleaseFunc, 1, 50000, 10);
     
     if (! PDXTableFetchXRefs(parser)) {
         PDError("PDF is invalid or in an unsupported format.");
@@ -158,61 +158,69 @@ pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, 
     if (PDXTypeComp == PDXTableGetTypeForID(xrefTable, obid)) {
         // grab container definition
         
-        PDInteger len;
+//        PDInteger len;
         PDObjectStreamRef obstm;
-        PDOffset containerOffset;
+//        PDOffset containerOffset;
         PDInteger index = PDXTableGetGenForID(xrefTable, obid);
         PDInteger ctrobid = (PDInteger) PDXTableGetOffsetForID(xrefTable, obid);
         
-        pd_stack containerDef = PDParserLocateAndCreateDefinitionForObjectWithSize(parser, ctrobid, bufsize, master, &containerOffset);
-        PDAssert(containerDef);
-        PDObjectRef obstmObject = PDObjectCreate(ctrobid, 0);
-        obstmObject->def = containerDef;
-        obstmObject->crypto = parser->crypto;
-        obstmObject->streamLen = len = pd_stack_peek_int(pd_stack_get_dict_key(containerDef, "Length", false)->prev->prev);
+        PDObjectRef obstmObject = PDParserLocateAndCreateObject(parser, ctrobid, master);
+//        pd_stack containerDef = PDParserLocateAndCreateDefinitionForObjectWithSize(parser, ctrobid, bufsize, master, &containerOffset);
+//        PDAssert(containerDef);
+//        PDObjectRef obstmObject = PDObjectCreate(ctrobid, 0);
+//        obstmObject->def = containerDef;
+//        obstmObject->crypto = parser->crypto;
+//        obstmObject->streamLen = len = pd_stack_peek_int(pd_stack_get_dict_key(containerDef, "Length", false)->prev->prev);
         
-        PDTwinStreamFetchBranch(stream, (PDSize) containerOffset, len + 20, &tb);
-        PDScannerRef streamrdr = PDScannerCreateWithState(pdfRoot);
-        PDScannerPushContext(streamrdr, stream, PDTwinStreamDisallowGrowth);
-//        PDScannerContextPush(stream, &PDTwinStreamDisallowGrowth);
-        streamrdr->buf = tb;
-        streamrdr->boffset = 0;
-        streamrdr->bsize = len + 20;
+        if (obstmObject->extractedLen == -1) {
+            PDParserLocateAndFetchObjectStreamForObject(parser, obstmObject);
+        }
+//        PDTwinStreamFetchBranch(stream, (PDSize) containerOffset, len + 20, &tb);
+        tb = obstmObject->streamBuf;
+//        len = obstmObject->extractedLen;
+//        PDScannerRef streamrdr = PDScannerCreateWithState(pdfRoot);
+//        PDScannerPushContext(streamrdr, stream, PDTwinStreamDisallowGrowth);
+////        PDScannerContextPush(stream, &PDTwinStreamDisallowGrowth);
+//        streamrdr->buf = tb;
+//        streamrdr->boffset = 0;
+//        streamrdr->bsize = len + 20;
 
-        char *rawBuf = malloc(len);
-        PDScannerAssertString(streamrdr, "stream");
-        PDScannerReadStream(streamrdr, len, rawBuf, len);
-        PDRelease(streamrdr);
-        PDTwinStreamCutBranch(stream, tb);
+//        char *rawBuf = malloc(len);
+//        PDScannerAssertString(streamrdr, "stream");
+//        PDScannerReadStream(streamrdr, len, rawBuf, len);
+//        PDRelease(streamrdr);
+//        PDTwinStreamCutBranch(stream, tb);
 //        PDScannerContextPop();
         
         obstm = PDObjectStreamCreateWithObject(obstmObject);
         PDRelease(obstmObject);
         
         // decrypt buffer, if encrypted
-        if (parser->crypto) {
-            pd_crypto_convert(parser->crypto, ctrobid, 0, rawBuf, len);
-        }
+//        if (parser->crypto) {
+        //            pd_crypto_convert(parser->crypto, ctrobid, 0, rawBuf, len);
+        //        }
         
         stack = NULL;
         
-        if (PDObjectStreamParseRawObjectStream(obstm, rawBuf)) {
-            if (obstm->elements[index].type == PDObjectTypeString) {
-                stack = NULL;
-                pd_stack_push_key(&stack, strdup(obstm->elements[index].def));
-            } else {
-                stack = obstm->elements[index].def;
-                obstm->elements[index].def = NULL;
-            }
-            
-            PDAssert(outOffset == NULL);
+        PDObjectStreamParseExtractedObjectStream(obstm, tb);
+        if (obstm->elements[index].type == PDObjectTypeString) {
+            stack = NULL;
+            pd_stack_push_key(&stack, strdup(obstm->elements[index].def));
+        } else {
+            stack = pd_stack_copy(obstm->elements[index].def);
         }
+        
+        PDAssert(outOffset == NULL);
+        
         PDRelease(obstm);
         
         return stack;
     } 
     
     PDOffset offset = PDXTableGetOffsetForID(xrefTable, obid);
+    if (offset == 0) {
+        PDNotice("zero offset for %ld is suspicious", obid);
+    }
     if (outOffset) *outOffset = offset;
     PDTwinStreamFetchBranch(stream, (PDSize) offset, bufsize, &tb);
     
@@ -281,11 +289,11 @@ PDObjectRef PDParserLocateAndCreateObject(PDParserRef parser, PDInteger obid, PD
     }
     
     pd_stack defs = PDParserLocateAndCreateDefinitionForObject(parser, obid, master);
-    PDObjectRef obj = PDObjectCreateFromDefinitionsStack(obid, defs);
-    obj->crypto = parser->crypto;
-    PDBTreeInsert(parser->aiTree, obid, obj);    
+    ob = PDObjectCreateFromDefinitionsStack(obid, defs);
+    ob->crypto = parser->crypto;
+    PDBTreeInsert(parser->aiTree, obid, PDRetain(ob));
     
-    return obj;
+    return ob;
 }
 
 void PDParserFetchStreamLengthFromObjectDictionary(PDParserRef parser, pd_stack entry)
@@ -416,9 +424,11 @@ void PDParserClarifyObjectStreamExistence(PDParserRef parser, PDObjectRef object
             
             if (PDResolve(lengthValue) == PDInstanceTypeRef) {
                 // it's a ref, fetch it
-                pd_stack lenDef = PDParserLocateAndCreateDefinitionForObject(parser, PDReferenceGetObjectID(lengthValue), true);
-                const char *realLength = pd_stack_pop_key(&lenDef);
-                lenInt = PDIntegerFromString(realLength);
+                PDObjectRef lenOb = PDParserLocateAndCreateObject(parser, PDReferenceGetObjectID(lengthValue), true);
+//                pd_stack lenDef = PDParserLocateAndCreateDefinitionForObject(parser, PDReferenceGetObjectID(lengthValue), true);
+                lenInt = PDNumberGetInteger(PDObjectGetValue(lenOb));
+//                const char *realLength = pd_stack_pop_key(&lenDef);
+//                lenInt = PDIntegerFromString(realLength);
             } else {
                 lenInt = PDNumberGetInteger(lengthValue); //PDIntegerFromString(length);
             }
@@ -921,6 +931,19 @@ PDBool PDParserIterateXRefDomain(PDParserRef parser)
         parser->done = true;
         
         PDParserAppendObjects(parser);
+#ifdef DEBUG
+        if (PDBTreeGetCount(parser->skipT) > 0) {
+            PDInteger count = PDBTreeGetCount(parser->skipT);
+            PDWarn("%ld skipped obsolete objects were never captured:", count);
+            PDInteger *keys = malloc(sizeof(PDInteger) * count);
+            PDBTreePopulateKeys(parser->skipT, keys);
+            fprintf(stderr, "  ");
+            for (PDInteger i = 0; i < count; i++) {
+                fprintf(stderr, i?", %ld":"%ld", keys[i]);
+            }
+            fprintf(stderr, "\n");
+        }
+#endif
         PDAssert(0 == PDBTreeGetCount(parser->skipT)); // crash = we lost objects
         parser->success &= NULL == parser->xstack && 0 == PDBTreeGetCount(parser->skipT);
         return false;
@@ -1122,7 +1145,7 @@ PDObjectRef PDParserCreateObject(PDParserRef parser, pd_stack *queue)
     PDObjectRef object = PDObjectCreate(newiter, 0);
     object->encryptedDoc = PDParserGetEncryptionState(parser);
     object->crypto = parser->crypto;
-    PDBTreeInsert(parser->aiTree, newiter, object);
+    PDBTreeInsert(parser->aiTree, newiter, PDRetain(object));
     
     if (queue) {
         pd_stack_push_object(queue, object);

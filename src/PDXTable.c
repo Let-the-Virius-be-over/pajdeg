@@ -218,7 +218,8 @@ struct PDXI {
 
 void PDXTableDestroy(PDXTableRef xtable)
 {
-    if (xtable->w) free(xtable->w);
+    PDRelease(xtable->w);
+//    if (xtable->w) free(xtable->w);
     free(xtable->xrefs);
 }
 
@@ -306,7 +307,7 @@ PDBool PDXTableInsertXRefStream(PDParserRef parser)
     PDDictionaryRef tobd = PDObjectGetDictionary(trailer);
 //    sprintf(obuf, "%lu", mxt->count);
     PDDictionarySetEntry(tobd, "Size", PDNumberWithSize(mxt->count));
-    PDDictionarySetEntry(tobd, "W", PDStringWithCString(PDXTableWEntry(mxt)));
+    PDDictionarySetEntry(tobd, "W", PDXTableWEntry(mxt));
 //    PDDictionarySetEntry(PDObjectGetDictionary(trailer), "Size", obuf);
 //    PDDictionarySetEntry(PDObjectGetDictionary(trailer), "W", PDXTableWEntry(mxt));
 
@@ -532,7 +533,10 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
 //        filterOpts = PDDictionaryCreateWithComplex(pd_stack_get_dict_key(X->stack, "DecodeParms", false));
 //        if (filterOpts) 
 //            filterOpts = PDStreamFilterGenerateOptionsFromDictionaryStack(filterOpts->prev->prev->info);
-        filter = PDStreamFilterObtain(filterName->data, true, filterOpts);
+        filter = PDStreamFilterObtain(PDStringEscapedValue(filterName, false), true, filterOpts);
+        if (NULL == filter) {
+            PDError("unable to obtain filter %s!", filterName->data);
+        }
     }
     
     if (filter) {
@@ -1182,12 +1186,16 @@ PDBool PDXTableFetchXRefs(PDParserRef parser)
     return true;
 }
 
-char *PDXTableWEntry(PDXTableRef table)
+PDArrayRef PDXTableWEntry(PDXTableRef table)
 {
     if (table->w) return table->w;
-    table->w = malloc(13);
-    sprintf(table->w, "[ %d %d %d ]", table->typeSize, table->offsSize, table->genSize);
+    table->w = PDArrayCreateWithCapacity(3);
+    PDArrayAppend(table->w, PDNumberWithInteger(table->typeSize));
+    PDArrayAppend(table->w, PDNumberWithInteger(table->offsSize));
+    PDArrayAppend(table->w, PDNumberWithInteger(table->genSize));
     return table->w;
+//    sprintf(table->w, "[ %d %d %d ]", table->typeSize, table->offsSize, table->genSize);
+//    return table->w;
 }
 
 void PDXTableSetSizes(PDXTableRef table, unsigned char typeSize, unsigned char offsSize, unsigned char genSize)
@@ -1195,7 +1203,7 @@ void PDXTableSetSizes(PDXTableRef table, unsigned char typeSize, unsigned char o
     PDAssert(typeSize == 1); // crash = type size <> 1 is not supported in this implementation; contact devs or update code to support this if needed (but why?)
 
     if (table->w) {
-        free(table->w);
+        PDRelease(table->w);
         table->w = NULL;
     }
     

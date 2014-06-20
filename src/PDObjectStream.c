@@ -148,7 +148,14 @@ void PDObjectStreamParseExtractedObjectStream(PDObjectStreamRef obstm, char *buf
             elements[i].type = PDObjectTypeFromIdentifier(as(pd_stack, elements[i].def)->info);
         } else {
             elements[i].type = PDObjectTypeString;
-            PDScannerPopString(osScanner, (char **)&elements[i].def);
+            char *str;
+            if (PDScannerPopString(osScanner, &str)) {
+                elements[i].def = str;
+            } else {
+                PDAssert(0); // crash = pdf is broken, and could not be scanned
+                elements[i].type = PDObjectTypeNull;
+                elements[i].def = NULL;
+            }
         }
     }
     
@@ -249,9 +256,7 @@ void PDObjectStreamCommit(PDObjectStreamRef obstm)
     // update keys
 //    sprintf(hbuf, "%ld", headerlen);
     PDDictionaryRef obd = PDObjectGetDictionary(streamOb);
-    PDNumberRef num = PDNumberCreateWithInteger(headerlen);
-    PDDictionarySetEntry(obd, "First", num);
-    PDRelease(num);
+    PDDictionarySetEntry(obd, "First", PDNumberWithInteger(headerlen));
 //    PDDictionarySetEntry(PDObjectGetDictionary(streamOb), "First", hbuf);
     
     // generate stream

@@ -241,7 +241,7 @@ extern void *PDObjectGetValue(PDObjectRef object);
  @param object The object
  @param The new value of the primitive (string, integer, real, ...) object. 
  */
-extern void PDObjectSetValue(PDObjectRef object, const char *value);
+extern void PDObjectSetValue(PDObjectRef object, void *value);
 
 /**
  *  Get the instance type of the object.

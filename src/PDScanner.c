@@ -642,7 +642,6 @@ void PDScannerScan(PDScannerRef scanner)
     PDInteger bresoffset = scanner->boffset;
     env = scanner->env;
     state = env->state;
-    
     do {
         symindices = state->symindices;
         symbol = state->symbol;

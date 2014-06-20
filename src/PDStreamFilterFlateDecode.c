@@ -43,6 +43,8 @@ PDInteger fd_compress_init(PDStreamFilterRef filter)
                 memcpy(newSelf, filter, sizeof(struct PDStreamFilter));     // move us there
                 memcpy(filter, predictor, sizeof(struct PDStreamFilter));   // replace old us with predictor
                 filter->nextFilter = newSelf;                               // set new us as predictor's next
+                PDRelease(newSelf->options);                                // clear out options from our new self, otherwise we will create predictors forever and ever
+                newSelf->options = NULL;
                 PDRelease(predictor);
                 return (*filter->init)(filter);                             // init predictor, not us
                 // from above return, we come into init for predictor, which has an uninitialized next (our new self), which it initializes; since we return here, though, that does not result in double initialization

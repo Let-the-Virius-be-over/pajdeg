@@ -267,10 +267,12 @@ void PDDictionaryDeleteEntry(PDDictionaryRef dictionary, const char *key)
     PDDictionaryFetchI(dictionary, key);
     if (index < 0) return;
     
+    free(dictionary->keys[index]);
     PDRelease(dictionary->values[index]);
     pd_stack_destroy(&dictionary->vstacks[index]);
     dictionary->count--;
     for (PDInteger i = index; i < dictionary->count; i++) {
+        dictionary->keys[i] = dictionary->keys[i+1];
         dictionary->values[i] = dictionary->values[i+1];
         dictionary->vstacks[i] = dictionary->vstacks[i+1];
     }
@@ -316,6 +318,7 @@ PDInteger PDDictionaryPrinter(void *inst, char **buf, PDInteger offs, PDInteger 
             offs = (*PDInstancePrinters[PDResolve(i->values[j])])(i->values[j], buf, offs, cap);
         }
         PDInstancePrinterRequire(4, 4);
+        bv = *buf;
         bv[offs++] = ' ';
     }
     bv[offs++] = '>';
