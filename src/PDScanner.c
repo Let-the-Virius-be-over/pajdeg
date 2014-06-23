@@ -663,6 +663,7 @@ void PDScannerScan(PDScannerRef scanner)
                   ? state->delimiterOp
                   : state->fallbackOp);
         } 
+        
         if (op) {
             //char *str = strndup(sym->sstart, sym->slen);
             //printf("state %s operator(%s) [\n", state->name, str);

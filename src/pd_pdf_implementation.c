@@ -45,6 +45,7 @@ PDStateRef pdfRoot, xrefSeeker, stringStream, arbStream;
 const char * PD_META       = "meta";
 const char * PD_STRING     = "string";
 const char * PD_NUMBER     = "number";
+const char * PD_NULL       = "null";
 const char * PD_NAME       = "name";
 const char * PD_OBJ        = "obj";
 const char * PD_REF        = "ref";
@@ -75,6 +76,7 @@ void PDStringFromArrayEntry(pd_stack *s, PDStringConvRef scv);
 void PDStringFromArbitrary(pd_stack *s, PDStringConvRef scv);
 void PDStringFromName(pd_stack *s, PDStringConvRef scv);
 void PDStringFromNumber(pd_stack *s, PDStringConvRef scv);
+void PDStringFromNull(pd_stack *s, PDStringConvRef scv);
 void PDStringFromString(pd_stack *s, PDStringConvRef scv);
 
 void PDPDFSetupConverters();
@@ -98,6 +100,8 @@ void pd_pdf_implementation_use()
 #endif
         // set null deallocator
         PDDeallocatorNull = PDDeallocatorNullFunc;
+        // set null number
+        PDNullObject = PDNumberCreateWithBool(false);
     }
     
     if (users == 0) {
@@ -119,7 +123,7 @@ void pd_pdf_implementation_use()
         PDStateRef s(dict);                // dictionary
         PDStateRef s(name_str);            // "/" followed by symbol, potentially wrapped in parentheses
         PDStateRef s(dict_hex_term);       // requires '>' termination
-        PDStateRef s(name);                // "/" followed by a name_str, as a proper "complex"
+        PDStateRef s(dkey);                // dictionary key (/name as a string rather than a complex)
         PDStateRef s(paren);               // "(" followed by any number of nested "(" and ")" ending with a ")"
         PDStateRef s(arb);                 // arbitrary value (number, array, dict, etc)
         PDStateRef s(number_or_obref);     // number OR number number reftype
@@ -197,12 +201,18 @@ void pd_pdf_implementation_use()
                                                          and PDOperatorPopState),
                                                    "Strue",
                                                    PDDef(PDOperatorPushResult,
+                                                         and PDOperatorPopValue,
+                                                         and PDOperatorPushComplex, &PD_NUMBER,
                                                          and PDOperatorPopState),
                                                    "Sfalse",
                                                    PDDef(PDOperatorPushResult,
+                                                         and PDOperatorPopValue,
+                                                         and PDOperatorPushComplex, &PD_NUMBER,
                                                          and PDOperatorPopState),
                                                    "Snull",
                                                    PDDef(PDOperatorPushResult,
+                                                         and PDOperatorPopValue,
+                                                         and PDOperatorPushComplex, &PD_NULL,
                                                          and PDOperatorPopState),
                                                    "S(",
                                                    PDDef(//PDOperatorBreak,
@@ -217,7 +227,7 @@ void pd_pdf_implementation_use()
                                                    "S/",
                                                    PDDef(//PDOperatorBreak,
                                                          PDOperatorPushState, name_str,
-                                                         and PDOperatorPushState, name,
+//                                                         and PDOperatorPushState, name,
                                                          and PDOperatorPopState),
                                                    "S<",
                                                    PDDef(PDOperatorPushState, dict_hex,
@@ -307,24 +317,33 @@ void pd_pdf_implementation_use()
                                                          and PDOperatorPopState),
                                                    "F",
                                                    PDDef(PDOperatorPushResult,
+                                                         and PDOperatorPopValue,
+                                                         and PDOperatorPushComplex, &PD_NAME,
                                                          and PDOperatorPopState)));
         
         //
         // name: a symbol, or a delimiter that initiates a symbol
         //
 
-        PDStateDefineOperatorsWithDefinition(name, 
-                                             PDDef(/*"S(", 
-                                                    PDDef(PDOperatorPushResult,
-                                                    PDOperatorPushState, paren,
-                                                    PDOperatorPopValue,
-                                                    PDOperatorPushComplex, &PD_NAME,
-                                                    PDOperatorPopState),*/
+        PDStateDefineOperatorsWithDefinition(dkey, 
+                                             PDDef("S(", 
+                                                   PDDef(PDOperatorMark,
+                                                         and PDOperatorPushWeakState, paren,
+                                                         and PDOperatorPopState),
                                                    "F",
-                                                   PDDef(PDOperatorPushbackSymbol,
-                                                         and PDOperatorPopValue,
-                                                         and PDOperatorPushComplex, &PD_NAME,
-                                                         and PDOperatorPopState)));
+                                                   PDDef(PDOperatorPushResult,
+                                                         and PDOperatorPopState)));                                             
+//                                             PDDef(/*"S(", 
+//                                                    PDDef(PDOperatorPushResult,
+//                                                    PDOperatorPushState, paren,
+//                                                    PDOperatorPopValue,
+//                                                    PDOperatorPushComplex, &PD_NAME,
+//                                                    PDOperatorPopState),*/
+//                                                   "F",
+//                                                   PDDef(PDOperatorPushbackSymbol,
+//                                                         and PDOperatorPopValue,
+//                                                         and PDOperatorPushComplex, &PD_NAME,
+//                                                         and PDOperatorPopState)));
         
         
         
@@ -385,7 +404,7 @@ void pd_pdf_implementation_use()
                                                          and PDOperatorPushComplex, &PD_DICT,
                                                          and PDOperatorPopState),
                                                    "S/",
-                                                   PDDef(PDOperatorPushWeakState, name_str,
+                                                   PDDef(PDOperatorPushState, dkey,
                                                          and PDOperatorPushWeakState, arb,
                                                          and PDOperatorPopValue,
                                                          and PDOperatorPopValue,
@@ -461,7 +480,7 @@ void pd_pdf_implementation_use()
         s(name_str);
         s(dict);
         s(dict_hex_term);
-        s(name);
+        s(dkey);
         s(paren);
         s(arb);
         s(number_or_obref);
@@ -548,7 +567,7 @@ void PDPDFSetupConverters()
         return;
     }
     
-    converterTable = PDStaticHashCreate(11, (void*[]) {
+    converterTable = PDStaticHashCreate(12, (void*[]) {
         (void*)PD_META,     // 1
         (void*)PD_OBJ,      // 2
         (void*)PD_REF,      // 3
@@ -560,6 +579,7 @@ void PDPDFSetupConverters()
         (void*)PD_NAME,     // 9
         (void*)PD_NUMBER,   // 10
         (void*)PD_STRING,   // 11
+        (void*)PD_NULL,     // 12
     }, (void*[]) {
         &PDStringFromMeta,          // 1
         &PDStringFromObj,           // 2
@@ -572,11 +592,12 @@ void PDPDFSetupConverters()
         &PDStringFromName,          // 9
         &PDStringFromNumber,        // 10
         &PDStringFromString,        // 11
+        &PDStringFromNull           // 12
     });
     
     PDStaticHashDisownKeysValues(converterTable, true, true);
     
-    typeTable = PDStaticHashCreate(11, (void*[]) {
+    typeTable = PDStaticHashCreate(12, (void*[]) {
         (void*)PD_META,     // 1
         (void*)PD_OBJ,      // 2
         (void*)PD_REF,      // 3
@@ -588,6 +609,7 @@ void PDPDFSetupConverters()
         (void*)PD_NAME,     // 9
         (void*)PD_NUMBER,   // 10
         (void*)PD_STRING,   // 11
+        (void*)PD_NULL,     // 12
     }, (void*[]) {
         (void*)PDObjectTypeString,
         (void*)PDObjectTypeString,
@@ -599,6 +621,7 @@ void PDPDFSetupConverters()
         (void*)PDObjectTypeString,
         (void*)PDObjectTypeName,
         (void*)PDObjectTypeInteger,
+        (void*)PDObjectTypeString,
         (void*)PDObjectTypeString,
     });
 
@@ -664,6 +687,9 @@ void *PDInstanceCreateFromComplex(pd_stack *complex)
         else if (PDIdentifies(tid, PD_NUMBER)) {
             result = PDNumberCreateWithCString((*complex)->prev->info);
         }
+        else if (PDIdentifies(tid, PD_NULL)) {
+            result = PDRetain(PDNullObject);
+        }
         else if (PDIdentifies(tid, PD_DICT)) {
             result = PDDictionaryCreateWithComplex(*complex);
 //            result = PDCollectionCreateWithDictionary(pd_dict_from_pdf_dict_stack(*complex));
@@ -694,7 +720,7 @@ void *PDInstanceCreateFromComplex(pd_stack *complex)
         char *value = (*complex)->info;
         if      (0 == strcmp(value, "true"))  result = PDNumberCreateWithBool(true);
         else if (0 == strcmp(value, "false")) result = PDNumberCreateWithBool(false);
-        else if (0 == strcmp(value, "null"))  result = PDStringCreate(strdup(value));
+        else if (0 == strcmp(value, "null"))  result = PDRetain(PDNullObject);
         else {
             PDError("unknown string value type %s", value);
             result = PDStringCreate(strdup((*complex)->info));
@@ -747,6 +773,17 @@ void PDStringFromNumber(pd_stack *s, PDStringConvRef scv)
     PDStringGrow(len + 1);
     putstr(str, len);
     PDDeallocateViaStackDealloc(str);
+}
+
+void PDStringFromNull(pd_stack *s, PDStringConvRef scv)
+{
+//    char *null =
+    PDDeallocateViaStackDealloc(pd_stack_pop_key(s));
+    PDStringGrow(5);
+//    PDInteger len = strlen(str);
+//    PDStringGrow(len + 1);
+    putstr("null", 4);
+//    PDDeallocateViaStackDealloc(str);
 }
 
 void PDStringFromString(pd_stack *s, PDStringConvRef scv)

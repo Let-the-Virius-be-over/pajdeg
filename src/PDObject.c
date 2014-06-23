@@ -377,7 +377,7 @@ void PDObjectSetFlateDecodedFlag(PDObjectRef object, PDBool state)
     if (object->inst == NULL) PDObjectGetDictionary(object);
     
     if (state) {
-        PDDictionarySetEntry(object->inst, "Filter", PDStringCreateWithName(strdup("/FlateDecode")));
+        PDDictionarySetEntry(object->inst, "Filter", PDAutorelease(PDStringCreateWithName(strdup("/FlateDecode"))));
     } else {
         PDDictionaryDeleteEntry(object->inst, "Filter");
         PDDictionaryDeleteEntry(object->inst, "DecodeParms");
@@ -415,8 +415,8 @@ void PDObjectSetStreamEncrypted(PDObjectRef object, PDBool encrypted)
 //            PDDictionarySetEntry(PDObjectGetDictionary(object), "Filter", "[/Crypt]");
             
             PDDictionaryRef decodeParms = PDDictionaryCreateWithCapacity(2);
-            PDDictionarySetEntry(decodeParms, "Type", PDStringWithName("/CryptFilterDecodeParms"));
-            PDDictionarySetEntry(decodeParms, "Name", PDStringWithName("/Identity"));
+            PDDictionarySetEntry(decodeParms, "Type", PDStringWithName(strdup("/CryptFilterDecodeParms")));
+            PDDictionarySetEntry(decodeParms, "Name", PDStringWithName(strdup("/Identity")));
             PDDictionarySetEntry(object->inst, "DecodeParms", decodeParms);
             PDRelease(decodeParms);
 //            PDDictionarySetEntry(PDObjectGetDictionary(object), "DecodeParms", "<</Type /CryptFilterDecodeParms /Name /Identity>>");
@@ -480,8 +480,13 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
             break;
             
         case PDObjectTypeString:
-            PDStringGrow(2 + strlen((char*)object->def));
-            putfmt("%s", (char*)object->def);
+            if (object->inst == NULL) {
+                PDObjectInstantiate(object);
+            }
+            PDAssert(object->inst); // crash = failed to instantiate the string representation; reasons are unknown but may be that def was a char*, the old way to represent strings
+            val = PDStringEscapedValue(object->inst, true);
+            PDStringGrow(2 + strlen(val));
+            putfmt("%s", val);
             break;
             
         default:

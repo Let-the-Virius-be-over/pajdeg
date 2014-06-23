@@ -94,6 +94,16 @@ extern PDContentStreamRef PDContentStreamCreateWithObject(PDObjectRef object);
 extern void PDContentStreamAttachOperator(PDContentStreamRef cs, const char *opname, PDContentOperatorFunc op, void *userInfo);
 
 /**
+ *  Attach a deallocator to a content stream. Content streams call every deallocator attached to it once before it destroys itself. 
+ *  Deallocators in content streams are used to clean up user info objects that were allocated in the process of setting up operators.
+ *
+ *  @param cs          The content stream
+ *  @param deallocator The deallocator callback. It will be handed userInfo as argument
+ *  @param userInfo    The argument passed to deallocator
+ */
+extern void PDContentStreamAttachDeallocator(PDContentStreamRef cs, PDDeallocator deallocator, void *userInfo);
+
+/**
  *  Attach a variable number of operator function pairs (opname, func, ...), each sharing the given user info object.
  *
  *  Pairs are provided using the PDDef() macro. The following code

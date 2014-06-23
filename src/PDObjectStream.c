@@ -240,10 +240,10 @@ void PDObjectStreamCommit(PDObjectStreamRef obstm)
             len = PDObjectGenerateDefinition(ob, (char**)&elements[i].def, 0);
             len--; // objects add \n after def; don't want two \n's
         } else {
-            if (PDObjectTypeString != elements[i].type) {
+//            if (PDObjectTypeString != elements[i].type) {
                 pd_stack def = elements[i].def;
                 elements[i].def = PDStringFromComplex(&def);
-            }
+//            }
             len = strlen(elements[i].def);
         }
         len++; // add a \n after every def

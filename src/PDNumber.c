@@ -25,6 +25,8 @@
 
 #include "pd_internal.h"
 
+PDNumberRef PDNullObject = NULL;
+
 void PDNumberDestroy(PDNumberRef n)
 {
     
@@ -141,6 +143,13 @@ PDBool PDNumberGetBool(PDNumberRef n)
 PDInteger PDNumberPrinter(void *inst, char **buf, PDInteger offs, PDInteger *cap)
 {
     PDInstancePrinterInit(PDNumberRef, 0, 1);
+    
+    if (PDNullObject == i) {
+        PDInstancePrinterRequire(5, 5);
+        char *bv = *buf;
+        strcpy(&bv[offs], "null");
+        return offs + 4;
+    }
     
     int len;
     char tmp[25];

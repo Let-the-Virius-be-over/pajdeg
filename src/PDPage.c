@@ -44,6 +44,7 @@ void PDPageDestroy(PDPageRef page)
             PDRelease(page->contentObs[i]);
         }
         PDRelease(page->contentRefs);
+        free(page->contentObs);
     }
 }
 
@@ -196,6 +197,7 @@ PDPageRef PDPageInsertIntoPipe(PDPageRef page, PDPipeRef pipe, PDInteger pageNum
         PDTaskSetInfo(task, PDRetain(parent));
         PDPipeAddTask(pipe, task);
         PDRelease(task);
+        PDRelease(parent);
         
         parentRef = PDDictionaryGetReference(parentDict, "Parent");
         parent = NULL;

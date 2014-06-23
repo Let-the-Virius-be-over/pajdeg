@@ -168,26 +168,36 @@ stack<0x15778480> {
     for (count = 0; s; s = s->prev)
         count++;
     PDDictionaryRef dict = PDDictionaryCreateWithCapacity(count);
-    dict->count = count;
+//    dict->count = count;x/
     
     s = stack;
     pd_stack_set_global_preserve_flag(true);
     for (count = 0; s; s = s->prev) {
         entry = as(pd_stack, s->info)->prev;
         // entry must be a string; it's the key value
-        dict->keys[count] = strdup(entry->info);
-        entry = entry->prev;
-        if (entry->type == PD_STACK_STRING) {
-            dict->values[count] = PDStringCreate(strdup(entry->info));
-            dict->vstacks[count] = NULL;
+        char *key = entry->info;
+        PDBool exists = false;
+        for (int i = 0; !exists && i < count; i++) 
+            exists |= !strcmp(key, dict->keys[i]);
+        if (exists) {
+            PDNotice("skipping duplicate dictionary key %s", key);
         } else {
-            dict->vstacks[count] = /*entry =*/ pd_stack_copy(entry->info);
-//            entry->info = NULL;
-//            entry = dict->vstacks[count];
-            dict->values[count] = NULL; // PDStringFromComplex(&entry);
+            dict->keys[count] = strdup(key);
+            entry = entry->prev;
+            if (entry->type == PD_STACK_STRING) {
+                
+                dict->values[count] = PDStringCreate(strdup(entry->info));
+                dict->vstacks[count] = NULL;
+            } else {
+                dict->vstacks[count] = /*entry =*/ pd_stack_copy(entry->info);
+                //            entry->info = NULL;
+                //            entry = dict->vstacks[count];
+                dict->values[count] = NULL; // PDStringFromComplex(&entry);
+            }
+            count++;
         }
-        count++;
     }
+    dict->count = count;
     pd_stack_set_global_preserve_flag(false);
     
     return dict;
@@ -249,15 +259,15 @@ void PDDictionarySetEntry(PDDictionaryRef dictionary, const char *key, void *val
     }
     
     if (index == dictionary->count) {
-        // increase count
+        // increase count and set key
         dictionary->count++;
+        dictionary->keys[index] = strdup(key);
     } else {
         // clear out old value
         PDRelease(dictionary->values[index]);
         pd_stack_destroy(&dictionary->vstacks[index]);
     }
     
-    dictionary->keys[index] = strdup(key);
     dictionary->values[index] = PDRetain(value);
     dictionary->vstacks[index] = NULL;
 }

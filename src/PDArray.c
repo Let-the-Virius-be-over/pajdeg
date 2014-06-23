@@ -159,7 +159,7 @@ void PDArrayClear(PDArrayRef array)
 
 PDInteger PDArrayGetCount(PDArrayRef array)
 {
-    return array->count;
+    return array ? array->count : 0;
 }
 
 void *PDArrayGetElement(PDArrayRef array, PDInteger index)

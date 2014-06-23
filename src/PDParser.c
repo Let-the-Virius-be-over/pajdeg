@@ -429,6 +429,7 @@ void PDParserClarifyObjectStreamExistence(PDParserRef parser, PDObjectRef object
                 lenInt = PDNumberGetInteger(PDObjectGetValue(lenOb));
 //                const char *realLength = pd_stack_pop_key(&lenDef);
 //                lenInt = PDIntegerFromString(realLength);
+                PDRelease(lenOb);
             } else {
                 lenInt = PDNumberGetInteger(lengthValue); //PDIntegerFromString(length);
             }

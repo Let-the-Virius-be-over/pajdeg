@@ -36,6 +36,8 @@
 
 #include "PDDefines.h"
 
+extern PDNumberRef PDNullObject;
+
 // retained variants
 extern PDNumberRef PDNumberCreateWithInteger(PDInteger i);
 extern PDNumberRef PDNumberCreateWithSize(PDSize s);

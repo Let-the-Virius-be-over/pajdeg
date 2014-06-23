@@ -46,6 +46,11 @@ PDContentStreamOperationRef PDContentStreamOperationCreate(char *name, pd_stack 
 
 void PDContentStreamDestroy(PDContentStreamRef cs)
 {
+    while (cs->deallocators) {
+        PDDeallocator deallocator = (PDDeallocator) pd_stack_pop_identifier(&cs->deallocators);
+        void *userInfo = (void *) pd_stack_pop_identifier(&cs->deallocators);
+        (*deallocator)(userInfo);
+    }
     PDRelease(cs->ob);
     PDRelease(cs->opertree);
     pd_stack_destroy(&cs->opers);
@@ -63,6 +68,7 @@ PDContentStreamRef PDContentStreamCreateWithObject(PDObjectRef object)
     cs->ob = PDRetain(object);
     cs->opertree = PDBTreeCreate(free, 0, 10000000, 4);
     cs->opers = NULL;
+    cs->deallocators = NULL;
     cs->args = PDArrayCreateWithCapacity(8);//pd_array_with_capacity(8);
     return cs;
 }
@@ -80,6 +86,12 @@ void PDContentStreamAttachOperator(PDContentStreamRef cs, const char *opname, PD
         // catch all
         PDBTreeInsert(cs->opertree, 0, arr);
     }
+}
+
+void PDContentStreamAttachDeallocator(PDContentStreamRef cs, PDDeallocator deallocator, void *userInfo)
+{
+    pd_stack_push_identifier(&cs->deallocators, (PDID)userInfo);
+    pd_stack_push_identifier(&cs->deallocators, (PDID)deallocator);
 }
 
 void PDContentStreamAttachOperatorPairs(PDContentStreamRef cs, void *userInfo, const void **pairs)
@@ -106,18 +118,21 @@ void PDContentStreamExecute(PDContentStreamRef cs)
 {
     void **catchall;
     PDBool argValue;
-    PDBool termed;
+    PDStringRef arg;
+    PDBool termed, escaped;
     char termChar;
     PDContentOperatorFunc op;
     PDContentStreamOperationRef operation;
-    PDInteger strlen;
+    PDInteger slen;
     void **arr;
     char *str;
+    char ch;
     pd_stack inStack, outStack;
 
     catchall = PDBTreeGet(cs->opertree, 0);
     termChar = 0;
     termed   = false;
+    escaped  = false;
     
     const char *stream = PDObjectGetStream(cs->ob);
     PDInteger   len    = PDObjectGetExtractedStreamLength(cs->ob);
@@ -129,74 +144,91 @@ void PDContentStreamExecute(PDContentStreamRef cs)
 //    pd_array_clear(cs->args);
 
     for (PDInteger i = 0; i <= len; i++) {
-        if (termChar) {
-            termed = (i + 1 >= len || stream[i] == termChar);
-            termChar *= !termed;
-        }
-        else if (i < len && i == mark && (stream[i] == '[' || stream[i] == '(')) {
-            switch (stream[i]) {
-                case '[': termChar = ']'; break;
-                case '(': termChar = ')'; break;
+        if (escaped) {
+            escaped = false;
+        } else {
+            escaped = stream[i] == '\\';
+            if (termChar) {
+                termed = (i + 1 >= len || stream[i] == termChar);
+                termChar *= !termed;
             }
-        }
-        
-        if (termChar == 0 && (termed || i == len || PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobWhitespace)) {
-            if (termed + i > mark) {
-                strlen = termed + i - mark;
-                str = strndup(&stream[mark], strlen);
-                argValue = ((str[0] >= '0' && str[0] <= '9') || str[0] == '/' || str[0] == '.' || str[0] == '[' || str[0] == '(' || str[0] == '-' || str[0] == ']');
-                arr = PDBTreeGet(cs->opertree, PDBT_KEY_STR(str, strlen));
-                
-                // if we did not get an operator, switch to catchall
-                if (arr == NULL && ! argValue) arr = catchall;
-                
-                // have we matched a string to an operator?
-                if (arr) {
-//                    argc     = pd_array_get_count(cs->args);
-//                    args     = pd_array_create_args(cs->args);
-                    outStack = NULL;
-                    inStack  = NULL;
-
-                    if (cs->opers) {
-                        operation = cs->opers->info;
-                        inStack = operation->state;
-                    }
-                    
-                    cs->lastOperator = str;
-                    op = arr[0];
-                    PDOperatorState state = (*op)(cs, arr[1], cs->args, inStack, &outStack);
-                    
-                    PDArrayClear(cs->args);
-                    
-                    if (state == PDOperatorStatePush) {
-                        operation = PDContentStreamOperationCreate(strdup(str), outStack);
-                        pd_stack_push_object(opers, operation);
-//                        pd_stack_push_key(opers, str);
-                    } else if (state == PDOperatorStatePop) {
-//                        PDAssert(cs->opers != NULL); // crash = imbalanced push/pops (too many pops!)
-                        PDRelease(pd_stack_pop_object(opers));
-//                        free(pd_stack_pop_key(opers));
-                    }
-                }
-                
-                // we conditionally stuff arguments for numeric values and '/' somethings only; we do this to prevent a function from getting a ton of un-handled operators as arguments
-                else if (argValue) {
-                    PDArrayAppend(cs->args, PDStringCreate(str));
-                    str = NULL;
-                } 
-                
-                // here, we believe we've run into an operator, so we throw away accumulated arguments and start anew
-                else {
-                    PDArrayClear(cs->args);
-                }
-                
-                if (str) {
-                    free(str);
+            else if (i < len && i == mark && (stream[i] == '[' || stream[i] == '(')) {
+                switch (stream[i]) {
+                    case '[': termChar = ']'; break;
+                    case '(': termChar = ')'; break;
                 }
             }
             
-            mark = i + 1;
-            termed = false;
+            if (termChar == 0 && (termed || i == len || PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobDelimiter || PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobWhitespace)) {
+                if (termed + i > mark) {
+                    ch = stream[mark];
+                    argValue = ((ch >= '0' && ch <= '9') || ch == '<' || ch == '/' || ch == '.' || ch == '[' || ch == '(' || ch == '-' || ch == ']');
+                    if (argValue && PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobDelimiter) 
+                        continue;
+                    
+                    slen = termed + i - mark;
+                    str = strndup(&stream[mark], slen);
+                    arr = PDBTreeGet(cs->opertree, PDBT_KEY_STR(str, slen));
+                    
+                    // if we did not get an operator, switch to catchall
+                    if (arr == NULL && ! argValue) arr = catchall;
+                    
+                    // have we matched a string to an operator?
+                    if (arr) {
+                        //                    argc     = pd_array_get_count(cs->args);
+                        //                    args     = pd_array_create_args(cs->args);
+                        outStack = NULL;
+                        inStack  = NULL;
+                        
+                        if (cs->opers) {
+                            operation = cs->opers->info;
+                            inStack = operation->state;
+                        }
+                        
+                        cs->lastOperator = str;
+                        op = arr[0];
+                        PDOperatorState state = (*op)(cs, arr[1], cs->args, inStack, &outStack);
+                        
+                        PDArrayClear(cs->args);
+                        
+                        if (state == PDOperatorStatePush) {
+                            operation = PDContentStreamOperationCreate(strdup(str), outStack);
+                            pd_stack_push_object(opers, operation);
+                            //                        pd_stack_push_key(opers, str);
+                        } else if (state == PDOperatorStatePop) {
+                            //                        PDAssert(cs->opers != NULL); // crash = imbalanced push/pops (too many pops!)
+                            PDRelease(pd_stack_pop_object(opers));
+                            //                        free(pd_stack_pop_key(opers));
+                        }
+                    }
+                    
+                    // we conditionally stuff arguments for numeric values and '/' somethings only; we do this to prevent a function from getting a ton of un-handled operators as arguments
+                    else if (argValue) {
+                        arg = (str[0] == '<'
+                               ? PDStringCreateWithHexString(str)
+                               : PDStringCreate(str));
+                        PDArrayAppend(cs->args, arg);
+                        PDRelease(arg);
+                        str = NULL;
+                    } 
+                    
+                    // here, we believe we've run into an operator, so we throw away accumulated arguments and start anew
+                    else {
+                        PDArrayClear(cs->args);
+                    }
+                    
+                    if (str) {
+                        free(str);
+                    }
+                }
+                
+                // skip over white space, but do not skip over delimiters; these are parts of arguments
+                mark = i + (termed || PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobWhitespace);
+                
+                // we also rewind i if this was a term char; ideally we would rewind for all delimiters before above and just do i + 1 always, but that would result in endless loops for un-termchar delims
+                i -= (stream[i] == '(' || stream[i] == '[');
+                termed = false;
+            }
         }
     }
 }
@@ -251,7 +283,7 @@ const pd_stack PDContentStreamGetOperators(PDContentStreamRef cs)
  i          Set flatness tolerance
  ID         Begin inline image data
  j          Set line join style
- J          Set line cap style
+ J          Set line cap style                                                                  *
  K          Set CMYK color for stroking operations
  k          Set CMYK color for nonstroking operations
  l          Append straight line segment to path                                                *
@@ -263,7 +295,7 @@ const pd_stack PDContentStreamGetOperators(PDContentStreamRef cs)
  Q          Restore graphics state                                                              *
  re         Append rectangle to path                                                            *
  RG         Set RGB color for stroking operations
- rg         Set RGB color for nonstroking operations
+ rg         Set RGB color for nonstroking operations                                            *
  ri         Set color rendering intent
  s          Close and stroke path
  S          Stroke path                                                                         *
@@ -288,7 +320,7 @@ const pd_stack PDContentStreamGetOperators(PDContentStreamRef cs)
  v          Append curved segment to path (initial point replicated)                            *
  w          Set line width                                                                      *
  W          Set clipping path using nonzero winding number rule                                 *
- W*         Set clipping path using even-odd rule
+ W*         Set clipping path using even-odd rule                                               *
  y          Append curved segment to path (final point replicated)                              *
  '          Move to next line and show text
  "          Set word and character spacing, move to next line, and show text
@@ -427,7 +459,14 @@ struct PDContentStreamPrinterUI {
 };
 
 #define PDContentStreamPrinterPushSpacing(ui) ui->spacing[ui->spacingIndex++] = ' '; ui->spacing[ui->spacingIndex] = 0
-#define PDContentStreamPrinterPopSpacing(ui)  ui->spacing[--ui->spacingIndex] = 0
+#define PDContentStreamPrinterPopSpacing(ui)  if (ui->spacingIndex > 0) ui->spacing[--ui->spacingIndex] = 0; else fprintf(userInfo->stream, "[[[ warning: over-deindenting ]]]")
+
+void PDContentStreamPrinterUIDealloc(void *_pui)
+{
+    PDContentStreamPrinterUIRef pui = _pui;
+    free(pui->spacing);
+    free(pui);
+}
 
 PDOperatorState PDContentStreamPrinter_q(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
@@ -453,6 +492,16 @@ PDOperatorState PDContentStreamPrinter_re(PDContentStreamRef cs, PDContentStream
     return PDOperatorStateIndependent;
 }
 
+PDOperatorState PDContentStreamPrinter_rg(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
+{
+    PDInteger len = 128;
+    char *buf = malloc(len);
+    PDArrayPrinter(args, &buf, 0, &len);
+    fprintf(userInfo->stream, "%srg \tSet RGB color for nonstroking operations: %s\n", userInfo->spacing, buf);
+    free(buf);
+    return PDOperatorStateIndependent;
+}
+
 PDOperatorState PDContentStreamPrinter_w(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sw  \tSet line width: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false));
@@ -462,6 +511,12 @@ PDOperatorState PDContentStreamPrinter_w(PDContentStreamRef cs, PDContentStreamP
 PDOperatorState PDContentStreamPrinter_W(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sW  \tSet clipping path using nonzero winding number rule\n", userInfo->spacing);
+    return PDOperatorStateIndependent;
+}
+
+PDOperatorState PDContentStreamPrinter_Wstar(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
+{
+    fprintf(userInfo->stream, "%sW* \tSet clipping path using even-odd rule\n", userInfo->spacing);
     return PDOperatorStateIndependent;
 }
 
@@ -537,11 +592,15 @@ PDOperatorState PDContentStreamPrinter_Tf(PDContentStreamRef cs, PDContentStream
 
 PDOperatorState PDContentStreamPrinter_Tj(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    PDInteger len = 128;
-    char *buf = malloc(len);
-    PDArrayPrinter(args, &buf, 0, &len);
-    fprintf(userInfo->stream, "%sTj \tShow text: %s", userInfo->spacing, buf);
-    free(buf);
+//    if (PDArrayGetCount(args) == 1) {
+//        fprintf(userInfo->stream, "%sTj \tShow text: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), true));
+//    } else {
+        PDInteger len = 128;
+        char *buf = malloc(len);
+        PDArrayPrinter(args, &buf, 0, &len);
+        fprintf(userInfo->stream, "%sTj \tShow text: %s\n", userInfo->spacing, buf);
+        free(buf);
+//    }
     return PDOperatorStateIndependent;
 }
 
@@ -611,6 +670,13 @@ PDOperatorState PDContentStreamPrinter_Tstar(PDContentStreamRef cs, PDContentStr
     return PDOperatorStateIndependent;
 }
 
+PDOperatorState PDContentStreamPrinter_J(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
+{
+    fprintf(userInfo->stream, "%sJ  \tSet line cap style: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false));
+    return PDOperatorStateIndependent;
+}
+
+
 PDOperatorState PDContentStreamPrinter_l(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sl  \tAppend straight line segment to path: line (%.1f,%.1f) - (%s,%s)\n", userInfo->spacing, userInfo->posX, userInfo->posY, PDStringEscapedValue(PDArrayGetElement(args, 0), false), PDStringEscapedValue(PDArrayGetElement(args, 1), false));
@@ -624,6 +690,12 @@ PDOperatorState PDContentStreamPrinter_l(PDContentStreamRef cs, PDContentStreamP
 PDOperatorState PDContentStreamPrinter_f(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sf  \tFill path using nonzero winding number rule\n", userInfo->spacing);
+    return PDOperatorStateIndependent;
+}
+
+PDOperatorState PDContentStreamPrinter_fstar(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
+{
+    fprintf(userInfo->stream, "%sf* \tFill path using even-odd rule\n", userInfo->spacing);
     return PDOperatorStateIndependent;
 }
 
@@ -737,6 +809,7 @@ PDContentStreamRef PDContentStreamCreateStreamPrinter(PDObjectRef object, FILE *
     printerUI->spacing = strdup("                                                                                                                                                                                                                                                                     ");
     printerUI->spacingIndex = 0;
     PDContentStreamPrinterPushSpacing(printerUI);
+    PDContentStreamAttachDeallocator(cs, PDContentStreamPrinterUIDealloc, printerUI);
     
     PDContentStreamAttachOperator(cs, NULL, (PDContentOperatorFunc)PDContentStreamPrinter_catchall, printerUI);
 
@@ -750,8 +823,10 @@ PDContentStreamRef PDContentStreamCreateStreamPrinter(PDObjectRef object, FILE *
                                                             pair(ET),
                                                             pair(gs),
                                                             pair(h),
+                                                            pair(J),
                                                             pair(l),
                                                             pair(m),
+                                                            pair2(f*, fstar),
                                                             pair(n),
                                                             pair(q),
                                                             pair(Q),
@@ -769,10 +844,12 @@ PDContentStreamRef PDContentStreamCreateStreamPrinter(PDObjectRef object, FILE *
                                                             pair(c),
                                                             pair(v),
                                                             pair(y),
+                                                            pair(rg),
                                                             pair(TJ),
                                                             pair(Tm),
                                                             pair(W),
                                                             pair(w),
+                                                            pair2(W*, Wstar),
                                                             pair(BX),
                                                             pair(EX),
                                                             pair(sh),

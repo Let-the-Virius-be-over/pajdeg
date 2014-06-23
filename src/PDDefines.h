@@ -99,7 +99,7 @@
  @def DEBUG_SCANNER_SYMBOLS
  Prints to stdout every symbol scanned when reading input, tabbed and surrounded in asterixes (e.g. "           * startxref *").
  */
-#define DEBUG_SCANNER_SYMBOLS
+//#define DEBUG_SCANNER_SYMBOLS
 
 /**
  @def DEBUG_PDTYPES
