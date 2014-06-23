@@ -613,7 +613,7 @@ void PDPDFSetupConverters()
     }, (void*[]) {
         (void*)PDObjectTypeString,
         (void*)PDObjectTypeString,
-        (void*)PDObjectTypeString,
+        (void*)PDObjectTypeReference,
         (void*)PDObjectTypeString,
         (void*)PDObjectTypeDictionary,
         (void*)PDObjectTypeString,
@@ -622,7 +622,7 @@ void PDPDFSetupConverters()
         (void*)PDObjectTypeName,
         (void*)PDObjectTypeInteger,
         (void*)PDObjectTypeString,
-        (void*)PDObjectTypeString,
+        (void*)PDObjectTypeNull,
     });
 
     PDStaticHashDisownKeysValues(typeTable, true, true);

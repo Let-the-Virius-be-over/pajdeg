@@ -59,6 +59,10 @@ extern PDBool PDNumberGetBool(PDNumberRef n);
 
 extern PDInteger PDNumberPrinter(void *inst, char **buf, PDInteger offs, PDInteger *cap);
 
+extern PDObjectType PDNumberGetObjectType(PDNumberRef n);
+
+extern char *PDNumberToString(PDNumberRef n);
+
 #endif // INCLUDED_PDNUMBER_H
 
 /** @} */

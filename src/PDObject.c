@@ -35,10 +35,7 @@ void PDObjectDestroy(PDObjectRef object)
 {
     PDRelease(object->inst);
     
-    if (object->type == PDObjectTypeString)
-        free(object->def);
-    else
-        pd_stack_destroy((pd_stack *)&object->def);
+    pd_stack_destroy(&object->def);
     
     if (object->ovrDef) free(object->ovrDef);
     if (object->ovrStream && object->ovrStreamAlloc)
@@ -140,31 +137,12 @@ PDObjectType PDObjectDetermineType(PDObjectRef object)
         object->type = PDObjectTypeDictionary;
     else if (PDIdentifies(stid, PD_NAME))
         object->type = PDObjectTypeString; // todo: make use of more types
-    else if (st->prev == NULL) {
-        // this is *probably* a string; let's see if we get something sensible out of it
-        char *string = strdup(st->info);
-        if (string) {
-            object->type = PDObjectTypeString;
-            object->def = string;
-            pd_stack_destroy(&st);
-            /*
-            if (string[0] == '(') {
-                // yeah, it's a string
-                object->type = PDObjectTypeString;
-            } else if (string[0] >= '0' && string[0] <= '9') {
-                // it's a number; we can find out by looking for a period if it's real or integral
-                while (string[0] && string[0] != '.') string = &string[1];
-                if (string[0]) { 
-                    // it's real
-                    object->type = PDObjectTypeReal;
-                } else {
-                    // it's integral
-                    object->type = PDObjectTypeInteger;
-                }
-            }
-            */
-        }
-    }
+    else if (PDIdentifies(stid, PD_STRING))
+        object->type = PDObjectTypeString;
+    else if (PDIdentifies(stid, PD_NUMBER)) 
+        object->type = PDObjectTypeUnknown; // we keep it at unknown for now, as numbers can be ints, reals, bools, and nulls
+    else 
+        PDError("unable to determine object type");
     return object->type;
 }
 
@@ -350,8 +328,9 @@ PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len)
     PDBool success = true;
     PDStreamFilterRef sf = PDStreamFilterObtain(PDStringEscapedValue(filter, false), false, decodeParms);
     if (NULL == sf) {
-        // we don't support this filter, at all
-        success = false;
+        // we don't support this filter; that means we've been handed the filtered value, because we were not able to extract it either, so we can pass it over to PDObjectSetStream
+        PDObjectSetStream(object, str, len, true, false);
+        return true;
     } 
     
     if (success) success = PDStreamFilterInit(sf);
@@ -487,6 +466,21 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
             val = PDStringEscapedValue(object->inst, true);
             PDStringGrow(2 + strlen(val));
             putfmt("%s", val);
+            break;
+            
+        case PDObjectTypeNull:
+        case PDObjectTypeInteger:
+        case PDObjectTypeBoolean:
+        case PDObjectTypeReal:
+            if (object->inst == NULL) {
+                PDObjectInstantiate(object);
+            }
+            PDAssert(object->inst); // crash = failed to instantiate the string representation; reasons are unknown but may be that def was a char*, the old way to represent strings
+            val = PDNumberToString(object->inst);
+            i = strlen(val);
+            PDStringGrow(1 + i);
+            putstr(val, i);
+            free(val);
             break;
             
         default:

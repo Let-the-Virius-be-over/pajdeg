@@ -257,3 +257,80 @@ void PDSplayTreeReplace(PDSplayTreeRef st, st_node u, st_node v)
     if (v) 
         v->parent = u->parent;
 }
+
+char snpb[20];
+int st_node_print(st_node n, char **map, int x, int y)
+{
+    /*
+   .-------------- (x,y)
+   +---------
+   |  (2)
+   |  / \
+   |(1)  (3)
+   |
+     */
+    // because (x,y) is top left corner of node and all its left children printed out, we need to print left first
+    if (n->brc[0]) {
+        x = st_node_print(n->brc[0], map, x, y + 2);
+        map[y+1][x] = '/';
+    }
+    sprintf(snpb, "(%ld)", n->key);
+    for (int i = 0; snpb[i]; i++) {
+        map[y][x++] = snpb[i];
+    }
+    if (n->brc[1]) {
+        map[y+1][x-1] = '\\';
+        x = st_node_print(n->brc[1], map, x, y+2);
+    }
+    return x;
+}
+
+void st_node_make_size(st_node n, int *w, int *h)
+{
+    int W = 3, H = 1;
+    int z = n->key;
+    while (z > 9) {
+        W++;
+        z /= 10;
+    }
+    
+    int lw, rw, lh, rh;
+    lw=rw=lh=rh=0;
+    if (n->brc[0]) {
+        // expand leftward
+        //      (key)
+        //      /
+        //   (left)
+        st_node_make_size(n->brc[0], &lw, &lh);
+        W += lw;
+    }
+    if (n->brc[1]) {
+        // expand rightward
+        st_node_make_size(n->brc[1], &rw, &rh);
+        W += rw;
+    }
+    if (rh || lh) {
+        H += 1 + (rh > lh ? rh : lh);
+    }
+    *w = W;
+    *h = H;
+}
+
+void PDSplayTreeShow(PDSplayTreeRef tree)
+{
+    int w, h;
+    st_node_make_size(tree->root, &w, &h);
+    char **map = malloc(sizeof(char*) * h);
+    for (int i = 0; i < h; i++) {
+        map[i] = malloc(w + 1);
+        map[i][w] = 0;
+        for (int j = 0; j < w; j++) {
+            map[i][j] = ' ';
+        }
+    }
+    st_node_print(tree->root, map, 0, 0);
+    for (int i = 0; i < h; i++) {
+        puts(map[i]);
+    }
+    free(map);
+}

@@ -173,7 +173,7 @@ struct PDObject {
     PDInteger           genid;          ///< generation id
     PDObjectClass       obclass;        ///< object class (regular, compressed, or trailer)
     PDObjectType        type;           ///< data structure of def below
-    void               *def;            ///< the object content
+    pd_stack            def;            ///< the object content
     void               *inst;           ///< instance of def, or NULL if not yet instantiated
     PDBool              hasStream;      ///< if set, object has a stream
     PDInteger           streamLen;      ///< length of stream (if one exists)
@@ -753,6 +753,10 @@ struct PDPipe {
     typeTasks[_PDFTypeCount];           ///< Tasks which run depending on all objects of the given type; the 0'th element (type NULL) is triggered for all objects, and not just objects without a /Type dictionary key
     PDSplayTreeRef      attachments;        ///< PDParserAttachment entries
 };
+
+extern void PDPipeCloseFileStream(FILE *stream);
+extern FILE *PDPipeOpenInputStream(const char *path);
+extern FILE *PDPipeOpenOutputStream(const char *path);
 
 /// @name Reference
 

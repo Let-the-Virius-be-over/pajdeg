@@ -1206,7 +1206,9 @@ PDObjectRef PDParserConstructObject(PDParserRef parser)
         }
     } else {
         PDScannerPopString(scanner, &string);
-        object->def = string;
+        pd_stack_push_freeable(&object->def, string);
+        pd_stack_push_identifier(&object->def, &PD_STRING);
+//        object->def = string;
         object->type = PDObjectTypeString;
     }
     

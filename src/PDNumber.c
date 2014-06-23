@@ -172,3 +172,16 @@ PDInteger PDNumberPrinter(void *inst, char **buf, PDInteger offs, PDInteger *cap
     strcpy(&bv[offs], tmp);
     return offs + len;
 }
+
+PDObjectType PDNumberGetObjectType(PDNumberRef n)
+{
+    return n->type;
+}
+
+char *PDNumberToString(PDNumberRef n)
+{
+    PDInteger len = 15;
+    char *str = malloc(len);
+    PDNumberPrinter(n, &str, 0, &len);
+    return str;
+}

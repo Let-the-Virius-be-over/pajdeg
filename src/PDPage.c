@@ -132,7 +132,7 @@ PDTaskResult PDPageCountupTask(PDPipeRef pipe, PDTaskRef task, PDObjectRef objec
     PDNumberRef realCountNum = PDDictionaryGetEntry(PDObjectGetDictionary(source), "Count");
     PDInteger realCount = PDNumberGetInteger(realCountNum);
     PDInteger obCount   = PDDictionaryGetInteger(obDict, "Count");
-    if (obCount == realCount) {
+    if (obCount != realCount) {
         PDDictionarySetEntry(obDict, "Count", realCountNum);
 //    const char *realCount = PDDictionaryGetEntry(PDObjectGetDictionary(source), "Count");
 //    if (strcmp(realCount, PDDictionaryGetEntry(PDObjectGetDictionary(object), "Count"))) {

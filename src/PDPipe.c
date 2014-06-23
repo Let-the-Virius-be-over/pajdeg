@@ -30,6 +30,7 @@
 #include "PDStaticHash.h"
 #include "PDObjectStream.h"
 #include "PDXTable.h"
+#include "PDString.h"
 
 static char *PDFTypeStrings[_PDFTypeCount] = {kPDFTypeStrings};
 
@@ -45,13 +46,46 @@ PDTaskFunc PDPipeAppendFilter = &PDPipeAppendFilterFunc;*/
 //
 //
 
+static int pclosec = 0;
+static int pins = 0;
+static int pouts = 0;
+static int pcreates = 0;
+static int pdestroys = 0;
+
+void PDPipeCloseFileStream(FILE *stream)
+{
+    fclose(stream);
+    pclosec++;
+    if (pcreates - 2 > pdestroys) {
+        printf("");
+    }
+    printf("%d / (%d + %d) [%d / %d]\n", pclosec, pins, pouts, pcreates, pdestroys);
+}
+
+FILE *PDPipeOpenInputStream(const char *path)
+{
+    pins++;
+    return fopen(path, "r");
+}
+
+FILE *PDPipeOpenOutputStream(const char *path)
+{
+    pouts++;
+    return fopen(path, "w+");
+}
+
+//
+//
+//
+
 void PDPipeDestroy(PDPipeRef pipe)
 {
+    pdestroys++;
     PDTaskRef task;
     
     if (pipe->opened) {
-        fclose(pipe->fi);
-        fclose(pipe->fo);
+        PDPipeCloseFileStream(pipe->fi);
+        PDPipeCloseFileStream(pipe->fo);
         PDRelease(pipe->stream);
         PDRelease(pipe->parser);
     }
@@ -70,6 +104,7 @@ void PDPipeDestroy(PDPipeRef pipe)
 
 PDPipeRef PDPipeCreateWithFilePaths(const char * inputFilePath, const char * outputFilePath)
 {
+    pcreates++;
     FILE *fi;
     FILE *fo;
 
@@ -81,17 +116,17 @@ PDPipeRef PDPipeCreateWithFilePaths(const char * inputFilePath, const char * out
     // files must not be the same
     if (!strcmp(inputFilePath, outputFilePath)) return NULL;
     
-    fi = fopen(inputFilePath, "r");
-    if (NULL == fi) return NULL;
-    
-    fo = fopen(outputFilePath, "w+");
-    if (NULL == fo) {
-        fclose(fi);
+    fi = PDPipeOpenInputStream(inputFilePath);
+    if (NULL == fi) {
         return NULL;
     }
+    PDPipeCloseFileStream(fi);
     
-    fclose(fi);
-    fclose(fo);
+    fo = PDPipeOpenOutputStream(outputFilePath);
+    if (NULL == fo) {
+        return NULL;
+    }
+    PDPipeCloseFileStream(fo);
     
     PDPipeRef pipe = PDAlloc(sizeof(struct PDPipe), PDPipeDestroy, true);
     pipe->pi = strdup(inputFilePath);
@@ -239,11 +274,11 @@ PDBool PDPipePrepare(PDPipeRef pipe)
         return true;
     }
     
-    pipe->fi = fopen(pipe->pi, "r");
-    if (NULL == pipe->fi) return -1;
-    pipe->fo = fopen(pipe->po, "w+");
+    pipe->fi = PDPipeOpenInputStream(pipe->pi);
+    if (NULL == pipe->fi) return false;
+    pipe->fo = PDPipeOpenOutputStream(pipe->po);
     if (NULL == pipe->fo) {
-        fclose(pipe->fi);
+        PDPipeCloseFileStream(pipe->fi);
         return false;
     }
     
@@ -301,7 +336,7 @@ PDInteger PDPipeExecute(PDPipeRef pipe)
     PDParserRef parser = pipe->parser;
     PDTaskRef task;
     PDObjectRef obj;
-    const char *pt;
+    PDStringRef pt;
     int pti;
     
     // at this point, we set up a static hash table for O(1) filtering before the O(n) tree fetch; the SHT implementation here triggers false positives and cannot be used on its own
@@ -346,7 +381,8 @@ PDInteger PDPipeExecute(PDPipeRef pipe)
                     if (pt) {
                         //printf("pt = %s\n", pt);
                         for (pti = 1; pti < _PDFTypeCount; pti++) // not = 0, because 0 = NULL and is reserved for 'unfiltered'
-                            if (0 == strcmp(pt, PDFTypeStrings[pti])) break;
+                            if (PDStringEqualsCString(pt, PDFTypeStrings[pti]))
+                                break;
                         
                         if (pti < _PDFTypeCount) 
                             proceed &= PDPipeRunStackedTasks(pipe, parser, &pipe->typeTasks[pti]);
@@ -378,8 +414,8 @@ PDInteger PDPipeExecute(PDPipeRef pipe)
     pipe->parser = NULL;
     pipe->stream = NULL;
     
-    fclose(pipe->fi);
-    fclose(pipe->fo);
+    PDPipeCloseFileStream(pipe->fi);
+    PDPipeCloseFileStream(pipe->fo);
     pipe->opened = false;
     
     return proceed ? seen : -1;

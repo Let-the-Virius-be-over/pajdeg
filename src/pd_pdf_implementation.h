@@ -44,6 +44,8 @@
 #include "PDState.h"
 
 extern const char * PD_META;            ///< %%meta entry
+extern const char * PD_STRING;          ///< A string
+extern const char * PD_NUMBER;          ///< A number, boolean, or null value
 extern const char * PD_NAME;            ///< /Name entry
 extern const char * PD_OBJ;             ///< an object (with definition)
 extern const char * PD_REF;             ///< an object reference
