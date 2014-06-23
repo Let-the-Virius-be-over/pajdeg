@@ -356,15 +356,7 @@ typedef struct pd_crypto    *pd_crypto;
 typedef struct PDStaticHash *PDStaticHashRef;
 
 /**
- A binary tree implementation.
- 
- @ingroup PDBTREE
- */
-//typedef struct pd_btree *pd_btree;
-typedef struct PDBTree *PDBTreeRef;
-
-/**
- A splay tree implementation.
+ A binary splay tree implementation.
  
  @ingroup PDSPLAYTREE
  */
