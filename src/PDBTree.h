@@ -17,8 +17,8 @@
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //
 
-#ifndef Infinite_PDF_btree_h
-#define Infinite_PDF_btree_h
+#ifndef INCLUDED_PDBTREE_H
+#define INCLUDED_PDBTREE_H
 
 #include <sys/types.h>
 
@@ -103,4 +103,4 @@ extern void PDBTreePrint(PDBTreeRef btree);
         + ((str[3*(len>2)]*(len>2)) << 24)\
     )
 
-#endif
+#endif // INCLUDED_PDBTREE_H

@@ -196,25 +196,12 @@ void PDBTreeInsert(PDBTreeRef btree, PDInteger key, void *value)
 {
     void *old = bt_node_insert(btree->root, key, value, true);
     if (value && NULL == old) btree->count++;
-#ifdef DEBUG
-    PDInteger *tmp = malloc(sizeof(PDInteger) * btree->count);
-    PDInteger c = PDBTreePopulateKeys(btree, tmp);
-    PDAssert(btree->count == c);
-    free(tmp);
-#endif
 }
 
 void PDBTreeDelete(PDBTreeRef btree, PDInteger key)
 {
     if (bt_node_delete(&btree->root, key))
         btree->count--;
-    
-#ifdef DEBUG
-    PDInteger *tmp = malloc(sizeof(PDInteger) * btree->count);
-    PDInteger c = PDBTreePopulateKeys(btree, tmp);
-    PDAssert(btree->count == c);
-    free(tmp);
-#endif
 }
 
 void *PDBTreeGet(PDBTreeRef btree, PDInteger key)

@@ -104,6 +104,16 @@ extern void PDContentStreamAttachOperator(PDContentStreamRef cs, const char *opn
 extern void PDContentStreamAttachDeallocator(PDContentStreamRef cs, PDDeallocator deallocator, void *userInfo);
 
 /**
+ *  Attach a resetter to a content stream. Content streams call every resetter attached to it at the end of every call to 
+ *  PDContentStreamExecute.
+ *
+ *  @param cs       The content stream
+ *  @param resetter The resetter callback
+ *  @param userInfo The argument passed to the resetter
+ */
+extern void PDContentStreamAttachResetter(PDContentStreamRef cs, PDDeallocator resetter, void *userInfo);
+
+/**
  *  Attach a variable number of operator function pairs (opname, func, ...), each sharing the given user info object.
  *
  *  Pairs are provided using the PDDef() macro. The following code
@@ -148,6 +158,16 @@ extern PDBTreeRef PDContentStreamGetOperatorTree(PDContentStreamRef cs);
  *  @param operatorTree The new operator tree
  */
 extern void PDContentStreamSetOperatorTree(PDContentStreamRef cs, PDBTreeRef operatorTree);
+
+/**
+ *  Inherit a content stream, copying its resetters and operator tree into the destination. 
+ *  This is the recommended way to "clone" content streams, since the addition of deallocators and resetters.
+ *  This copies resetters as well as operator trees, but does not copy deallocators for obvious reasons. The master content stream must remain alive until all child streams have finished.
+ *
+ *  @param dest   Destination content stream (must be a clean content stream without, in particular, any resetters)
+ *  @param source Source content stream, whose values should be cloned in dest
+ */
+extern void PDContentStreamInheritContentStream(PDContentStreamRef dest, PDContentStreamRef source);
 
 /**
  *  Execute the content stream, i.e. parse the stream and call the operators as appropriate.

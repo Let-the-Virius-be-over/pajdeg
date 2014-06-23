@@ -450,7 +450,7 @@ char *PDStringEscapedToBinary(char *string, PDSize len, PDBool wrapped, PDSize *
                 if (str[i] >= '0' && str[i] <= '9') {
                     res[si] = 0;
                     for (escseq = 0; escseq < 3 && str[i] >= '0' && str[i] <= '9'; escseq++, i++)
-                        res[si] = (res[si] << 4) + (str[i] - '0'); // was + (res[i] - '0'); switched to str; confirm this works
+                        res[si] = (res[si] << 4) + (str[i] - '0');
                     i--;
                 } else switch (str[i]) {
                     case '\n':

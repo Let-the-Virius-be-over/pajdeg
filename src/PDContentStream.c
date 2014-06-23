@@ -51,6 +51,7 @@ void PDContentStreamDestroy(PDContentStreamRef cs)
         void *userInfo = (void *) pd_stack_pop_identifier(&cs->deallocators);
         (*deallocator)(userInfo);
     }
+    pd_stack_destroy(&cs->resetters);
     PDRelease(cs->ob);
     PDRelease(cs->opertree);
     pd_stack_destroy(&cs->opers);
@@ -69,6 +70,7 @@ PDContentStreamRef PDContentStreamCreateWithObject(PDObjectRef object)
     cs->opertree = PDBTreeCreate(free, 0, 10000000, 4);
     cs->opers = NULL;
     cs->deallocators = NULL;
+    cs->resetters = NULL;
     cs->args = PDArrayCreateWithCapacity(8);//pd_array_with_capacity(8);
     return cs;
 }
@@ -94,6 +96,12 @@ void PDContentStreamAttachDeallocator(PDContentStreamRef cs, PDDeallocator deall
     pd_stack_push_identifier(&cs->deallocators, (PDID)deallocator);
 }
 
+void PDContentStreamAttachResetter(PDContentStreamRef cs, PDDeallocator resetter, void *userInfo)
+{
+    pd_stack_push_identifier(&cs->resetters, (PDID)userInfo);
+    pd_stack_push_identifier(&cs->resetters, (PDID)resetter);
+}
+
 void PDContentStreamAttachOperatorPairs(PDContentStreamRef cs, void *userInfo, const void **pairs)
 {
     for (PDInteger i = 0; pairs[i]; i += 2) {
@@ -114,6 +122,14 @@ void PDContentStreamSetOperatorTree(PDContentStreamRef cs, PDBTreeRef operatorTr
     cs->opertree = operatorTree;
 }
 
+void PDContentStreamInheritContentStream(PDContentStreamRef dest, PDContentStreamRef source)
+{
+    PDContentStreamSetOperatorTree(dest, PDContentStreamGetOperatorTree(source));
+    PDAssert(dest->resetters == NULL); // crash = attempt to inherit from a non-clean content stream; inheriting is limited to the act of copying a content stream into multiple other content streams, and is not meant to be used to supplement a pre-configured stream (e.g. by inheriting multiple content streams) -- configure the stream *after* inheriting, if in the case of only one inherit
+    dest->resetters = pd_stack_copy(source->resetters);
+    // note that we do not copy the deallocators from dest; dest is the "master", and it is the responsibility of the caller to ensure that master CS'es remain alive until the spawned CS'es are all done
+}
+
 void PDContentStreamExecute(PDContentStreamRef cs)
 {
     void **catchall;
@@ -127,10 +143,11 @@ void PDContentStreamExecute(PDContentStreamRef cs)
     void **arr;
     char *str;
     char ch;
-    pd_stack inStack, outStack;
+    pd_stack inStack, outStack, termStack;
 
     catchall = PDBTreeGet(cs->opertree, 0);
     termChar = 0;
+    termStack = NULL;
     termed   = false;
     escaped  = false;
     
@@ -150,9 +167,19 @@ void PDContentStreamExecute(PDContentStreamRef cs)
             escaped = stream[i] == '\\';
             if (termChar) {
                 termed = (i + 1 >= len || stream[i] == termChar);
-                termChar *= !termed;
+                if (termed) {
+                    if (termStack) 
+                        termChar = (char)pd_stack_pop_identifier(&termStack);
+                    else
+                        termChar = 0;
+                }
+                
             }
-            else if (i < len && i == mark && (stream[i] == '[' || stream[i] == '(')) {
+            
+            if (i < len && /*i == mark &&*/ (stream[i] == '[' || stream[i] == '(')) {
+                if (termChar) {
+                    pd_stack_push_identifier(&termStack, (PDID)(PDInteger)termChar);
+                }
                 switch (stream[i]) {
                     case '[': termChar = ']'; break;
                     case '(': termChar = ')'; break;
@@ -231,6 +258,12 @@ void PDContentStreamExecute(PDContentStreamRef cs)
             }
         }
     }
+
+    for (pd_stack iter = cs->resetters; iter; iter = iter->prev->prev) {
+        PDDeallocator resetter = (PDDeallocator) iter->info;
+        void *userInfo = (void *) iter->prev->info;
+        (*resetter)(userInfo);
+    }
 }
 
 const pd_stack PDContentStreamGetOperators(PDContentStreamRef cs)
@@ -252,7 +285,7 @@ const pd_stack PDContentStreamGetOperators(PDContentStreamRef cs)
  ------------------------------------------------------------------------------------------------------------------
  OPERATOR   DESCRIPTION                                                                         PRINTED
  b          Close, fill, and stroke path using nonzero winding number rule
- B          Fill and stroke path using nonzero winding number rule
+ B          Fill and stroke path using nonzero winding number rule                              *
  b*         Close, fill, and stroke path using even-odd rule
  B*         Fill and stroke path using even-odd rule
  BDC        (PDF 1.2) Begin marked-content sequence with property list 
@@ -264,7 +297,7 @@ const pd_stack PDContentStreamGetOperators(PDContentStreamRef cs)
  cm         Concatenate matrix to current transformation matrix                                 *
  CS         (PDF 1.1) Set color space for stroking operations                                   *
  cs         (PDF 1.1) Set color space for nonstroking operations                                *
- d          Set line dash pattern
+ d          Set line dash pattern                                                               *
  d0         Set glyph width in Type 3 font
  d1         Set glyph width and bounding box in Type 3 font
  Do         Invoke named XObject                                                                *
@@ -282,13 +315,13 @@ const pd_stack PDContentStreamGetOperators(PDContentStreamRef cs)
  h          Close subpath                                                                       *
  i          Set flatness tolerance
  ID         Begin inline image data
- j          Set line join style
+ j          Set line join style                                                                 *
  J          Set line cap style                                                                  *
- K          Set CMYK color for stroking operations
- k          Set CMYK color for nonstroking operations
+ K          Set CMYK color for stroking operations                                              *
+ k          Set CMYK color for nonstroking operations                                           *
  l          Append straight line segment to path                                                *
  m          Begin new subpath                                                                   *
- M          Set miter limit
+ M          Set miter limit                                                                     *
  MP         (PDF 1.2) Define marked-content point
  n          End path without filling or stroking                                                *
  q          Save graphics state                                                                 *
@@ -299,7 +332,7 @@ const pd_stack PDContentStreamGetOperators(PDContentStreamRef cs)
  ri         Set color rendering intent
  s          Close and stroke path
  S          Stroke path                                                                         *
- SC         (PDF 1.1) Set color for stroking operations
+ SC         (PDF 1.1) Set color for stroking operations                                         *
  sc         (PDF 1.1) Set color for nonstroking operations                                      *
  SCN        (PDF 1.2) Set color for stroking operations (ICCBased and special color spaces)     *
  scn        (PDF 1.2) Set color for nonstroking operations (ICCBased and special color spaces)  *
@@ -333,6 +366,12 @@ struct PDContentStreamTextExtractorUI {
     PDInteger offset;
     PDInteger size;
 };
+
+void PDContentStreamTextExtractorUIDealloc(void *_tui)
+{
+    PDContentStreamTextExtractorUI tui = _tui;
+    free(tui);
+}
 
 static inline void PDContentStreamTextExtractorPrint(PDContentStreamTextExtractorUI tui, const char *str) 
 {
@@ -445,6 +484,8 @@ PDContentStreamRef PDContentStreamCreateTextExtractor(PDObjectRef object, char *
     
     PDContentStreamAttachOperator(cs, "Tj", (PDContentOperatorFunc)PDContentStreamTextExtractor_Tj, teUI);
     PDContentStreamAttachOperator(cs, "TJ", (PDContentOperatorFunc)PDContentStreamTextExtractor_TJ, teUI);
+    
+    PDContentStreamAttachDeallocator(cs, PDContentStreamTextExtractorUIDealloc, teUI);
 
     return cs;
 }
@@ -453,12 +494,13 @@ typedef struct PDContentStreamPrinterUI *PDContentStreamPrinterUIRef;
 struct PDContentStreamPrinterUI {
     FILE *stream;
     PDInteger spacingIndex;
+    PDInteger spacingCap;
     char *spacing;
     PDReal posX, posY;
     PDReal startX, startY;
 };
 
-#define PDContentStreamPrinterPushSpacing(ui) ui->spacing[ui->spacingIndex++] = ' '; ui->spacing[ui->spacingIndex] = 0
+#define PDContentStreamPrinterPushSpacing(ui) if (ui->spacingIndex < ui->spacingCap) { ui->spacing[ui->spacingIndex++] = ' '; ui->spacing[ui->spacingIndex] = 0; }
 #define PDContentStreamPrinterPopSpacing(ui)  if (ui->spacingIndex > 0) ui->spacing[--ui->spacingIndex] = 0; else fprintf(userInfo->stream, "[[[ warning: over-deindenting ]]]")
 
 void PDContentStreamPrinterUIDealloc(void *_pui)
@@ -466,6 +508,15 @@ void PDContentStreamPrinterUIDealloc(void *_pui)
     PDContentStreamPrinterUIRef pui = _pui;
     free(pui->spacing);
     free(pui);
+}
+
+void PDContentStreamPrinterUIReset(void *_pui)
+{
+    PDContentStreamPrinterUIRef pui = _pui;
+    if (pui->spacingIndex > 0) {
+        pui->spacing[pui->spacingIndex] = ' ';
+        pui->spacingIndex = 0;
+    }
 }
 
 PDOperatorState PDContentStreamPrinter_q(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
@@ -532,6 +583,17 @@ PDOperatorState PDContentStreamPrinter_cs(PDContentStreamRef cs, PDContentStream
     return PDOperatorStateIndependent;
 }
 
+PDOperatorState PDContentStreamPrinter_d(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
+{
+    PDInteger len = 128;
+    char *buf = malloc(len);
+    PDArrayPrinter(args, &buf, 0, &len);
+    fprintf(userInfo->stream, "%sd  \tSet line dash pattern: %s\n", userInfo->spacing, buf);
+    free(buf);
+    return PDOperatorStateIndependent;
+}
+
+
 PDOperatorState PDContentStreamPrinter_CS(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sCS \t(PDF 1.1) Set color space for stroking operations: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false));
@@ -558,6 +620,16 @@ PDOperatorState PDContentStreamPrinter_SCN(PDContentStreamRef cs, PDContentStrea
     return PDOperatorStateIndependent;
 }
 
+PDOperatorState PDContentStreamPrinter_SC(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
+{
+    PDInteger len = 128;
+    char *buf = malloc(len);
+    PDArrayPrinter(args, &buf, 0, &len);
+    fprintf(userInfo->stream, "%sSC \t(PDF 1.1) Set color for stroking operations: RGB=%s\n", userInfo->spacing, buf);
+    free(buf);
+    return PDOperatorStateIndependent;
+}
+
 PDOperatorState PDContentStreamPrinter_sc(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     PDInteger len = 128;
@@ -566,6 +638,13 @@ PDOperatorState PDContentStreamPrinter_sc(PDContentStreamRef cs, PDContentStream
     fprintf(userInfo->stream, "%ssc \t(PDF 1.1) Set color for nonstroking operations: RGB=%s\n", userInfo->spacing, buf);
     free(buf);
     return PDOperatorStateIndependent;
+}
+
+PDOperatorState PDContentStreamPrinter_B(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
+{
+    fprintf(userInfo->stream, "%sB  \tFill and stroke path using nonzero winding number rule\n", userInfo->spacing);
+    PDContentStreamPrinterPushSpacing(userInfo);
+    return PDOperatorStatePush;
 }
 
 PDOperatorState PDContentStreamPrinter_BT(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
@@ -633,6 +712,16 @@ PDOperatorState PDContentStreamPrinter_m(PDContentStreamRef cs, PDContentStreamP
     return PDOperatorStateIndependent;
 }
 
+//Set miter limit
+
+PDOperatorState PDContentStreamPrinter_M(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
+{
+    const char *a0 = PDStringEscapedValue(PDArrayGetElement(args, 0), false);
+    fprintf(userInfo->stream, "%sM  \tSet miter limit: %s\n", userInfo->spacing, a0);
+    
+    return PDOperatorStateIndependent;
+}
+
 PDOperatorState PDContentStreamPrinter_h(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sh  \tClose subpath: draw line from pos to start: (%.1f,%.1f) - (%.1f,%.1f)\n", userInfo->spacing, userInfo->posX, userInfo->posY, userInfo->startX, userInfo->startX);
@@ -670,12 +759,39 @@ PDOperatorState PDContentStreamPrinter_Tstar(PDContentStreamRef cs, PDContentStr
     return PDOperatorStateIndependent;
 }
 
+PDOperatorState PDContentStreamPrinter_j(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
+{
+    fprintf(userInfo->stream, "%sj  \tSet line join style: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false));
+    return PDOperatorStateIndependent;
+}
+
 PDOperatorState PDContentStreamPrinter_J(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     fprintf(userInfo->stream, "%sJ  \tSet line cap style: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false));
     return PDOperatorStateIndependent;
 }
 
+PDOperatorState PDContentStreamPrinter_K(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
+{
+    PDInteger len = 128;
+    char *buf = malloc(len);
+    PDArrayPrinter(args, &buf, 0, &len);
+    fprintf(userInfo->stream, "%sK  \tSet CMYK color for stroking operations: %s\n", userInfo->spacing, buf);
+    free(buf);
+    
+    return PDOperatorStateIndependent;
+}
+
+PDOperatorState PDContentStreamPrinter_k(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
+{
+    PDInteger len = 128;
+    char *buf = malloc(len);
+    PDArrayPrinter(args, &buf, 0, &len);
+    fprintf(userInfo->stream, "%sK  \tSet CMYK color for nonstroking operations: %s\n", userInfo->spacing, buf);
+    free(buf);
+    
+    return PDOperatorStateIndependent;
+}
 
 PDOperatorState PDContentStreamPrinter_l(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
@@ -807,9 +923,11 @@ PDContentStreamRef PDContentStreamCreateStreamPrinter(PDObjectRef object, FILE *
     PDContentStreamPrinterUIRef printerUI = malloc(sizeof(struct PDContentStreamPrinterUI));
     printerUI->stream = stream;
     printerUI->spacing = strdup("                                                                                                                                                                                                                                                                     ");
+    printerUI->spacingCap = strlen(printerUI->spacing) - 1;
     printerUI->spacingIndex = 0;
     PDContentStreamPrinterPushSpacing(printerUI);
     PDContentStreamAttachDeallocator(cs, PDContentStreamPrinterUIDealloc, printerUI);
+    PDContentStreamAttachResetter(cs, PDContentStreamPrinterUIReset, printerUI);
     
     PDContentStreamAttachOperator(cs, NULL, (PDContentOperatorFunc)PDContentStreamPrinter_catchall, printerUI);
 
@@ -818,11 +936,14 @@ PDContentStreamRef PDContentStreamCreateStreamPrinter(PDObjectRef object, FILE *
     PDContentStreamAttachOperatorPairs(cs, printerUI, PDDef(pair(BT),
                                                             pair(cm),
                                                             pair(cs),
+                                                            pair(SC),
                                                             pair(CS),
+                                                            pair(B),
                                                             pair(Do),
                                                             pair(ET),
                                                             pair(gs),
                                                             pair(h),
+                                                            pair(M),
                                                             pair(J),
                                                             pair(l),
                                                             pair(m),
@@ -837,13 +958,16 @@ PDContentStreamRef PDContentStreamCreateStreamPrinter(PDObjectRef object, FILE *
                                                             pair(Tf),
                                                             pair(Tj),
                                                             pair(Td),
+                                                            pair(j),
                                                             pair(TD),
                                                             pair(Tc),
                                                             pair(Tw),
                                                             pair2(T*, Tstar),
                                                             pair(c),
+                                                            pair(K),
                                                             pair(v),
                                                             pair(y),
+                                                            pair(k),
                                                             pair(rg),
                                                             pair(TJ),
                                                             pair(Tm),
@@ -856,7 +980,8 @@ PDContentStreamRef PDContentStreamCreateStreamPrinter(PDObjectRef object, FILE *
                                                             pair(S),
                                                             pair(f),
                                                             pair(g),
-                                                            pair(G)
+                                                            pair(G),
+                                                            pair(d)
                                                             ));
     return cs;
 }

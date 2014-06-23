@@ -129,7 +129,7 @@ void PDRelease(void *pajdegObject)
     PDTypeRef type = (PDTypeRef)pajdegObject - 1;
     PDTypeCheck("released", /* void */);
     type->retainCount--;
-#ifdef DEBUG
+#ifdef DEBUG_PD_RELEASES
     // over-autorelease check
     pd_stack s;
     pd_stack_for_each(arp, s) {

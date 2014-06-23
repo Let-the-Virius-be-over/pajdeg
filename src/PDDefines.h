@@ -363,6 +363,13 @@ typedef struct PDStaticHash *PDStaticHashRef;
 //typedef struct pd_btree *pd_btree;
 typedef struct PDBTree *PDBTreeRef;
 
+/**
+ A splay tree implementation.
+ 
+ @ingroup PDSPLAYTREE
+ */
+typedef struct PDSplayTree *PDSplayTreeRef;
+
 /** @} // PDALGO */
 
 /**

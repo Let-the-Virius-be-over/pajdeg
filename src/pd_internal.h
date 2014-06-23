@@ -289,7 +289,8 @@ struct PDContentStream {
     PDBTreeRef opertree;                ///< operator tree
     PDArrayRef args;                    ///< pending operator arguments
     pd_stack opers;                     ///< current operators stack
-    pd_stack deallocators;              ///< deallocator (func, userInfo) pairs
+    pd_stack deallocators;              ///< deallocator (func, userInfo) pairs -- called when content stream object is about to be destroyed
+    pd_stack resetters;                 ///< resetter (func, userInfo) pairs -- called at the end of every execution call; these adhere to the PDDeallocator signature
     const char *lastOperator;           ///< the last operator that was encountered
 };
 
