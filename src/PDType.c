@@ -21,7 +21,7 @@
 #include "pd_internal.h"
 #include "PDType.h"
 #include "pd_stack.h"
-#include "PDBTree.h"
+#include "PDSplayTree.h"
 #include "pd_pdf_implementation.h"
 
 static pd_stack arp = NULL;
@@ -31,24 +31,24 @@ static pd_stack arp = NULL;
 
 #ifdef DEBUG_PD_RELEASES
 
-PDBTreeRef _retrels = NULL;
+PDSplayTreeRef _retrels = NULL;
 
 void _PDDebugLogRetrelCall(const char *op, const char *file, int lineNo, void *ob)
 {
     if (_retrels == NULL) {
-        _retrels = PDBTreeCreate(PDDeallocatorNull, 0, 0x1fffffff, 10);
+        _retrels = PDSplayTreeCreate(PDDeallocatorNull, 0, 0x1fffffff, 10);
     }
-    pd_stack entry = PDBTreeGet(_retrels, (PDInteger)ob);
+    pd_stack entry = PDSplayTreeGet(_retrels, (PDInteger)ob);
     pd_stack_push_identifier(&entry, (PDID)lineNo);
     pd_stack_push_key(&entry, strdup(file));
     pd_stack_push_identifier(&entry, (PDID)op);
-    PDBTreeInsert(_retrels, (PDInteger)ob, entry);
+    PDSplayTreeInsert(_retrels, (PDInteger)ob, entry);
 }
 
 void _PDDebugLogDisplay(void *ob)
 {
     if (_retrels == NULL) return;
-    pd_stack entry = PDBTreeGet(_retrels, (PDInteger)ob);
+    pd_stack entry = PDSplayTreeGet(_retrels, (PDInteger)ob);
     if (entry) {
         printf("Retain/release log for %p:\n", ob);
         printf("op:         line:  file:\n");

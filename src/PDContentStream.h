@@ -148,7 +148,7 @@ extern void PDContentStreamAttachOperatorPairs(PDContentStreamRef cs, void *user
  *
  *  @return The operator tree
  */
-extern PDBTreeRef PDContentStreamGetOperatorTree(PDContentStreamRef cs);
+extern PDSplayTreeRef PDContentStreamGetOperatorTree(PDContentStreamRef cs);
 
 /**
  *  Replace the content stream's operator tree with the new tree (which may not be NULL). The content stream
@@ -157,7 +157,7 @@ extern PDBTreeRef PDContentStreamGetOperatorTree(PDContentStreamRef cs);
  *  @param cs           The content stream
  *  @param operatorTree The new operator tree
  */
-extern void PDContentStreamSetOperatorTree(PDContentStreamRef cs, PDBTreeRef operatorTree);
+extern void PDContentStreamSetOperatorTree(PDContentStreamRef cs, PDSplayTreeRef operatorTree);
 
 /**
  *  Inherit a content stream, copying its resetters and operator tree into the destination. 

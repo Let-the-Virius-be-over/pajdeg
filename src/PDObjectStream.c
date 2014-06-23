@@ -27,7 +27,7 @@
 #include "pd_pdf_private.h"
 #include "PDStreamFilter.h"
 #include "PDObjectStream.h"
-#include "PDBTree.h"
+#include "PDSplayTree.h"
 #include "PDDictionary.h"
 #include "PDString.h"
 #include "PDNumber.h"
@@ -67,7 +67,7 @@ PDObjectStreamRef PDObjectStreamCreateWithObject(PDObjectRef object)
     PDDictionaryRef obd = PDObjectGetDictionary(object);
     obstm->n = PDDictionaryGetInteger(obd, "N");
     obstm->first = PDDictionaryGetInteger(obd, "First");
-    obstm->constructs = PDBTreeCreate(PDReleaseFunc, obstm->first, obstm->first + obstm->n, obstm->n/3);
+    obstm->constructs = PDSplayTreeCreateWithDeallocator(PDReleaseFunc);
     
     PDStringRef filterName = PDDictionaryGetString(obd, "Filter");
 //    const char *filterName = PDDictionaryGetEntry(PDObjectGetDictionary(object), "Filter");
@@ -167,7 +167,7 @@ PDObjectRef PDObjectStreamGetObjectByID(PDObjectStreamRef obstm, PDInteger obid)
     PDInteger i, n;
     PDObjectStreamElementRef elements;
     
-    PDObjectRef ob = PDBTreeGet(obstm->constructs, obid);
+    PDObjectRef ob = PDSplayTreeGet(obstm->constructs, obid);
     //pd_btree_fetch(obstm->constructs, obid);
     if (ob) return ob;
 
@@ -181,7 +181,7 @@ PDObjectRef PDObjectStreamGetObjectByID(PDObjectStreamRef obstm, PDInteger obid)
             ob->def = elements[i].def;
             ob->type = elements[i].type;
             elements[i].def = NULL;
-            PDBTreeInsert(obstm->constructs, obid, ob);
+            PDSplayTreeInsert(obstm->constructs, obid, ob);
             return ob;
         }
     }
@@ -204,12 +204,12 @@ PDObjectRef PDObjectStreamGetObjectAtIndex(PDObjectStreamRef obstm, PDInteger in
         ob->def = elements[index].def;
         ob->type = elements[index].type;
         elements[index].def = NULL;
-        PDBTreeInsert(obstm->constructs, elements[index].obid, ob);
+        PDSplayTreeInsert(obstm->constructs, elements[index].obid, ob);
         //pd_btree_insert(&obstm->constructs, elements[index].obid, ob);
         return ob;
     }
     
-    return PDBTreeGet(obstm->constructs, elements[index].obid);
+    return PDSplayTreeGet(obstm->constructs, elements[index].obid);
     //pd_btree_fetch(obstm->constructs, elements[index].obid);
 }
 
@@ -236,7 +236,7 @@ void PDObjectStreamCommit(PDObjectStreamRef obstm)
     // stringify and update offsets
     for (i = 0; i < n; i++) {
         if (elements[i].def == NULL) {
-            PDObjectRef ob = PDBTreeGet(obstm->constructs, elements[i].obid);
+            PDObjectRef ob = PDSplayTreeGet(obstm->constructs, elements[i].obid);
             len = PDObjectGenerateDefinition(ob, (char**)&elements[i].def, 0);
             len--; // objects add \n after def; don't want two \n's
         } else {

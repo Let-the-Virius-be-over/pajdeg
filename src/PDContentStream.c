@@ -22,7 +22,7 @@
 #include "PDContentStream.h"
 #include "pd_internal.h"
 #include "PDObject.h"
-#include "PDBTree.h"
+#include "PDSplayTree.h"
 #include "PDOperator.h"
 #include "PDArray.h"
 #include "pd_stack.h"
@@ -67,7 +67,7 @@ PDContentStreamRef PDContentStreamCreateWithObject(PDObjectRef object)
     
     PDContentStreamRef cs = PDAlloc(sizeof(struct PDContentStream), PDContentStreamDestroy, false);
     cs->ob = PDRetain(object);
-    cs->opertree = PDBTreeCreate(free, 0, 10000000, 4);
+    cs->opertree = PDSplayTreeCreateWithDeallocator(free);
     cs->opers = NULL;
     cs->deallocators = NULL;
     cs->resetters = NULL;
@@ -83,10 +83,10 @@ void PDContentStreamAttachOperator(PDContentStreamRef cs, const char *opname, PD
     if (opname) {
         unsigned long oplen = strlen(opname);
         
-        PDBTreeInsert(cs->opertree, PDBT_KEY_STR(opname, oplen), arr);
+        PDSplayTreeInsert(cs->opertree, PDST_KEY_STR(opname, oplen), arr);
     } else {
         // catch all
-        PDBTreeInsert(cs->opertree, 0, arr);
+        PDSplayTreeInsert(cs->opertree, 0, arr);
     }
 }
 
@@ -109,12 +109,12 @@ void PDContentStreamAttachOperatorPairs(PDContentStreamRef cs, void *userInfo, c
     }
 }
 
-PDBTreeRef PDContentStreamGetOperatorTree(PDContentStreamRef cs)
+PDSplayTreeRef PDContentStreamGetOperatorTree(PDContentStreamRef cs)
 {
     return cs->opertree;
 }
 
-void PDContentStreamSetOperatorTree(PDContentStreamRef cs, PDBTreeRef operatorTree)
+void PDContentStreamSetOperatorTree(PDContentStreamRef cs, PDSplayTreeRef operatorTree)
 {
     PDAssert(operatorTree); // crash = null operatorTree which is not allowed
     PDRetain(operatorTree);
@@ -145,7 +145,7 @@ void PDContentStreamExecute(PDContentStreamRef cs)
     char ch;
     pd_stack inStack, outStack, termStack;
 
-    catchall = PDBTreeGet(cs->opertree, 0);
+    catchall = PDSplayTreeGet(cs->opertree, 0);
     termChar = 0;
     termStack = NULL;
     termed   = false;
@@ -195,7 +195,7 @@ void PDContentStreamExecute(PDContentStreamRef cs)
                     
                     slen = termed + i - mark;
                     str = strndup(&stream[mark], slen);
-                    arr = PDBTreeGet(cs->opertree, PDBT_KEY_STR(str, slen));
+                    arr = PDSplayTreeGet(cs->opertree, PDST_KEY_STR(str, slen));
                     
                     // if we did not get an operator, switch to catchall
                     if (arr == NULL && ! argValue) arr = catchall;

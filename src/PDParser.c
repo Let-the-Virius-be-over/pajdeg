@@ -28,7 +28,7 @@
 #include "pd_stack.h"
 #include "PDTwinStream.h"
 #include "PDReference.h"
-#include "PDBTree.h"
+#include "PDSplayTree.h"
 #include "PDStreamFilter.h"
 #include "PDXTable.h"
 #include "PDCatalog.h"
@@ -79,7 +79,7 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
     parser->stream = stream;
     parser->state = PDParserStateBase;
     parser->success = true;
-    parser->aiTree = PDBTreeCreate(PDReleaseFunc, 1, 50000, 10);
+    parser->aiTree = PDSplayTreeCreateWithDeallocator(PDReleaseFunc);
     
     if (! PDXTableFetchXRefs(parser)) {
         PDError("PDF is invalid or in an unsupported format.");
@@ -88,7 +88,7 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
         return NULL;
     }
 
-    parser->skipT = PDBTreeCreate(PDDeallocatorNull, 1, parser->mxt->count, 3);
+    parser->skipT = PDSplayTreeCreateWithDeallocator(PDDeallocatorNull);
     
     PDTwinStreamAsserts(parser->stream);
 
@@ -283,7 +283,7 @@ PDObjectRef PDParserLocateAndCreateObject(PDParserRef parser, PDInteger obid, PD
         return PDRetain(parser->construct);
     }
     
-    ob = PDBTreeGet(parser->aiTree, obid);
+    ob = PDSplayTreeGet(parser->aiTree, obid);
     if (NULL != ob) {
         return PDRetain(ob);
     }
@@ -291,7 +291,7 @@ PDObjectRef PDParserLocateAndCreateObject(PDParserRef parser, PDInteger obid, PD
     pd_stack defs = PDParserLocateAndCreateDefinitionForObject(parser, obid, master);
     ob = PDObjectCreateFromDefinitionsStack(obid, defs);
     ob->crypto = parser->crypto;
-    PDBTreeInsert(parser->aiTree, obid, PDRetain(ob));
+    PDSplayTreeInsert(parser->aiTree, obid, PDRetain(ob));
     
     return ob;
 }
@@ -933,11 +933,11 @@ PDBool PDParserIterateXRefDomain(PDParserRef parser)
         
         PDParserAppendObjects(parser);
 #ifdef DEBUG
-        if (PDBTreeGetCount(parser->skipT) > 0) {
-            PDInteger count = PDBTreeGetCount(parser->skipT);
+        if (PDSplayTreeGetCount(parser->skipT) > 0) {
+            PDInteger count = PDSplayTreeGetCount(parser->skipT);
             PDWarn("%ld skipped obsolete objects were never captured:", count);
             PDInteger *keys = malloc(sizeof(PDInteger) * count);
-            PDBTreePopulateKeys(parser->skipT, keys);
+            PDSplayTreePopulateKeys(parser->skipT, keys);
             fprintf(stderr, "  ");
             for (PDInteger i = 0; i < count; i++) {
                 fprintf(stderr, i?", %ld":"%ld", keys[i]);
@@ -945,8 +945,8 @@ PDBool PDParserIterateXRefDomain(PDParserRef parser)
             fprintf(stderr, "\n");
         }
 #endif
-        PDAssert(0 == PDBTreeGetCount(parser->skipT)); // crash = we lost objects
-        parser->success &= NULL == parser->xstack && 0 == PDBTreeGetCount(parser->skipT);
+        PDAssert(0 == PDSplayTreeGetCount(parser->skipT)); // crash = we lost objects
+        parser->success &= NULL == parser->xstack && 0 == PDSplayTreeGetCount(parser->skipT);
         return false;
     }
     
@@ -1061,7 +1061,7 @@ PDBool PDParserIterate(PDParserRef parser)
                     }
                     //printf("offset = %lld\n", offset);
                     if (offset < 2 && offset > -2) {
-                        PDBTreeDelete(parser->skipT, nextobid);
+                        PDSplayTreeDelete(parser->skipT, nextobid);
                         //pd_btree_remove(&parser->skipT, nextobid);
                     } else {
                         // this is an old version of the object (in reality, PDF:s should not have the same object defined twice; in practice, Adobe InDesign CS5.5 (7.5) happily spews out 2 (+?) copies of the same object with different versions in the same PDF (admittedly the obs are separated by %%EOF and in separate appendings, but regardless)
@@ -1069,7 +1069,7 @@ PDBool PDParserIterate(PDParserRef parser)
                         // this object may be freed up or otherwise confused (why hello there, Acrobat Distiller 4.05), so we only add it to the expected objects tree if the master XREF considers it in use
                         if (xrefOffset > 0 && PDXTableGetTypeForID(mxt, nextobid) != PDXTypeFreed) {
                             //printf("offset mismatch for object %zd\n", nextobid);
-                            PDBTreeInsert(parser->skipT, nextobid, (void*)nextobid);
+                            PDSplayTreeInsert(parser->skipT, nextobid, (void*)nextobid);
                             //pd_btree_insert(&parser->skipT, nextobid, (void*)nextobid);
                         }
                         skipObject = true;
@@ -1146,7 +1146,7 @@ PDObjectRef PDParserCreateObject(PDParserRef parser, pd_stack *queue)
     PDObjectRef object = PDObjectCreate(newiter, 0);
     object->encryptedDoc = PDParserGetEncryptionState(parser);
     object->crypto = parser->crypto;
-    PDBTreeInsert(parser->aiTree, newiter, PDRetain(object));
+    PDSplayTreeInsert(parser->aiTree, newiter, PDRetain(object));
     
     if (queue) {
         pd_stack_push_object(queue, object);

@@ -19,7 +19,7 @@
 
 #include "PDParserAttachment.h"
 #include "PDParser.h"
-#include "PDBTree.h"
+#include "PDSplayTree.h"
 #include "PDObject.h"
 
 #include "pd_internal.h"
@@ -38,7 +38,7 @@ struct PDParserAttachment {
     PDParserAttachmentRef prev, next;
     PDParserRef nativeParser;
     PDParserRef foreignParser;
-    PDBTreeRef  obMap;
+    PDSplayTreeRef  obMap;
 };
 
 void PDParserAttachmentDestroy(PDParserAttachmentRef attachment)
@@ -70,7 +70,7 @@ PDParserAttachmentRef PDParserAttachmentCreate(PDParserRef parser, PDParserRef f
     PDParserAttachmentRef attachment = PDAlloc(sizeof(struct PDParserAttachment), PDParserAttachmentDestroy, false);
     attachment->nativeParser = parser;
     attachment->foreignParser = foreignParser;
-    attachment->obMap = PDBTreeCreate(PDReleaseFunc, 1, 5000, 10);
+    attachment->obMap = PDSplayTreeCreateWithDeallocator(PDReleaseFunc);
     
     attachment->next = NULL;
     attachment->prev = PDParserAttachmentTail;
@@ -123,7 +123,7 @@ void PDParserAttachmentImportStack(PDParserAttachmentRef attachment, pd_stack *d
                         // we need to deal with object references (by copying them over!)
                         char buf[15];
                         PDInteger refObID = atol(s->prev->info);
-                        PDObjectRef iob = PDBTreeGet(attachment->obMap, refObID);
+                        PDObjectRef iob = PDSplayTreeGet(attachment->obMap, refObID);
                         if (iob == NULL) {
                             iob = PDParserCreateAppendedObject(attachment->nativeParser);
                             PDObjectRef eob = PDParserLocateAndCreateObject(attachment->foreignParser, refObID, true);
@@ -168,7 +168,7 @@ void PDParserAttachmentImportStack(PDParserAttachmentRef attachment, pd_stack *d
 
 void PDParserAttachmentPerformImport(PDParserAttachmentRef attachment, PDObjectRef dest, PDObjectRef source, const char **excludeKeys, PDInteger excludeKeysCount)
 {
-    PDBTreeInsert(attachment->obMap, PDObjectGetObID(source), PDRetain(dest));
+    PDSplayTreeInsert(attachment->obMap, PDObjectGetObID(source), PDRetain(dest));
     
     PDAssert(dest->def == NULL); // crash = the destination is not a new object, or something broke somewhere
     pd_stack def = NULL;
@@ -190,7 +190,7 @@ void PDParserAttachmentPerformImport(PDParserAttachmentRef attachment, PDObjectR
 
 PDObjectRef PDParserAttachmentImportObject(PDParserAttachmentRef attachment, PDObjectRef foreignObject, const char **excludeKeys, PDInteger excludeKeysCount)
 {
-    PDObjectRef mainObject = PDBTreeGet(attachment->obMap, PDObjectGetObID(foreignObject));
+    PDObjectRef mainObject = PDSplayTreeGet(attachment->obMap, PDObjectGetObID(foreignObject));
     if (mainObject) return mainObject;
     
     mainObject = PDParserCreateAppendedObject(attachment->nativeParser);

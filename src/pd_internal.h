@@ -233,7 +233,7 @@ struct PDObjectStream {
     PDInteger first;                    ///< first object's offset
     PDStreamFilterRef filter;           ///< filter used to extract the initial raw content
     PDObjectStreamElementRef elements;  ///< n sized array of elements (non-pointered!)
-    PDBTreeRef constructs;              ///< instances of objects (i.e. constructs)
+    PDSplayTreeRef constructs;              ///< instances of objects (i.e. constructs)
 };
 
 /**
@@ -286,7 +286,7 @@ extern void PDObjectStreamCommit(PDObjectStreamRef obstm);
  */
 struct PDContentStream {
     PDObjectRef ob;                     ///< obstream object
-    PDBTreeRef opertree;                ///< operator tree
+    PDSplayTreeRef opertree;                ///< operator tree
     PDArrayRef args;                    ///< pending operator arguments
     pd_stack opers;                     ///< current operators stack
     pd_stack deallocators;              ///< deallocator (func, userInfo) pairs -- called when content stream object is about to be destroyed
@@ -344,7 +344,7 @@ struct pd_btree {
     PDInteger key;                  ///< The (primitive) key.
     void *value;                    ///< The value.
     //PDInteger balance;              
-    PDBTreeRef branch[2];           ///< The left and right branches of the tree.
+    PDSplayTreeRef branch[2];           ///< The left and right branches of the tree.
 };
 
 /// @name Operator
@@ -401,7 +401,7 @@ struct PDParser {
     // object related
     pd_stack appends;               ///< stack of objects that are meant to be appended at the end of the PDF
     pd_stack inserts;               ///< stack of objects that are meant to be inserted as soon as the current object is dealt with
-    PDBTreeRef aiTree;              ///< bin-tree identifying the (in-memory) PDObjectRefs in appends and inserts by their object ID's
+    PDSplayTreeRef aiTree;              ///< bin-tree identifying the (in-memory) PDObjectRefs in appends and inserts by their object ID's
     PDObjectRef construct;          ///< cannot be relied on to contain anything; is used to hold constructed objects until iteration (at which point they're released)
     PDSize streamLen;               ///< stream length of the current object
     PDSize obid;                    ///< object ID of the current object
@@ -421,7 +421,7 @@ struct PDParser {
     
     // miscellaneous
     PDBool success;                 ///< if true, the parser has so far succeeded at parsing the input file
-    PDBTreeRef skipT;               ///< whenever an object is ignored due to offset discrepancy, its ID is put on the skip tree; when the last object has been parsed, if the skip tree is non-empty, the parser aborts, as it means objects were lost
+    PDSplayTreeRef skipT;               ///< whenever an object is ignored due to offset discrepancy, its ID is put on the skip tree; when the last object has been parsed, if the skip tree is non-empty, the parser aborts, as it means objects were lost
 };
 
 /**
@@ -748,10 +748,10 @@ struct PDPipe {
     PDInteger       filterCount;        ///< Number of filters in the pipe
     PDTwinStreamRef stream;             ///< The pipe stream
     PDParserRef     parser;             ///< The parser
-    PDBTreeRef      filter;             ///< The filters, in a tree with the object ID as key
+    PDSplayTreeRef      filter;             ///< The filters, in a tree with the object ID as key
     pd_stack
     typeTasks[_PDFTypeCount];           ///< Tasks which run depending on all objects of the given type; the 0'th element (type NULL) is triggered for all objects, and not just objects without a /Type dictionary key
-    PDBTreeRef      attachments;        ///< PDParserAttachment entries
+    PDSplayTreeRef      attachments;        ///< PDParserAttachment entries
 };
 
 /// @name Reference

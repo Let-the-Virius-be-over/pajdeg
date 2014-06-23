@@ -22,7 +22,7 @@
 #include "pd_internal.h"
 #include "PDTwinStream.h"
 #include "PDReference.h"
-#include "PDBTree.h"
+#include "PDSplayTree.h"
 #include "pd_stack.h"
 #include "PDDictionary.h"
 #include "PDParserAttachment.h"
@@ -96,7 +96,7 @@ PDPipeRef PDPipeCreateWithFilePaths(const char * inputFilePath, const char * out
     PDPipeRef pipe = PDAlloc(sizeof(struct PDPipe), PDPipeDestroy, true);
     pipe->pi = strdup(inputFilePath);
     pipe->po = strdup(outputFilePath);
-    pipe->attachments = PDBTreeCreate(PDReleaseFunc, 1, 10, 5);
+    pipe->attachments = PDSplayTreeCreateWithDeallocator(PDReleaseFunc);
     return pipe;
 }
 
@@ -177,13 +177,13 @@ void PDPipeAddTask(PDPipeRef pipe, PDTaskRef task)
         if (containerOb != -1) {
             // force the value into the task, in case this was a root or info req
             task->value = key;
-            PDTaskRef containerTask = PDBTreeGet(pipe->filter, containerOb);
+            PDTaskRef containerTask = PDSplayTreeGet(pipe->filter, containerOb);
             //pd_btree_fetch(pipe->filter, containerOb);
             if (NULL == containerTask) {
                 // no container task yet so we set one up
                 containerTask = PDTaskCreateMutator(PDPipeObStreamMutation);
                 pipe->filterCount++;
-                PDBTreeInsert(pipe->filter, containerOb, containerTask);
+                PDSplayTreeInsert(pipe->filter, containerOb, containerTask);
                 //pd_btree_insert(&pipe->filter, containerOb, containerTask);
                 containerTask->info = NULL;
             }
@@ -191,7 +191,7 @@ void PDPipeAddTask(PDPipeRef pipe, PDTaskRef task)
             return;
         }
         
-        PDTaskRef sibling = PDBTreeGet(pipe->filter, key);
+        PDTaskRef sibling = PDSplayTreeGet(pipe->filter, key);
         //pd_btree_fetch(pipe->filter, key);
         if (sibling) {
             // same filters; merge
@@ -199,7 +199,7 @@ void PDPipeAddTask(PDPipeRef pipe, PDTaskRef task)
         } else {
             // not same filters; include
             pipe->filterCount++;
-            PDBTreeInsert(pipe->filter, key, PDRetain(task->child));
+            PDSplayTreeInsert(pipe->filter, key, PDRetain(task->child));
             //pd_btree_insert(&pipe->filter, key, PDRetain(task->child));
         }
         
@@ -253,7 +253,7 @@ PDBool PDPipePrepare(PDPipeRef pipe)
     pipe->parser = PDParserCreateWithStream(pipe->stream);
     
     if (pipe->parser) {
-        pipe->filter = PDBTreeCreate(PDReleaseFunc, 1, pipe->parser->mxt->count, 3);
+        pipe->filter = PDSplayTreeCreateWithDeallocator(PDReleaseFunc);
     }
 
     return pipe->stream && pipe->parser;
@@ -310,7 +310,7 @@ PDInteger PDPipeExecute(PDPipeRef pipe)
     if (! pipe->dynamicFiltering) {
         PDInteger entries = pipe->filterCount;
         void **keys = malloc(entries * sizeof(void*));
-        PDBTreePopulateKeys(pipe->filter, (PDInteger*)keys);
+        PDSplayTreePopulateKeys(pipe->filter, (PDInteger*)keys);
         //pd_btree_populate_keys(pipe->filter, keys);
     
         sht = PDStaticHashCreate(entries, keys, keys);
@@ -332,7 +332,7 @@ PDInteger PDPipeExecute(PDPipeRef pipe)
         if (pipe->dynamicFiltering || PDStaticHashValueForKey(sht, parser->obid)) {
 
             // by object id
-            task = PDBTreeGet(pipe->filter, parser->obid);
+            task = PDSplayTreeGet(pipe->filter, parser->obid);
             if (task) 
                 //printf("* task: object #%lu @ offset %lld *\n", parser->obid, PDTwinStreamGetInputOffset(parser->stream));
                 if (! (proceed &= PDTaskFailure != PDTaskExec(task, pipe, PDParserConstructObject(parser)))) break;
@@ -356,7 +356,7 @@ PDInteger PDPipeExecute(PDPipeRef pipe)
 
         } else { 
             //tneg++;
-            PDAssert(!PDBTreeGet(pipe->filter, parser->obid));
+            PDAssert(!PDSplayTreeGet(pipe->filter, parser->obid));
         }
     } while (proceed && PDParserIterate(parser));
     PDRelease(sht);
@@ -397,10 +397,10 @@ const char *PDPipeGetOutputFilePath(PDPipeRef pipe)
 
 PDParserAttachmentRef PDPipeConnectForeignParser(PDPipeRef pipe, PDParserRef foreignParser)
 {
-    PDParserAttachmentRef attachment = PDBTreeGet(pipe->attachments, (PDInteger)foreignParser);
+    PDParserAttachmentRef attachment = PDSplayTreeGet(pipe->attachments, (PDInteger)foreignParser);
     if (NULL == attachment) {
         attachment = PDParserAttachmentCreate(PDPipeGetParser(pipe), foreignParser);
-        PDBTreeInsert(pipe->attachments, (PDInteger)foreignParser, attachment);
+        PDSplayTreeInsert(pipe->attachments, (PDInteger)foreignParser, attachment);
     }
     return attachment;
 }

@@ -30,10 +30,11 @@ struct st_node {
     st_node brc[2];
 };
 
-st_node st_node_new(PDInteger key)
+st_node st_node_new(PDInteger key, void *value)
 {
     st_node n = malloc(sizeof(struct st_node));
     n->key = key;
+    n->value = value;
     n->brc[0] = n->brc[1] = n->parent = NULL;
     return n;
 }
@@ -66,6 +67,19 @@ st_node st_node_maximum(st_node u)
 {
     while (u->right) u = u->right;
     return u;
+}
+
+static inline PDInteger st_node_populate_keys(st_node root, PDInteger *dest)
+{
+    PDInteger i = 0;
+    while (root) {
+        if (root->brc[0]) i += st_node_populate_keys(root->brc[0], &dest[i]);
+        if (root->value) {
+            dest[i++] = root->key;
+        }
+        root = root->brc[1];
+    }
+    return i;
 }
 
 //
@@ -102,7 +116,13 @@ PDSplayTreeRef PDSplayTreeCreate(void)
 
 void PDSplayTreeInsert(PDSplayTreeRef tree, PDInteger key, void *value)
 {
-    st_node z = tree->root;
+    st_node z = st_node_find(tree->root, key);
+    if (z) {
+        (*tree->deallocator)(z->value);
+        z->value = value;
+        return;
+    }
+    z = tree->root;
     st_node p = NULL;
     
     while (z) {
@@ -110,7 +130,7 @@ void PDSplayTreeInsert(PDSplayTreeRef tree, PDInteger key, void *value)
         z = st_node_branch_for_key(z, key);
     }
 
-    z = st_node_new(key);
+    z = st_node_new(key, value);
     z->parent = p;
     
     if (!p)
@@ -156,7 +176,15 @@ void PDSplayTreeDelete(PDSplayTreeRef tree, PDInteger key)
     tree->count--;
 }
 
-extern PDInteger PDSplayTreeGetCount(PDSplayTreeRef tree);
+PDInteger PDSplayTreeGetCount(PDSplayTreeRef tree)
+{
+    return tree->count;
+}
+
+PDInteger PDSplayTreePopulateKeys(PDSplayTreeRef tree, PDInteger *dest)
+{
+    return st_node_populate_keys(tree->root, dest);
+}
 
 // Private implementations
 
