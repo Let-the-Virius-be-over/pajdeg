@@ -288,7 +288,7 @@ int st_node_print(st_node n, char **map, int x, int y)
 void st_node_make_size(st_node n, int *w, int *h)
 {
     int W = 3, H = 1;
-    int z = n->key;
+    PDInteger z = n->key;
     while (z > 9) {
         W++;
         z /= 10;
