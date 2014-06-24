@@ -21,6 +21,7 @@
 #include "PDString.h"
 #include "pd_stack.h"
 #include "pd_crypto.h"
+#include "PDNumber.h"
 
 #include "pd_internal.h"
 
@@ -212,6 +213,7 @@ PDStringType PDStringGetType(PDStringRef string)
 char *PDStringEscapedValue(PDStringRef string, PDBool wrap)
 {
     if (string == NULL) return NULL;
+    if (PDResolve(string) == PDInstanceTypeNumber) return PDNumberToString((PDNumberRef)string);
     
     // see if we have what is asked for already
     if (string->type == PDStringTypeEscaped && string->wrapped == wrap) {
@@ -314,7 +316,7 @@ char *PDStringBinaryValue(PDStringRef string, PDSize *outLength)
     else
         data = PDStringHexToBinary(source->data, source->length, source->wrapped, &len);
     
-    *outLength = len;
+    if (outLength) *outLength = len;
     
     PDRelease(string->alt);
     string->alt = PDStringCreateBinary(data, len);

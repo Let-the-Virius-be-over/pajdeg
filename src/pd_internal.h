@@ -108,7 +108,7 @@ union PDType {
  @param dealloc Dealloc method as a (*)(void*).
  @param zeroed Whether the allocated block should be zeroed or not. If true, calloc is used to allocate the memory.
  */
-extern void *PDAlloc(PDSize size, void *dealloc, PDBool zeroed);
+#define PDAlloc(s,d,z) PDAllocTyped(PDInstanceTypeUnset,s,d,z)
 
 /**
  Allocate a new PDType object with a defined instance type, with given size and deallocator.
@@ -118,7 +118,12 @@ extern void *PDAlloc(PDSize size, void *dealloc, PDBool zeroed);
  @param dealloc Dealloc method as a (*)(void*).
  @param zeroed Whether the allocated block should be zeroed or not. If true, calloc is used to allocate the memory.
  */
+#ifdef DEBUG_PD_RELEASES
+#define PDAllocTyped(it,s,d,z) _PDAllocTypedDebug(__FILE__,__LINE__,it,s,d,z)
+extern void *_PDAllocTypedDebug(const char *file, int lineNumber, PDInstanceType it, PDSize size, void *dealloc, PDBool zeroed);
+#else
 extern void *PDAllocTyped(PDInstanceType it, PDSize size, void *dealloc, PDBool zeroed);
+#endif
 
 /**
  Flush autoreleased pool.

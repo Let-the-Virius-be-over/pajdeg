@@ -59,6 +59,7 @@ extern const char * PD_XREF;            ///< an XREF
 extern const char * PD_STARTXREF;       ///< the "startxref" symbol
 extern const char * PD_ENDSTREAM;       ///< the "endstream" symbol
 
+extern void PDDeallocatorNullFunc(void *ob);
 
 /**
  Convenience macro for comparing a given value to one of the PD_ entries.

@@ -207,7 +207,7 @@ void *pd_stack_pop_object(pd_stack *stack)
     *stack = popped->prev;
     void *ob = popped->info;
     (*pd_stack_dealloc)(popped);
-    return ob; //PDAutorelease(ob);
+    return ob;
 }
 
 void *pd_stack_pop_freeable(pd_stack *stack)

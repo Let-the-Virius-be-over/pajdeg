@@ -31,18 +31,27 @@ static pd_stack arp = NULL;
 
 #ifdef DEBUG_PD_RELEASES
 
+
+
 PDSplayTreeRef _retrels = NULL;
 
+static PDBool loggingRetrelCall = false;
 void _PDDebugLogRetrelCall(const char *op, const char *file, int lineNo, void *ob)
 {
+    // since alloc is logged, we need to prevent logging of calls made here
+    if (loggingRetrelCall) return;
+    loggingRetrelCall = true;
+    
     if (_retrels == NULL) {
-        _retrels = PDSplayTreeCreate(PDDeallocatorNull, 0, 0x1fffffff, 10);
+        _retrels = PDSplayTreeCreateWithDeallocator(PDDeallocatorNullFunc);
     }
     pd_stack entry = PDSplayTreeGet(_retrels, (PDInteger)ob);
-    pd_stack_push_identifier(&entry, (PDID)lineNo);
+    pd_stack_push_identifier(&entry, (PDID)(PDInteger)lineNo);
     pd_stack_push_key(&entry, strdup(file));
     pd_stack_push_identifier(&entry, (PDID)op);
     PDSplayTreeInsert(_retrels, (PDInteger)ob, entry);
+    
+    loggingRetrelCall = false;
 }
 
 void _PDDebugLogDisplay(void *ob)
@@ -96,7 +105,11 @@ void breakHere()
 #define PDTypeCheck(cmd) 
 #endif
 
+#ifdef DEBUG_PD_RELEASES
+void *_PDAllocTypedDebug(const char *file, int lineNumber, PDInstanceType it, PDSize size, void *dealloc, PDBool zeroed)
+#else
 void *PDAllocTyped(PDInstanceType it, PDSize size, void *dealloc, PDBool zeroed)
+#endif
 {
     PDTypeRef chunk = (zeroed ? calloc(1, sizeof(union PDType) + size) : malloc(sizeof(union PDType) + size));
 #ifdef DEBUG_PDTYPES
@@ -105,13 +118,14 @@ void *PDAllocTyped(PDInstanceType it, PDSize size, void *dealloc, PDBool zeroed)
     chunk->it = it;
     chunk->retainCount = 1;
     chunk->dealloc = dealloc;
+    _PDDebugLogRetrelCall("alloc", file, lineNumber, chunk + 1);
     return chunk + 1;
 }
 
-void *PDAlloc(PDSize size, void *dealloc, PDBool zeroed)
-{
-    return PDAllocTyped(PDInstanceTypeUnset, size, dealloc, zeroed);
-}
+//void *PDAlloc(PDSize size, void *dealloc, PDBool zeroed)
+//{
+//    return PDAllocTyped(PDInstanceTypeUnset, size, dealloc, zeroed);
+//}
 
 #ifdef DEBUG_PD_RELEASES
 void PDReleaseFunc(void *pajdegObject) 

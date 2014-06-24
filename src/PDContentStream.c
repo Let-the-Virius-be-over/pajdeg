@@ -27,6 +27,7 @@
 #include "PDArray.h"
 #include "pd_stack.h"
 #include "PDString.h"
+#include "PDNumber.h"
 
 void PDContentStreamOperationDestroy(PDContentStreamOperationRef op)
 {
@@ -134,7 +135,7 @@ void PDContentStreamExecute(PDContentStreamRef cs)
 {
     void **catchall;
     PDBool argValue;
-    PDStringRef arg;
+    void *arg;
     PDBool termed, escaped;
     char termChar;
     PDContentOperatorFunc op;
@@ -143,13 +144,15 @@ void PDContentStreamExecute(PDContentStreamRef cs)
     void **arr;
     char *str;
     char ch;
-    pd_stack inStack, outStack, termStack;
+    pd_stack inStack, outStack, argDests;
+    PDArrayRef args;
 
     catchall = PDSplayTreeGet(cs->opertree, 0);
     termChar = 0;
-    termStack = NULL;
     termed   = false;
     escaped  = false;
+    argDests = NULL;
+    args     = cs->args;
     
     const char *stream = PDObjectGetStream(cs->ob);
     PDInteger   len    = PDObjectGetExtractedStreamLength(cs->ob);
@@ -158,7 +161,6 @@ void PDContentStreamExecute(PDContentStreamRef cs)
     pd_stack *opers = &cs->opers;
     pd_stack_destroy(opers);
     PDArrayClear(cs->args);
-//    pd_array_clear(cs->args);
 
     for (PDInteger i = 0; i <= len; i++) {
         if (escaped) {
@@ -167,33 +169,37 @@ void PDContentStreamExecute(PDContentStreamRef cs)
             escaped = stream[i] == '\\';
             if (termChar) {
                 termed = (i + 1 >= len || stream[i] == termChar);
-                if (termed) {
-                    if (termStack) 
-                        termChar = (char)pd_stack_pop_identifier(&termStack);
-                    else
-                        termChar = 0;
-                }
-                
+                if (termed) termChar = 0;
             }
             
-            if (i < len && /*i == mark &&*/ (stream[i] == '[' || stream[i] == '(')) {
-                if (termChar) {
-                    pd_stack_push_identifier(&termStack, (PDID)(PDInteger)termChar);
-                }
-                switch (stream[i]) {
-                    case '[': termChar = ']'; break;
-                    case '(': termChar = ')'; break;
+            if (termChar == 0 && i < len && (stream[i] == '[' || stream[i] == ']' || stream[i] == '(')) {
+                if (stream[i] == '(') {
+                    termChar = ')';
+                } else if (stream[i] == '[') {
+                    // push embedded array
+                    PDArrayRef eArgs = PDArrayCreateWithCapacity(3);
+                    printf("eArgs = %p\n", eArgs);
+                    PDArrayAppend(args, eArgs);
+                    pd_stack_push_object(&argDests, args);
+                    args = eArgs;
+                    PDRelease(eArgs);
+                } else {
+                    // pop out of embedded array
+                    PDAssert(argDests); // crash = unexpected ']' was encountered; investigation necessary
+                    args = pd_stack_pop_object(&argDests);
+                    mark = i;
                 }
             }
             
             if (termChar == 0 && (termed || i == len || PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobDelimiter || PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobWhitespace)) {
                 if (termed + i > mark) {
                     ch = stream[mark];
-                    argValue = ((ch >= '0' && ch <= '9') || ch == '<' || ch == '/' || ch == '.' || ch == '[' || ch == '(' || ch == '-' || ch == ']');
+                    argValue = args != cs->args || ((ch >= '0' && ch <= '9') || ch == '<' || ch == '/' || ch == '.' || ch == '[' || ch == '(' || ch == '-' || ch == ']');
                     if (argValue && PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobDelimiter) 
                         continue;
                     
                     slen = termed + i - mark;
+                    slen -= PDOperatorSymbolGlob[stream[mark+slen-1]] == PDOperatorSymbolGlobWhitespace;
                     str = strndup(&stream[mark], slen);
                     arr = PDSplayTreeGet(cs->opertree, PDST_KEY_STR(str, slen));
                     
@@ -202,8 +208,6 @@ void PDContentStreamExecute(PDContentStreamRef cs)
                     
                     // have we matched a string to an operator?
                     if (arr) {
-                        //                    argc     = pd_array_get_count(cs->args);
-                        //                    args     = pd_array_create_args(cs->args);
                         outStack = NULL;
                         inStack  = NULL;
                         
@@ -214,34 +218,41 @@ void PDContentStreamExecute(PDContentStreamRef cs)
                         
                         cs->lastOperator = str;
                         op = arr[0];
-                        PDOperatorState state = (*op)(cs, arr[1], cs->args, inStack, &outStack);
+                        PDOperatorState state = (*op)(cs, arr[1], args, inStack, &outStack);
                         
-                        PDArrayClear(cs->args);
+                        PDAssert(NULL == argDests); // crash = ending ] was not encountered for embedded array
+                        PDArrayClear(args);
                         
                         if (state == PDOperatorStatePush) {
                             operation = PDContentStreamOperationCreate(strdup(str), outStack);
                             pd_stack_push_object(opers, operation);
-                            //                        pd_stack_push_key(opers, str);
                         } else if (state == PDOperatorStatePop) {
-                            //                        PDAssert(cs->opers != NULL); // crash = imbalanced push/pops (too many pops!)
                             PDRelease(pd_stack_pop_object(opers));
-                            //                        free(pd_stack_pop_key(opers));
                         }
                     }
                     
                     // we conditionally stuff arguments for numeric values and '/' somethings only; we do this to prevent a function from getting a ton of un-handled operators as arguments
                     else if (argValue) {
-                        arg = (str[0] == '<'
-                               ? PDStringCreateWithHexString(str)
-                               : PDStringCreate(str));
-                        PDArrayAppend(cs->args, arg);
+                        switch (str[0]) {
+                            case '<':
+                                arg = PDStringCreateWithHexString(str);
+                                break;
+                            case '0':case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8':case '9':case '-':
+                                arg = PDNumberCreateWithCString(str);
+                                free(str);
+                                break;
+                            default:
+                                arg = PDStringCreate(str);
+                        }
+                        
+                        PDArrayAppend(args, arg);
                         PDRelease(arg);
                         str = NULL;
                     } 
                     
                     // here, we believe we've run into an operator, so we throw away accumulated arguments and start anew
                     else {
-                        PDArrayClear(cs->args);
+                        PDArrayClear(args);
                     }
                     
                     if (str) {
@@ -250,10 +261,10 @@ void PDContentStreamExecute(PDContentStreamRef cs)
                 }
                 
                 // skip over white space, but do not skip over delimiters; these are parts of arguments
-                mark = i + (termed || PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobWhitespace);
+                mark = i + (termed || stream[i] == '[' || stream[i] == ']' || PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobWhitespace);
                 
                 // we also rewind i if this was a term char; ideally we would rewind for all delimiters before above and just do i + 1 always, but that would result in endless loops for un-termchar delims
-                i -= (stream[i] == '(' || stream[i] == '[');
+                i -= (stream[i] == '(');// || stream[i] == '[');
                 termed = false;
             }
         }
@@ -373,52 +384,19 @@ void PDContentStreamTextExtractorUIDealloc(void *_tui)
     free(tui);
 }
 
-static inline void PDContentStreamTextExtractorPrint(PDContentStreamTextExtractorUI tui, const char *str) 
+static inline void PDContentStreamTextExtractorPrint(PDContentStreamTextExtractorUI tui, const char *str, PDBool insertNewline) 
 {
     PDInteger len = strlen(str);
-    if (len > tui->size - tui->offset) {
+    if (len + 1 >= tui->size - tui->offset) {
         // must alloc
         tui->size = (tui->size + len) * 2;
         *tui->result = tui->buf = realloc(tui->buf, tui->size);
     }
     
-    // for loop below required to handle \123 = char(123)
-
-    len--;
-    PDInteger eval = 0;
-    PDBool escaping = false;
-    PDInteger offs = tui->offset;
-    char *res = tui->buf;
-    
-    // loop from 1 to original len - 1 == len to ignore wrapping parens
-    for (PDInteger i = 1; i < len; i++) {
-        if (escaping) {
-            if (str[i] >= '0' && str[i] <= '9') {
-                eval = 8 * eval + str[i] - '0';
-            } else if (eval > 0) {
-                if (eval > 255) PDWarn("overflow eval in PDContentStreamTextExtractorPrint()");
-                escaping = false;
-                i--;
-                res[offs++] = eval;
-            } else {
-                PDNotice("unimplemented escape key passed as is in PDContentStreamTextExtractorPrint()");
-                escaping = false;
-                res[offs++] = '\\';
-                i--;
-            }
-        } else if (str[i] == '\\') {
-            escaping = true;
-            eval = 0;
-        } else {
-            res[offs++] = str[i];
-        }
-    }
-    res[offs++] = '\n';
-    res[offs] = 0;
-    
-//    strcpy(&tui->buf[tui->offset], &str[1]);
-    tui->offset = offs;
-//    tui->buf[tui->offset-1] = '\n';
+    strcpy(&tui->buf[tui->offset], str);
+    tui->buf[tui->offset+len] = '\n' & -insertNewline;
+    tui->offset += len + insertNewline;
+    tui->buf[tui->offset] = 0;
 }
 //(PDContentStreamRef cs, void *userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState);
 
@@ -427,7 +405,7 @@ PDOperatorState PDContentStreamTextExtractor_Tj(PDContentStreamRef cs, PDContent
     // these should have a single string as arg but we won't whine if that's not the case
     PDInteger argc = PDArrayGetCount(args);
     for (PDInteger i = 0; i < argc; i++) {
-        PDContentStreamTextExtractorPrint(userInfo, PDStringEscapedValue(PDArrayGetElement(args, i), false));
+        PDContentStreamTextExtractorPrint(userInfo, PDStringBinaryValue(PDArrayGetElement(args, i), NULL), true);
     }
     return PDOperatorStateIndependent;
 }
@@ -436,37 +414,17 @@ PDOperatorState PDContentStreamTextExtractor_TJ(PDContentStreamRef cs, PDContent
 {
     // these are arrays of strings and offsets; we don't care about offsets
     PDInteger argc = PDArrayGetCount(args);
-    if (argc == 1 && PDStringEscapedValue(PDArrayGetElement(args, 0), false)[0] == '[') {
-        PDBool inParens = false;
-        PDBool escaping = false;
-        const char *s = PDStringEscapedValue(PDArrayGetElement(args, 0), false);
-        PDInteger ix = strlen(s);
-        PDInteger j = 0;
-        char *string = malloc(ix);
-        string[j++] = '(';
-        
-        for (PDInteger i = 1; i < ix; i++) {
-            if (inParens) {
-                if (escaping) {
-                    escaping = false;
-                    string[j++] = s[i];
-                } 
-                else if (s[i] == '\\') escaping = true;
-                else if (s[i] == ')')  inParens = false;
-                else string[j++] = s[i];
-            } else {
-                inParens = s[i] == '(';
-            }
+    if (argc == 1) {
+        void *value = PDArrayGetElement(args, 0);
+        if (PDResolve(value) == PDInstanceTypeArray) {
+            args = value;
+            argc = PDArrayGetCount(args);
         }
-        string[j++] = ')';
-        string[j] = 0;
-        PDContentStreamTextExtractorPrint(userInfo, string);
-        free(string);
-    } else {
-        for (PDInteger i = 0; i < argc; i++) {
-            PDStringRef s = PDArrayGetElement(args, i);
-            if (PDStringIsWrapped(s)) 
-                PDContentStreamTextExtractorPrint(userInfo, PDStringEscapedValue(s, true));
+    }
+    for (PDInteger i = 0; i < argc; i++) {
+        void *v = PDArrayGetElement(args, i);
+        if (PDResolve(v) == PDInstanceTypeString) {
+                PDContentStreamTextExtractorPrint(userInfo, PDStringBinaryValue(v, NULL), i == argc-1);
         }
     }
     
@@ -555,7 +513,7 @@ PDOperatorState PDContentStreamPrinter_rg(PDContentStreamRef cs, PDContentStream
 
 PDOperatorState PDContentStreamPrinter_w(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-    fprintf(userInfo->stream, "%sw  \tSet line width: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false));
+    fprintf(userInfo->stream, "%sw  \tSet line width: %s\n", userInfo->spacing, PDNumberToString(PDArrayGetElement(args, 0)));
     return PDOperatorStateIndependent;
 }
 
@@ -671,15 +629,11 @@ PDOperatorState PDContentStreamPrinter_Tf(PDContentStreamRef cs, PDContentStream
 
 PDOperatorState PDContentStreamPrinter_Tj(PDContentStreamRef cs, PDContentStreamPrinterUIRef userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
-//    if (PDArrayGetCount(args) == 1) {
-//        fprintf(userInfo->stream, "%sTj \tShow text: %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), true));
-//    } else {
-        PDInteger len = 128;
-        char *buf = malloc(len);
-        PDArrayPrinter(args, &buf, 0, &len);
-        fprintf(userInfo->stream, "%sTj \tShow text: %s\n", userInfo->spacing, buf);
-        free(buf);
-//    }
+    PDInteger len = 128;
+    char *buf = malloc(len);
+    PDArrayPrinter(args, &buf, 0, &len);
+    fprintf(userInfo->stream, "%sTj \tShow text: %s\n", userInfo->spacing, buf);
+    free(buf);
     return PDOperatorStateIndependent;
 }
 
