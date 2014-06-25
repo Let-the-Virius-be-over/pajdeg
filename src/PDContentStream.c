@@ -194,8 +194,7 @@ void PDContentStreamExecute(PDContentStreamRef cs)
                 if (termed + i > mark) {
                     ch = stream[mark];
                     argValue = args != cs->args || ((ch >= '0' && ch <= '9') || ch == '<' || ch == '/' || ch == '.' || ch == '[' || ch == '(' || ch == '-' || ch == ']');
-                    if (argValue && PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobDelimiter) 
-                        continue;
+                    i += (!termed && argValue && PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobDelimiter);
                     
                     slen = termed + i - mark;
                     slen -= PDOperatorSymbolGlob[stream[mark+slen-1]] == PDOperatorSymbolGlobWhitespace;

@@ -129,6 +129,8 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
 
 pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, PDInteger obid, PDInteger bufsize, PDBool master, PDOffset *outOffset)
 {
+    PDAssert(obid != 0); // crash = invalid object id
+
     char *tb;
     char *string;
     PDTwinStreamRef stream;
@@ -269,6 +271,7 @@ pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, 
 
 pd_stack PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDInteger obid, PDBool master)
 {
+    PDAssert(obid != 0); // crash = invalid object id
     if (parser->construct && parser->construct->obid == obid) {
         return pd_stack_copy(parser->construct->def);
     }
@@ -277,6 +280,8 @@ pd_stack PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDIntege
 
 PDObjectRef PDParserLocateAndCreateObject(PDParserRef parser, PDInteger obid, PDBool master)
 {
+    PDAssert(obid != 0); // crash = invalid object id
+
     PDObjectRef ob;
     
     if (parser->construct && parser->construct->obid == obid) {

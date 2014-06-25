@@ -34,43 +34,18 @@
 
 static char *PDFTypeStrings[_PDFTypeCount] = {kPDFTypeStrings};
 
-/*PDTaskResult PDPipeAppendFilterFunc(PDPipeRef pipe, PDTaskRef task, PDObjectRef object, void *info)
-{
-    PDPipeAddTask(pipe, task);
-    return PDTaskSkipRest;
-}
-
-PDTaskFunc PDPipeAppendFilter = &PDPipeAppendFilterFunc;*/
-
-//
-//
-//
-
-static int pclosec = 0;
-static int pins = 0;
-static int pouts = 0;
-static int pcreates = 0;
-static int pdestroys = 0;
-
 void PDPipeCloseFileStream(FILE *stream)
 {
     fclose(stream);
-    pclosec++;
-    if (pcreates - 2 > pdestroys) {
-        printf("");
-    }
-    printf("%d / (%d + %d) [%d / %d]\n", pclosec, pins, pouts, pcreates, pdestroys);
 }
 
 FILE *PDPipeOpenInputStream(const char *path)
 {
-    pins++;
     return fopen(path, "r");
 }
 
 FILE *PDPipeOpenOutputStream(const char *path)
 {
-    pouts++;
     return fopen(path, "w+");
 }
 
@@ -80,7 +55,6 @@ FILE *PDPipeOpenOutputStream(const char *path)
 
 void PDPipeDestroy(PDPipeRef pipe)
 {
-    pdestroys++;
     PDTaskRef task;
     
     if (pipe->opened) {
@@ -104,7 +78,6 @@ void PDPipeDestroy(PDPipeRef pipe)
 
 PDPipeRef PDPipeCreateWithFilePaths(const char * inputFilePath, const char * outputFilePath)
 {
-    pcreates++;
     FILE *fi;
     FILE *fo;
 
@@ -170,6 +143,8 @@ PDTaskResult PDPipeObStreamMutation(PDPipeRef pipe, PDTaskRef task, PDObjectRef 
 
 void PDPipeAddTask(PDPipeRef pipe, PDTaskRef task)
 {
+    PDAssert(pipe);
+    
     PDCatalogRef catalog;
     long key;
     
