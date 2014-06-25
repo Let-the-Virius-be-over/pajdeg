@@ -204,28 +204,6 @@ extern const pd_stack PDContentStreamGetOperators(PDContentStreamRef cs);
  */
 extern PDContentStreamRef PDContentStreamCreateTextSearch(PDObjectRef object, const char *searchString, PDTextSearchOperatorFunc callback);
 
-/**
- *  Create a content stream configured to print out every operation to the given file stream
- *
- *  This is purely for debugging Pajdeg and/or odd PDF content streams, or to learn what the various operators do and how they affect things.
- *
- *  @param object Object whose content stream should be printed
- *  @param stream The file stream to which printing should be made
- *
- *  @return A pre-configured content stream
- */
-extern PDContentStreamRef PDContentStreamCreateStreamPrinter(PDObjectRef object, FILE *stream);
-
-/**
- *  Create a content stream configured to write all string values of the stream into a string, allocated to fit any amount of content, then pointing *result to the string.
- *
- *  @param object Object whose content stream should have its text extracted
- *  @param result Pointer to char * into which results are to be written
- *
- *  @return A pre-configured content stream
- */
-extern PDContentStreamRef PDContentStreamCreateTextExtractor(PDObjectRef object, char **result);
-
 #endif
 
 /** @} */
