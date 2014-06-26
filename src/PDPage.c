@@ -290,3 +290,15 @@ PDRect PDPageGetMediaBox(PDPageRef page)
     }
     return rect;
 }
+
+PDArrayRef PDPageGetAnnotRefs(PDPageRef page)
+{
+    void *res = PDDictionaryGetEntry(PDObjectGetDictionary(page->ob), "Annots");
+    if (PDResolve(res) == PDInstanceTypeRef) {
+        PDReferenceRef ref = res;
+        PDObjectRef ob = PDParserLocateAndCreateObject(page->parser, PDReferenceGetObjectID(ref), true);
+        res = PDObjectGetArray(ob);
+        PDAutorelease(ob);
+    }
+    return res;
+}

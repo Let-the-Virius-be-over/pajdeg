@@ -201,14 +201,14 @@ PDInstanceType PDResolve(void *pajdegObject)
     if (NULL == pajdegObject) return PDInstanceTypeNull;
     
     PDTypeRef type = (PDTypeRef)pajdegObject - 1;
-    PDTypeCheck("resolve", NULL);
+    PDTypeCheck("resolved", NULL);
     return type->it;
 }
 
 PDInteger PDGetRetainCount(void *pajdegObject)
 {
     PDTypeRef type = (PDTypeRef)pajdegObject - 1;
-    PDTypeCheck("GetRetainCounted", -1);
+    PDTypeCheck("retain-counted", -1);
     return type->retainCount;
 }
 

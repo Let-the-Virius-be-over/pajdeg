@@ -115,6 +115,16 @@ extern PDObjectRef PDPageGetContentsObjectAtIndex(PDPageRef page, PDInteger inde
  */
 extern PDRect PDPageGetMediaBox(PDPageRef page);
 
+/**
+ *  Fetch the annotations for this page, as an array of PDReferences and/or PDObjects. 
+ *  The entries are normally references, but if annotations were replaced or added as PDObjects, they will be returned as is.
+ *
+ *  @param page The page object
+ *
+ *  @return An array of annotation references and objects.
+ */
+extern PDArrayRef PDPageGetAnnotRefs(PDPageRef page);
+
 #endif
 
 /** @} */
