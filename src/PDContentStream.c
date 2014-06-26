@@ -28,6 +28,15 @@
 #include "pd_stack.h"
 #include "PDString.h"
 #include "PDNumber.h"
+#include "PDDictionary.h"
+
+// Private declarations
+
+PDArrayRef PDContentStreamPopArray(PDContentStreamRef cs, const char *stream, PDInteger len, PDInteger *iptr);
+PDDictionaryRef PDContentStreamPopDictionary(PDContentStreamRef cs, const char *stream, PDInteger len, PDInteger *iptr);
+void *PDContentStreamPopValue(PDContentStreamRef cs, const char *stream, PDInteger len, PDInteger *iptr);
+
+// Public methods
 
 void PDContentStreamOperationDestroy(PDContentStreamOperationRef op)
 {
@@ -140,10 +149,9 @@ void PDContentStreamExecute(PDContentStreamRef cs)
     char termChar;
     PDContentOperatorFunc op;
     PDContentStreamOperationRef operation;
-    PDInteger slen;
+    PDSize slen;
     void **arr;
     char *str;
-    char ch;
     pd_stack inStack, outStack, argDests;
     PDArrayRef args;
 
@@ -156,116 +164,60 @@ void PDContentStreamExecute(PDContentStreamRef cs)
     
     const char *stream = PDObjectGetStream(cs->ob);
     PDInteger   len    = PDObjectGetExtractedStreamLength(cs->ob);
-    PDInteger   mark   = 0;
 
     pd_stack *opers = &cs->opers;
     pd_stack_destroy(opers);
     PDArrayClear(cs->args);
 
-    for (PDInteger i = 0; i <= len; i++) {
-        if (escaped) {
-            escaped = false;
+    PDInteger i = 0;
+    while (i < len) {
+//    for (PDInteger i = 0; i <= len;) {
+        arg = PDContentStreamPopValue(cs, stream, len, &i);
+        argValue = PDResolve(arg) != PDInstanceTypeString || PDStringTypeEscaped != PDStringGetType(arg) || PDStringIsWrapped(arg); // operators are distinguished by being PDStrings that are NOT wrapped; all other values are either not strings or are wrapped in one way or another
+        if (argValue) {
+            // add to args
+            PDArrayAppend(args, arg);
         } else {
-            escaped = stream[i] == '\\';
-            if (termChar) {
-                termed = (i + 1 >= len || stream[i] == termChar);
-                if (termed) termChar = 0;
-            }
+            // check operator
+            str = ((PDStringRef)arg)->data;
+            slen = ((PDStringRef)arg)->length;
+            arr = PDSplayTreeGet(cs->opertree, PDST_KEY_STR(str, slen));
             
-            if (termChar == 0 && i < len && (stream[i] == '[' || stream[i] == ']' || stream[i] == '(')) {
-                if (stream[i] == '(') {
-                    termChar = ')';
-                } else if (stream[i] == '[') {
-                    // push embedded array
-                    PDArrayRef eArgs = PDArrayCreateWithCapacity(3);
-                    PDArrayAppend(args, eArgs);
-                    pd_stack_push_object(&argDests, args);
-                    args = eArgs;
-                    PDRelease(eArgs);
-                } else {
-                    // pop out of embedded array
-                    PDAssert(argDests); // crash = unexpected ']' was encountered; investigation necessary
-                    args = pd_stack_pop_object(&argDests);
-                    mark = i;
+            // if we did not get an operator, switch to catchall
+            if (arr == NULL && ! argValue) arr = catchall;
+            
+            // have we matched a string to an operator?
+            if (arr) {
+                outStack = NULL;
+                inStack  = NULL;
+                
+                if (cs->opers) {
+                    operation = cs->opers->info;
+                    inStack = operation->state;
+                }
+                
+                cs->lastOperator = str;
+                op = arr[0];
+                PDOperatorState state = (*op)(cs, arr[1], args, inStack, &outStack);
+                
+                PDAssert(NULL == argDests); // crash = ending ] was not encountered for embedded array
+                PDArrayClear(args);
+                
+                if (state == PDOperatorStatePush) {
+                    operation = PDContentStreamOperationCreate(strdup(str), outStack);
+                    pd_stack_push_object(opers, operation);
+                } else if (state == PDOperatorStatePop) {
+                    PDRelease(pd_stack_pop_object(opers));
                 }
             }
             
-            if (termChar == 0 && (termed || i == len || PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobDelimiter || PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobWhitespace)) {
-                if (termed + i > mark) {
-                    ch = stream[mark];
-                    argValue = args != cs->args || ((ch >= '0' && ch <= '9') || ch == '<' || ch == '/' || ch == '.' || ch == '[' || ch == '(' || ch == '-' || ch == ']');
-                    i += (!termed && argValue && PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobDelimiter);
-                    
-                    slen = termed + i - mark;
-                    slen -= PDOperatorSymbolGlob[stream[mark+slen-1]] == PDOperatorSymbolGlobWhitespace;
-                    str = strndup(&stream[mark], slen);
-                    arr = PDSplayTreeGet(cs->opertree, PDST_KEY_STR(str, slen));
-                    
-                    // if we did not get an operator, switch to catchall
-                    if (arr == NULL && ! argValue) arr = catchall;
-                    
-                    // have we matched a string to an operator?
-                    if (arr) {
-                        outStack = NULL;
-                        inStack  = NULL;
-                        
-                        if (cs->opers) {
-                            operation = cs->opers->info;
-                            inStack = operation->state;
-                        }
-                        
-                        cs->lastOperator = str;
-                        op = arr[0];
-                        PDOperatorState state = (*op)(cs, arr[1], args, inStack, &outStack);
-                        
-                        PDAssert(NULL == argDests); // crash = ending ] was not encountered for embedded array
-                        PDArrayClear(args);
-                        
-                        if (state == PDOperatorStatePush) {
-                            operation = PDContentStreamOperationCreate(strdup(str), outStack);
-                            pd_stack_push_object(opers, operation);
-                        } else if (state == PDOperatorStatePop) {
-                            PDRelease(pd_stack_pop_object(opers));
-                        }
-                    }
-                    
-                    // we conditionally stuff arguments for numeric values and '/' somethings only; we do this to prevent a function from getting a ton of un-handled operators as arguments
-                    else if (argValue) {
-                        switch (str[0]) {
-                            case '<':
-                                arg = PDStringCreateWithHexString(str);
-                                break;
-                            case '0':case '1':case '2':case '3':case '4':case '5':case '6':case '7':case '8':case '9':case '-':
-                                arg = PDNumberCreateWithCString(str);
-                                free(str);
-                                break;
-                            default:
-                                arg = PDStringCreate(str);
-                        }
-                        
-                        PDArrayAppend(args, arg);
-                        PDRelease(arg);
-                        str = NULL;
-                    } 
-                    
-                    // here, we believe we've run into an operator, so we throw away accumulated arguments and start anew
-                    else {
-                        PDArrayClear(args);
-                    }
-                    
-                    if (str) {
-                        free(str);
-                    }
-                }
-                
-                // skip over white space, but do not skip over delimiters; these are parts of arguments
-                mark = i + (termed || stream[i] == '[' || stream[i] == ']' || PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobWhitespace);
-                
-                // we also rewind i if this was a term char; ideally we would rewind for all delimiters before above and just do i + 1 always, but that would result in endless loops for un-termchar delims
-                i -= (stream[i] == '(');// || stream[i] == '[');
-                termed = false;
+            // here, we believe we've run into an operator, so we throw away accumulated arguments and start anew
+            else {
+                PDArrayClear(args);
             }
         }
+        while (i < len && PDOperatorSymbolGlob[stream[i]] == PDOperatorSymbolGlobWhitespace) i++;
+        PDRelease(arg);
     }
 
     for (pd_stack iter = cs->resetters; iter; iter = iter->prev->prev) {
@@ -278,4 +230,153 @@ void PDContentStreamExecute(PDContentStreamRef cs)
 const pd_stack PDContentStreamGetOperators(PDContentStreamRef cs)
 {
     return cs->opers;
+}
+
+// Private implementations
+
+PDArrayRef PDContentStreamPopArray(PDContentStreamRef cs, const char *stream, PDInteger len, PDInteger *iptr)
+{
+    void *v;
+    PDArrayRef res = PDArrayCreateWithCapacity(3);
+    PDInteger mark = *iptr;
+    
+    // accept a leading '[', but don't mind if we were handed the char after
+    mark += (stream[mark] == '[');
+    while (mark < len) {
+        while (mark < len && PDOperatorSymbolGlob[stream[mark]] == PDOperatorSymbolGlobWhitespace)
+            mark++;
+        if (mark >= len || stream[mark] == ']') break;
+        v = PDContentStreamPopValue(cs, stream, len, &mark);
+        if (v == NULL) {
+            PDWarn("NULL value in content stream (pop value): using 'null' object");
+            v = PDNullObject;
+        }
+        PDArrayAppend(res, v);
+        PDRelease(v);
+    }
+    *iptr = mark + 1;
+    return res;
+}
+
+PDDictionaryRef PDContentStreamPopDictionary(PDContentStreamRef cs, const char *stream, PDInteger len, PDInteger *iptr)
+{
+    void *v;
+    PDStringRef key;
+    PDDictionaryRef res = PDDictionaryCreateWithCapacity(3);
+    PDInteger mark = *iptr;
+    
+    // accept leading '<<'
+    mark += (stream[mark] == '<' && stream[mark+1] == '<') + (stream[mark] == '<' && stream[mark+1] == '<');
+    while (mark < len) {
+        while (mark < len && PDOperatorSymbolGlob[stream[mark]] == PDOperatorSymbolGlobWhitespace) mark++;
+        if (mark + 1 >= len || (stream[mark] == '>' && stream[mark+1] == '>')) break;
+        key = PDContentStreamPopValue(cs, stream, len, &mark);
+        if (PDResolve(key) != PDInstanceTypeString || PDStringGetType(key) != PDStringTypeName) {
+            PDWarn("invalid key instance type in content stream dictionary (%s): skipping", PDResolve(key) != PDInstanceTypeString ? "not a string" : "not a name type string");
+        } else {
+            while (mark < len && PDOperatorSymbolGlob[stream[mark]] == PDOperatorSymbolGlobWhitespace) mark++;
+            v = PDContentStreamPopValue(cs, stream, len, &mark);
+            if (v == NULL) {
+                PDWarn("NULL value in content stream (pop value): using 'null' object");
+                v = PDRetain(PDNullObject);
+            }
+            PDDictionarySetEntry(res, PDStringBinaryValue(key, NULL), v);
+            PDRelease(key);
+            PDRelease(v);
+        }
+    }
+    *iptr = mark + 2;
+    return res;
+}
+
+typedef void *(*creatorFunc)(char *);
+
+void *PDContentStreamPopValue(PDContentStreamRef cs, const char *stream, PDInteger len, PDInteger *iptr)
+{
+    void *res;
+    char *str;
+    char chtype = 0;
+    PDInteger i = *iptr;
+    PDInteger mark = i;
+    PDBool freeStr = false;
+    PDBool escaped = false;
+    PDInteger nestLevel = 1;
+    
+    char nestChar = 0;
+    char termChar = 0;
+    PDBool termWS = true; // terminate on whitespace
+    PDBool termD  = true; // terminate on delimiter
+    creatorFunc cf = NULL;
+    
+    // get hint about value type
+    switch (stream[mark]) {
+        case '(': 
+            // PDString
+            mark++;
+            nestChar = '(';
+            termChar = ')';
+            termWS = false;
+            termD = false;
+            cf = (creatorFunc) PDStringCreate;
+            break;
+        case '/':
+            // PDString (name)
+            mark++;
+            cf = (creatorFunc) PDStringCreateWithName;
+            break;
+        case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': case '0': case '-':
+            // PDNumber
+            freeStr = true;
+            cf = (creatorFunc) PDNumberCreateWithCString;
+            break;
+        case '<':
+            // hex string or dictionary
+            if (mark + 1 < len && stream[mark+1] == '<') {
+                // dictionary
+                return PDContentStreamPopDictionary(cs, stream, len, iptr);
+            }
+            // hex string
+            termChar = '>';
+            termWS = false;
+            termD = false;
+            cf = (creatorFunc) PDStringCreateWithHexString;
+            break;
+        case '[':
+            return PDContentStreamPopArray(cs, stream, len, iptr);
+        default:
+            // operator
+            cf = (creatorFunc) PDStringCreate;
+            break;
+    }
+    
+    while (mark < len) {
+        if (escaped) {
+            escaped = false;
+        } else {
+            escaped = (stream[mark] == '\\');
+            
+            if (stream[mark] == termChar) {
+                mark++; // include the terminating character in the resulting string
+                nestLevel--;
+                if (nestLevel == 0)
+                    break;
+            }
+            
+            nestLevel += stream[mark] == nestChar;
+            
+            if (termWS || termD) {
+                chtype = PDOperatorSymbolGlob[stream[mark]];
+                if (termWS && chtype == PDOperatorSymbolGlobWhitespace) break;
+                if (termD && nestLevel == 1 && chtype == PDOperatorSymbolGlobDelimiter) break;
+            }
+        }
+        mark++;
+    }
+    
+    str = strndup(&stream[i], mark - i);
+    *iptr = mark + (termWS && chtype == PDOperatorSymbolGlobWhitespace);
+    res = (*cf)(str);
+    if (freeStr) free(str);
+    
+    return res;
 }
