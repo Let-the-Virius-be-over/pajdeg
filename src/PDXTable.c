@@ -322,7 +322,7 @@ PDBool PDXTableInsertXRefStream(PDParserRef parser)
     PDObjectSetFlateDecodedFlag(trailer, true);
     PDObjectSetPredictionStrategy(trailer, PDPredictorPNG_UP, mxt->width);
     
-    PDObjectSetStreamFiltered(trailer, mxt->xrefs, mxt->width * mxt->count);
+    PDObjectSetStreamFiltered(trailer, mxt->xrefs, mxt->width * mxt->count, true);
 
     // now chuck this through via parser
     parser->state = PDParserStateBase;

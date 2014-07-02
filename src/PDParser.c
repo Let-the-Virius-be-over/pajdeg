@@ -121,6 +121,7 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
         }
 #ifdef PD_SUPPORT_CRYPTO
         parser->crypto = pd_crypto_create(PDObjectGetDictionary(parser->trailer), PDObjectGetDictionary(parser->encrypt));
+        if (parser->construct) parser->construct->crypto = parser->crypto;
 #endif
     }
     
@@ -591,7 +592,7 @@ void PDParserUpdateObject(PDParserRef parser)
         // we have to deal with the stream, in case we're post stream; the reason is that 
         // ob's definition may change as a result of this
         if (ob->hasStream && !ob->skipStream && !ob->ovrStream && parser->state == PDParserStateObjectPostStream) {
-            PDObjectSetStreamFiltered(ob, ob->streamBuf, ob->extractedLen);
+            PDObjectSetStreamFiltered(ob, ob->streamBuf, ob->extractedLen, false);
         }
         
         if (ob->ovrDef) {
@@ -675,7 +676,7 @@ void PDParserUpdateObject(PDParserRef parser)
         if ((ob->hasStream && ! ob->skipStream) || ob->ovrStream) {
             if (ob->ovrStream) {
                 // discard old and write new
-                PDTwinStreamDiscardContent(parser->stream);//, PDTwinStreamScannerCommitBytes(parser->stream));
+                PDTwinStreamDiscardContent(parser->stream);
                 //                                            012345 6
                 PDTwinStreamInsertContent(parser->stream, 7, "stream\n");
                 PDTwinStreamInsertContent(parser->stream, ob->ovrStreamLen, ob->ovrStream);

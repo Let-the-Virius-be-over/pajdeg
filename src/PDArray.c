@@ -329,7 +329,7 @@ extern PDInteger PDArrayPrinter(void *inst, char **buf, PDInteger offs, PDIntege
 
 void PDArrayAttachCrypto(PDArrayRef array, pd_crypto crypto, PDInteger objectID, PDInteger genNumber)
 {
-    array->ci = PDCryptoInstanceCreate(crypto, objectID, genNumber, NULL);
+    array->ci = PDCryptoInstanceCreate(crypto, objectID, genNumber);
     for (PDInteger i = 0; i < array->count; i++) {
         if (array->values[i]) 
             (*PDInstanceCryptoExchanges[PDResolve(array->values[i])])(array->values[i], array->ci, false);

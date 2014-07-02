@@ -184,7 +184,7 @@ void PDParserAttachmentPerformImport(PDParserAttachmentRef attachment, PDObjectR
         //        if (PDObjectHasTextStream(source)) {
         //            printf("stream [%ld b]:\n===\n%s\n", (long)source->streamLen, stream);
         //        }
-        PDObjectSetStreamFiltered(dest, stream, source->extractedLen);
+        PDObjectSetStreamFiltered(dest, stream, source->extractedLen, false);
     }
 }
 

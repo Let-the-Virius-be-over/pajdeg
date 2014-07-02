@@ -257,6 +257,10 @@ void PDDictionarySetEntry(PDDictionaryRef dictionary, const char *key, void *val
         dictionary->values = realloc(dictionary->values, sizeof(void *) * dictionary->capacity);
         dictionary->vstacks = realloc(dictionary->vstacks, sizeof(pd_stack) * dictionary->capacity);
     }
+
+#ifdef PD_SUPPORT_CRYPTO
+    if (dictionary->ci) (*PDInstanceCryptoExchanges[PDResolve(value)])(value, dictionary->ci, false);
+#endif
     
     if (index == dictionary->count) {
         // increase count and set key
@@ -341,7 +345,7 @@ PDInteger PDDictionaryPrinter(void *inst, char **buf, PDInteger offs, PDInteger 
 
 void PDDictionaryAttachCrypto(PDDictionaryRef dictionary, pd_crypto crypto, PDInteger objectID, PDInteger genNumber)
 {
-    dictionary->ci = PDCryptoInstanceCreate(crypto, objectID, genNumber, NULL);
+    dictionary->ci = PDCryptoInstanceCreate(crypto, objectID, genNumber);
     for (PDInteger i = 0; i < dictionary->count; i++) {
         if (dictionary->values[i]) 
             (*PDInstanceCryptoExchanges[PDResolve(dictionary->values[i])])(dictionary->values[i], dictionary->ci, false);

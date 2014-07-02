@@ -298,5 +298,5 @@ void PDObjectStreamCommit(PDObjectStreamRef obstm)
     }
     
     // update object stream
-    PDObjectSetStream(streamOb, content, len, true, true);
+    PDObjectSetStream(streamOb, content, len, true, true, false);
 }

@@ -136,7 +136,7 @@ extern void  PDFlush(void);
 extern char *PDC;
 
 /**
- A macro for asserting that an object is a proper PDType.
+ *  A macro for asserting that an object is a proper PDType.
  */
 #ifdef DEBUG_PDTYPES
 #   define PDTYPE_ASSERT(ob) PDAssert(((PDTypeRef)ob - 1)->pdc == PDC)
@@ -147,11 +147,11 @@ extern char *PDC;
 #ifdef PD_SUPPORT_CRYPTO
 
 /**
- Crypto instance for arrays/dicts.
+ *  Crypto instance for arrays/dicts.
  */
 typedef struct PDCryptoInstance *PDCryptoInstanceRef;
 
-extern PDCryptoInstanceRef PDCryptoInstanceCreate(pd_crypto crypto, PDInteger obid, PDInteger gennum, void *info);
+extern PDCryptoInstanceRef PDCryptoInstanceCreate(pd_crypto crypto, PDInteger obid, PDInteger gennum);
 
 /**
  *  Crypto object exchange function signature.
@@ -168,9 +168,9 @@ extern PDInstanceCryptoExchange PDInstanceCryptoExchanges[];
 #endif
 
 /**
- Object internal structure
- 
- @ingroup PDOBJECT
+ *  Object internal structure
+ *
+ *  @ingroup PDOBJECT
  */
 
 struct PDObject {
@@ -612,6 +612,7 @@ struct PDDictionary {
     void           **values;    ///< Resolved values
     pd_stack        *vstacks;   ///< Unresolved values in pd_stack form
 #ifdef PD_SUPPORT_CRYPTO
+    void           **decrypted; ///< Decrypted versions of (encrypted) values
     PDCryptoInstanceRef ci;     ///< Crypto instance, if dictionary is encrypted
 #endif
 };
@@ -625,7 +626,6 @@ struct PDCryptoInstance {
     pd_crypto crypto;           ///< Crypto object.
     PDInteger obid;             ///< Associated object ID.
     PDInteger genid;            ///< Associated generation number.
-    void     *info;             ///< User info. A char ** for arrays and dicts.
 };
 
 /**

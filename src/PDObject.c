@@ -30,6 +30,7 @@
 #include "PDArray.h"
 #include "PDDictionary.h"
 #include "PDString.h"
+#include "pd_crypto.h"
 
 void PDObjectDestroy(PDObjectRef object)
 {
@@ -225,7 +226,7 @@ void PDObjectSetValue(PDObjectRef object, void *value)
 PDCryptoInstanceRef PDObjectGetCryptoInstance(PDObjectRef object)
 {
     if (object->crypto && ! object->cryptoInstance)
-        object->cryptoInstance = PDCryptoInstanceCreate(object->crypto, object->obid, object->genid, NULL);
+        object->cryptoInstance = PDCryptoInstanceCreate(object->crypto, object->obid, object->genid);
     return object->cryptoInstance;
 }
 #endif
@@ -237,8 +238,6 @@ void PDObjectInstantiate(PDObjectRef object)
     if (object->type == PDObjectTypeUnknown) {
         PDObjectDetermineType(object);
     }
-//    object->dict = pd_dict_from_pdf_dict_stack(object->def);
-//    object->type = PDObjectTypeDictionary;
 #ifdef PD_SUPPORT_CRYPTO
     if (object->crypto && object->inst) {
         (*PDInstanceCryptoExchanges[PDResolve(object->inst)])(object->inst, PDObjectGetCryptoInstance(object), true);
@@ -293,8 +292,24 @@ void PDObjectSkipStream(PDObjectRef object)
     object->skipStream = true;
 }
 
-void PDObjectSetStream(PDObjectRef object, char *str, PDInteger len, PDBool includeLength, PDBool allocated)
+void PDObjectSetStream(PDObjectRef object, char *str, PDInteger len, PDBool includeLength, PDBool allocated, PDBool encrypted)
 {
+#ifdef PD_SUPPORT_CRYPTO
+    if (! encrypted && object->crypto) {
+        PDObjectGetCryptoInstance(object);
+        if (!allocated) {
+            char *res = malloc(len+1);
+            memcpy(res, str, len);
+            str = res;
+            allocated = true;
+        }
+        pd_crypto_convert(object->crypto, object->obid, object->genid, str, len);
+    }
+#endif
+    
+    if (object->ovrStreamAlloc) {
+        free(object->ovrStream);
+    }
     object->ovrStream = str;
     object->ovrStreamLen = len;
     object->ovrStreamAlloc = allocated;
@@ -307,7 +322,7 @@ void PDObjectSetStream(PDObjectRef object, char *str, PDInteger len, PDBool incl
     }
 }
 
-PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len)
+PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len, PDBool encrypted)
 {
     // Need to get /Filter and /DecodeParms
     PDDictionaryRef obdict = PDObjectGetDictionary(object);
@@ -317,19 +332,17 @@ PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len)
     
     if (NULL == filter) {
         // no filter
-        PDObjectSetStream(object, str, len, true, false);
+        PDObjectSetStream(object, str, len, true, false, encrypted);
         return true;
     } 
-//    else filter = &filter[1]; // get rid of name slash
 
     PDDictionaryRef decodeParms = PDDictionaryGetDictionary(obdict, "DecodeParms");
-//    const char *decodeParms = PDDictionaryGetEntry(PDObjectGetDictionary(object), "DecodeParms");
     
     PDBool success = true;
     PDStreamFilterRef sf = PDStreamFilterObtain(PDStringEscapedValue(filter, false), false, decodeParms);
     if (NULL == sf) {
         // we don't support this filter; that means we've been handed the filtered value, because we were not able to extract it either, so we can pass it over to PDObjectSetStream
-        PDObjectSetStream(object, str, len, true, false);
+        PDObjectSetStream(object, str, len, true, false, true);
         return true;
     } 
     
@@ -346,7 +359,7 @@ PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len)
 
     PDRelease(sf);
     
-    if (success) PDObjectSetStream(object, filtered, flen, true, true);
+    if (success) PDObjectSetStream(object, filtered, flen, true, true, encrypted);
     
     return success;
 }
@@ -391,14 +404,12 @@ void PDObjectSetStreamEncrypted(PDObjectRef object, PDBool encrypted)
             PDArrayAppend(filterArray, PDStringWithName(strdup("/Crypt")));
             PDDictionarySetEntry(object->inst, "Filter", filterArray);
             PDRelease(filterArray);
-//            PDDictionarySetEntry(PDObjectGetDictionary(object), "Filter", "[/Crypt]");
             
             PDDictionaryRef decodeParms = PDDictionaryCreateWithCapacity(2);
             PDDictionarySetEntry(decodeParms, "Type", PDStringWithName(strdup("/CryptFilterDecodeParms")));
             PDDictionarySetEntry(decodeParms, "Name", PDStringWithName(strdup("/Identity")));
             PDDictionarySetEntry(object->inst, "DecodeParms", decodeParms);
             PDRelease(decodeParms);
-//            PDDictionarySetEntry(PDObjectGetDictionary(object), "DecodeParms", "<</Type /CryptFilterDecodeParms /Name /Identity>>");
         }
     }
 }

@@ -213,6 +213,7 @@ PDStringType PDStringGetType(PDStringRef string)
 char *PDStringEscapedValue(PDStringRef string, PDBool wrap)
 {
     if (string == NULL) return NULL;
+    
     if (PDResolve(string) == PDInstanceTypeNumber) return PDNumberToString((PDNumberRef)string);
     
     // see if we have what is asked for already
@@ -296,8 +297,10 @@ char *PDStringBinaryValue(PDStringRef string, PDSize *outLength)
     
     // see if we have what is asked for already
     if (string->type == PDStringTypeBinary) {
+        if (outLength) *outLength = string->length;
         return string->data;
     } else if (string->alt && string->alt->type == PDStringTypeBinary) {
+        if (outLength) *outLength = string->alt->length;
         return string->alt->data;
     } 
     
@@ -602,7 +605,7 @@ PDInteger PDStringPrinter(void *inst, char **buf, PDInteger offs, PDInteger *cap
     PDInstancePrinterInit(PDStringRef, 5 + i->length, 5 + i->length);
 
 #ifdef PD_SUPPORT_CRYPTO
-    if (i->ci && i->ci->crypto && ! i->encrypted) {
+    if (i->type != PDStringTypeName && i->ci && i->ci->crypto && ! i->encrypted) {
         PDStringRef enc = PDStringCreateEncrypted(i);
         offs = PDStringPrinter(enc, buf, offs, cap);
         PDRelease(enc);
@@ -693,12 +696,12 @@ PDBool PDStringEqualsString(PDStringRef string, PDStringRef string2)
 
 PDBool PDStringIsEncrypted(PDStringRef string)
 {
-    return string->ci && string->encrypted;
+    return string->type != PDStringTypeName && string->ci && string->encrypted;
 }
 
 void PDStringAttachCrypto(PDStringRef string, pd_crypto crypto, PDInteger objectID, PDInteger genNumber, PDBool encrypted)
 {
-    PDCryptoInstanceRef ci = PDCryptoInstanceCreate(crypto, objectID, genNumber, NULL);
+    PDCryptoInstanceRef ci = PDCryptoInstanceCreate(crypto, objectID, genNumber);
     string->ci = ci;
     string->encrypted = encrypted;
 }
@@ -718,7 +721,6 @@ PDStringRef PDStringCreateEncrypted(PDStringRef string)
     char *str = PDStringBinaryValue(string, &len);
     
     len = pd_crypto_encrypt(string->ci->crypto, string->ci->obid, string->ci->genid, &dst, str, len);
-    free(str);
     PDStringRef encrypted = PDStringCreateBinary(dst, len);
     PDStringAttachCryptoInstance(encrypted, string->ci, true);
     return encrypted;

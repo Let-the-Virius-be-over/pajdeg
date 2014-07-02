@@ -317,37 +317,40 @@ extern void PDObjectReplaceWithString(PDObjectRef object, char *str, PDInteger l
 extern void PDObjectSkipStream(PDObjectRef object);
 
 /**
- Replaces the stream with given data.
- 
- @note The stream is inserted as is, with no filtering applied to it whatsoever. To insert a filtered stream, e.g. FlateDecoded, use PDObjectSetStreamFiltered() instead.
- 
- @param object The object.
- @param str The stream data.
- @param len The length of the stream data.
- @param includeLength Whether the object's /Length entry should be updated to reflect the new stream content length.
- @param allocated Whether str should be free()d after the object is done using it.
+ *  Replaces the stream with given data.
+ *  
+ *  @note The stream is inserted as is, with no filtering applied to it whatsoever. To insert a filtered stream, e.g. FlateDecoded, use PDObjectSetStreamFiltered() instead.
+ *  
+ *  @param object The object.
+ *  @param str The stream data.
+ *  @param len The length of the stream data.
+ *  @param includeLength Whether the object's /Length entry should be updated to reflect the new stream content length.
+ *  @param allocated Whether str should be free()d after the object is done using it.
+ *  @param encrypted If true, str is presumed to be already encrypted (e.g. copied from original PDF or pre-encrypted); if false, Pajdeg will encrypt the string before inserting it into the pipe. If the PDF is not encrypted, this argument has no effect
  */
-extern void PDObjectSetStream(PDObjectRef object, char *str, PDInteger len, PDBool includeLength, PDBool allocated);
+extern void PDObjectSetStream(PDObjectRef object, char *str, PDInteger len, PDBool includeLength, PDBool allocated, PDBool encrypted);
 
 /**
- Replaces the stream with given data, filtered according to the object's /Filter and /DecodeParams settings.
- 
- @note Pajdeg only supports a limited number of filters. If the object's filter settings are not supported, the operation is aborted.
- 
- @note If no filter is defined, PDObjectSetStream is called and and true is returned.
- 
- @see PDObjectSetStream
- @see PDObjectSetFlateDecodedFlag
- @see PDObjectSetPredictionStrategy
- 
- @warning str is not freed.
- 
- @param object The object.
- @param str The stream data.
- @param len The length of the stream data.
- @return Success value. If false is returned, the stream remains unset.
+ *  Replaces the stream with given data, filtered according to the object's /Filter and /DecodeParams settings.
+ *  
+ *  @note Pajdeg only supports a limited number of filters. If the object's filter settings are not supported, the operation is aborted.
+ *  
+ *  @note If no filter is defined, PDObjectSetStream is called and and true is returned.
+ *  
+ *  @see PDObjectSetStream
+ *  @see PDObjectSetFlateDecodedFlag
+ *  @see PDObjectSetPredictionStrategy
+ *  
+ *  @warning str is not freed.
+ *  
+ *  @param object The object.
+ *  @param str The stream data.
+ *  @param len The length of the stream data.
+ *  @param encrypted If true, str is presumed to be already encrypted (e.g. copied from original PDF or pre-encrypted); if false, Pajdeg will encrypt the string before inserting it into the pipe. If the PDF is not encrypted, this argument has no effect
+ *  
+ *  @return Success value. If false is returned, the stream remains unset.
  */
-extern PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len);
+extern PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len, PDBool encrypted);
 
 /**
  Enable or disable compression (FlateDecode) filter flag for the object stream.
