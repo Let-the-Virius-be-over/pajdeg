@@ -345,7 +345,7 @@ pd_crypto pd_crypto_create(PDDictionaryRef trailerDict, PDDictionaryRef options)
                 PDStringRef cfm = PDDictionaryGetString(stdcf, "CFM");
 //                const char *cfm = PDDictionaryRef_get(stdcf, "CFM");
                 if (cfm) {
-                    const char *cfms = PDStringEscapedValue(cfm, false);
+                    const char *cfms = PDStringNameValue(cfm, false);
                     if      (0 == strcmp(cfms, "/AESV2")) crypto->cfMethod = pd_crypto_method_aesv2;
                     else if (0 == strcmp(cfms, "/V2")) crypto->cfMethod = pd_crypto_method_rc4;
                     else if (0 == strcmp(cfms, "/None")) crypto->cfMethod = pd_crypto_method_none;

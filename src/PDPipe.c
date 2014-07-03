@@ -263,6 +263,15 @@ PDBool PDPipePrepare(PDPipeRef pipe)
     pipe->parser = PDParserCreateWithStream(pipe->stream);
     
     if (pipe->parser) {
+#ifdef PD_SUPPORT_CRYPTO
+        if (pipe->parser->crypto) {
+            if (pipe->parser->crypto->cfMethod == pd_crypto_method_aesv2) {
+                // we don't support AES right now
+                return false;
+            }
+        }
+#endif
+            
         pipe->filter = PDSplayTreeCreateWithDeallocator(PDReleaseFunc);
     }
 
