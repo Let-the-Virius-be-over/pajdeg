@@ -72,7 +72,7 @@ PDObjectStreamRef PDObjectStreamCreateWithObject(PDObjectRef object)
     PDStringRef filterName = PDDictionaryGetString(obd, "Filter");
 //    const char *filterName = PDDictionaryGetEntry(PDObjectGetDictionary(object), "Filter");
     if (filterName) {
-        char *filterString = PDStringEscapedValue(filterName, false);
+        const char *filterString = PDStringEscapedValue(filterName, false);
 //        filterName = &filterName[1]; // get rid of name slash
 //        pd_stack decodeParms = pd_stack_get_dict_key(object->def, "DecodeParms", false);
         PDDictionaryRef decodeParms = PDDictionaryGetDictionary(obd, "DecodeParms");

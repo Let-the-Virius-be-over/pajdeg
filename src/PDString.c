@@ -160,7 +160,7 @@ PDStringRef PDStringCreateFromStringWithType(PDStringRef string, PDStringType ty
     if (string->alt && string->alt->type == type && (string->alt->type == PDStringTypeBinary || string->alt->wrapped == wrap))
         return PDRetain(string->alt);
     
-    char *res;
+    const char *res;
     char *buf;
     PDSize len;
     PDStringRef result;
@@ -210,7 +210,7 @@ PDStringType PDStringGetType(PDStringRef string)
     return string->type;
 }
 
-char *PDStringEscapedValue(PDStringRef string, PDBool wrap)
+const char *PDStringEscapedValue(PDStringRef string, PDBool wrap)
 {
     if (string == NULL) return NULL;
     
@@ -252,7 +252,7 @@ char *PDStringEscapedValue(PDStringRef string, PDBool wrap)
     return data;
 }
 
-char *PDStringNameValue(PDStringRef string, PDBool wrap)
+const char *PDStringNameValue(PDStringRef string, PDBool wrap)
 {
     if (string == NULL) return NULL;
     
@@ -291,7 +291,7 @@ char *PDStringNameValue(PDStringRef string, PDBool wrap)
     return string->alt->data;
 }
 
-char *PDStringBinaryValue(PDStringRef string, PDSize *outLength)
+const char *PDStringBinaryValue(PDStringRef string, PDSize *outLength)
 {
     if (string == NULL) return NULL;
     
@@ -329,7 +329,7 @@ char *PDStringBinaryValue(PDStringRef string, PDSize *outLength)
     return data;
 }
 
-char *PDStringHexValue(PDStringRef string, PDBool wrap)
+const char *PDStringHexValue(PDStringRef string, PDBool wrap)
 {
     if (string == NULL) return NULL;
     
@@ -718,7 +718,9 @@ PDStringRef PDStringCreateEncrypted(PDStringRef string)
     
     PDSize len;
     char *dst;
-    char *str = PDStringBinaryValue(string, &len);
+    const char *str_in = PDStringBinaryValue(string, &len);
+    char *str = malloc(len);
+    memcpy(str, str_in, len);
     
     len = pd_crypto_encrypt(string->ci->crypto, string->ci->obid, string->ci->genid, &dst, str, len);
     PDStringRef encrypted = PDStringCreateBinary(dst, len);
@@ -731,7 +733,10 @@ PDStringRef PDStringCreateDecrypted(PDStringRef string)
     if (NULL == string || NULL == string->ci || ! string->encrypted) return PDRetain(string);
     
     PDSize len;
-    char *data = PDStringBinaryValue(string, &len);
+    const char *data_in = PDStringBinaryValue(string, &len);
+    char *data = malloc(len);
+    memcpy(data, data_in, len);
+    
     pd_crypto_convert(string->ci->crypto, string->ci->obid, string->ci->genid, data, len);
     PDStringRef decrypted = PDStringCreate(data);
     PDStringAttachCryptoInstance(decrypted, string->ci, false);

@@ -131,7 +131,7 @@ extern void PDStringForceWrappedState(PDStringRef string, PDBool wrapped);
  *
  *  @return Escaped NUL-terminated C string.
  */
-extern char *PDStringEscapedValue(PDStringRef string, PDBool wrap);
+extern const char *PDStringEscapedValue(PDStringRef string, PDBool wrap);
 
 /**
  *  Generate a C string containing the escaped contents of string as a name, i.e. with a forward slash preceding it.
@@ -145,7 +145,7 @@ extern char *PDStringEscapedValue(PDStringRef string, PDBool wrap);
  *
  *  @return Escaped NUL-terminated C string with a forward slash prefix.
  */
-extern char *PDStringNameValue(PDStringRef string, PDBool wrap);
+extern const char *PDStringNameValue(PDStringRef string, PDBool wrap);
 
 /**
  *  Generate the binary value of string, writing its length to the PDSize pointed to by outLength and returning the 
@@ -159,7 +159,7 @@ extern char *PDStringNameValue(PDStringRef string, PDBool wrap);
  *
  *  @return C string pointer to binary data.
  */
-extern char *PDStringBinaryValue(PDStringRef string, PDSize *outLength);
+extern const char *PDStringBinaryValue(PDStringRef string, PDSize *outLength);
 
 /**
  *  Generate a hex string based on the value of string, returning it.
@@ -172,7 +172,7 @@ extern char *PDStringBinaryValue(PDStringRef string, PDSize *outLength);
  *
  *  @return Hex string.
  */
-extern char *PDStringHexValue(PDStringRef string, PDBool wrap);
+extern const char *PDStringHexValue(PDStringRef string, PDBool wrap);
 
 extern PDBool PDStringEqualsCString(PDStringRef string, const char *cString);
 

@@ -424,6 +424,7 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
     
     pd_stack stack;
     PDInteger i;
+    const char *cval;
     char *val;
     PDInteger sz;
     switch (object->obclass) {
@@ -474,9 +475,9 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
                 PDObjectInstantiate(object);
             }
             PDAssert(object->inst); // crash = failed to instantiate the string representation; reasons are unknown but may be that def was a char*, the old way to represent strings
-            val = PDStringEscapedValue(object->inst, true);
-            PDStringGrow(2 + strlen(val));
-            putfmt("%s", val);
+            cval = PDStringEscapedValue(object->inst, true);
+            PDStringGrow(2 + strlen(cval));
+            putfmt("%s", cval);
             break;
             
         case PDObjectTypeNull:
