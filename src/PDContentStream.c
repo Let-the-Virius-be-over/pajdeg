@@ -145,8 +145,6 @@ void PDContentStreamExecute(PDContentStreamRef cs)
     void **catchall;
     PDBool argValue;
     void *arg;
-    PDBool termed, escaped;
-    char termChar;
     PDContentOperatorFunc op;
     PDContentStreamOperationRef operation;
     PDSize slen;
@@ -156,9 +154,6 @@ void PDContentStreamExecute(PDContentStreamRef cs)
     PDArrayRef args;
 
     catchall = PDSplayTreeGet(cs->opertree, 0);
-    termChar = 0;
-    termed   = false;
-    escaped  = false;
     argDests = NULL;
     args     = cs->args;
     

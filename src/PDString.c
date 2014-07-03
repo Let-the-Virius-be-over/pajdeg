@@ -179,13 +179,13 @@ PDStringRef PDStringCreateFromStringWithType(PDStringRef string, PDStringType ty
             
         default:
             res = PDStringBinaryValue(string, &len);
-            if (res) {
+//            if (res) {
                 buf = malloc(len);
                 memcpy(buf, res, len);
                 result = PDStringCreateBinary(buf, len);
-            } else {
-                result = NULL;
-            }
+//            } else {
+//                result = NULL;
+//            }
     }
     
 #ifdef PD_SUPPORT_CRYPTO
