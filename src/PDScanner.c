@@ -274,9 +274,6 @@ void PDScannerPopSymbol(PDScannerRef scanner)
     
     // we also want to bump offset past whitespace, but we limit newline consumption to nothing, \n, \r, or \r\n
     I = i;
-    //if (0 == strncmp(&buf[i], "\r\n\n", 3)) {
-    //    printf("");
-    //}
     if (i > 0) {
         i--;
         
@@ -382,9 +379,6 @@ void PDScannerPopSymbolRev(PDScannerRef scanner)
 
 void PDScannerReadUntilDelimiter(PDScannerRef scanner, PDBool delimiterIsNewline)
 {
-    //static int bop = 0; bop++; if (bop > 400) { 
-    //    printf("");
-    //}
     char *buf;
     PDInteger   bsize, i;
     PDBool escaped;

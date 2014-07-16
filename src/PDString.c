@@ -71,9 +71,6 @@ void PDStringVerifyOwnership(char *string, PDSize len)
 
 PDStringRef PDStringCreate(char *string)
 {
-//    int i;char c[123];if (2 < sscanf(string, "%d %d R%s", &i, &i, c)) {
-//        printf("");
-//    }
 #ifdef DEBUG
     PDStringVerifyOwnership(string, strlen(string));
 #endif
