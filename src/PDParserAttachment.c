@@ -127,8 +127,12 @@ void PDParserAttachmentImportStack(PDParserAttachmentRef attachment, pd_stack *d
                         if (iob == NULL) {
                             iob = PDParserCreateAppendedObject(attachment->nativeParser);
                             PDObjectRef eob = PDParserLocateAndCreateObject(attachment->foreignParser, refObID, true);
-                            PDParserAttachmentPerformImport(attachment, iob, eob, NULL, 0);
-                            PDRelease(eob);
+                            if (eob) {
+                                PDParserAttachmentPerformImport(attachment, iob, eob, NULL, 0);
+                                PDRelease(eob);
+                            } else {
+                                PDNotice("NULL object for %d", refObID);
+                            }
                         }
                         pd_stack_push_identifier(&backward, s->info);
                         sprintf(buf, "%ld", (long)PDObjectGetObID(iob));
