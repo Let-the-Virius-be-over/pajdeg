@@ -20,8 +20,5 @@ Tasks can be chained together, and appended to the stream at any time through ot
 ## Getting Started
 
 - [Download Pajdeg](https://github.com/kallewoof/pajdeg/archive/master.zip)
-- Check out examples directory
-- [Read Quick Start](wiki/Quick-Start)
-- 
-
-
+- Check out samples directory
+- [Read Quick Start](https://github.com/kallewoof/pajdeg/wiki/Quick-Start)
