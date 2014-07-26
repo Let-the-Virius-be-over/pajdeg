@@ -1,0 +1,3 @@
+To build:
+
+gcc -lz pdfcat.c ../src/*.c -o pdfcat

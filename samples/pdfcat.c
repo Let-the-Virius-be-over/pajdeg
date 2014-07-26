@@ -1,4 +1,4 @@
-#include "Pajdeg/Pajdeg.h"
+#include "../src/Pajdeg.h"
 #include <stdio.h>
 #include <stdlib.h>
 
