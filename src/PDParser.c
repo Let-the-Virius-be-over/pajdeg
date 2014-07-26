@@ -230,14 +230,14 @@ pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, 
         PDNotice("zero offset for %ld is suspicious", obid);
     }
     if (outOffset) *outOffset = offset;
-    PDTwinStreamFetchBranch(stream, (PDSize) offset, bufsize, &tb);
+    PDSize readBytes = PDTwinStreamFetchBranch(stream, (PDSize) offset, bufsize, &tb);
     
     PDScannerRef tmpscan = PDScannerCreateWithState(pdfRoot);
     PDScannerPushContext(tmpscan, stream, PDTwinStreamDisallowGrowth);
 //    PDScannerContextPush(stream, &PDTwinStreamDisallowGrowth);
     tmpscan->buf = tb;
     tmpscan->boffset = 0;
-    tmpscan->bsize = bufsize;
+    tmpscan->bsize = readBytes;
     tmpscan->fixedBuf = true;
     
     if (PDScannerPopStack(tmpscan, &stack)) {
@@ -268,7 +268,7 @@ pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, 
         // the object did not fit in our expected buffer, which means it's unusually big; we bump the buffer size to 6k if it's smaller, otherwise we consider this a failure
         pd_stack_destroy(&stack);
         stack = NULL;
-        if (bufsize < 64000)
+        if (bufsize < 64000 && readBytes == bufsize)
             return PDParserLocateAndCreateDefinitionForObjectWithSize(parser, obid, (bufsize + 1024) * 3, master, outOffset);
     }
     
@@ -300,6 +300,11 @@ PDObjectRef PDParserLocateAndCreateObject(PDParserRef parser, PDInteger obid, PD
     }
     
     pd_stack defs = PDParserLocateAndCreateDefinitionForObject(parser, obid, master);
+    if (defs == NULL) {
+        PDNotice("unable to locate definitions for object %d (%s)", obid, master ? "master XREF" : "current XREF");
+        return NULL;
+    }
+    
     ob = PDObjectCreateFromDefinitionsStack(obid, defs);
     ob->crypto = parser->crypto;
     PDSplayTreeInsert(parser->aiTree, obid, PDRetain(ob));

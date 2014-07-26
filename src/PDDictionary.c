@@ -104,7 +104,10 @@ stack<0x15778480> {
     
     // we may have the DICT identifier
     if (PDIdentifies(stack->info, PD_DICT)) {
-        stack = stack->prev->prev->info;
+        if (stack->prev->prev == NULL) 
+            stack = NULL;
+        else 
+            stack = stack->prev->prev->info;
     }
     
     /*
