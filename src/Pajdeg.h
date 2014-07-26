@@ -369,7 +369,7 @@
 #ifndef INCLUDED_PAJDEG_H
 #   define INCLUDED_PAJDEG_H
 
-#   define PAJDEG_VERSION   "0.0.1"
+#   define PAJDEG_VERSION   "0.0.2"
 
 #   include "PDPipe.h"
 #   include "PDObject.h"
