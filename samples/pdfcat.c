@@ -22,8 +22,6 @@ int main(int argc, char *argv[])
 
         PDPipeRef pipe = PDPipeCreateWithFilePaths(argv[i], "/dev/null");
     
-        PDParserRef parser = PDPipeGetParser(pipe);
-
         // create mutator task without a filter; this means the task will run on ALL objects
         PDTaskRef task = PDTaskCreateMutator(printer);
 
