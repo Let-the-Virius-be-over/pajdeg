@@ -1,9 +1,11 @@
 Pajdeg
 ======
 
-`Pajdeg` is a C library for modifying existing PDF documents by passing them through a stream with tasks assigned based on object ID's.
+[![CI Status](http://img.shields.io/travis/kallewoof/PajdegCore.svg?style=flat)](https://travis-ci.org/kallewoof/PajdegCore)
 
-Note: Pajdeg is now available as a pod in CocoaPods. Check out pod "PajdegCore" for the C library version, and "Pajdeg" for the Objective-C wrapped version!
+`Pajdeg` is a C library for modifying existing PDF documents by passing them through a stream with tasks assigned based on object ID's. [Check out the documentation.](http://kallewoof.github.io/pajdeg/)
+
+Note: Pajdeg is now available as a pod in CocoaPods. Check out pod "[PajdegCore](https://github.com/kallewoof/PajdegCore)" for the C library version, and "[Pajdeg](https://github.com/kallewoof/PDObC)" for the Objective-C wrapped version!
 
 Typical usage involves three things:
 
