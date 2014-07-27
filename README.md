@@ -3,6 +3,8 @@ Pajdeg
 
 `Pajdeg` is a C library for modifying existing PDF documents by passing them through a stream with tasks assigned based on object ID's.
 
+Note: Pajdeg is now available as a pod in CocoaPods. Check out pod "PajdegCore" for the C library version, and "Pajdeg" for the Objective-C wrapped version!
+
 Typical usage involves three things:
 
 1. Setting up a `PDPipe` with in- and out paths.
