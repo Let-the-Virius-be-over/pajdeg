@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.7"/>
-<title>Pajdeg: Pajdeg PDF mutation library</title>
+<title>Pajdeg: Globals</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -44,11 +44,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </script>
   <div id="navrow1" class="tabs">
     <ul class="tablist">
-      <li class="current"><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="index.html"><span>Main&#160;Page</span></a></li>
       <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
       <li><a href="modules.html"><span>Modules</span></a></li>
       <li><a href="annotated.html"><span>Data&#160;Structures</span></a></li>
-      <li><a href="files.html"><span>Files</span></a></li>
+      <li class="current"><a href="files.html"><span>Files</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -67,6 +67,23 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
       </li>
     </ul>
   </div>
+  <div id="navrow2" class="tabs2">
+    <ul class="tablist">
+      <li><a href="files.html"><span>File&#160;List</span></a></li>
+      <li class="current"><a href="globals.html"><span>Globals</span></a></li>
+    </ul>
+  </div>
+  <div id="navrow3" class="tabs2">
+    <ul class="tablist">
+      <li><a href="globals.html"><span>All</span></a></li>
+      <li><a href="globals_func.html"><span>Functions</span></a></li>
+      <li><a href="globals_vars.html"><span>Variables</span></a></li>
+      <li><a href="globals_type.html"><span>Typedefs</span></a></li>
+      <li class="current"><a href="globals_enum.html"><span>Enumerations</span></a></li>
+      <li><a href="globals_eval.html"><span>Enumerator</span></a></li>
+      <li><a href="globals_defs.html"><span>Macros</span></a></li>
+    </ul>
+  </div>
 </div><!-- top -->
 <!-- window showing the filter options -->
 <div id="MSearchSelectWindow"
@@ -82,64 +99,64 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </iframe>
 </div>
 
-<div class="header">
-  <div class="headertitle">
-<div class="title">Pajdeg PDF mutation library </div>  </div>
-</div><!--header-->
 <div class="contents">
-<div class="textblock"><h1><a class="anchor" id="intro_sec"></a>
-Introduction</h1>
-<p>Pajdeg is a C library for modifying existing PDF documents by passing them through a stream with tasks assigned based on object ID's, pages, object types, or similar.</p>
-<dl class="section note"><dt>Note</dt><dd>Unless you need to, using a <a class="el" href="a00002.html">wrapper </a> is recommended, as the core C library is fairly low level.</dd></dl>
-<p>Typical usage involves three things:</p>
-<ul>
-<li>Setting up a <a class="el" href="a00021.html#a00159">PDPipe</a> with in- and out paths.</li>
-<li>Adding filters and/or mutator PDTasks to the pipe.</li>
-<li>Executing.</li>
+&#160;<ul>
+<li>pd_auth_event
+: <a class="el" href="a00120.html#ga2a7be2262b6e3129db767b4e5577e88a">PDDefines.h</a>
+</li>
+<li>pd_crypto_method
+: <a class="el" href="a00120.html#gaeac5bac795df98a6d9dfcfd732de9521">PDDefines.h</a>
+</li>
+<li>PDCollectionType
+: <a class="el" href="a00118.html#gabbc7ec27cca915b8ba6584584a34a64c">PDDefines.h</a>
+</li>
+<li>PDFType
+: <a class="el" href="a00136.html#ga69ef241e642b310365656328b8e68c0d">PDDefines.h</a>
+</li>
+<li>PDInstanceType
+: <a class="el" href="a00026.html#ga55c6f9dd711635f465a0a72b89565c9e">PDDefines.h</a>
+</li>
+<li>PDObjectClass
+: <a class="el" href="a00026.html#ga525df8bcb49b8189d1a9fbda4223fad6">PDDefines.h</a>
+</li>
+<li>PDObjectType
+: <a class="el" href="a00026.html#gae4bb034a1a82fb7cf865a96d55f5c5e2">PDDefines.h</a>
+</li>
+<li>PDOperatorState
+: <a class="el" href="a00023.html#ga13eb0c94a00ea31bdbad77a4fa69fd09">PDDefines.h</a>
+</li>
+<li>PDOperatorType
+: <a class="el" href="a00126.html#ga87bd054ede0aaf3397718acef17c5f37">PDDefines.h</a>
+</li>
+<li>PDParserState
+: <a class="el" href="a00021.html#ga8d09d9c7a6bb0a465ceba1e7ce56b081">pd_internal.h</a>
+</li>
+<li>PDPredictorType
+: <a class="el" href="a00134.html#ga10bcd66ef0d6d18291cc4ce65614e41a">PDDefines.h</a>
+</li>
+<li>PDPropertyType
+: <a class="el" href="a00136.html#gaa2f108018ee986118e960c9004e65f44">PDDefines.h</a>
+</li>
+<li>PDScannerSymbolType
+: <a class="el" href="a00021.html#ga963d61c063f8f9c3986a7a0e2b78de5e">pd_internal.h</a>
+</li>
+<li>PDStringType
+: <a class="el" href="a00135.html#gad7fabe5bf68aa7d5f988ca576cff0be8">PDDefines.h</a>
+</li>
+<li>PDTaskResult
+: <a class="el" href="a00136.html#ga91616478cbeb225ea1dc8684f4daaa09">PDDefines.h</a>
+</li>
+<li>PDTwinStreamMethod
+: <a class="el" href="a00137.html#gaf130a3ab8c13e88a11470d189407623a">PDDefines.h</a>
+</li>
+<li>PDXFormat
+: <a class="el" href="a00035.html#ga4a1f3a4c28ecf31eab187c424ccebd9d">PDXTable.h</a>
+</li>
 </ul>
-<p>Tasks can be chained together, and appended to the stream at any time through other tasks, with the caveat that the requested object has not yet passed through the stream.</p>
-<h1><a class="anchor" id="features"></a>
-Features</h1>
-<p>Pajdeg supports the following notable PDF related features:</p>
-<ul>
-<li>Stream compression/decompression (via zlib)</li>
-<li>Predictors</li>
-<li>Standard encryption/decryption (RC4, not AES)</li>
-<li>Object streams (PDF 1.5+ feature)</li>
-<li>PDF catalogs (page-to-object mapping)</li>
-</ul>
-<p>More sophisticated functionality (such as manipulating annotations) can be found in <a class="el" href="a00002.html">wrappers </a>.</p>
-<h1><a class="anchor" id="quick_start"></a>
-Quick Start</h1>
-<p>To get started with Pajdeg, you may want to</p>
-<ul>
-<li><a class="el" href="a00006.html">set it up </a> in your project</li>
-<li>check out the <a class="el" href="a00008.html">quick start page </a></li>
-<li>check out the <a class="el" href="a00031.html">user level module list </a></li>
-</ul>
-<h1><a class="anchor" id="helping_out"></a>
-Helping out</h1>
-<p>One of the design goals with Pajdeg is that it should have minimal dependencies and be as broadly available as possible. As a consequence of this, some core components have been implemented in a rather crude form and are in desperate need of optimizing, in particular</p>
-<ul>
-<li>the binary tree implementation is not balanced (<a class="el" href="a00021.html#a00141">pd_btree</a>)</li>
-<li>the static hash implementation is a bit of a hack</li>
-</ul>
-<p>Beyond the gorey detail stuff, there's also a big need for more, better and/or improved wrappers for other languages!</p>
-<p>And finally, especially if you're not technically inclined but still want to help out, throwing lots and lots of different PDF's at the library and making sure it does the right thing is crucial to taking it to the next step, ensuring it is 100% compatible and functional with all well-formed (and some malformed) PDF's out there.</p>
-<h1><a class="anchor" id="dependencies_sec"></a>
-Dependencies</h1>
-<p>Pajdeg has very few dependencies. While the aim was to have none at all, certain PDFs require compression to function at all.</p>
-<p>Beyond this, Pajdeg does not contain any other dependencies beyond a relatively modern C compiler.</p>
-<h2><a class="anchor" id="libz_subsec"></a>
-libz</h2>
-<p>Pajdeg can use libz for stream compression. Some PDFs, in particular PDFs made using the 1.5+ specification, require libz support to be parsed via Pajdeg, because the cross reference table can be a compressed object stream. If support for this is not desired, libz support can be disabled by removing the PD_SUPPORT_ZLIB definition in <a class="el" href="a00063.html" title="Definitions for the Pajdeg interface. ">PDDefines.h</a>.</p>
-<h1><a class="anchor" id="integrating_sec"></a>
-Integrating</h1>
-<p>Adding Pajdeg to your project can be done by either compiling the static library using the provided Makefile, and putting the library and the .h files into your project, or by adding the .c and .h files directly. </p>
-</div></div><!-- contents -->
+</div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jul 27 2014 13:28:29 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Jul 27 2014 13:28:30 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.7
 </small></address>

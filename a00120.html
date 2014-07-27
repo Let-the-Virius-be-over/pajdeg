@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.7"/>
-<title>Pajdeg: Pajdeg PDF mutation library</title>
+<title>Pajdeg: Algorithm-related</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -44,7 +44,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </script>
   <div id="navrow1" class="tabs">
     <ul class="tablist">
-      <li class="current"><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="index.html"><span>Main&#160;Page</span></a></li>
       <li><a href="pages.html"><span>Related&#160;Pages</span></a></li>
       <li><a href="modules.html"><span>Modules</span></a></li>
       <li><a href="annotated.html"><span>Data&#160;Structures</span></a></li>
@@ -83,60 +83,87 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div>
 
 <div class="header">
+  <div class="summary">
+<a href="#groups">Modules</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
+<a href="#enum-members">Enumerations</a>  </div>
   <div class="headertitle">
-<div class="title">Pajdeg PDF mutation library </div>  </div>
+<div class="title">Algorithm-related</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><h1><a class="anchor" id="intro_sec"></a>
-Introduction</h1>
-<p>Pajdeg is a C library for modifying existing PDF documents by passing them through a stream with tasks assigned based on object ID's, pages, object types, or similar.</p>
-<dl class="section note"><dt>Note</dt><dd>Unless you need to, using a <a class="el" href="a00002.html">wrapper </a> is recommended, as the core C library is fairly low level.</dd></dl>
-<p>Typical usage involves three things:</p>
-<ul>
-<li>Setting up a <a class="el" href="a00021.html#a00159">PDPipe</a> with in- and out paths.</li>
-<li>Adding filters and/or mutator PDTasks to the pipe.</li>
-<li>Executing.</li>
-</ul>
-<p>Tasks can be chained together, and appended to the stream at any time through other tasks, with the caveat that the requested object has not yet passed through the stream.</p>
-<h1><a class="anchor" id="features"></a>
-Features</h1>
-<p>Pajdeg supports the following notable PDF related features:</p>
-<ul>
-<li>Stream compression/decompression (via zlib)</li>
-<li>Predictors</li>
-<li>Standard encryption/decryption (RC4, not AES)</li>
-<li>Object streams (PDF 1.5+ feature)</li>
-<li>PDF catalogs (page-to-object mapping)</li>
-</ul>
-<p>More sophisticated functionality (such as manipulating annotations) can be found in <a class="el" href="a00002.html">wrappers </a>.</p>
-<h1><a class="anchor" id="quick_start"></a>
-Quick Start</h1>
-<p>To get started with Pajdeg, you may want to</p>
-<ul>
-<li><a class="el" href="a00006.html">set it up </a> in your project</li>
-<li>check out the <a class="el" href="a00008.html">quick start page </a></li>
-<li>check out the <a class="el" href="a00031.html">user level module list </a></li>
-</ul>
-<h1><a class="anchor" id="helping_out"></a>
-Helping out</h1>
-<p>One of the design goals with Pajdeg is that it should have minimal dependencies and be as broadly available as possible. As a consequence of this, some core components have been implemented in a rather crude form and are in desperate need of optimizing, in particular</p>
-<ul>
-<li>the binary tree implementation is not balanced (<a class="el" href="a00021.html#a00141">pd_btree</a>)</li>
-<li>the static hash implementation is a bit of a hack</li>
-</ul>
-<p>Beyond the gorey detail stuff, there's also a big need for more, better and/or improved wrappers for other languages!</p>
-<p>And finally, especially if you're not technically inclined but still want to help out, throwing lots and lots of different PDF's at the library and making sure it does the right thing is crucial to taking it to the next step, ensuring it is 100% compatible and functional with all well-formed (and some malformed) PDF's out there.</p>
-<h1><a class="anchor" id="dependencies_sec"></a>
-Dependencies</h1>
-<p>Pajdeg has very few dependencies. While the aim was to have none at all, certain PDFs require compression to function at all.</p>
-<p>Beyond this, Pajdeg does not contain any other dependencies beyond a relatively modern C compiler.</p>
-<h2><a class="anchor" id="libz_subsec"></a>
-libz</h2>
-<p>Pajdeg can use libz for stream compression. Some PDFs, in particular PDFs made using the 1.5+ specification, require libz support to be parsed via Pajdeg, because the cross reference table can be a compressed object stream. If support for this is not desired, libz support can be disabled by removing the PD_SUPPORT_ZLIB definition in <a class="el" href="a00063.html" title="Definitions for the Pajdeg interface. ">PDDefines.h</a>.</p>
-<h1><a class="anchor" id="integrating_sec"></a>
-Integrating</h1>
-<p>Adding Pajdeg to your project can be done by either compiling the static library using the provided Makefile, and putting the library and the .h files into your project, or by adding the .c and .h files directly. </p>
-</div></div><!-- contents -->
+<table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="groups"></a>
+Modules</h2></td></tr>
+<tr class="memitem:a00112"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00112.html">pd_crypto</a></td></tr>
+<tr class="memdesc:a00112"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cryptography related functionality to deal with encrypted PDF content. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00115"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html">pd_stack</a></td></tr>
+<tr class="memdesc:a00115"><td class="mdescLeft">&#160;</td><td class="mdescRight">Simple stack implementation tailored for Pajdeg's purposes. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00132"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00132.html">PDStaticHash</a></td></tr>
+<tr class="memdesc:a00132"><td class="mdescLeft">&#160;</td><td class="mdescRight">A (very) simple hash table implementation. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:ga531df2719ad521b5f8db8087c2e857a7"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="a00032.html">PDSplayTree</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00120.html#ga531df2719ad521b5f8db8087c2e857a7">PDSplayTreeRef</a></td></tr>
+<tr class="separator:ga531df2719ad521b5f8db8087c2e857a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:gaeac5bac795df98a6d9dfcfd732de9521"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00120.html#gaeac5bac795df98a6d9dfcfd732de9521">pd_crypto_method</a> { <b>pd_crypto_method_none</b> = 0, 
+<b>pd_crypto_method_rc4</b> = 1, 
+<b>pd_crypto_method_aesv2</b> = 2
+ }</td></tr>
+<tr class="separator:gaeac5bac795df98a6d9dfcfd732de9521"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2a7be2262b6e3129db767b4e5577e88a"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00120.html#ga2a7be2262b6e3129db767b4e5577e88a">pd_auth_event</a> { <b>pd_auth_event_none</b> = 0, 
+<b>pd_auth_event_docopen</b> = 1
+ }</td></tr>
+<tr class="separator:ga2a7be2262b6e3129db767b4e5577e88a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a class="anchor" id="ga531df2719ad521b5f8db8087c2e857a7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="a00032.html">PDSplayTree</a>* <a class="el" href="a00120.html#ga531df2719ad521b5f8db8087c2e857a7">PDSplayTreeRef</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A binary splay tree implementation. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Enumeration Type Documentation</h2>
+<a class="anchor" id="ga2a7be2262b6e3129db767b4e5577e88a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="a00120.html#ga2a7be2262b6e3129db767b4e5577e88a">pd_auth_event</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Crypto authentication events. </p>
+
+</div>
+</div>
+<a class="anchor" id="gaeac5bac795df98a6d9dfcfd732de9521"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="a00120.html#gaeac5bac795df98a6d9dfcfd732de9521">pd_crypto_method</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Crypto methods. </p>
+
+</div>
+</div>
+</div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
 Generated on Sun Jul 27 2014 13:28:29 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
