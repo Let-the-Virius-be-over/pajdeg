@@ -357,7 +357,7 @@ void PDParserPrepareStreamData(PDParserRef parser, PDObjectRef ob, PDInteger len
         PDStreamFilterRef filter = PDStreamFilterObtain(PDStringEscapedValue(filterName, false), true, filterOpts);
         
         if (NULL == filter) {
-            PDWarn("Unknown filter \"%s\" is ignored.", PDStringEscapedValue(filterName, false));
+            PDNotice("Unknown filter \"%s\" is ignored.", PDStringEscapedValue(filterName, false));
         } else {
             PDInteger allocated;
             char *extractedBuf;
