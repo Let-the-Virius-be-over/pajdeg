@@ -200,6 +200,12 @@ pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, 
 //        PDTwinStreamCutBranch(stream, tb);
 //        PDScannerContextPop();
         
+        if (tb == NULL) {
+            PDWarn("NULL object stream in PDParserLocateAndCreateDefinitionForObjectWithSize() for object #%ld; aborting", obid);
+            PDRelease(obstmObject);
+            return NULL;
+        }
+        
         obstm = PDObjectStreamCreateWithObject(obstmObject);
         PDRelease(obstmObject);
         
@@ -348,6 +354,8 @@ void PDParserFetchStreamLengthFromObjectDictionary(PDParserRef parser, pd_stack 
 
 void PDParserPrepareStreamData(PDParserRef parser, PDObjectRef ob, PDInteger len, PDStringRef filterName, char *rawBuf)
 {
+    PDInteger elen = len;
+    
     if (parser->crypto) {
         pd_crypto_convert(parser->crypto, ob->obid, ob->genid, rawBuf, len);
     }
@@ -357,26 +365,34 @@ void PDParserPrepareStreamData(PDParserRef parser, PDObjectRef ob, PDInteger len
         PDStreamFilterRef filter = PDStreamFilterObtain(PDStringEscapedValue(filterName, false), true, filterOpts);
         
         if (NULL == filter) {
-            PDNotice("Unknown filter \"%s\" is ignored.", PDStringEscapedValue(filterName, false));
+            PDWarn("Unknown filter \"%s\" is ignored.", PDStringEscapedValue(filterName, false));
         } else {
             PDInteger allocated;
             char *extractedBuf;
-            PDStreamFilterApply(filter, (unsigned char *)rawBuf, (unsigned char **)&extractedBuf, len, &len, &allocated);
+            if (! PDStreamFilterApply(filter, (unsigned char *)rawBuf, (unsigned char **)&extractedBuf, len, &elen, &allocated)) {
+                PDNotice("PDStreamFilterApply(%s, <buf>, <&ebuf>, %ld, <olen>, <&alloc>) failed; aborting", PDStringEscapedValue(filterName, true), (unsigned long)len);
+                free(rawBuf);
+                ob->extractedLen = -1;
+                ob->streamBuf = NULL;
+                return;
+            } 
+            
             free(rawBuf);
             rawBuf = extractedBuf;
-            PDRelease(filter);
-            if (allocated == len) {
+            if (allocated == elen) {
                 // we need another byte for \0 in case this is a text stream; this happens very seldom but has to be dealt with
-                PDNotice("{ allocated == len } hit; notify Pajdeg devs if repeated");
-                rawBuf = realloc(rawBuf, len + 1);
+                PDNotice("{ allocated == elen } hit; notify Pajdeg devs if repeated");
+                rawBuf = realloc(rawBuf, elen + 1);
             }
+            
+            PDRelease(filter);
         }
     }
     
     // in order for this line not to sporadically crash, all mallocs of rawBuf (including extractedBuf for filtered streams above) must have used len + 1 up to this point
-    rawBuf[len] = 0;
+    rawBuf[elen] = 0;
     
-    ob->extractedLen = len;
+    ob->extractedLen = elen;
     ob->streamBuf = rawBuf;
 }
 
