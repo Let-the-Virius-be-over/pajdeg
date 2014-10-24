@@ -865,6 +865,11 @@ static inline void PDXTableParseTrailer(PDXI X)
 {
     // if we have no Root or Info yet, grab them if found
     PDDictionaryRef dict = PDInstanceCreateFromComplex(&X->stack);
+    if (dict == NULL) {
+        PDError("Unable to parse trailer (NULL dictionary)");
+        return;
+    }
+    
     if (X->rootRef == NULL && PDDictionaryGetEntry(dict, "Root")) {
         X->rootRef = PDDictionaryGetEntry(dict, "Root");
     }
