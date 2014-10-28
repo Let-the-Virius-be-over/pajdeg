@@ -188,7 +188,6 @@ stack<0x15778480> {
             dict->keys[count] = strdup(key);
             entry = entry->prev;
             if (entry->type == PD_STACK_STRING) {
-                
                 dict->values[count] = PDStringCreate(strdup(entry->info));
                 dict->vstacks[count] = NULL;
             } else {
