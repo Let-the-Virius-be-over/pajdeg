@@ -29,6 +29,7 @@
 #include "PDObjectStream.h"
 #include "pd_internal.h"
 #include "PDState.h"
+#include "PDArray.h"
 #include "pd_pdf_implementation.h"
 #include "pd_stack.h"
 #include "PDTwinStream.h"
@@ -410,7 +411,36 @@ char *PDParserFetchCurrentObjectStream(PDParserRef parser, PDInteger obid)
     PDAssert(parser->state == PDParserStateObjectAppendix);
     
     PDInteger len = parser->streamLen;
-    PDStringRef filterName = PDDictionaryGetEntry(PDObjectGetDictionary(parser->construct), "Filter");
+    PDStringRef filterName = NULL;
+    void *filterValue = PDDictionaryGetEntry(PDObjectGetDictionary(parser->construct), "Filter");
+    PDInstanceType filterType = PDResolve(filterValue);
+    switch (filterType) {
+        case PDInstanceTypeArray:{
+            PDInteger count = PDArrayGetCount(filterValue);
+            if (count == 0) {
+                PDWarn("Null filter (empty array value) encountered");
+            } else {
+                if (count > 1) {
+                    PDInteger cap = 32;
+                    char *buf = malloc(32);
+                    PDArrayPrinter(filterValue, &buf, 0, &cap);
+                    PDWarn("Unsupported chained filter in %s", buf);
+                    free(buf);
+                }
+                filterValue = PDArrayGetElement(filterValue, 0);
+            }
+        } break;
+            
+        case PDInstanceTypeString:
+            break;
+            
+        default:
+            PDWarn("Unsupported filter type %d", filterType);
+            filterValue = NULL;
+            break;
+    }
+    
+    filterName = filterValue;
 
     char *rawBuf = malloc(len + 1);
     PDScannerReadStream(parser->scanner, len, rawBuf, len);
