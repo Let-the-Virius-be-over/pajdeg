@@ -386,6 +386,8 @@ const char *PDStringHexValue(PDStringRef string, PDBool wrap)
 
 char *PDStringTransform(const char *string, PDSize len, PDBool hasPrefix, PDBool hasWrapping, char addPrefix, char addLeft, char addRight)
 {
+    PDAssert(hasPrefix == false || hasPrefix == true);
+    PDAssert(hasWrapping == false || hasWrapping == true);
     // determine offset for copying from string
     PDSize copyoffs = hasPrefix + hasWrapping;
     // determine bytes to copy from string
