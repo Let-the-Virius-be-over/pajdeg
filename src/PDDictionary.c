@@ -37,8 +37,6 @@ void PDDictionaryDestroy(PDDictionaryRef dict)
     for (PDInteger i = dict->count-1; i >= 0; i--) {
         free(dict->keys[i]);
         PDRelease(dict->values[i]);
-//        if (dict->values[i].type > 0)
-//            PDRelease(dict->values[i].value);
         pd_stack_destroy(&dict->vstacks[i]);
     }
     
