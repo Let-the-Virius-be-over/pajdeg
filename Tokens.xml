@@ -1404,6 +1404,26 @@
   </Token>
   <Token>
     <TokenIdentifier>
+      <Name>__deprecated</Name>
+      <APILanguage>unknown</APILanguage>
+      <Type>macro</Type>
+    </TokenIdentifier>
+    <Path>a00063.html</Path>
+    <Anchor>a4e1585cb1b8a465a6a9a702d97bb4ad8</Anchor>
+    <DeclaredIn>PDDefines.h</DeclaredIn>
+  </Token>
+  <Token>
+    <TokenIdentifier>
+      <Name>PD_DEPRECATED</Name>
+      <APILanguage>unknown</APILanguage>
+      <Type>macro</Type>
+    </TokenIdentifier>
+    <Path>a00063.html</Path>
+    <Anchor>a92c2b590bd0389209a6b3bbeea2856ee</Anchor>
+    <DeclaredIn>PDDefines.h</DeclaredIn>
+  </Token>
+  <Token>
+    <TokenIdentifier>
       <Name>PDIntegerFromString</Name>
       <APILanguage>unknown</APILanguage>
       <Type>macro</Type>
@@ -3496,6 +3516,16 @@
     </TokenIdentifier>
     <Path>a00135.html</Path>
     <Anchor>gadc306f2215c74839ec29f59703212f0d</Anchor>
+    <DeclaredIn>PDString.h</DeclaredIn>
+  </Token>
+  <Token>
+    <TokenIdentifier>
+      <Name>PDStringCreateUnescaped</Name>
+      <APILanguage>c</APILanguage>
+      <Type>func</Type>
+    </TokenIdentifier>
+    <Path>a00135.html</Path>
+    <Anchor>ga222b4e1455d7d9729d3b30e29c317209</Anchor>
     <DeclaredIn>PDString.h</DeclaredIn>
   </Token>
   <Token>
@@ -13657,6 +13687,16 @@
     </TokenIdentifier>
     <Path>a00135.html</Path>
     <Anchor>gadc306f2215c74839ec29f59703212f0d</Anchor>
+    <DeclaredIn>PDString.h</DeclaredIn>
+  </Token>
+  <Token>
+    <TokenIdentifier>
+      <Name>PDStringCreateUnescaped</Name>
+      <APILanguage>c</APILanguage>
+      <Type>func</Type>
+    </TokenIdentifier>
+    <Path>a00135.html</Path>
+    <Anchor>ga222b4e1455d7d9729d3b30e29c317209</Anchor>
     <DeclaredIn>PDString.h</DeclaredIn>
   </Token>
   <Token>

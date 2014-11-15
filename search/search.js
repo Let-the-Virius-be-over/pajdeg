@@ -15,7 +15,7 @@ var indexSectionsWithContent =
   5: "p",
   6: "p",
   7: "_p",
-  8: "dfpt",
+  8: "_dfpt",
   9: "acipsu",
   10: "ampqrstv"
 };

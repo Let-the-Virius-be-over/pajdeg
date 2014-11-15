@@ -6127,6 +6127,11 @@
             <Anchor>ga220fbb2356c67fb556ccad76f65721e6</Anchor>
            </Node>
            <Node>
+            <Name>PDStringCreateUnescaped</Name>
+            <Path>a00135.html</Path>
+            <Anchor>ga222b4e1455d7d9729d3b30e29c317209</Anchor>
+           </Node>
+           <Node>
             <Name>PDStringCreateWithHexString</Name>
             <Path>a00135.html</Path>
             <Anchor>ga0b147afa9e5d71c71d72f9a665b27880</Anchor>
@@ -9238,6 +9243,11 @@
             <Path>a00063.html</Path>
             <Subnodes>
              <Node>
+              <Name>__deprecated</Name>
+              <Path>a00063.html</Path>
+              <Anchor>a4e1585cb1b8a465a6a9a702d97bb4ad8</Anchor>
+             </Node>
+             <Node>
               <Name>DEBUG_PDTYPES</Name>
               <Path>a00063.html</Path>
               <Anchor>afb82e989ee12dad058e94acd98888f72</Anchor>
@@ -9251,6 +9261,11 @@
               <Name>PD_ASSERTS</Name>
               <Path>a00063.html</Path>
               <Anchor>accebf3254270492c8a202fea7318e6f4</Anchor>
+             </Node>
+             <Node>
+              <Name>PD_DEPRECATED</Name>
+              <Path>a00063.html</Path>
+              <Anchor>a92c2b590bd0389209a6b3bbeea2856ee</Anchor>
              </Node>
              <Node>
               <Name>PD_SUPPORT_CRYPTO</Name>
@@ -11077,6 +11092,11 @@
               <Anchor>ga840d44adbf18f262603c21189ea4899b</Anchor>
              </Node>
              <Node>
+              <Name>PDStringEscapingCString</Name>
+              <Path>a00135.html</Path>
+              <Anchor>gaf1694a4fb6b0454d7021d5c1a494cc1b</Anchor>
+             </Node>
+             <Node>
               <Name>PDStringWithCString</Name>
               <Path>a00135.html</Path>
               <Anchor>gaa7921a7f38cab981c9d3bbab1abc2f33</Anchor>
@@ -11120,6 +11140,11 @@
               <Name>PDStringCreateFromStringWithType</Name>
               <Path>a00135.html</Path>
               <Anchor>ga220fbb2356c67fb556ccad76f65721e6</Anchor>
+             </Node>
+             <Node>
+              <Name>PDStringCreateUnescaped</Name>
+              <Path>a00135.html</Path>
+              <Anchor>ga222b4e1455d7d9729d3b30e29c317209</Anchor>
              </Node>
              <Node>
               <Name>PDStringCreateWithHexString</Name>

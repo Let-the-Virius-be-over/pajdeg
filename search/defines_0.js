@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['debug_5fpdtypes',['DEBUG_PDTYPES',['../a00063.html#afb82e989ee12dad058e94acd98888f72',1,'PDDefines.h']]]
+  ['_5f_5fdeprecated',['__deprecated',['../a00063.html#a4e1585cb1b8a465a6a9a702d97bb4ad8',1,'PDDefines.h']]]
 ];
