@@ -1,0 +1,30 @@
+$ gcc replace-metadata.c -lz ../libpajdeg.a -o replace-metadata
+$ ./replace-metadata ../testpdf.pdf out.pdf
+creating pipe
+input  : ../testpdf.pdf
+output : out.pdf
+- metadata missing - adding
+- executing pipe
+- performing addMetadata task
+- execution finished (20 objects processed)
+$ ./replace-metadata out.pdf out2.pdf
+creating pipe
+input  : out.pdf
+output : out2.pdf
+- metadata exists - updating
+- executing pipe
+- performing updateMetadata task
+- execution finished (21 objects processed)
+$ diff -a out.pdf out2.pdf
+209c209
+< <</Length 12 >>
+---
+> <</Length 19 >>
+211c211
+< Hello World!
+---
+> Hello Again, World!
+241c241
+< 12497
+---
+> 12504

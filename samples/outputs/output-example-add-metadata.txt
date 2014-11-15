@@ -1,0 +1,11 @@
+$ gcc add-metadata.c -lz ../libpajdeg.a -o add-metadata
+$ ./add-metadata ../testpdf.pdf out.pdf
+creating pipe
+input  : ../testpdf.pdf
+output : out.pdf
+- adding metadata object
+- creating mutator for root object
+- executing pipe operation
+- task 'addMetadata' starting
+- task 'addMetadata' finished updating root object
+- execution finished (20 objects processed)
