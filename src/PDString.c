@@ -748,7 +748,7 @@ PDStringRef PDStringCreateEncrypted(PDStringRef string)
 
 PDStringRef PDStringCreateDecrypted(PDStringRef string)
 {
-    if (NULL == string || NULL == string->ci || ! string->encrypted) return PDRetain(string);
+    if (NULL == string || NULL == string->ci || ! string->encrypted || string->length == 0) return PDRetain(string);
     
     PDSize len;
     const char *data_in = PDStringBinaryValue(string, &len);
