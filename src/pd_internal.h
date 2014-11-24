@@ -607,7 +607,7 @@ struct PDArray {
 #endif
 };
 
-#define PD_USE_HASHMAP
+//#define PD_USE_HASHMAP
 
 /**
  The internal dictionary structure.

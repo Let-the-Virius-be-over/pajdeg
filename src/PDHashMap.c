@@ -15,10 +15,11 @@
 #include "PDArray.h"
 #include "PDString.h"
 
-#define PDHM_PROF // if set, profiling is done (and printed to stdout occasionally) about how well the hash map is performing
+//#define PDHM_PROF // if set, profiling is done (and printed to stdout occasionally) about how well the hash map is performing
 
 #ifdef PDHM_PROF
-static int prof_counter = 0; // cycles 0..1023 and prints profile info at every 0
+#define prof_ctr_mask     1023 // the mask used to cycle
+static int prof_counter = 0;   // cycles 0..1023 and prints profile info at every 0
 
 static unsigned long long 
 creations = 0,              // # of hash map creations
@@ -100,11 +101,12 @@ static inline void prof_report()
 
 #   define  prof(args...) do {\
                 args;\
-                if (!(prof_counter = (prof_counter + 1) & 7))\
+                if (!(prof_counter = (prof_counter + 1) & prof_ctr_mask))\
                     prof_report();\
             } while(0)
 #else
 #   define reg_buck_insert(bucket) 
+#   define reg_buck_delete(bucket) 
 #   define prof(args...) 
 #   define prof_report() 
 #endif
@@ -144,7 +146,7 @@ int PDHashComparatorCString(const char *key1, const char *key2)
     return strcmp(key1, key2);
 }
 #else
-#   define PDHashComparatorCString  (PDHashComparator)strcmp
+#   define PDHashComparatorCString  strcmp
 #endif
 
 #define PD_HASHMAP_DEFAULT_BUCKETS  64
