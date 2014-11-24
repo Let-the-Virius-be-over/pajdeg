@@ -352,6 +352,26 @@ typedef struct PDArray      *PDArrayRef;
 typedef struct PDDictionary *PDDictionaryRef;
 
 /**
+ Hash iterator signature.
+ 
+ An iterator will walk over all inserted items in a hash map. For each item,
+ the iterator is called with the key and value pair as arguments, as well as an optional
+ user info object.
+ 
+ If *shouldStop is set to true, iteration will end even if there are more items.
+ */
+typedef void (*PDHashIterator)(char *key, void *value, void *userInfo, PDBool *shouldStop);
+
+/**
+ A hash map implementation.
+ 
+ @ingroup PDHASHMAP
+ 
+ The hash map construct.
+ */
+typedef struct PDHashMap *PDHashMapRef;
+
+/**
  Crypto methods.
  */
 typedef enum {
@@ -512,6 +532,7 @@ typedef enum {
     PDInstanceTypeDict      = 4,    ///< PDDictionary
     PDInstanceTypeRef       = 5,    ///< PDReference
     PDInstanceTypeObj       = 6,    ///< PDObject
+    PDInstanceTypeHashMap   = 7,    ///< PDHashMap
 } PDInstanceType;
 
 /**

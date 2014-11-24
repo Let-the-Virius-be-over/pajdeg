@@ -26,6 +26,10 @@
 #include "PDString.h"
 #include "pd_internal.h"
 
+#ifdef PD_USE_HASHMAP
+#   include "PDHashMap.h"
+#endif
+
 #define PDDictionaryFetchI(dict, key) \
     PDInteger index; \
     for (index = dict->count-1; index >= 0; index--) \
@@ -34,6 +38,9 @@
 
 void PDDictionaryDestroy(PDDictionaryRef dict)
 {
+#ifdef PD_USE_HASHMAP
+    PDRelease(dict->hm);
+#else
     for (PDInteger i = dict->count-1; i >= 0; i--) {
         free(dict->keys[i]);
         PDRelease(dict->values[i]);
@@ -47,12 +54,15 @@ void PDDictionaryDestroy(PDDictionaryRef dict)
     free(dict->keys);
     free(dict->values);
     free(dict->vstacks);
+#endif
 }
 
 PDDictionaryRef PDDictionaryCreateWithCapacity(PDInteger capacity)
 {
     PDDictionaryRef dict = PDAllocTyped(PDInstanceTypeDict, sizeof(struct PDDictionary), PDDictionaryDestroy, false);
-    
+#ifdef PD_USE_HASHMAP
+    dict->hm = PDHashMapCreate();
+#else    
     if (capacity < 1) capacity = 1;
     
 #ifdef PD_SUPPORT_CRYPTO
@@ -63,11 +73,17 @@ PDDictionaryRef PDDictionaryCreateWithCapacity(PDInteger capacity)
     dict->keys = malloc(sizeof(char *) * capacity);
     dict->values = malloc(sizeof(void *) * capacity);
     dict->vstacks = malloc(sizeof(pd_stack) * capacity);
+#endif
     return dict;
 }
 
 PDDictionaryRef PDDictionaryCreateWithComplex(pd_stack stack)
 {
+#ifdef PD_USE_HASHMAP
+    PDDictionaryRef dict = PDDictionaryCreateWithCapacity(10);
+    PDHashMapAddEntriesFromComplex(dict->hm, stack);
+    return dict;
+#else    
     if (stack == NULL) {
         // empty dictionary
         return PDDictionaryCreateWithCapacity(1);
@@ -201,26 +217,46 @@ stack<0x15778480> {
     pd_stack_set_global_preserve_flag(false);
     
     return dict;
+#endif
 }
 
 void PDDictionaryClear(PDDictionaryRef dictionary)
 {
+#ifdef PD_USE_HASHMAP
+    PDRelease(dictionary->hm);
+    dictionary->hm = PDHashMapCreate();
+#else
     while (dictionary->count > 0)
         PDDictionaryDeleteEntry(dictionary, dictionary->keys[dictionary->count-1]);
+#endif
 }
 
 PDInteger PDDictionaryGetCount(PDDictionaryRef dictionary)
 {
+#ifdef PD_USE_HASHMAP
+    return dictionary->hm->count;
+#else
     return dictionary->count;
+#endif
 }
 
 char **PDDictionaryGetKeys(PDDictionaryRef dictionary)
 {
+#ifdef PD_USE_HASHMAP
+    // we leak here; this code is temporary
+    char **keys = malloc(sizeof(char*) * dictionary->hm->count);
+    PDHashMapPopulateKeys(dictionary->hm, keys);
+    return keys;
+#else
     return dictionary->keys;
+#endif
 }
 
 void *PDDictionaryGetEntry(PDDictionaryRef dictionary, const char *key)
 {
+#ifdef PD_USE_HASHMAP
+    return PDHashMapGet(dictionary->hm, key);
+#else
     PDDictionaryFetchI(dictionary, key);
     if (index < 0) return NULL;
     
@@ -238,16 +274,24 @@ void *PDDictionaryGetEntry(PDDictionaryRef dictionary, const char *key)
     }
     
     return dictionary->values[index];
+#endif
 }
 
 void *PDDictionaryGetTypedEntry(PDDictionaryRef dictionary, const char *key, PDInstanceType type)
 {
+#ifdef PD_USE_HASHMAP
+    void *ctr = PDHashMapGet(dictionary->hm, key);
+#else
     void *ctr = PDDictionaryGetEntry(dictionary, key);
+#endif
     return ctr && PDResolve(ctr) == type ? ctr : NULL;
 }
 
 void PDDictionarySetEntry(PDDictionaryRef dictionary, const char *key, void *value)
 {
+#ifdef PD_USE_HASHMAP
+    PDHashMapSet(dictionary->hm, key, value);
+#else
     PDDictionaryFetchI(dictionary, key);
     if (index == -1) index = dictionary->count;
     
@@ -274,10 +318,14 @@ void PDDictionarySetEntry(PDDictionaryRef dictionary, const char *key, void *val
     
     dictionary->values[index] = PDRetain(value);
     dictionary->vstacks[index] = NULL;
+#endif
 }
 
 void PDDictionaryDeleteEntry(PDDictionaryRef dictionary, const char *key)
 {
+#ifdef PD_USE_HASHMAP
+    PDHashMapDelete(dictionary->hm, key);
+#else
     PDDictionaryFetchI(dictionary, key);
     if (index < 0) return;
     
@@ -290,25 +338,37 @@ void PDDictionaryDeleteEntry(PDDictionaryRef dictionary, const char *key)
         dictionary->values[i] = dictionary->values[i+1];
         dictionary->vstacks[i] = dictionary->vstacks[i+1];
     }
+#endif
 }
 
 char *PDDictionaryToString(PDDictionaryRef dictionary)
 {
+#ifdef PD_USE_HASHMAP
+    return PDHashMapToString(dictionary->hm);
+#else
     PDInteger len = 6 + 20 * dictionary->count;
     char *str = malloc(len);
     PDDictionaryPrinter(dictionary, &str, 0, &len);
     return str;
+#endif
 }
 
 void PDDictionaryPrint(PDDictionaryRef dictionary)
 {
+#ifdef PD_USE_HASHMAP
+    PDHashMapPrint(dictionary->hm);
+#else
     char *str = PDDictionaryToString(dictionary);
     puts(str);
     free(str);
+#endif
 }
 
 PDInteger PDDictionaryPrinter(void *inst, char **buf, PDInteger offs, PDInteger *cap)
 {
+#ifdef PD_USE_HASHMAP
+    return PDHashMapPrinter(((PDDictionaryRef)inst)->hm, buf, offs, cap);
+#else
     PDInstancePrinterInit(PDDictionaryRef, 0, 1);
     PDInteger len = 6 + 20 * i->count;
     PDInstancePrinterRequire(len, len);
@@ -339,26 +399,35 @@ PDInteger PDDictionaryPrinter(void *inst, char **buf, PDInteger offs, PDInteger 
     bv[offs++] = '>';
     bv[offs] = 0;
     return offs;
+#endif
 }
 
 #ifdef PD_SUPPORT_CRYPTO
 
 void PDDictionaryAttachCrypto(PDDictionaryRef dictionary, pd_crypto crypto, PDInteger objectID, PDInteger genNumber)
 {
+#ifdef PD_USE_HASHMAP
+    PDHashMapAttachCrypto(dictionary->hm, crypto, objectID, genNumber);
+#else
     dictionary->ci = PDCryptoInstanceCreate(crypto, objectID, genNumber);
     for (PDInteger i = 0; i < dictionary->count; i++) {
         if (dictionary->values[i]) 
             (*PDInstanceCryptoExchanges[PDResolve(dictionary->values[i])])(dictionary->values[i], dictionary->ci, false);
     }
+#endif
 }
 
 void PDDictionaryAttachCryptoInstance(PDDictionaryRef dictionary, PDCryptoInstanceRef ci, PDBool encrypted)
 {
+#ifdef PD_USE_HASHMAP
+    PDHashMapAttachCryptoInstance(dictionary->hm, ci, encrypted);
+#else
     dictionary->ci = PDRetain(ci);
     for (PDInteger i = 0; i < dictionary->count; i++) {
         if (dictionary->values[i]) 
             (*PDInstanceCryptoExchanges[PDResolve(dictionary->values[i])])(dictionary->values[i], dictionary->ci, false);
     }
+#endif
 }
 
 #endif // PD_SUPPORT_CRYPTO
