@@ -343,15 +343,6 @@ typedef struct pd_stack      *pd_stack;
 typedef struct PDArray      *PDArrayRef;
 
 /**
- A low-performance dictionary implementation.
- 
- @ingroup PDDICTIONARY
- 
- The dictionary construct.
- */
-typedef struct PDDictionary *PDDictionaryRef;
-
-/**
  Hash iterator signature.
  
  An iterator will walk over all inserted items in a hash map. For each item,
@@ -365,11 +356,11 @@ typedef void (*PDHashIterator)(char *key, void *value, void *userInfo, PDBool *s
 /**
  A hash map implementation.
  
- @ingroup PDHASHMAP
+ @ingroup PDDictionary
  
  The hash map construct.
  */
-typedef struct PDHashMap *PDHashMapRef;
+typedef struct PDDictionary *PDDictionaryRef;
 
 /**
  Crypto methods.
@@ -532,7 +523,6 @@ typedef enum {
     PDInstanceTypeDict      = 4,    ///< PDDictionary
     PDInstanceTypeRef       = 5,    ///< PDReference
     PDInstanceTypeObj       = 6,    ///< PDObject
-    PDInstanceTypeHashMap   = 7,    ///< PDHashMap
 } PDInstanceType;
 
 /**

@@ -261,7 +261,7 @@ PDDictionaryRef PDContentStreamPopDictionary(PDContentStreamRef cs, const char *
 {
     void *v;
     PDStringRef key;
-    PDDictionaryRef res = PDDictionaryCreateWithCapacity(3);
+    PDDictionaryRef res = PDDictionaryCreate();
     PDInteger mark = *iptr;
     
     // accept leading '<<'
@@ -279,7 +279,7 @@ PDDictionaryRef PDContentStreamPopDictionary(PDContentStreamRef cs, const char *
                 PDWarn("NULL value in content stream (pop value): using 'null' object");
                 v = PDRetain(PDNullObject);
             }
-            PDDictionarySetEntry(res, PDStringBinaryValue(key, NULL), v);
+            PDDictionarySet(res, PDStringBinaryValue(key, NULL), v);
             PDRelease(key);
             PDRelease(v);
         }

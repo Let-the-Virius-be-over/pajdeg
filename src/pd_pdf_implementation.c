@@ -35,7 +35,7 @@
 #include "PDReference.h"
 #include "PDString.h"
 #include "PDDictionary.h"
-#include "PDHashMap.h"
+#include "PDDictionary.h"
 #include "PDArray.h"
 #include "PDNumber.h"
 #include "PDObject.h"
@@ -916,7 +916,6 @@ void PDStringFromArbitrary(pd_stack *s, PDStringConvRef scv)
 //PDInstanceTypeDict      = 4,    ///< PDDictionary
 //PDInstanceTypeRef       = 5,    ///< PDReference
 //PDInstanceTypeObj       = 6,    ///< PDObject
-//PDInstanceTypeHashMap   = 7,    ///< PDHashMap
 
 PDInteger PDNullPrinter(void *inst, char **buf, PDInteger offs, PDInteger *cap)
 {
@@ -929,11 +928,11 @@ PDInteger PDNullPrinter(void *inst, char **buf, PDInteger offs, PDInteger *cap)
 void PDNullExchange(void *inst, PDCryptoInstanceRef ci, PDBool encrypted)
 {}
 
-PDInstancePrinter PDInstancePrinters [] = {PDNullPrinter, PDNumberPrinter, PDStringPrinter, PDArrayPrinter, PDDictionaryPrinter, PDReferencePrinter, PDObjectPrinter, PDHashMapPrinter};
+PDInstancePrinter PDInstancePrinters [] = {PDNullPrinter, PDNumberPrinter, PDStringPrinter, PDArrayPrinter, PDDictionaryPrinter, PDReferencePrinter, PDObjectPrinter, PDDictionaryPrinter};
 
 #ifdef PD_SUPPORT_CRYPTO
 
-PDInstanceCryptoExchange PDInstanceCryptoExchanges[] = {PDNullExchange, PDNullExchange, (PDInstanceCryptoExchange)PDStringAttachCryptoInstance, (PDInstanceCryptoExchange)PDArrayAttachCryptoInstance, (PDInstanceCryptoExchange)PDDictionaryAttachCryptoInstance, PDNullExchange, PDNullExchange, (PDInstanceCryptoExchange)PDHashMapAttachCryptoInstance};
+PDInstanceCryptoExchange PDInstanceCryptoExchanges[] = {PDNullExchange, PDNullExchange, (PDInstanceCryptoExchange)PDStringAttachCryptoInstance, (PDInstanceCryptoExchange)PDArrayAttachCryptoInstance, (PDInstanceCryptoExchange)PDDictionaryAttachCryptoInstance, PDNullExchange, PDNullExchange, (PDInstanceCryptoExchange)PDDictionaryAttachCryptoInstance};
 
 #endif
 

@@ -607,29 +607,8 @@ struct PDArray {
 #endif
 };
 
-//#define PD_USE_HASHMAP
-
-/**
- The internal dictionary structure.
- */
-struct PDDictionary {
-#ifdef PD_USE_HASHMAP
-    PDHashMapRef hm; // hash map
-#else
-    PDInteger        count;     ///< Number of entries
-    PDInteger        capacity;  ///< Capacity of dictionary
-    char           **keys;      ///< Keys
-    void           **values;    ///< Resolved values
-    pd_stack        *vstacks;   ///< Unresolved values in pd_stack form
-#ifdef PD_SUPPORT_CRYPTO
-    void           **decrypted; ///< Decrypted versions of (encrypted) values
-    PDCryptoInstanceRef ci;     ///< Crypto instance, if dictionary is encrypted
-#endif
-#endif
-};
-
-typedef struct PDHashMapNode *PDHashMapNodeRef;
-struct PDHashMapNode {
+typedef struct PDDictionaryNode *PDDictionaryNodeRef;
+struct PDDictionaryNode {
     char            *key;       ///< the key for this node
     void            *data;      ///< the data
 #ifdef PD_SUPPORT_CRYPTO
@@ -639,16 +618,16 @@ struct PDHashMapNode {
 };
 
 /**
- The internal hash map structure.
+ The internal dictionary structure.
  */
-struct PDHashMap {
+struct PDDictionary {
     PDInteger        count;     ///< Number of entries
     PDInteger        bucketc;   ///< Number of buckets
     PDInteger        bucketm;   ///< Bucket mask
     PDArrayRef      *buckets;   ///< Buckets containing content
     PDArrayRef       populated; ///< Array of buckets which were created (as opposed to remaining NULL due to index never being touched)
 #ifdef PD_SUPPORT_CRYPTO
-    PDCryptoInstanceRef ci;     ///< Crypto instance, if hash map is encrypted
+    PDCryptoInstanceRef ci;     ///< Crypto instance, if dictionary is encrypted
 #endif
 };
 
@@ -849,7 +828,7 @@ struct PDString {
 extern void PDStringAttachCryptoInstance(PDStringRef string, PDCryptoInstanceRef ci, PDBool encrypted);
 extern void PDArrayAttachCryptoInstance(PDArrayRef array, PDCryptoInstanceRef ci, PDBool encrypted);
 extern void PDDictionaryAttachCryptoInstance(PDDictionaryRef dictionary, PDCryptoInstanceRef ci, PDBool encrypted);
-extern void PDHashMapAttachCryptoInstance(PDHashMapRef hm, PDCryptoInstanceRef ci, PDBool encrypted);
+extern void PDDictionaryAttachCryptoInstance(PDDictionaryRef hm, PDCryptoInstanceRef ci, PDBool encrypted);
 
 ///// @name Collection
 //
