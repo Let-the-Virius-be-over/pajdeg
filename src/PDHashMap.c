@@ -288,7 +288,7 @@ stack<0x15778480> {
         entry = as(pd_stack, s->info)->prev;
         
         // entry must be a string; it's the key value
-        char *key = strdup(entry->info);
+        char *key = entry->info;
         entry = entry->prev;
         if (entry->type == PD_STACK_STRING) {
             PDHashMapSet(hm, key, PDStringCreate(strdup(entry->info)));
@@ -444,7 +444,7 @@ void pd_hm_getkeys(char *key, void *val, hm_keygetter *userInfo, PDBool *shouldS
 
 void pd_hm_print(char *key, void *val, hm_printer *p, PDBool *shouldStop)
 {
-    char *bv = *p->bv;
+    char *bv;
     PDInteger *cap = p->cap;
 
     char **buf = p->buf;
