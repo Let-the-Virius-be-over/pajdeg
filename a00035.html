@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.8"/>
-<title>Pajdeg: PDXTable</title>
+<title>Pajdeg: PDStreamFilter</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -88,410 +88,350 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a href="#nested-classes">Data Structures</a> &#124;
 <a href="#define-members">Macros</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
-<a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
-<div class="title">PDXTable<div class="ingroups"><a class="el" href="a00119.html">Internal</a></div></div>  </div>
+<div class="title">PDStreamFilter<div class="ingroups"><a class="el" href="a00118.html">Internal</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>PDF XRef (cross reference) table.  
+<p>The stream filter interface.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="files"></a>
 Files</h2></td></tr>
-<tr class="memitem:a00111"><td class="memItemLeft" align="right" valign="top">file &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00111.html">PDXTable.h</a></td></tr>
+<tr class="memitem:a00097"><td class="memItemLeft" align="right" valign="top">file &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00097.html">PDStreamFilter.h</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Data Structures</h2></td></tr>
-<tr class="memitem:a00173"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a00173">PDXTable</a></td></tr>
-<tr class="separator:a00173"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00168"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a00168">PDStreamFilter</a></td></tr>
+<tr class="separator:a00168"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:ga6bee65464782f30af9cef98f84c1e2c1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga6bee65464782f30af9cef98f84c1e2c1">PDXTableGetTypeForID</a>(table, id)&#160;&#160;&#160;(<a class="el" href="a00035.html#ga77325ef738dc5a3d28a57846a42f0595">PDXType</a>)((table-&gt;xrefs)[id*table-&gt;width])</td></tr>
-<tr class="separator:ga6bee65464782f30af9cef98f84c1e2c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae52e118cfc45f8e3f5f53d2481473fce"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gae52e118cfc45f8e3f5f53d2481473fce">PDXTableSetTypeForID</a>(table, id, t)&#160;&#160;&#160;*(<a class="el" href="a00035.html#ga77325ef738dc5a3d28a57846a42f0595">PDXType</a>*)&amp;((table-&gt;xrefs)[id*table-&gt;width]) = t</td></tr>
-<tr class="separator:gae52e118cfc45f8e3f5f53d2481473fce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad52edd1cb2acb1c50340ca968777c128"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gad52edd1cb2acb1c50340ca968777c128">PDXTableIsIDFree</a>(xtable, id)&#160;&#160;&#160;(<a class="el" href="a00035.html#gga385c44f6fb256e5716a2302a5b940388aacfabf5941005635d12d930e3462fae5">PDXTypeFreed</a> == <a class="el" href="a00035.html#ga6bee65464782f30af9cef98f84c1e2c1">PDXTableGetTypeForID</a>(xtable, id))</td></tr>
-<tr class="separator:gad52edd1cb2acb1c50340ca968777c128"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga062d52195d3fbb9827a1b90de76cd15c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga062d52195d3fbb9827a1b90de76cd15c">PDStreamFilterPrepare</a>(f, buf_in, len_in, buf_out, len_out)</td></tr>
+<tr class="separator:ga062d52195d3fbb9827a1b90de76cd15c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:ga77325ef738dc5a3d28a57846a42f0595"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga77325ef738dc5a3d28a57846a42f0595"></a>
-typedef unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga77325ef738dc5a3d28a57846a42f0595">PDXType</a></td></tr>
-<tr class="memdesc:ga77325ef738dc5a3d28a57846a42f0595"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type representation of an XREF entry. <br /></td></tr>
-<tr class="separator:ga77325ef738dc5a3d28a57846a42f0595"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
-Enumerations</h2></td></tr>
-<tr class="memitem:ga4a1f3a4c28ecf31eab187c424ccebd9d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga4a1f3a4c28ecf31eab187c424ccebd9d">PDXFormat</a> { <a class="el" href="a00035.html#gga4a1f3a4c28ecf31eab187c424ccebd9da0e1384b153c491f6cb9445bda3058fe9">PDXTableFormatText</a> = 0, 
-<a class="el" href="a00035.html#gga4a1f3a4c28ecf31eab187c424ccebd9da325f1e446e9e59f7246407f9a0440ce1">PDXTableFormatBinary</a> = 1
- }</td></tr>
-<tr class="separator:ga4a1f3a4c28ecf31eab187c424ccebd9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga385c44f6fb256e5716a2302a5b940388"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom">{ <a class="el" href="a00035.html#gga385c44f6fb256e5716a2302a5b940388aacfabf5941005635d12d930e3462fae5">PDXTypeFreed</a> = 0, 
-<a class="el" href="a00035.html#gga385c44f6fb256e5716a2302a5b940388a948d3a37d32d6740e1cbbe46acd6e748">PDXTypeUsed</a> = 1, 
-<a class="el" href="a00035.html#gga385c44f6fb256e5716a2302a5b940388af671e13f0a999548e00087347492cd77">PDXTypeComp</a> = 2
- }</td></tr>
-<tr class="separator:ga385c44f6fb256e5716a2302a5b940388"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga25d6a2b08f3a7fcfe3235c0addc49142"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="a00035.html#a00168">PDStreamFilter</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a></td></tr>
+<tr class="separator:ga25d6a2b08f3a7fcfe3235c0addc49142"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7bd60a75374605771efd3cc8789f4b69"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga7bd60a75374605771efd3cc8789f4b69">PDStreamFilterFunc</a> )(<a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a> filter)</td></tr>
+<tr class="separator:ga7bd60a75374605771efd3cc8789f4b69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa9ce95071a3f6498d387364df72709b6"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gaa9ce95071a3f6498d387364df72709b6">PDStreamFilterPrcs</a> )(<a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a> filter)</td></tr>
+<tr class="separator:gaa9ce95071a3f6498d387364df72709b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab0f80c18652c062e2b03a0dc3c76314a"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gab0f80c18652c062e2b03a0dc3c76314a">PDStreamDualFilterConstr</a> )(<a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> inputEnd, <a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> options)</td></tr>
+<tr class="separator:gab0f80c18652c062e2b03a0dc3c76314a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gab747de2b80242abe73ae76c2d5c32080"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00029.html#ga2c4cdb81ea3cd830cbadca665e75fbe3">PDOffset</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gab747de2b80242abe73ae76c2d5c32080">PDXTableGetOffsetForID</a> (<a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> obid)</td></tr>
-<tr class="separator:gab747de2b80242abe73ae76c2d5c32080"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga0a4c67b2a70c5177cc1504ea8dbe1160"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga0a4c67b2a70c5177cc1504ea8dbe1160">PDXTableSetOffsetForID</a> (<a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> obid, <a class="el" href="a00029.html#ga2c4cdb81ea3cd830cbadca665e75fbe3">PDOffset</a> offset)</td></tr>
-<tr class="separator:ga0a4c67b2a70c5177cc1504ea8dbe1160"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5befaaf404064394fd40aad33d277b25"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga5befaaf404064394fd40aad33d277b25">PDXTableGetGenForID</a> (<a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> obid)</td></tr>
-<tr class="separator:ga5befaaf404064394fd40aad33d277b25"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1f48f59f6e408190d927e9c9f70269cb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga1f48f59f6e408190d927e9c9f70269cb">PDXTableSetGenForID</a> (<a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> obid, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> gen)</td></tr>
-<tr class="separator:ga1f48f59f6e408190d927e9c9f70269cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad28eed0ad0217445361d015f5f18a49d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gad28eed0ad0217445361d015f5f18a49d">PDXTableFetchXRefs</a> (<a class="el" href="a00019.html#gaac5205e9bfb0f78710333c894c3d318a">PDParserRef</a> parser)</td></tr>
-<tr class="separator:gad28eed0ad0217445361d015f5f18a49d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf3eeb50f5a826f87d9b1ceea486e81c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gaf3eeb50f5a826f87d9b1ceea486e81c3">PDXTablePassoverXRefEntry</a> (<a class="el" href="a00019.html#gaac5205e9bfb0f78710333c894c3d318a">PDParserRef</a> parser, <a class="el" href="a00021.html#a00143">pd_stack</a> stack, <a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> includeTrailer)</td></tr>
-<tr class="separator:gaf3eeb50f5a826f87d9b1ceea486e81c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5a9b1479578bf89b9ae4c32b01a875a9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga5a9b1479578bf89b9ae4c32b01a875a9">PDXTableInsert</a> (<a class="el" href="a00019.html#gaac5205e9bfb0f78710333c894c3d318a">PDParserRef</a> parser)</td></tr>
-<tr class="separator:ga5a9b1479578bf89b9ae4c32b01a875a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga9c5bd1ada8f5d841d8228e9b7a2e8e7f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga9c5bd1ada8f5d841d8228e9b7a2e8e7f">PDXTableWEntry</a> (<a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table)</td></tr>
-<tr class="separator:ga9c5bd1ada8f5d841d8228e9b7a2e8e7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4168e7da10c47dbd0bb9c53f6b967fca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga4168e7da10c47dbd0bb9c53f6b967fca">PDXTableSetSizes</a> (<a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, unsigned char typeSize, unsigned char offsSize, unsigned char genSize)</td></tr>
-<tr class="separator:ga4168e7da10c47dbd0bb9c53f6b967fca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gafd6d47a58d37661727e3721b92a6c12a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gafd6d47a58d37661727e3721b92a6c12a">PDXTableGrow</a> (<a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, <a class="el" href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> cap)</td></tr>
-<tr class="separator:gafd6d47a58d37661727e3721b92a6c12a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
-Parser</h2></td></tr>
-<tr class="memitem:gaa17a6181053e799e01d965f942e1c87e"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="a00035.html#a00173">PDXTable</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a></td></tr>
-<tr class="separator:gaa17a6181053e799e01d965f942e1c87e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf7f9bad6cd71543bd09f12a427d770f8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gaf7f9bad6cd71543bd09f12a427d770f8">PDStreamFilterCreate</a> (<a class="el" href="a00035.html#ga7bd60a75374605771efd3cc8789f4b69">PDStreamFilterFunc</a> init, <a class="el" href="a00035.html#ga7bd60a75374605771efd3cc8789f4b69">PDStreamFilterFunc</a> done, <a class="el" href="a00035.html#ga7bd60a75374605771efd3cc8789f4b69">PDStreamFilterFunc</a> begin, <a class="el" href="a00035.html#ga7bd60a75374605771efd3cc8789f4b69">PDStreamFilterFunc</a> proceed, <a class="el" href="a00035.html#gaa9ce95071a3f6498d387364df72709b6">PDStreamFilterPrcs</a> createInversion, <a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> options)</td></tr>
+<tr class="separator:gaf7f9bad6cd71543bd09f12a427d770f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5373c2d30905bf9d5bb8e94c9c2300a9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga5373c2d30905bf9d5bb8e94c9c2300a9">PDStreamFilterRegisterDualFilter</a> (const char *name, <a class="el" href="a00035.html#gab0f80c18652c062e2b03a0dc3c76314a">PDStreamDualFilterConstr</a> constr)</td></tr>
+<tr class="separator:ga5373c2d30905bf9d5bb8e94c9c2300a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga334d72332c0cc3569e44561433fc0699"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga334d72332c0cc3569e44561433fc0699">PDStreamFilterObtain</a> (const char *name, <a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> inputEnd, <a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> options)</td></tr>
+<tr class="separator:ga334d72332c0cc3569e44561433fc0699"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf430de54b07875ef634d0fcb392de92b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gaf430de54b07875ef634d0fcb392de92b">PDStreamFilterAppendFilter</a> (<a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a> filter, <a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a> next)</td></tr>
+<tr class="separator:gaf430de54b07875ef634d0fcb392de92b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae50c00d47243861b038f43f1fb2492a9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gae50c00d47243861b038f43f1fb2492a9">PDStreamFilterInit</a> (<a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a> filter)</td></tr>
+<tr class="separator:gae50c00d47243861b038f43f1fb2492a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga465d5c9b724357688acacd3f253cf9ca"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga465d5c9b724357688acacd3f253cf9ca">PDStreamFilterDone</a> (<a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a> filter)</td></tr>
+<tr class="separator:ga465d5c9b724357688acacd3f253cf9ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa21ffd4393420f01197243e4ab4f4186"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gaa21ffd4393420f01197243e4ab4f4186">PDStreamFilterBegin</a> (<a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a> filter)</td></tr>
+<tr class="separator:gaa21ffd4393420f01197243e4ab4f4186"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacb46a83905f0f00bf86c43c1ff086dda"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gacb46a83905f0f00bf86c43c1ff086dda">PDStreamFilterProceed</a> (<a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a> filter)</td></tr>
+<tr class="separator:gacb46a83905f0f00bf86c43c1ff086dda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa9c03b79cec5cc4e024d7e23de2f57b3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gaa9c03b79cec5cc4e024d7e23de2f57b3">PDStreamFilterApply</a> (<a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a> filter, unsigned char *src, unsigned char **dstPtr, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> len, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *newlenPtr, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *allocatedlenPtr)</td></tr>
+<tr class="separator:gaa9c03b79cec5cc4e024d7e23de2f57b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac22272bc8c551b654651fd2aa98ff7e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gac22272bc8c551b654651fd2aa98ff7e0">PDStreamFilterCreateInversionForFilter</a> (<a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a> filter)</td></tr>
+<tr class="separator:gac22272bc8c551b654651fd2aa98ff7e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga92f9f996cba24f0c06d64826ddf592ac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga92f9f996cba24f0c06d64826ddf592ac">PDStreamFilterAlloc</a> (void)</td></tr>
+<tr class="separator:ga92f9f996cba24f0c06d64826ddf592ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p>PDF XRef (cross reference) table. </p>
+<p>The stream filter interface. </p>
+<p>Stream filters are used to read or write content that is filtered in some way, such as FlateDecode streams (compressed).</p>
+<h1><a class="anchor" id="filter_reg"></a>
+Globally registered filters</h1>
+<p>Filters can be registered globally using <a class="el" href="a00035.html#ga5373c2d30905bf9d5bb8e94c9c2300a9">PDStreamFilterRegisterDualFilter()</a> and be accessed from anywhere via <a class="el" href="a00035.html#ga334d72332c0cc3569e44561433fc0699">PDStreamFilterObtain()</a>.</p>
+<p>By default, if PD_SUPPORT_ZLIB is defined, the first call to <a class="el" href="a00114.html#gac8601ec4c57f5018e35f248fcd88e043">pd_pdf_implementation_use()</a> will permanently register two filters, "FlateDecode" and "Predictor".</p>
+<p>Registered filters can be overridden by registering a filter with the same name as an already existing one &ndash; the most recently registered filter always takes precedence.</p>
+<h1><a class="anchor" id="filter_chains"></a>
+Chaining filters together</h1>
+<p>Filters can be chained together by linking them to each other via the nextFilter property.</p>
+<p>Some filters will hook child filters up automatically if they are passed options that they recognize.</p>
+<p>The FlateDecode (compression) filter will add a Predictor filter to itself, if initialized with options that include the key "Predictor".</p>
+<p>This goes both ways:</p>
+<ul>
+<li>if a FlateDecode compression filter is created with Predictor options, it will replace itself with a Predictor filter and attach a FlateDecode filter replacing itself to the Predictor</li>
+<li>if a FlateDecode decompression filter is created with Predictor options, it will add an Unpredictor filter to itself.</li>
+</ul>
+<p>Chained filters are transparent to the caller, in the sense that the first filter in the chain holds the output buffer and capacity for the whole filter chain.</p>
+<dl class="section note"><dt>Note</dt><dd>Chained filters are an extension mechanism enabled via <a class="el" href="a00035.html#gaa21ffd4393420f01197243e4ab4f4186">PDStreamFilterBegin()</a> and <a class="el" href="a00035.html#gacb46a83905f0f00bf86c43c1ff086dda">PDStreamFilterProceed()</a>. Calling a filter's begin or proceed function pointers directly will only execute that filter.</dd></dl>
+<h1><a class="anchor" id="filter_dual"></a>
+Dual filters and inversion</h1>
+<p>Currently all filters are, but need not be, dual. This means all filters come in pairs complementing each other, so that if data is passed into one and through the other, presuming the options are identical for both, the data remains unmodified.</p>
+<p>FlateDecode has the compression (inflate) and decompression (deflate) filters, and Predictor has the predict and unpredict filters.</p>
+<p>A non-dual filter must return NULL for the unsupported method (input or output) in the dual filter construction callback. There is no such thing as a non dual filter construction callback.</p>
+<p>All filters are, but again, need not be, inversible. This means the filter has the means to create a new filter that is its inverse, including the correct filter options.</p>
+<p>Chained filters can also be inversed, if all filters in the chain can be inversed. A PNG_UP (6 col) predictor with a FlateDecode compressor attached to it is laid out as such</p>
+<div class="fragment"><div class="line">encode            = [filter: Predictor-Predictor &lt;Strategy PNG_UP, Columns 6&gt;]</div>
+<div class="line">encode.nextFilter = [filter: FlateDecode-Compression]</div>
+</div><!-- fragment --><p>Setting <code>decode</code> to the results of <a class="el" href="a00035.html#gac22272bc8c551b654651fd2aa98ff7e0">PDStreamFilterCreateInversionForFilter()</a> for <code>encode</code> produces</p>
+<div class="fragment"><div class="line">decode            = [filter: FlateDecode-Decompression]</div>
+<div class="line">decode.nextFilter = [filter: Predictor-Unpredictor &lt;Strategy PNG_UP, Columns 6&gt;]</div>
+</div><!-- fragment --><p>Passing plaintext data into <code>encode</code> would produce predictor-filtered compressed data, and passing that data into <code>decode</code> gives back the original plaintext data.</p>
+<p>Using the inversion mechanism is strongly recommended when modifying filtered content via Pajdeg, rather than setting up two filter chains manually, as the inverter code evolves with the filters (while manual code stays the same).</p>
+<dl class="section note"><dt>Note</dt><dd>Chained filter inversion is an extension mechanism enabled via <a class="el" href="a00035.html#gac22272bc8c551b654651fd2aa98ff7e0">PDStreamFilterCreateInversionForFilter()</a>. Calling a filter's createInversion function directly will produce an inversion for that filter only, excluding its nextFilter chain. </dd></dl>
 <hr/><h2 class="groupheader">Data Structure Documentation</h2>
-<a name="a00173" id="a00173"></a>
+<a name="a00168" id="a00168"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">struct PDXTable</td>
+          <td class="memname">struct PDStreamFilter</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<div class="textblock"><p>PDF XRef (cross reference) table </p>
+<div class="textblock"><p>The stream filter struct. </p>
 </div><table class="memberdecls">
 <tr><td colspan="2"><h3>Data Fields</h3></td></tr>
-<tr class="memitem:a450add44995a8955383fd4277b52bc1c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a450add44995a8955383fd4277b52bc1c"></a>
-<a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><b>allocx</b></td></tr>
-<tr class="separator:a450add44995a8955383fd4277b52bc1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac2440f26adec7a4d762ea51be915b0a8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac2440f26adec7a4d762ea51be915b0a8"></a>
-<a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ac2440f26adec7a4d762ea51be915b0a8">obid</a></td></tr>
-<tr class="memdesc:ac2440f26adec7a4d762ea51be915b0a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">object containing this XRef, if binary (text XRefs are not proper objects) <br /></td></tr>
-<tr class="separator:ac2440f26adec7a4d762ea51be915b0a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ec1469095cf9b89873a3ea08b7a2f74"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a4ec1469095cf9b89873a3ea08b7a2f74"></a>
-char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a4ec1469095cf9b89873a3ea08b7a2f74">xrefs</a></td></tr>
-<tr class="memdesc:a4ec1469095cf9b89873a3ea08b7a2f74"><td class="mdescLeft">&#160;</td><td class="mdescRight">XRef entries stored as a chunk of memory. <br /></td></tr>
-<tr class="separator:a4ec1469095cf9b89873a3ea08b7a2f74"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9ee00cdb7c12c9478fc2b8e87d6f221e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9ee00cdb7c12c9478fc2b8e87d6f221e"></a>
-<a class="el" href="a00035.html#ga4a1f3a4c28ecf31eab187c424ccebd9d">PDXFormat</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a9ee00cdb7c12c9478fc2b8e87d6f221e">format</a></td></tr>
-<tr class="memdesc:a9ee00cdb7c12c9478fc2b8e87d6f221e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Original format of this entry, which can be text (PDF 1.4-) or binary (PDF 1.5+). Internally, there is no difference to how the data is maintained, but Pajdeg will use the same format used in the original in its own output. <br /></td></tr>
-<tr class="separator:a9ee00cdb7c12c9478fc2b8e87d6f221e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9a41734382222d259af8f05905f678aa"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9a41734382222d259af8f05905f678aa"></a>
-<a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a9a41734382222d259af8f05905f678aa">linearized</a></td></tr>
-<tr class="memdesc:a9a41734382222d259af8f05905f678aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">If set, unexpected XREF entries in the PDF are silently ignored by the parser. <br /></td></tr>
-<tr class="separator:a9a41734382222d259af8f05905f678aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeb84700d19e9fdd4355cafe1a8036751"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aeb84700d19e9fdd4355cafe1a8036751"></a>
-<a class="el" href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#aeb84700d19e9fdd4355cafe1a8036751">cap</a></td></tr>
-<tr class="memdesc:aeb84700d19e9fdd4355cafe1a8036751"><td class="mdescLeft">&#160;</td><td class="mdescRight">Capacity of the table's xrefs buffer, in entries. <br /></td></tr>
-<tr class="separator:aeb84700d19e9fdd4355cafe1a8036751"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad5ed3c62ba769f4dd4c2cc6325cd73cc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad5ed3c62ba769f4dd4c2cc6325cd73cc"></a>
-<a class="el" href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ad5ed3c62ba769f4dd4c2cc6325cd73cc">count</a></td></tr>
-<tr class="memdesc:ad5ed3c62ba769f4dd4c2cc6325cd73cc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Number of objects held by the XRef. <br /></td></tr>
-<tr class="separator:ad5ed3c62ba769f4dd4c2cc6325cd73cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a600fc4d5362da429f86508de9b28de99"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a600fc4d5362da429f86508de9b28de99"></a>
-<a class="el" href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a600fc4d5362da429f86508de9b28de99">pos</a></td></tr>
-<tr class="memdesc:a600fc4d5362da429f86508de9b28de99"><td class="mdescLeft">&#160;</td><td class="mdescRight">Byte-wise position in the PDF where the XRef (and subsequent trailer, if text format) begins; reaching this point means the XRef ceases to apply. <br /></td></tr>
-<tr class="separator:a600fc4d5362da429f86508de9b28de99"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9f0ca3b8945291272bed4c178841feee"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a9f0ca3b8945291272bed4c178841feee"></a>
-<a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a9f0ca3b8945291272bed4c178841feee">prev</a></td></tr>
-<tr class="memdesc:a9f0ca3b8945291272bed4c178841feee"><td class="mdescLeft">&#160;</td><td class="mdescRight">previous (older) table (mostly debug related) <br /></td></tr>
-<tr class="separator:a9f0ca3b8945291272bed4c178841feee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae028060ac9648f9c1e322b59b31c93d0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae028060ac9648f9c1e322b59b31c93d0"></a>
-<a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ae028060ac9648f9c1e322b59b31c93d0">next</a></td></tr>
-<tr class="memdesc:ae028060ac9648f9c1e322b59b31c93d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">next (newer) table (mostly debug related) <br /></td></tr>
-<tr class="separator:ae028060ac9648f9c1e322b59b31c93d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3ad4140b85e0dceac0e7c50c5ebb98aa"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3ad4140b85e0dceac0e7c50c5ebb98aa"></a>
-<a class="el" href="a00029.html#ga2c4cdb81ea3cd830cbadca665e75fbe3">PDOffset</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a3ad4140b85e0dceac0e7c50c5ebb98aa">offsCap</a></td></tr>
-<tr class="memdesc:a3ad4140b85e0dceac0e7c50c5ebb98aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">threshold for offsets using current offsSize <br /></td></tr>
-<tr class="separator:a3ad4140b85e0dceac0e7c50c5ebb98aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0b8d71f13150ed677b60a953aa208f63"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0b8d71f13150ed677b60a953aa208f63"></a>
-unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a0b8d71f13150ed677b60a953aa208f63">typeSize</a></td></tr>
-<tr class="memdesc:a0b8d71f13150ed677b60a953aa208f63"><td class="mdescLeft">&#160;</td><td class="mdescRight">type size, current implementation requires this to be 1 <br /></td></tr>
-<tr class="separator:a0b8d71f13150ed677b60a953aa208f63"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7acae29fbc2784d837a13414af48ecf7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7acae29fbc2784d837a13414af48ecf7"></a>
-unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a7acae29fbc2784d837a13414af48ecf7">offsSize</a></td></tr>
-<tr class="memdesc:a7acae29fbc2784d837a13414af48ecf7"><td class="mdescLeft">&#160;</td><td class="mdescRight">offset size <br /></td></tr>
-<tr class="separator:a7acae29fbc2784d837a13414af48ecf7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abf3728e8f2f8ecb6658f5bee1d9bb5c2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="abf3728e8f2f8ecb6658f5bee1d9bb5c2"></a>
-unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#abf3728e8f2f8ecb6658f5bee1d9bb5c2">genSize</a></td></tr>
-<tr class="memdesc:abf3728e8f2f8ecb6658f5bee1d9bb5c2"><td class="mdescLeft">&#160;</td><td class="mdescRight">gen ID size <br /></td></tr>
-<tr class="separator:abf3728e8f2f8ecb6658f5bee1d9bb5c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad420f617733c11f1ec96e3a675a68f31"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad420f617733c11f1ec96e3a675a68f31"></a>
-unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ad420f617733c11f1ec96e3a675a68f31">typeAlign</a></td></tr>
-<tr class="memdesc:ad420f617733c11f1ec96e3a675a68f31"><td class="mdescLeft">&#160;</td><td class="mdescRight">type align <br /></td></tr>
-<tr class="separator:ad420f617733c11f1ec96e3a675a68f31"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a62494c129330189eddcd23d3ba5b395a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a62494c129330189eddcd23d3ba5b395a"></a>
-unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a62494c129330189eddcd23d3ba5b395a">offsAlign</a></td></tr>
-<tr class="memdesc:a62494c129330189eddcd23d3ba5b395a"><td class="mdescLeft">&#160;</td><td class="mdescRight">offset align <br /></td></tr>
-<tr class="separator:a62494c129330189eddcd23d3ba5b395a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1d3da48202eb3135774b9f50b65dceb4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1d3da48202eb3135774b9f50b65dceb4"></a>
-unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a1d3da48202eb3135774b9f50b65dceb4">genAlign</a></td></tr>
-<tr class="memdesc:a1d3da48202eb3135774b9f50b65dceb4"><td class="mdescLeft">&#160;</td><td class="mdescRight">gen ID align <br /></td></tr>
-<tr class="separator:a1d3da48202eb3135774b9f50b65dceb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af1f49f9b9315cb27689c860da5eeeb97"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af1f49f9b9315cb27689c860da5eeeb97"></a>
-unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#af1f49f9b9315cb27689c860da5eeeb97">width</a></td></tr>
-<tr class="memdesc:af1f49f9b9315cb27689c860da5eeeb97"><td class="mdescLeft">&#160;</td><td class="mdescRight">width of table entry <br /></td></tr>
-<tr class="separator:af1f49f9b9315cb27689c860da5eeeb97"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a763a9e165a42bea86d9f7c766c9b2010"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a763a9e165a42bea86d9f7c766c9b2010"></a>
-<a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a763a9e165a42bea86d9f7c766c9b2010">w</a></td></tr>
-<tr class="memdesc:a763a9e165a42bea86d9f7c766c9b2010"><td class="mdescLeft">&#160;</td><td class="mdescRight">The W entry, if set. <br /></td></tr>
-<tr class="separator:a763a9e165a42bea86d9f7c766c9b2010"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c3d65a13ed8c83dc0026c2dcf5bfd39"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3c3d65a13ed8c83dc0026c2dcf5bfd39"></a>
+<a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a3c3d65a13ed8c83dc0026c2dcf5bfd39">initialized</a></td></tr>
+<tr class="memdesc:a3c3d65a13ed8c83dc0026c2dcf5bfd39"><td class="mdescLeft">&#160;</td><td class="mdescRight">Determines if filter was set up or not. <br /></td></tr>
+<tr class="separator:a3c3d65a13ed8c83dc0026c2dcf5bfd39"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a414e806602fa7cdfcf30bcd0dbcabd64"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a414e806602fa7cdfcf30bcd0dbcabd64"></a>
+<a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a414e806602fa7cdfcf30bcd0dbcabd64">compatible</a></td></tr>
+<tr class="memdesc:a414e806602fa7cdfcf30bcd0dbcabd64"><td class="mdescLeft">&#160;</td><td class="mdescRight">If false after initialization, the filter initialized fine but encountered compatibility issues that could potentially cause problems. <br /></td></tr>
+<tr class="separator:a414e806602fa7cdfcf30bcd0dbcabd64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afb57a66c50abf502b88050c08f11a61c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afb57a66c50abf502b88050c08f11a61c"></a>
+<a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#afb57a66c50abf502b88050c08f11a61c">needsInput</a></td></tr>
+<tr class="memdesc:afb57a66c50abf502b88050c08f11a61c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the filter needs data. If true, its input buffer must not be modified. <br /></td></tr>
+<tr class="separator:afb57a66c50abf502b88050c08f11a61c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae1c796041903d73d74c331bbc7faa9bf"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ae1c796041903d73d74c331bbc7faa9bf"></a>
+<a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ae1c796041903d73d74c331bbc7faa9bf">hasInput</a></td></tr>
+<tr class="memdesc:ae1c796041903d73d74c331bbc7faa9bf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the filter has pending input that, for capacity reasons, has not been added to the buffer yet. <br /></td></tr>
+<tr class="separator:ae1c796041903d73d74c331bbc7faa9bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a962b93a2fd954b4c2c55fa9c6c1bf017"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a962b93a2fd954b4c2c55fa9c6c1bf017"></a>
+<a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a962b93a2fd954b4c2c55fa9c6c1bf017">finished</a></td></tr>
+<tr class="memdesc:a962b93a2fd954b4c2c55fa9c6c1bf017"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the filter is finished. <br /></td></tr>
+<tr class="separator:a962b93a2fd954b4c2c55fa9c6c1bf017"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b09d12747c14941a3741a9a7cdcfe4f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1b09d12747c14941a3741a9a7cdcfe4f"></a>
+<a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a1b09d12747c14941a3741a9a7cdcfe4f">failing</a></td></tr>
+<tr class="memdesc:a1b09d12747c14941a3741a9a7cdcfe4f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the filter is failing to handle its input. <br /></td></tr>
+<tr class="separator:a1b09d12747c14941a3741a9a7cdcfe4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a576b53e612f62b4b5575a57c7f0b5de4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a576b53e612f62b4b5575a57c7f0b5de4"></a>
+<a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a576b53e612f62b4b5575a57c7f0b5de4">options</a></td></tr>
+<tr class="memdesc:a576b53e612f62b4b5575a57c7f0b5de4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Filter options. <br /></td></tr>
+<tr class="separator:a576b53e612f62b4b5575a57c7f0b5de4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5cd74fba246289afa8481bed5d214d75"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5cd74fba246289afa8481bed5d214d75"></a>
+void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a5cd74fba246289afa8481bed5d214d75">data</a></td></tr>
+<tr class="memdesc:a5cd74fba246289afa8481bed5d214d75"><td class="mdescLeft">&#160;</td><td class="mdescRight">User info object. <br /></td></tr>
+<tr class="separator:a5cd74fba246289afa8481bed5d214d75"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af67d1a1c0ace56b667f9d815c42070d6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af67d1a1c0ace56b667f9d815c42070d6"></a>
+unsigned char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#af67d1a1c0ace56b667f9d815c42070d6">bufIn</a></td></tr>
+<tr class="memdesc:af67d1a1c0ace56b667f9d815c42070d6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Input buffer. <br /></td></tr>
+<tr class="separator:af67d1a1c0ace56b667f9d815c42070d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a69dbff145fade84f4a2045c462ff5ad7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a69dbff145fade84f4a2045c462ff5ad7"></a>
+unsigned char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a69dbff145fade84f4a2045c462ff5ad7">bufOut</a></td></tr>
+<tr class="memdesc:a69dbff145fade84f4a2045c462ff5ad7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Output buffer. <br /></td></tr>
+<tr class="separator:a69dbff145fade84f4a2045c462ff5ad7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2b5b12319200c27b77850b2f66937fe6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2b5b12319200c27b77850b2f66937fe6"></a>
+<a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a2b5b12319200c27b77850b2f66937fe6">bufInAvailable</a></td></tr>
+<tr class="memdesc:a2b5b12319200c27b77850b2f66937fe6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Available data. <br /></td></tr>
+<tr class="separator:a2b5b12319200c27b77850b2f66937fe6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a559ea31f4b6ee5729ca8ca90d7de867f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a559ea31f4b6ee5729ca8ca90d7de867f"></a>
+<a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a559ea31f4b6ee5729ca8ca90d7de867f">bufOutCapacity</a></td></tr>
+<tr class="memdesc:a559ea31f4b6ee5729ca8ca90d7de867f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Output buffer capacity. <br /></td></tr>
+<tr class="separator:a559ea31f4b6ee5729ca8ca90d7de867f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3868e0e543834c811f783e23fdf85365"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3868e0e543834c811f783e23fdf85365"></a>
+<a class="el" href="a00035.html#ga7bd60a75374605771efd3cc8789f4b69">PDStreamFilterFunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a3868e0e543834c811f783e23fdf85365">init</a></td></tr>
+<tr class="memdesc:a3868e0e543834c811f783e23fdf85365"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialization function. Called once before first use. <br /></td></tr>
+<tr class="separator:a3868e0e543834c811f783e23fdf85365"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b24bd0ebaee987ef4e1ded7f0b7e45f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a6b24bd0ebaee987ef4e1ded7f0b7e45f"></a>
+<a class="el" href="a00035.html#ga7bd60a75374605771efd3cc8789f4b69">PDStreamFilterFunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a6b24bd0ebaee987ef4e1ded7f0b7e45f">done</a></td></tr>
+<tr class="memdesc:a6b24bd0ebaee987ef4e1ded7f0b7e45f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Deinitialization function. Called once after last use. <br /></td></tr>
+<tr class="separator:a6b24bd0ebaee987ef4e1ded7f0b7e45f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af15579dd2baff5a2b3260804bb3713c5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af15579dd2baff5a2b3260804bb3713c5"></a>
+<a class="el" href="a00035.html#ga7bd60a75374605771efd3cc8789f4b69">PDStreamFilterFunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#af15579dd2baff5a2b3260804bb3713c5">begin</a></td></tr>
+<tr class="memdesc:af15579dd2baff5a2b3260804bb3713c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Processing function. Called any number of times, at most once per new input buffer. <br /></td></tr>
+<tr class="separator:af15579dd2baff5a2b3260804bb3713c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaf5bdee57a1a213999d61509b6487afb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aaf5bdee57a1a213999d61509b6487afb"></a>
+<a class="el" href="a00035.html#ga7bd60a75374605771efd3cc8789f4b69">PDStreamFilterFunc</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#aaf5bdee57a1a213999d61509b6487afb">proceed</a></td></tr>
+<tr class="memdesc:aaf5bdee57a1a213999d61509b6487afb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Proceed function. Called any number of times to request more output from last begin call. <br /></td></tr>
+<tr class="separator:aaf5bdee57a1a213999d61509b6487afb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab13af10110d61b43f549807106309a55"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab13af10110d61b43f549807106309a55"></a>
+<a class="el" href="a00035.html#gaa9ce95071a3f6498d387364df72709b6">PDStreamFilterPrcs</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ab13af10110d61b43f549807106309a55">createInversion</a></td></tr>
+<tr class="memdesc:ab13af10110d61b43f549807106309a55"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inversion function. Returns, if possible, a filter chain that reverts the current filter. <br /></td></tr>
+<tr class="separator:ab13af10110d61b43f549807106309a55"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a091abd9c43831b3749d33e49a9833362"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a091abd9c43831b3749d33e49a9833362"></a>
+<a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a091abd9c43831b3749d33e49a9833362">nextFilter</a></td></tr>
+<tr class="memdesc:a091abd9c43831b3749d33e49a9833362"><td class="mdescLeft">&#160;</td><td class="mdescRight">The next filter that should receive the output end of this filter as its input, or NULL if no such requirement exists. <br /></td></tr>
+<tr class="separator:a091abd9c43831b3749d33e49a9833362"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad4a9961182c5c7b8faa51e72b67fea0f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ad4a9961182c5c7b8faa51e72b67fea0f"></a>
+float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ad4a9961182c5c7b8faa51e72b67fea0f">growthHint</a></td></tr>
+<tr class="memdesc:ad4a9961182c5c7b8faa51e72b67fea0f"><td class="mdescLeft">&#160;</td><td class="mdescRight">The growth hint is an indicator for how the filter expects the size of its resulting data to be relative to the unfiltered data. <br /></td></tr>
+<tr class="separator:ad4a9961182c5c7b8faa51e72b67fea0f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab67bb5b8bbbf7379302a9f034d69ff30"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ab67bb5b8bbbf7379302a9f034d69ff30"></a>
+unsigned char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ab67bb5b8bbbf7379302a9f034d69ff30">bufOutOwned</a></td></tr>
+<tr class="memdesc:ab67bb5b8bbbf7379302a9f034d69ff30"><td class="mdescLeft">&#160;</td><td class="mdescRight">Internal output buffer, that will be freed on destruction. This is used internally for chained filters. <br /></td></tr>
+<tr class="separator:ab67bb5b8bbbf7379302a9f034d69ff30"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aceaf279e75fca5e450d42a4b6a913f2a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="aceaf279e75fca5e450d42a4b6a913f2a"></a>
+<a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#aceaf279e75fca5e450d42a4b6a913f2a">bufOutOwnedCapacity</a></td></tr>
+<tr class="memdesc:aceaf279e75fca5e450d42a4b6a913f2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Capacity of internal output buffer. <br /></td></tr>
+<tr class="separator:aceaf279e75fca5e450d42a4b6a913f2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 
 </div>
 </div>
 <h2 class="groupheader">Macro Definition Documentation</h2>
-<a class="anchor" id="ga6bee65464782f30af9cef98f84c1e2c1"></a>
+<a class="anchor" id="ga062d52195d3fbb9827a1b90de76cd15c"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define PDXTableGetTypeForID</td>
+          <td class="memname">#define PDStreamFilterPrepare</td>
           <td>(</td>
           <td class="paramtype">&#160;</td>
-          <td class="paramname">table, </td>
+          <td class="paramname">f, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">&#160;</td>
-          <td class="paramname">id&#160;</td>
+          <td class="paramname">buf_in, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">len_in, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">buf_out, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">len_out&#160;</td>
         </tr>
         <tr>
           <td></td>
           <td>)</td>
-          <td></td><td>&#160;&#160;&#160;(<a class="el" href="a00035.html#ga77325ef738dc5a3d28a57846a42f0595">PDXType</a>)((table-&gt;xrefs)[id*table-&gt;width])</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Get the type for the given object.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">xrefs</td><td>The XREF buffer </td></tr>
-    <tr><td class="paramname">id</td><td>The object ID. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a class="anchor" id="gad52edd1cb2acb1c50340ca968777c128"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define PDXTableIsIDFree</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">xtable, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">id&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td>&#160;&#160;&#160;(<a class="el" href="a00035.html#gga385c44f6fb256e5716a2302a5b940388aacfabf5941005635d12d930e3462fae5">PDXTypeFreed</a> == <a class="el" href="a00035.html#ga6bee65464782f30af9cef98f84c1e2c1">PDXTableGetTypeForID</a>(xtable, id))</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Get the type for the given object in the table.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">xtable</td><td>The PDXTableRef instance </td></tr>
-    <tr><td class="paramname">id</td><td>The object ID. Set the type for the given object in the table.</td></tr>
-    <tr><td class="paramname">xtable</td><td>The PDXTableRef instance </td></tr>
-    <tr><td class="paramname">id</td><td>The object ID. </td></tr>
-    <tr><td class="paramname">t</td><td>The new type. Get the offset for the given object in the table.</td></tr>
-    <tr><td class="paramname">xtable</td><td>The PDXTableRef instance </td></tr>
-    <tr><td class="paramname">id</td><td>The object ID. Get the generation number or object stream index for the given object in the table.</td></tr>
-    <tr><td class="paramname">xtable</td><td>The PDXTableRef instance </td></tr>
-    <tr><td class="paramname">id</td><td>The object ID. Determine if the object with given ID is free.</td></tr>
-    <tr><td class="paramname">xtable</td><td>The PDXTableRef instance </td></tr>
-    <tr><td class="paramname">id</td><td>The object ID. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a class="anchor" id="gae52e118cfc45f8e3f5f53d2481473fce"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define PDXTableSetTypeForID</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">table, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">id, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">t&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td>&#160;&#160;&#160;*(<a class="el" href="a00035.html#ga77325ef738dc5a3d28a57846a42f0595">PDXType</a>*)&amp;((table-&gt;xrefs)[id*table-&gt;width]) = t</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Set the type for the given object.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">xrefs</td><td>The XREF buffer </td></tr>
-    <tr><td class="paramname">id</td><td>The object ID. </td></tr>
-    <tr><td class="paramname">t</td><td>The new type. </td></tr>
-  </table>
-  </dd>
-</dl>
+<b>Value:</b><div class="fragment"><div class="line"><span class="keywordflow">do</span> { \</div>
+<div class="line">    f-&gt;bufIn = (<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *)buf_in; \</div>
+<div class="line">    f-&gt;bufOut = (<span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> *)buf_out; \</div>
+<div class="line">    f-&gt;bufInAvailable = len_in; \</div>
+<div class="line">    f-&gt;bufOutCapacity = len_out; \</div>
+<div class="line">} <span class="keywordflow">while</span> (0)</div>
+</div><!-- fragment --><p>Convenience macro for setting buffers and sizes. </p>
 
 </div>
 </div>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a class="anchor" id="gaa17a6181053e799e01d965f942e1c87e"></a>
+<a class="anchor" id="gab0f80c18652c062e2b03a0dc3c76314a"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef struct <a class="el" href="a00035.html#a00173">PDXTable</a>* <a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a></td>
+          <td class="memname">typedef <a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>(* PDStreamDualFilterConstr)(<a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> inputEnd, <a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> options)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p><a class="el" href="a00035.html#a00173">PDXTable</a> </p>
+<p>Dual filter construction signature.</p>
+<p>If inputEnd is set, the reader variant is returned, otherwise the writer variant is returned. </p>
 
 </div>
 </div>
-<h2 class="groupheader">Enumeration Type Documentation</h2>
-<a class="anchor" id="ga385c44f6fb256e5716a2302a5b940388"></a>
+<a class="anchor" id="ga7bd60a75374605771efd3cc8789f4b69"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">anonymous enum</td>
+          <td class="memname">typedef <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>(* PDStreamFilterFunc)(<a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a> filter)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>An XREF entry's type, which is one of freed (unused), used, or compressed.</p>
-<p>Compressed objects are located inside of an object stream. </p>
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="gga385c44f6fb256e5716a2302a5b940388aacfabf5941005635d12d930e3462fae5"></a>PDXTypeFreed&#160;</td><td class="fielddoc">
-<p>Freed object ('f' for text format entries) </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="gga385c44f6fb256e5716a2302a5b940388a948d3a37d32d6740e1cbbe46acd6e748"></a>PDXTypeUsed&#160;</td><td class="fielddoc">
-<p>Used object ('n' for text format entries) </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="gga385c44f6fb256e5716a2302a5b940388af671e13f0a999548e00087347492cd77"></a>PDXTypeComp&#160;</td><td class="fielddoc">
-<p>Compressed object (no text format equivalent) </p>
-</td></tr>
-</table>
+<p>Filter function signature. </p>
 
 </div>
 </div>
-<a class="anchor" id="ga4a1f3a4c28ecf31eab187c424ccebd9d"></a>
+<a class="anchor" id="gaa9ce95071a3f6498d387364df72709b6"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">enum <a class="el" href="a00035.html#ga4a1f3a4c28ecf31eab187c424ccebd9d">PDXFormat</a></td>
+          <td class="memname">typedef <a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>(* PDStreamFilterPrcs)(<a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a> filter)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The XREF format, which can be one of text or binary.</p>
-<p>Text XREFs have the appearance </p><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;xref 3 0</div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;000000029 00000 n</div>
-<div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;000000142 00000 n</div>
-<div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;000013023 65535 f</div>
-</div><!-- fragment --><p> while binary XREFs are binary values stored in an object with /Type /XRefStm. </p>
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="gga4a1f3a4c28ecf31eab187c424ccebd9da0e1384b153c491f6cb9445bda3058fe9"></a>PDXTableFormatText&#160;</td><td class="fielddoc">
-<p>PDF-1.4 and below, using 20-byte leading zero space delimited entries. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="gga4a1f3a4c28ecf31eab187c424ccebd9da325f1e446e9e59f7246407f9a0440ce1"></a>PDXTableFormatBinary&#160;</td><td class="fielddoc">
-<p>PDX-1.5 and forward, using variable width object stream format. </p>
-</td></tr>
-</table>
+<p>Filter processing signature. Used for inverting filters currently. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga25d6a2b08f3a7fcfe3235c0addc49142"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="a00035.html#a00168">PDStreamFilter</a>* <a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The stream filter type. </p>
 
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="gad28eed0ad0217445361d015f5f18a49d"></a>
+<a class="anchor" id="ga92f9f996cba24f0c06d64826ddf592ac"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> PDXTableFetchXRefs </td>
+          <td class="memname"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a> PDStreamFilterAlloc </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="a00019.html#gaac5205e9bfb0f78710333c894c3d318a">PDParserRef</a>&#160;</td>
-          <td class="paramname"><em>parser</em></td><td>)</td>
+          <td class="paramtype">void&#160;</td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Set the offset for the object with the given ID to the given offset in the XREF table.</p>
+<p>Convert a <a class="el" href="a00023.html#a00163">PDScanner</a> dictionary stack into a stream filter options stack.</p>
+<dl class="section note"><dt>Note</dt><dd>The original stack remains untouched.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">xtable</td><td>The PDX table instance. </td></tr>
-    <tr><td class="paramname">id</td><td>The object ID. </td></tr>
-    <tr><td class="paramname">offs</td><td>The new offset. Read a PDFs XREF data by jumping to the end of the file, reading in the startxref value and jumping to every XREF defined via e.g. /Prev, reading the XREFs in as a series with defined domains (by byte).</td></tr>
+    <tr><td class="paramname">dictStack</td><td>The dictionary stack to convert </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section note"><dt>Note</dt><dd>The master XREF (the one pointed to by the <code>startxref</code> offset) defines whether the output PDF uses text or binary format, regardless of what other entries happen to be formatted as.</dd></dl>
-<p>Takes into account linearized PDFs.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">parser</td><td>The parser. </td></tr>
-  </table>
-  </dd>
-</dl>
+<dl class="section return"><dt>Returns</dt><dd>New allocated stack suited for stream filter options. Allocate an uninitialized, non-zeroed stream filter object.</dd></dl>
+<dl class="section note"><dt>Note</dt><dd>This is used by filters to create other filters, and should not be called outside of filter contexts. </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="ga5befaaf404064394fd40aad33d277b25"></a>
+<a class="anchor" id="gaf430de54b07875ef634d0fcb392de92b"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> PDXTableGetGenForID </td>
+          <td class="memname">void PDStreamFilterAppendFilter </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a>&#160;</td>
-          <td class="paramname"><em>table</em>, </td>
+          <td class="paramtype"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>&#160;</td>
+          <td class="paramname"><em>filter</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
-          <td class="paramname"><em>obid</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>&#160;</td>
+          <td class="paramname"><em>next</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -500,32 +440,57 @@ unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Get the generation number or object stream index for the given object.</p>
+<p>Append a filter to the filter, causing a chain.</p>
+<p>The filter is appended to the end (i.e. it will run at the very <em>last</em>), if there are more than one filters connected already.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">xrefs</td><td>The XREF buffer </td></tr>
-    <tr><td class="paramname">id</td><td>The object ID. </td></tr>
+    <tr><td class="paramname">filter</td><td>The pre-filter. </td></tr>
+    <tr><td class="paramname">next</td><td>The filter to append. </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a class="anchor" id="gab747de2b80242abe73ae76c2d5c32080"></a>
+<a class="anchor" id="gaa9c03b79cec5cc4e024d7e23de2f57b3"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="a00029.html#ga2c4cdb81ea3cd830cbadca665e75fbe3">PDOffset</a> PDXTableGetOffsetForID </td>
+          <td class="memname"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> PDStreamFilterApply </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a>&#160;</td>
-          <td class="paramname"><em>table</em>, </td>
+          <td class="paramtype"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>&#160;</td>
+          <td class="paramname"><em>filter</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
-          <td class="paramname"><em>obid</em>&#160;</td>
+          <td class="paramtype">unsigned char *&#160;</td>
+          <td class="paramname"><em>src</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned char **&#160;</td>
+          <td class="paramname"><em>dstPtr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramname"><em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *&#160;</td>
+          <td class="paramname"><em>newlenPtr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *&#160;</td>
+          <td class="paramname"><em>allocatedlenPtr</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -534,32 +499,86 @@ unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Get the offset for the object with the given ID in the XREF table.</p>
+<p>Apply a filter to the given buffer, creating a new buffer and size. This is a convenience method for applying a filter (chain) to some data and getting a newly allocated buffer containing the results back, along with the result size.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">table</td><td>The <a class="el" href="a00035.html#a00173">PDXTable</a> instance. </td></tr>
-    <tr><td class="paramname">obid</td><td>The object ID. </td></tr>
+    <tr><td class="paramname">filter</td><td>The filter to apply </td></tr>
+    <tr><td class="paramname">src</td><td>The source buffer </td></tr>
+    <tr><td class="paramname">dstPtr</td><td>The destination buffer pointer </td></tr>
+    <tr><td class="paramname">len</td><td>The length of the source buffer content </td></tr>
+    <tr><td class="paramname">newlenPtr</td><td>The filtered content length pointer </td></tr>
+    <tr><td class="paramname">allocatedlenPtr</td><td>The resulting allocation size of the destination buffer (optional, use NULL if unneeded)</td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>true on success, false on failure. </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="gafd6d47a58d37661727e3721b92a6c12a"></a>
+<a class="anchor" id="gaa21ffd4393420f01197243e4ab4f4186"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void PDXTableGrow </td>
+          <td class="memname"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> PDStreamFilterBegin </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a>&#160;</td>
-          <td class="paramname"><em>table</em>, </td>
+          <td class="paramtype"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>&#160;</td>
+          <td class="paramname"><em>filter</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Begin processing, meaning that the filter should take its input buffer as new content.</p>
+<dl class="section warning"><dt>Warning</dt><dd>Performing multiple separate filtering operations is not done by calling <a class="el" href="a00035.html#gaa21ffd4393420f01197243e4ab4f4186">PDStreamFilterBegin()</a> at the start of each new operation. The purpose of <a class="el" href="a00035.html#gaa21ffd4393420f01197243e4ab4f4186">PDStreamFilterBegin()</a> is to tell the filter that new or additional data for one consecutive operation has been put into its input buffer. To reuse a filter, it must be deinitialized via <a class="el" href="a00035.html#ga465d5c9b724357688acacd3f253cf9ca">PDStreamFilterDone()</a>, and then reinitialized via <a class="el" href="a00035.html#gae50c00d47243861b038f43f1fb2492a9">PDStreamFilterInit()</a>.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">filter</td><td>The filter</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Number of bytes produced </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gaf7f9bad6cd71543bd09f12a427d770f8"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a> PDStreamFilterCreate </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00035.html#ga7bd60a75374605771efd3cc8789f4b69">PDStreamFilterFunc</a>&#160;</td>
+          <td class="paramname"><em>init</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a>&#160;</td>
-          <td class="paramname"><em>cap</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="a00035.html#ga7bd60a75374605771efd3cc8789f4b69">PDStreamFilterFunc</a>&#160;</td>
+          <td class="paramname"><em>done</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00035.html#ga7bd60a75374605771efd3cc8789f4b69">PDStreamFilterFunc</a>&#160;</td>
+          <td class="paramname"><em>begin</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00035.html#ga7bd60a75374605771efd3cc8789f4b69">PDStreamFilterFunc</a>&#160;</td>
+          <td class="paramname"><em>proceed</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00035.html#gaa9ce95071a3f6498d387364df72709b6">PDStreamFilterPrcs</a>&#160;</td>
+          <td class="paramname"><em>createInversion</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a>&#160;</td>
+          <td class="paramname"><em>options</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -568,56 +587,113 @@ unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Grow the xref table to accomodate the given cap. </p>
+<p>Set up a stream filter with given callbacks.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">init</td><td>The initializer. Returns 0 on failure, some other value on success. </td></tr>
+    <tr><td class="paramname">done</td><td>The deinitializer. Returns 0 on failure, some other vaule on success. </td></tr>
+    <tr><td class="paramname">begin</td><td>The begin function; called once when new data is put into bufIn. Returns # of bytes stored into output buffer. </td></tr>
+    <tr><td class="paramname">proceed</td><td>The proceed function; called repeatedly after a begin call was made, until the filter returns 0 lengths. Returns # of bytes stored into output buffer. </td></tr>
+    <tr><td class="paramname">createInversion</td><td>The inversion function; calling this will produce a filter that inverts this filter. </td></tr>
+    <tr><td class="paramname">options</td><td>Options passed to the filter, in the form of a dictionary.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd>PDStreamFilterGenerateOptionsFromDictionaryStack </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="ga5a9b1479578bf89b9ae4c32b01a875a9"></a>
+<a class="anchor" id="gac22272bc8c551b654651fd2aa98ff7e0"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> PDXTableInsert </td>
+          <td class="memname"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a> PDStreamFilterCreateInversionForFilter </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="a00019.html#gaac5205e9bfb0f78710333c894c3d318a">PDParserRef</a>&#160;</td>
-          <td class="paramname"><em>parser</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>&#160;</td>
+          <td class="paramname"><em>filter</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Insert the one and only XREF table.</p>
-<dl class="section note"><dt>Note</dt><dd>Pajdeg does not support multiple XREF tables in a single PDF. The only downside to this is that linearized PDFs are delinearized in Pajdeg. Support for linearized PDFs is planned.</dd></dl>
+<p>Create the inversion of the given filter, so that invert(filter(data)) == data</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">parser</td><td>The parser. </td></tr>
+    <tr><td class="paramname">filter</td><td>The filter to invert. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>true if the insertion was successful. </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>Inversion filter, or NULL if the filter or any of its chained filters is unable to invert itself. </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="gaf3eeb50f5a826f87d9b1ceea486e81c3"></a>
+<a class="anchor" id="ga465d5c9b724357688acacd3f253cf9ca"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> PDXTablePassoverXRefEntry </td>
+          <td class="memname"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> PDStreamFilterDone </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="a00019.html#gaac5205e9bfb0f78710333c894c3d318a">PDParserRef</a>&#160;</td>
-          <td class="paramname"><em>parser</em>, </td>
+          <td class="paramtype"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>&#160;</td>
+          <td class="paramname"><em>filter</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Deinitialize a filter.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">filter</td><td>The filter. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gae50c00d47243861b038f43f1fb2492a9"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> PDStreamFilterInit </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>&#160;</td>
+          <td class="paramname"><em>filter</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Initialize a filter.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">filter</td><td>The filter. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga334d72332c0cc3569e44561433fc0699"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a> PDStreamFilterObtain </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="a00021.html#a00143">pd_stack</a>&#160;</td>
-          <td class="paramname"><em>stack</em>, </td>
+          <td class="paramtype"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td>
+          <td class="paramname"><em>inputEnd</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td>
-          <td class="paramname"><em>includeTrailer</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a>&#160;</td>
+          <td class="paramname"><em>options</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -626,40 +702,59 @@ unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Pass over an XREF entry in the input PDF.</p>
-<dl class="section note"><dt>Note</dt><dd>This is only called for text formatted XREF tables; binary XREF tables appear as regular objects with streams</dd></dl>
+<p>Obtain a filter for given name and type, where the type is a boolean value for whether the filter should be a reader (i.e. decompress) or writer (i.e. compress).</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">parser</td><td>The parser. </td></tr>
-    <tr><td class="paramname">stack</td><td>The XREF header stack scanned in from the <a class="el" href="a00021.html#a00163">PDScanner</a>. </td></tr>
-    <tr><td class="paramname">includeTrailer</td><td>Whether the trailer should also be consumed, or whether scanning should end after the XREF offsets. </td></tr>
+    <tr><td class="paramname">name</td><td>The name of the filter. </td></tr>
+    <tr><td class="paramname">inputEnd</td><td>Whether the input end or output end should be returned. The input end is the reader part (decoder) and the output end is the writer part (encoder). </td></tr>
+    <tr><td class="paramname">options</td><td>Options passed to the filter, in the form of a simplified <a class="el" href="a00023.html#a00142">pd_stack</a> dictionary (with keys and values and no complex objects). A scanner-produced <a class="el" href="a00023.html#a00142">pd_stack</a> dictionary can be converted into a stream filter options dictionary via PDStreamFilterGenerateOptionsFromDictionaryStack().</td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>A created PDStreamFilterRef or NULL if no match.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd>PDStreamFilterGenerateOptionsFromDictionaryStack </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="ga1f48f59f6e408190d927e9c9f70269cb"></a>
+<a class="anchor" id="gacb46a83905f0f00bf86c43c1ff086dda"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void PDXTableSetGenForID </td>
+          <td class="memname"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> PDStreamFilterProceed </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a>&#160;</td>
-          <td class="paramname"><em>table</em>, </td>
+          <td class="paramtype"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>&#160;</td>
+          <td class="paramname"><em>filter</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Proceed with a filter, meaning that it should continue filtering its input, which must not have been altered. This is called if a filter's output hits the output buffer capacity when processing its current input.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">filter</td><td>The filter</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Number of bytes produced </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga5373c2d30905bf9d5bb8e94c9c2300a9"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDStreamFilterRegisterDualFilter </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>name</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
-          <td class="paramname"><em>obid</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
-          <td class="paramname"><em>gen</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="a00035.html#gab0f80c18652c062e2b03a0dc3c76314a">PDStreamDualFilterConstr</a>&#160;</td>
+          <td class="paramname"><em>constr</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -668,119 +763,21 @@ unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" h
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Debug Set the generation number / object stream index for the given object.</p>
+<p>Register a dual filter with a given name.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">xrefs</td><td>The XREF buffer </td></tr>
-    <tr><td class="paramname">id</td><td>The object ID. </td></tr>
-    <tr><td class="paramname">gen</td><td>The new value. </td></tr>
+    <tr><td class="paramname">name</td><td>The name of the filter </td></tr>
+    <tr><td class="paramname">constr</td><td>The dual filter construction function. </td></tr>
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a class="anchor" id="ga0a4c67b2a70c5177cc1504ea8dbe1160"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void PDXTableSetOffsetForID </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a>&#160;</td>
-          <td class="paramname"><em>table</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
-          <td class="paramname"><em>obid</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#ga2c4cdb81ea3cd830cbadca665e75fbe3">PDOffset</a>&#160;</td>
-          <td class="paramname"><em>offset</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Set the offset for the object with the given ID to the given offset in the XREF table.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">table</td><td>The <a class="el" href="a00035.html#a00173">PDXTable</a> instance. </td></tr>
-    <tr><td class="paramname">obid</td><td>The object ID. </td></tr>
-    <tr><td class="paramname">offset</td><td>The new offset. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a class="anchor" id="ga4168e7da10c47dbd0bb9c53f6b967fca"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void PDXTableSetSizes </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a>&#160;</td>
-          <td class="paramname"><em>table</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">unsigned char&#160;</td>
-          <td class="paramname"><em>typeSize</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">unsigned char&#160;</td>
-          <td class="paramname"><em>offsSize</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">unsigned char&#160;</td>
-          <td class="paramname"><em>genSize</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Set the type, offset, and gen sizes for the table. </p>
-
-</div>
-</div>
-<a class="anchor" id="ga9c5bd1ada8f5d841d8228e9b7a2e8e7f"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a> PDXTableWEntry </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a>&#160;</td>
-          <td class="paramname"><em>table</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Get the W entry for the table. </p>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:36 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.8"/>
-<title>Pajdeg: PDNumber</title>
+<title>Pajdeg: PDOperator</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -85,152 +85,458 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="header">
   <div class="summary">
 <a href="#files">Files</a> &#124;
-<a href="#nested-classes">Data Structures</a> &#124;
 <a href="#define-members">Macros</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
+<a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
-<div class="title">PDNumber</div>  </div>
+<div class="title">PDOperator<div class="ingroups"><a class="el" href="a00118.html">Internal</a> &raquo; <a class="el" href="a00121.html">Symbol scanning</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>A wrapper around PDF numbers.  
+<p>An operator for a given symbol or outcome in a state.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="files"></a>
 Files</h2></td></tr>
-<tr class="memitem:a00069"><td class="memItemLeft" align="right" valign="top">file &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00069.html">PDNumber.h</a></td></tr>
+<tr class="memitem:a00075"><td class="memItemLeft" align="right" valign="top">file &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00075.html">PDOperator.h</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
-Data Structures</h2></td></tr>
-<tr class="memitem:a00151"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00021.html#a00151">PDNumber</a></td></tr>
-<tr class="separator:a00151"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:ga2f5d8f78d38e84f2e786af5a51f2b94e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga2f5d8f78d38e84f2e786af5a51f2b94e"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDNumberWithInteger</b>(i)&#160;&#160;&#160;<a class="el" href="a00138.html#gaf354766bc46d0f92dda176a782a9c276">PDAutorelease</a>(PDNumberCreateWithInteger(i))</td></tr>
-<tr class="separator:ga2f5d8f78d38e84f2e786af5a51f2b94e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae76a311108508610029b38d6821843e5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gae76a311108508610029b38d6821843e5"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDNumberWithSize</b>(s)&#160;&#160;&#160;<a class="el" href="a00138.html#gaf354766bc46d0f92dda176a782a9c276">PDAutorelease</a>(PDNumberCreateWithSize(s))</td></tr>
-<tr class="separator:gae76a311108508610029b38d6821843e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gab621904eb35b110c5f40bf674fd058cc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gab621904eb35b110c5f40bf674fd058cc"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDNumberWithReal</b>(r)&#160;&#160;&#160;<a class="el" href="a00138.html#gaf354766bc46d0f92dda176a782a9c276">PDAutorelease</a>(PDNumberCreateWithReal(r))</td></tr>
-<tr class="separator:gab621904eb35b110c5f40bf674fd058cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga77155ad58cddbbe2a4debeb3114091f6"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga77155ad58cddbbe2a4debeb3114091f6"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDNumberWithBool</b>(b)&#160;&#160;&#160;<a class="el" href="a00138.html#gaf354766bc46d0f92dda176a782a9c276">PDAutorelease</a>(PDNumberCreateWithBool(b))</td></tr>
-<tr class="separator:ga77155ad58cddbbe2a4debeb3114091f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad639ff83b69466711e062f3fb9d5ddbe"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gad639ff83b69466711e062f3fb9d5ddbe"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#gad639ff83b69466711e062f3fb9d5ddbe">PDOperatorSymbolGlobRegular</a>&#160;&#160;&#160;0</td></tr>
+<tr class="memdesc:gad639ff83b69466711e062f3fb9d5ddbe"><td class="mdescLeft">&#160;</td><td class="mdescRight">PDF regular character. <br /></td></tr>
+<tr class="separator:gad639ff83b69466711e062f3fb9d5ddbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac21f235145f10add2e73823d1219e09e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gac21f235145f10add2e73823d1219e09e"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#gac21f235145f10add2e73823d1219e09e">PDOperatorSymbolGlobWhitespace</a>&#160;&#160;&#160;1</td></tr>
+<tr class="memdesc:gac21f235145f10add2e73823d1219e09e"><td class="mdescLeft">&#160;</td><td class="mdescRight">PDF whitespace character. <br /></td></tr>
+<tr class="separator:gac21f235145f10add2e73823d1219e09e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8f05a6eca75eacdd9bdd6a31185e29db"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga8f05a6eca75eacdd9bdd6a31185e29db"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga8f05a6eca75eacdd9bdd6a31185e29db">PDOperatorSymbolGlobDelimiter</a>&#160;&#160;&#160;4</td></tr>
+<tr class="memdesc:ga8f05a6eca75eacdd9bdd6a31185e29db"><td class="mdescLeft">&#160;</td><td class="mdescRight">PDF delimiter character. <br /></td></tr>
+<tr class="separator:ga8f05a6eca75eacdd9bdd6a31185e29db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga945d084c8a029bf8daae94e5b245e8b2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga945d084c8a029bf8daae94e5b245e8b2"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga945d084c8a029bf8daae94e5b245e8b2">PDOperatorSymbolExtNumeric</a>&#160;&#160;&#160;8</td></tr>
+<tr class="memdesc:ga945d084c8a029bf8daae94e5b245e8b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Numeric value. <br /></td></tr>
+<tr class="separator:ga945d084c8a029bf8daae94e5b245e8b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1c39d9559d5b13313bc26106f37130fa"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga1c39d9559d5b13313bc26106f37130fa"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga1c39d9559d5b13313bc26106f37130fa">PDOperatorSymbolExtFake</a>&#160;&#160;&#160;16</td></tr>
+<tr class="memdesc:ga1c39d9559d5b13313bc26106f37130fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">"Fake" symbol <br /></td></tr>
+<tr class="separator:ga1c39d9559d5b13313bc26106f37130fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga88eb015771b77d47b95a94833d970653"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga88eb015771b77d47b95a94833d970653"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga88eb015771b77d47b95a94833d970653">PDOperatorSymbolExtEOB</a>&#160;&#160;&#160;32</td></tr>
+<tr class="memdesc:ga88eb015771b77d47b95a94833d970653"><td class="mdescLeft">&#160;</td><td class="mdescRight">End of buffer (usually synonymous with end of file) symbol. <br /></td></tr>
+<tr class="separator:ga88eb015771b77d47b95a94833d970653"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5d6261879689e88e64559f3bd9f5101d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga5d6261879689e88e64559f3bd9f5101d">PDSymbolUpdateNumeric</a>(numeric, real, c, first_character)</td></tr>
+<tr class="separator:ga5d6261879689e88e64559f3bd9f5101d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9dc833d39f84f457757b654c188107e6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga9dc833d39f84f457757b654c188107e6">PDSymbolDetermineNumeric</a>(numeric, real, c, sym, len)</td></tr>
+<tr class="separator:ga9dc833d39f84f457757b654c188107e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:ga7a980231feb36c22b290dcd4b6acc5d7"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="a00021.html#a00151">PDNumber</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga7a980231feb36c22b290dcd4b6acc5d7">PDNumberRef</a></td></tr>
-<tr class="separator:ga7a980231feb36c22b290dcd4b6acc5d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac7a8727e713bbd75eb057feaa425dee8"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="a00023.html#a00155">PDOperator</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#gac7a8727e713bbd75eb057feaa425dee8">PDOperatorRef</a></td></tr>
+<tr class="separator:gac7a8727e713bbd75eb057feaa425dee8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
+Enumerations</h2></td></tr>
+<tr class="memitem:ga87bd054ede0aaf3397718acef17c5f37"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga87bd054ede0aaf3397718acef17c5f37">PDOperatorType</a> { <br />
+&#160;&#160;<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37a16ce5a6be125aba65d635611ff7cf93d">PDOperatorPushState</a> = 1, 
+<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37a22a1f2bba09b3d46ac998d38d2773deb">PDOperatorPushWeakState</a>, 
+<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37a1a62ff1841eea6d6a4eb9fab096d7af5">PDOperatorPopState</a>, 
+<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37aaa9c8761fb6e30210b81780df3e6b58e">PDOperatorPopVariable</a>, 
+<br />
+&#160;&#160;<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37ac86b0b461150d6be8322c187b69b9dda">PDOperatorPopValue</a>, 
+<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37ae0005638de15ce6eb96378f31c3cff48">PDOperatorPushEmptyString</a>, 
+<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37aa28fa86d1c8e4b0ea75da177be27f61e">PDOperatorPushResult</a>, 
+<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37a59e74777378c4186c6cb086e39de68de">PDOperatorPushComplex</a>, 
+<br />
+&#160;&#160;<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37a0e3cf577529584f14bcbe3bb21e454ec">PDOperatorStoveComplex</a>, 
+<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37a2fa8f33f4b6fc76f5bb7d3ee5050c080">PDOperatorPullBuildVariable</a>, 
+<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37afc4c34878296c80c01f9562bd95b0503">PDOperatorPushbackSymbol</a>, 
+<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37aa48a0dff74a9bd3660ee643501bbeb7d">PDOperatorPushbackValue</a>, 
+<br />
+&#160;&#160;<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37a890fa17cf8bbcb4a0b251065fcb502f2">PDOperatorPopLine</a>, 
+<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37a56617c68a896139150e75e8250492cd0">PDOperatorReadToDelimiter</a>, 
+<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37a10ad93c1b914aae27797585acda41715">PDOperatorMark</a>, 
+<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37a394219b27bb8ee1f42cb7a34630ef181">PDOperatorPushMarked</a>, 
+<br />
+&#160;&#160;<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37a53b8c613afc770df005c990fc1e2a593">PDOperatorNOP</a>, 
+<a class="el" href="a00125.html#gga87bd054ede0aaf3397718acef17c5f37afc593c35269f1b7b72e6204e3396529d">PDOperatorBreak</a>
+<br />
+ }</td></tr>
+<tr class="separator:ga87bd054ede0aaf3397718acef17c5f37"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ga1637e1893c3c4527da44016da4f9ae08"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga1637e1893c3c4527da44016da4f9ae08"></a>
-<a class="el" href="a00125.html#ga7a980231feb36c22b290dcd4b6acc5d7">PDNumberRef</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDNumberCreateWithInteger</b> (<a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> i)</td></tr>
-<tr class="separator:ga1637e1893c3c4527da44016da4f9ae08"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga2bcb418814fb7f9363dac9968dd7c6dd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga2bcb418814fb7f9363dac9968dd7c6dd"></a>
-<a class="el" href="a00125.html#ga7a980231feb36c22b290dcd4b6acc5d7">PDNumberRef</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDNumberCreateWithSize</b> (<a class="el" href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> s)</td></tr>
-<tr class="separator:ga2bcb418814fb7f9363dac9968dd7c6dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga805263b796cbd15d79e92ca457bc8e65"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga805263b796cbd15d79e92ca457bc8e65"></a>
-<a class="el" href="a00125.html#ga7a980231feb36c22b290dcd4b6acc5d7">PDNumberRef</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDNumberCreateWithReal</b> (<a class="el" href="a00029.html#gae0e6a1de2f316b679b976e43084896d4">PDReal</a> r)</td></tr>
-<tr class="separator:ga805263b796cbd15d79e92ca457bc8e65"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gabed97a07270c991b3bec16d36f420494"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gabed97a07270c991b3bec16d36f420494"></a>
-<a class="el" href="a00125.html#ga7a980231feb36c22b290dcd4b6acc5d7">PDNumberRef</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDNumberCreateWithBool</b> (<a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> b)</td></tr>
-<tr class="separator:gabed97a07270c991b3bec16d36f420494"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae642e31dc70f620eefcb31ba2fd69185"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gae642e31dc70f620eefcb31ba2fd69185"></a>
-<a class="el" href="a00125.html#ga7a980231feb36c22b290dcd4b6acc5d7">PDNumberRef</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDNumberCreateWithCString</b> (const char *cString)</td></tr>
-<tr class="separator:gae642e31dc70f620eefcb31ba2fd69185"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga23f6ecb40871d03584797c8e6acb993d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga23f6ecb40871d03584797c8e6acb993d"></a>
-<a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDNumberGetInteger</b> (<a class="el" href="a00125.html#ga7a980231feb36c22b290dcd4b6acc5d7">PDNumberRef</a> n)</td></tr>
-<tr class="separator:ga23f6ecb40871d03584797c8e6acb993d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga49f0f5d8e9b4f88f1ca0f4ee53c84c7d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga49f0f5d8e9b4f88f1ca0f4ee53c84c7d"></a>
-<a class="el" href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDNumberGetSize</b> (<a class="el" href="a00125.html#ga7a980231feb36c22b290dcd4b6acc5d7">PDNumberRef</a> n)</td></tr>
-<tr class="separator:ga49f0f5d8e9b4f88f1ca0f4ee53c84c7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga6a89b2f5b8794c63e331d654c09efa7e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga6a89b2f5b8794c63e331d654c09efa7e"></a>
-<a class="el" href="a00029.html#gae0e6a1de2f316b679b976e43084896d4">PDReal</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDNumberGetReal</b> (<a class="el" href="a00125.html#ga7a980231feb36c22b290dcd4b6acc5d7">PDNumberRef</a> n)</td></tr>
-<tr class="separator:ga6a89b2f5b8794c63e331d654c09efa7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga59a8bbd38665348ea888aba1d4636f1b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga59a8bbd38665348ea888aba1d4636f1b"></a>
-<a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDNumberGetBool</b> (<a class="el" href="a00125.html#ga7a980231feb36c22b290dcd4b6acc5d7">PDNumberRef</a> n)</td></tr>
-<tr class="separator:ga59a8bbd38665348ea888aba1d4636f1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga386607f127799127acd94d2cce141c6f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga386607f127799127acd94d2cce141c6f"></a>
-<a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDNumberPrinter</b> (void *inst, char **buf, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> offs, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *cap)</td></tr>
-<tr class="separator:ga386607f127799127acd94d2cce141c6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga369a4b8ba6edfe6365b670f3f0eb3846"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga369a4b8ba6edfe6365b670f3f0eb3846"></a>
-<a class="el" href="a00026.html#gae4bb034a1a82fb7cf865a96d55f5c5e2">PDObjectType</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDNumberGetObjectType</b> (<a class="el" href="a00125.html#ga7a980231feb36c22b290dcd4b6acc5d7">PDNumberRef</a> n)</td></tr>
-<tr class="separator:ga369a4b8ba6edfe6365b670f3f0eb3846"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae319aec0806bb1a7d5cf663b95cd6102"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gae319aec0806bb1a7d5cf663b95cd6102"></a>
-char *&#160;</td><td class="memItemRight" valign="bottom"><b>PDNumberToString</b> (<a class="el" href="a00125.html#ga7a980231feb36c22b290dcd4b6acc5d7">PDNumberRef</a> n)</td></tr>
-<tr class="separator:gae319aec0806bb1a7d5cf663b95cd6102"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad10657312aac8717725cf58086042759"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#gad10657312aac8717725cf58086042759">PDOperatorSymbolGlobSetup</a> ()</td></tr>
+<tr class="separator:gad10657312aac8717725cf58086042759"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0f709a797dc519b6a137ef16fd8b7c92"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga0f709a797dc519b6a137ef16fd8b7c92">PDOperatorSymbolGlobDefine</a> (char *str)</td></tr>
+<tr class="separator:ga0f709a797dc519b6a137ef16fd8b7c92"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae2d50a0259864a251ccd790a4abc52da"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00125.html#gac7a8727e713bbd75eb057feaa425dee8">PDOperatorRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#gae2d50a0259864a251ccd790a4abc52da">PDOperatorCreateFromDefinition</a> (const void **defs)</td></tr>
+<tr class="separator:gae2d50a0259864a251ccd790a4abc52da"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6d83d2e697c5723f6d5c62af0d120862"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga6d83d2e697c5723f6d5c62af0d120862">PDOperatorCompileStates</a> (<a class="el" href="a00125.html#gac7a8727e713bbd75eb057feaa425dee8">PDOperatorRef</a> op)</td></tr>
+<tr class="separator:ga6d83d2e697c5723f6d5c62af0d120862"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:ga50715bf579e950ea5d18d3a337f6c57b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga50715bf579e950ea5d18d3a337f6c57b"></a>
-<a class="el" href="a00125.html#ga7a980231feb36c22b290dcd4b6acc5d7">PDNumberRef</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDNullObject</b></td></tr>
-<tr class="separator:ga50715bf579e950ea5d18d3a337f6c57b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga160f3d49aa2723ed9585c9fedf397d4b"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga160f3d49aa2723ed9585c9fedf397d4b">PDOperatorSymbolGlob</a></td></tr>
+<tr class="separator:ga160f3d49aa2723ed9585c9fedf397d4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7526fd6e617e436e5367d315e15395d2"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga7526fd6e617e436e5367d315e15395d2">PDOperatorSymbolGlobHex</a></td></tr>
+<tr class="separator:ga7526fd6e617e436e5367d315e15395d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga776b42bf623eef8ecef6ba0fdd721933"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga776b42bf623eef8ecef6ba0fdd721933">PDOperatorSymbolGlobDehex</a></td></tr>
+<tr class="separator:ga776b42bf623eef8ecef6ba0fdd721933"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3ac7765f0e717ae8678f44e7d6b06cc8"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga3ac7765f0e717ae8678f44e7d6b06cc8">PDOperatorSymbolGlobEscaping</a></td></tr>
+<tr class="separator:ga3ac7765f0e717ae8678f44e7d6b06cc8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p>A wrapper around PDF numbers. </p>
-<p><a class="el" href="a00021.html#a00151">PDNumber</a> objects exist to provide a unified way to maintain and convert between different number types. It also serves as a retainable wrapper around numeric values. </p>
-<hr/><h2 class="groupheader">Data Structure Documentation</h2>
-<a name="a00151" id="a00151"></a>
+<p>An operator for a given symbol or outcome in a state. </p>
+<p>Operators are either tied to some symbol in a state, or to one of the fallback types (numeric, delimiter, and the all-accepting). They define some form of action that should occur, and may optionally include a "next" operator, which is executed directly following the completion of the current operator's action.</p>
+<dl class="section note"><dt>Note</dt><dd>If an operator pushes a state, its action will be regarded as ongoing until the pushed state is poppsed again. </dd></dl>
+<h2 class="groupheader">Macro Definition Documentation</h2>
+<a class="anchor" id="ga9dc833d39f84f457757b654c188107e6"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">struct PDNumber</td>
+          <td class="memname">#define PDSymbolDetermineNumeric</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">numeric, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">real, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">c, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">sym, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">len&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<div class="textblock"><p>Internal number structure. </p>
-</div><table class="memberdecls">
-<tr><td colspan="2"><h3>Data Fields</h3></td></tr>
-<tr class="memitem:ga4765475e771203a14664185923b09917"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga4765475e771203a14664185923b09917"></a>
-<a class="el" href="a00026.html#gae4bb034a1a82fb7cf865a96d55f5c5e2">PDObjectType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00021.html#ga4765475e771203a14664185923b09917">type</a></td></tr>
-<tr class="memdesc:ga4765475e771203a14664185923b09917"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of the number. <br /></td></tr>
-<tr class="separator:ga4765475e771203a14664185923b09917"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaeadffabc9cd738e1a76b505e21e55a86"><td class="memItemLeft" ><a class="anchor" id="gaeadffabc9cd738e1a76b505e21e55a86"></a>
-union {</td></tr>
-<tr class="memitem:ga501f965533d8ea998e69cd1dba4a761b"><td class="memItemLeft" >
-&#160;&#160;&#160;<a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;&#160;&#160;<b>i</b></td></tr>
-<tr class="separator:ga501f965533d8ea998e69cd1dba4a761b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga497d9d1e61a86be61e51355c8c146216"><td class="memItemLeft" >
-&#160;&#160;&#160;<a class="el" href="a00029.html#gae0e6a1de2f316b679b976e43084896d4">PDReal</a>&#160;&#160;&#160;<b>r</b></td></tr>
-<tr class="separator:ga497d9d1e61a86be61e51355c8c146216"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga0a3d2dda2d48d990f9e3446cb87a75e5"><td class="memItemLeft" >
-&#160;&#160;&#160;<a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;&#160;&#160;<b>b</b></td></tr>
-<tr class="separator:ga0a3d2dda2d48d990f9e3446cb87a75e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga6c7837988fc4f08a8a186deab4353f48"><td class="memItemLeft" >
-&#160;&#160;&#160;<a class="el" href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a>&#160;&#160;&#160;<b>s</b></td></tr>
-<tr class="separator:ga6c7837988fc4f08a8a186deab4353f48"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaeadffabc9cd738e1a76b505e21e55a86"><td class="memItemLeft" valign="top">};&#160;</td><td class="memItemRight" valign="bottom"></td></tr>
-<tr class="separator:gaeadffabc9cd738e1a76b505e21e55a86"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table>
+<b>Value:</b><div class="fragment"><div class="line"><span class="keywordflow">do</span> {                                          <a class="code" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">\</a></div>
+<div class="line"><a class="code" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">        PDInteger</a> i;                              \</div>
+<div class="line">        for (i = len-1; numeric &amp;&amp; i &gt;= 0; i--) { \</div>
+<div class="line">            c = sym[i];                           <a class="code" href="a00125.html#ga5d6261879689e88e64559f3bd9f5101d">\</a></div>
+<div class="line"><a class="code" href="a00125.html#ga5d6261879689e88e64559f3bd9f5101d">            PDSymbolUpdateNumeric</a>(numeric, real, c, i==0); \</div>
+<div class="line">        }                                         \</div>
+<div class="line">    } <span class="keywordflow">while</span> (0)</div>
+<div class="ttc" id="a00031_html_ga7bf5d17054ed63682b0cb309545ad1cc"><div class="ttname"><a href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a></div><div class="ttdeci">long PDInteger</div><div class="ttdef"><b>Definition:</b> PDDefines.h:165</div></div>
+<div class="ttc" id="a00125_html_ga5d6261879689e88e64559f3bd9f5101d"><div class="ttname"><a href="a00125.html#ga5d6261879689e88e64559f3bd9f5101d">PDSymbolUpdateNumeric</a></div><div class="ttdeci">#define PDSymbolUpdateNumeric(numeric, real, c, first_character)</div><div class="ttdef"><b>Definition:</b> PDOperator.h:109</div></div>
+</div><!-- fragment --><p>Set numeric and real for the given symbol over the given length.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">numeric</td><td>The numeric boolean. </td></tr>
+    <tr><td class="paramname">real</td><td>The real boolean. </td></tr>
+    <tr><td class="paramname">c</td><td>The character. </td></tr>
+    <tr><td class="paramname">sym</td><td>The symbol buffer. </td></tr>
+    <tr><td class="paramname">len</td><td>The length of the symbol. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga5d6261879689e88e64559f3bd9f5101d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PDSymbolUpdateNumeric</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">numeric, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">real, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">c, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">first_character&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Value:</b><div class="fragment"><div class="line">numeric &amp;= ((c &gt;= <span class="charliteral">&#39;0&#39;</span> &amp;&amp; c &lt;= <span class="charliteral">&#39;9&#39;</span>) \</div>
+<div class="line">                || \</div>
+<div class="line">                (first_character &amp;&amp; (c == <span class="charliteral">&#39;-&#39;</span> || c == <span class="charliteral">&#39;+&#39;</span>)) \</div>
+<div class="line">                || \</div>
+<div class="line">                (! real &amp;&amp; (real |= c == <span class="charliteral">&#39;.&#39;</span>)))</div>
+</div><!-- fragment --><p>Update the numeric and real booleans based on the character.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">numeric</td><td>The numeric boolean. </td></tr>
+    <tr><td class="paramname">real</td><td>The real boolean. </td></tr>
+    <tr><td class="paramname">c</td><td>The character. </td></tr>
+    <tr><td class="paramname">first_character</td><td>Whether or not this is the first character. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a class="anchor" id="ga7a980231feb36c22b290dcd4b6acc5d7"></a>
+<a class="anchor" id="gac7a8727e713bbd75eb057feaa425dee8"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef struct <a class="el" href="a00021.html#a00151">PDNumber</a>* <a class="el" href="a00125.html#ga7a980231feb36c22b290dcd4b6acc5d7">PDNumberRef</a></td>
+          <td class="memname">typedef struct <a class="el" href="a00023.html#a00155">PDOperator</a>* <a class="el" href="a00125.html#gac7a8727e713bbd75eb057feaa425dee8">PDOperatorRef</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>A number object. </p>
+<p>An operator. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Enumeration Type Documentation</h2>
+<a class="anchor" id="ga87bd054ede0aaf3397718acef17c5f37"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="a00125.html#ga87bd054ede0aaf3397718acef17c5f37">PDOperatorType</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Operator type.</p>
+<p>Pajdeg's internal parser is configured using a set of states and operators. Operators are defined using a PDOperatorType, and an appropriate unioned argument.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="a00049.html">pd_pdf_implementation.h</a> </dd></dl>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37a16ce5a6be125aba65d635611ff7cf93d"></a>PDOperatorPushState&#160;</td><td class="fielddoc">
+<p>Pushes another state; e.g. "&lt;" pushes dict_hex, which on seeing "&lt;" pushes "dict". </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37a22a1f2bba09b3d46ac998d38d2773deb"></a>PDOperatorPushWeakState&#160;</td><td class="fielddoc">
+<p>Identical to above, but does not 'retain' the target state, to prevent retain cycles (e.g. arb -&gt; array -&gt; arb -&gt; ...) </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37a1a62ff1841eea6d6a4eb9fab096d7af5"></a>PDOperatorPopState&#160;</td><td class="fielddoc">
+<p>Pops back to previous state. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37aaa9c8761fb6e30210b81780df3e6b58e"></a>PDOperatorPopVariable&#160;</td><td class="fielddoc">
+<p>Pops entry off of results stack and stores as an attribute of a future complex result. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37ac86b0b461150d6be8322c187b69b9dda"></a>PDOperatorPopValue&#160;</td><td class="fielddoc">
+<p>Pops entry off of results stack and stores in variable stack, without including a variable name. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37ae0005638de15ce6eb96378f31c3cff48"></a>PDOperatorPushEmptyString&#160;</td><td class="fielddoc">
+<p>Pushes an empty string onto the results stack. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37aa28fa86d1c8e4b0ea75da177be27f61e"></a>PDOperatorPushResult&#160;</td><td class="fielddoc">
+<p>Pushes current symbol onto results stack. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37a59e74777378c4186c6cb086e39de68de"></a>PDOperatorPushComplex&#160;</td><td class="fielddoc">
+<p>Pushes object of type description "key" with variables (if any) as attributes onto results stack. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37a0e3cf577529584f14bcbe3bb21e454ec"></a>PDOperatorStoveComplex&#160;</td><td class="fielddoc">
+<p>Pushes a complex onto build stack rather than results stack (for popping as a chunk of objects later) </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37a2fa8f33f4b6fc76f5bb7d3ee5050c080"></a>PDOperatorPullBuildVariable&#160;</td><td class="fielddoc">
+<p>Takes build stack as is, and stores it as if it was a popped variable. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37afc4c34878296c80c01f9562bd95b0503"></a>PDOperatorPushbackSymbol&#160;</td><td class="fielddoc">
+<p>Pushes the scanned symbol back onto the symbols stack, so that it is re-read the next time a symbol is popped from the scanner. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37aa48a0dff74a9bd3660ee643501bbeb7d"></a>PDOperatorPushbackValue&#160;</td><td class="fielddoc">
+<p>Pushes the top value on the stack onto the symbols stack as if it were never read. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37a890fa17cf8bbcb4a0b251065fcb502f2"></a>PDOperatorPopLine&#160;</td><td class="fielddoc">
+<p>Read to end of line. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37a56617c68a896139150e75e8250492cd0"></a>PDOperatorReadToDelimiter&#160;</td><td class="fielddoc">
+<p>Read over symbols and whitespace until a delimiter is encountered. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37a10ad93c1b914aae27797585acda41715"></a>PDOperatorMark&#160;</td><td class="fielddoc">
+<p>Mark current position in buffer for popping as is into results later. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37a394219b27bb8ee1f42cb7a34630ef181"></a>PDOperatorPushMarked&#160;</td><td class="fielddoc">
+<p>Push everything from mark to current position in buffer as results. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37a53b8c613afc770df005c990fc1e2a593"></a>PDOperatorNOP&#160;</td><td class="fielddoc">
+<p>Do nothing. </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga87bd054ede0aaf3397718acef17c5f37afc593c35269f1b7b72e6204e3396529d"></a>PDOperatorBreak&#160;</td><td class="fielddoc">
+<p>Break (presuming breakpoint is properly placed) </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a class="anchor" id="ga6d83d2e697c5723f6d5c62af0d120862"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDOperatorCompileStates </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00125.html#gac7a8727e713bbd75eb057feaa425dee8">PDOperatorRef</a>&#160;</td>
+          <td class="paramname"><em>op</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Compile all states referenced by the operator.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="a00130.html#gaf6f63096c16d629dc0006352efa851f6">PDStateCompile</a></dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">op</td><td>The operator. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gae2d50a0259864a251ccd790a4abc52da"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00125.html#gac7a8727e713bbd75eb057feaa425dee8">PDOperatorRef</a> PDOperatorCreateFromDefinition </td>
+          <td>(</td>
+          <td class="paramtype">const void **&#160;</td>
+          <td class="paramname"><em>defs</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Create a PDOperatorRef chain based on a definition in the form of NULL terminated arrays of operator types followed by (if any) arguments of corresponding types.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">defs</td><td>Definitions, null terminated. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="todo"><dt><b><a class="el" href="a00138.html#_todo000002">Todo:</a></b></dt><dd>CLANG doesn't like homemade retaining </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga0f709a797dc519b6a137ef16fd8b7c92"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char PDOperatorSymbolGlobDefine </td>
+          <td>(</td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>str</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Define the given symbol. Definitions detected are delimiters, numeric (including real) values, and (regular) symbols. </p>
+
+</div>
+</div>
+<a class="anchor" id="gad10657312aac8717725cf58086042759"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDOperatorSymbolGlobSetup </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set up the global symbol table. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Variable Documentation</h2>
+<a class="anchor" id="ga160f3d49aa2723ed9585c9fedf397d4b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* PDOperatorSymbolGlob</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Global symbol table, a 256 byte mapping of ASCII characters to their corresponding PDF symbol type as defined in the PDF specification (v 1.7). </p>
+
+</div>
+</div>
+<a class="anchor" id="ga776b42bf623eef8ecef6ba0fdd721933"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* PDOperatorSymbolGlobDehex</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Global de-HEX table, a 16 (NOT 256) byte mapping of 0 through 15, where 0..9 return '0'..'9' and 10..15 return 'A'..'F' </p>
+
+</div>
+</div>
+<a class="anchor" id="ga3ac7765f0e717ae8678f44e7d6b06cc8"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* PDOperatorSymbolGlobEscaping</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Global escape table, a 256 byte mapping of ASCII characters to 1 for "no escape", 0 for "escape as code", and a character for "escape using this escape code". </p>
+
+</div>
+</div>
+<a class="anchor" id="ga7526fd6e617e436e5367d315e15395d2"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* PDOperatorSymbolGlobHex</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Global HEX table, a 256 byte mapping of ASCII characters to their corresponding numeric values according to the hexademical system. </p>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:36 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

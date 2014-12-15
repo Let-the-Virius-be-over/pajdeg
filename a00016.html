@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -97,24 +97,24 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p>We need two tasks declared for this.</p>
 <p><div class="fragment"><div class="line"><span class="comment">// a &quot;mutator&quot; task, which is responsible for pointing the PDF&#39;s root object</span></div>
 <div class="line"><span class="comment">// to a new metadata object that we&#39;re creating</span></div>
-<div class="line"><a class="code" href="a00136.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> addMetadata(<a class="code" href="a00021.html#a00159">PDPipeRef</a> pipe, <a class="code" href="a00021.html#a00171">PDTaskRef</a> task, <a class="code" href="a00026.html#a00152">PDObjectRef</a> <span class="keywordtype">object</span>, <span class="keywordtype">void</span> *info);</div>
+<div class="line"><a class="code" href="a00135.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> addMetadata(<a class="code" href="a00023.html#a00159">PDPipeRef</a> pipe, <a class="code" href="a00023.html#a00171">PDTaskRef</a> task, <a class="code" href="a00028.html#a00152">PDObjectRef</a> <span class="keywordtype">object</span>, <span class="keywordtype">void</span> *info);</div>
 <div class="line"></div>
 <div class="line"><span class="comment">// a mutator task for updating a metadata object&#39;s contents</span></div>
-<div class="line"><a class="code" href="a00136.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> updateMetadata(<a class="code" href="a00021.html#a00159">PDPipeRef</a> pipe, <a class="code" href="a00021.html#a00171">PDTaskRef</a> task, <a class="code" href="a00026.html#a00152">PDObjectRef</a> <span class="keywordtype">object</span>, <span class="keywordtype">void</span> *info);</div>
+<div class="line"><a class="code" href="a00135.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> updateMetadata(<a class="code" href="a00023.html#a00159">PDPipeRef</a> pipe, <a class="code" href="a00023.html#a00171">PDTaskRef</a> task, <a class="code" href="a00028.html#a00152">PDObjectRef</a> <span class="keywordtype">object</span>, <span class="keywordtype">void</span> *info);</div>
 </div><!-- fragment --></p>
 <p>Next, we need to do the actual conditional part in our <code>main()</code> function.</p>
-<p><div class="fragment"><div class="line">    <a class="code" href="a00026.html#a00152">PDObjectRef</a> root = <a class="code" href="a00019.html#gadd7e2cbd916838312f948a2cacdbf77a">PDParserGetRootObject</a>(parser);</div>
-<div class="line">    <a class="code" href="a00021.html#a00149">PDDictionaryRef</a> rootDict = <a class="code" href="a00026.html#gabf179b365305f5684f8014e257944e53">PDObjectGetDictionary</a>(root);</div>
-<div class="line">    <a class="code" href="a00021.html#a00162">PDReferenceRef</a> metaRef = <a class="code" href="a00123.html#gac4fa42edf1c071588eabc761ed842404">PDDictionaryGetEntry</a>(rootDict, <span class="stringliteral">&quot;Metadata&quot;</span>);</div>
+<p><div class="fragment"><div class="line">    <a class="code" href="a00028.html#a00152">PDObjectRef</a> root = <a class="code" href="a00019.html#gadd7e2cbd916838312f948a2cacdbf77a">PDParserGetRootObject</a>(parser);</div>
+<div class="line">    <a class="code" href="a00023.html#a00148">PDDictionaryRef</a> rootDict = <a class="code" href="a00028.html#gabf179b365305f5684f8014e257944e53">PDObjectGetDictionary</a>(root);</div>
+<div class="line">    <a class="code" href="a00023.html#a00162">PDReferenceRef</a> metaRef = PDDictionaryGetEntry(rootDict, <span class="stringliteral">&quot;Metadata&quot;</span>);</div>
 <div class="line"></div>
-<div class="line">    <a class="code" href="a00026.html#a00152">PDObjectRef</a> meta = NULL;</div>
-<div class="line">    <a class="code" href="a00021.html#a00171">PDTaskRef</a> mutator;</div>
+<div class="line">    <a class="code" href="a00028.html#a00152">PDObjectRef</a> meta = NULL;</div>
+<div class="line">    <a class="code" href="a00023.html#a00171">PDTaskRef</a> mutator;</div>
 </div><!-- fragment --></p>
 <p>First case: we have a metadata entry; we plug the <code>updateMetadata</code> task into the metadata object.</p>
 <p><div class="fragment"><div class="line">    <span class="keywordflow">if</span> (metaRef) {</div>
 <div class="line">        <span class="comment">// we have a metadata entry, so we set up a task to change it</span></div>
 <div class="line">        printf(<span class="stringliteral">&quot;- metadata exists - updating\n&quot;</span>);</div>
-<div class="line">        mutator = <a class="code" href="a00136.html#gaa7793b326f4035bdbc2d0fcd34c39703">PDTaskCreateMutatorForObject</a>(<a class="code" href="a00128.html#ga070fdaa9a0f8ddaf1e2815ffa5b3a961">PDReferenceGetObjectID</a>(metaRef),</div>
+<div class="line">        mutator = <a class="code" href="a00135.html#gaa7793b326f4035bdbc2d0fcd34c39703">PDTaskCreateMutatorForObject</a>(<a class="code" href="a00127.html#ga070fdaa9a0f8ddaf1e2815ffa5b3a961">PDReferenceGetObjectID</a>(metaRef),</div>
 <div class="line">                                               updateMetadata);</div>
 </div><!-- fragment --></p>
 <p>Second case: we do what we did before; create a metadata object, stuff it with stuff, and hook a task up to edit the root object. We're using a different method for creating the object here. You may run into reasons for choosing one over the other one day.</p>
@@ -128,22 +128,22 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">        meta = <a class="code" href="a00019.html#ga87dfa8409888bac8a7c694231186b7ec">PDParserCreateAppendedObject</a>(parser);</div>
 <div class="line">        </div>
 <div class="line">        <span class="keywordtype">char</span> *metaString = <span class="stringliteral">&quot;Hello World!&quot;</span>;</div>
-<div class="line">        <a class="code" href="a00026.html#ga45ac52885d1710e54e2271870b8c13f8">PDObjectSetStream</a>(meta, metaString, strlen(metaString), <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="keyword">false</span>);</div>
+<div class="line">        <a class="code" href="a00028.html#ga45ac52885d1710e54e2271870b8c13f8">PDObjectSetStream</a>(meta, metaString, strlen(metaString), <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="keyword">false</span>);</div>
 <div class="line">    </div>
 <div class="line">        <span class="comment">// create a mutator for the root object</span></div>
-<div class="line">        mutator = <a class="code" href="a00136.html#ga6405c8eb09d5f957e1b7911f743fd489">PDTaskCreateMutatorForPropertyType</a>(<a class="code" href="a00136.html#ggaa2f108018ee986118e960c9004e65f44a4527237134f3627f5a0d387625c6b0b2">PDPropertyRootObject</a>,</div>
+<div class="line">        mutator = <a class="code" href="a00135.html#ga6405c8eb09d5f957e1b7911f743fd489">PDTaskCreateMutatorForPropertyType</a>(<a class="code" href="a00135.html#ggaa2f108018ee986118e960c9004e65f44a4527237134f3627f5a0d387625c6b0b2">PDPropertyRootObject</a>,</div>
 <div class="line">                                                     addMetadata);</div>
 <div class="line"></div>
 <div class="line">        <span class="comment">// and hand it the meta object</span></div>
-<div class="line">        <a class="code" href="a00136.html#ga4382fcaa073650fc176e1d13d587aa4d">PDTaskSetInfo</a>(mutator, meta);</div>
+<div class="line">        <a class="code" href="a00135.html#ga4382fcaa073650fc176e1d13d587aa4d">PDTaskSetInfo</a>(mutator, meta);</div>
 <div class="line">    }</div>
 </div><!-- fragment --></p>
-<p>We then add the task (whichever one it was) and release it (it's retained by the <a class="el" href="a00021.html#a00159">PDPipe</a>).</p>
-<p><div class="fragment"><div class="line">    <a class="code" href="a00127.html#gada11ae0da3875e70faab112dff7a7216">PDPipeAddTask</a>(pipe, mutator);</div>
-<div class="line">    <a class="code" href="a00138.html#ga19a72abf3c398d15e2e2ba01d38962ef">PDRelease</a>(mutator);</div>
+<p>We then add the task (whichever one it was) and release it (it's retained by the <a class="el" href="a00023.html#a00159">PDPipe</a>).</p>
+<p><div class="fragment"><div class="line">    <a class="code" href="a00126.html#gada11ae0da3875e70faab112dff7a7216">PDPipeAddTask</a>(pipe, mutator);</div>
+<div class="line">    <a class="code" href="a00137.html#ga19a72abf3c398d15e2e2ba01d38962ef">PDRelease</a>(mutator);</div>
 </div><!-- fragment --></p>
 <p>The task for adding metadata remains the same, which leaves the task for updating it:</p>
-<p><div class="fragment"><div class="line"><a class="code" href="a00136.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> updateMetadata(<a class="code" href="a00021.html#a00159">PDPipeRef</a> pipe, <a class="code" href="a00021.html#a00171">PDTaskRef</a> task, <a class="code" href="a00026.html#a00152">PDObjectRef</a> <span class="keywordtype">object</span>, <span class="keywordtype">void</span> *info)</div>
+<p><div class="fragment"><div class="line"><a class="code" href="a00135.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> updateMetadata(<a class="code" href="a00023.html#a00159">PDPipeRef</a> pipe, <a class="code" href="a00023.html#a00171">PDTaskRef</a> task, <a class="code" href="a00028.html#a00152">PDObjectRef</a> <span class="keywordtype">object</span>, <span class="keywordtype">void</span> *info)</div>
 <div class="line">{</div>
 <div class="line">    printf(<span class="stringliteral">&quot;- performing updateMetadata task\n&quot;</span>);</div>
 <div class="line">    </div>
@@ -151,10 +151,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">    <span class="comment">// we do it INSIDE OF THE TASK -- the ONLY place where objects we did not </span></div>
 <div class="line">    <span class="comment">// create ourselves can be modified</span></div>
 <div class="line">    <span class="keywordtype">char</span> *metaString = <span class="stringliteral">&quot;Hello Again, World!&quot;</span>;</div>
-<div class="line">    <a class="code" href="a00026.html#ga45ac52885d1710e54e2271870b8c13f8">PDObjectSetStream</a>(<span class="keywordtype">object</span>, metaString, strlen(metaString), <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="keyword">false</span>);</div>
+<div class="line">    <a class="code" href="a00028.html#ga45ac52885d1710e54e2271870b8c13f8">PDObjectSetStream</a>(<span class="keywordtype">object</span>, metaString, strlen(metaString), <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="keyword">false</span>);</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// tell task handler to continue as normal</span></div>
-<div class="line">    <span class="keywordflow">return</span> <a class="code" href="a00136.html#gga91616478cbeb225ea1dc8684f4daaa09ab91b10f2a3fdb44fe9a8afc269354b08">PDTaskDone</a>;</div>
+<div class="line">    <span class="keywordflow">return</span> <a class="code" href="a00135.html#gga91616478cbeb225ea1dc8684f4daaa09ab91b10f2a3fdb44fe9a8afc269354b08">PDTaskDone</a>;</div>
 <div class="line">}</div>
 </div><!-- fragment --></p>
 <p>The resulting file ends up looking like this:</p>
@@ -172,10 +172,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"></div>
 <div class="line"><span class="comment">// a &quot;mutator&quot; task, which is responsible for pointing the PDF&#39;s root object</span></div>
 <div class="line"><span class="comment">// to a new metadata object that we&#39;re creating</span></div>
-<div class="line"><a class="code" href="a00136.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> addMetadata(<a class="code" href="a00021.html#a00159">PDPipeRef</a> pipe, <a class="code" href="a00021.html#a00171">PDTaskRef</a> task, <a class="code" href="a00026.html#a00152">PDObjectRef</a> <span class="keywordtype">object</span>, <span class="keywordtype">void</span> *info);</div>
+<div class="line"><a class="code" href="a00135.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> addMetadata(<a class="code" href="a00023.html#a00159">PDPipeRef</a> pipe, <a class="code" href="a00023.html#a00171">PDTaskRef</a> task, <a class="code" href="a00028.html#a00152">PDObjectRef</a> <span class="keywordtype">object</span>, <span class="keywordtype">void</span> *info);</div>
 <div class="line"></div>
 <div class="line"><span class="comment">// a mutator task for updating a metadata object&#39;s contents</span></div>
-<div class="line"><a class="code" href="a00136.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> updateMetadata(<a class="code" href="a00021.html#a00159">PDPipeRef</a> pipe, <a class="code" href="a00021.html#a00171">PDTaskRef</a> task, <a class="code" href="a00026.html#a00152">PDObjectRef</a> <span class="keywordtype">object</span>, <span class="keywordtype">void</span> *info);</div>
+<div class="line"><a class="code" href="a00135.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> updateMetadata(<a class="code" href="a00023.html#a00159">PDPipeRef</a> pipe, <a class="code" href="a00023.html#a00171">PDTaskRef</a> task, <a class="code" href="a00028.html#a00152">PDObjectRef</a> <span class="keywordtype">object</span>, <span class="keywordtype">void</span> *info);</div>
 <div class="line"></div>
 <div class="line"><span class="comment">//</span></div>
 <div class="line"><span class="comment">// main program</span></div>
@@ -191,7 +191,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">           <span class="stringliteral">&quot;output : %s\n&quot;</span>, argv[1], argv[2]);</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// create pipe</span></div>
-<div class="line">    <a class="code" href="a00021.html#a00159">PDPipeRef</a> pipe = <a class="code" href="a00127.html#ga4ba6a18d9e2a6583ff4f6b0cd712d8da">PDPipeCreateWithFilePaths</a>(argv[1], argv[2]);</div>
+<div class="line">    <a class="code" href="a00023.html#a00159">PDPipeRef</a> pipe = <a class="code" href="a00126.html#ga4ba6a18d9e2a6583ff4f6b0cd712d8da">PDPipeCreateWithFilePaths</a>(argv[1], argv[2]);</div>
 <div class="line">    <span class="keywordflow">if</span> (NULL == pipe) die(<span class="stringliteral">&quot;failed to create pipe\n&quot;</span>);</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// we now check the root object, to see if it has a metadata entry or not</span></div>
@@ -199,21 +199,21 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">    <span class="comment">// we add a new metadata object and add a /Metadata key to the root object</span></div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// get the pipe&#39;s parser</span></div>
-<div class="line">    <a class="code" href="a00021.html#a00158">PDParserRef</a> parser = <a class="code" href="a00127.html#gac21c2aa259c604582e175bb09887d5ca">PDPipeGetParser</a>(pipe);</div>
+<div class="line">    <a class="code" href="a00023.html#a00158">PDParserRef</a> parser = <a class="code" href="a00126.html#gac21c2aa259c604582e175bb09887d5ca">PDPipeGetParser</a>(pipe);</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// pull out the definition for the root object -- we can do this before</span></div>
 <div class="line">    <span class="comment">// executing the pipe, but the objects are immutable (i.e. we cannot change</span></div>
 <div class="line">    <span class="comment">// them)</span></div>
-<div class="line">    <a class="code" href="a00026.html#a00152">PDObjectRef</a> root = <a class="code" href="a00019.html#gadd7e2cbd916838312f948a2cacdbf77a">PDParserGetRootObject</a>(parser);</div>
-<div class="line">    <a class="code" href="a00021.html#a00149">PDDictionaryRef</a> rootDict = <a class="code" href="a00026.html#gabf179b365305f5684f8014e257944e53">PDObjectGetDictionary</a>(root);</div>
-<div class="line">    <a class="code" href="a00021.html#a00162">PDReferenceRef</a> metaRef = <a class="code" href="a00123.html#gac4fa42edf1c071588eabc761ed842404">PDDictionaryGetEntry</a>(rootDict, <span class="stringliteral">&quot;Metadata&quot;</span>);</div>
+<div class="line">    <a class="code" href="a00028.html#a00152">PDObjectRef</a> root = <a class="code" href="a00019.html#gadd7e2cbd916838312f948a2cacdbf77a">PDParserGetRootObject</a>(parser);</div>
+<div class="line">    <a class="code" href="a00023.html#a00148">PDDictionaryRef</a> rootDict = <a class="code" href="a00028.html#gabf179b365305f5684f8014e257944e53">PDObjectGetDictionary</a>(root);</div>
+<div class="line">    <a class="code" href="a00023.html#a00162">PDReferenceRef</a> metaRef = PDDictionaryGetEntry(rootDict, <span class="stringliteral">&quot;Metadata&quot;</span>);</div>
 <div class="line"></div>
-<div class="line">    <a class="code" href="a00026.html#a00152">PDObjectRef</a> meta = NULL;</div>
-<div class="line">    <a class="code" href="a00021.html#a00171">PDTaskRef</a> mutator;</div>
+<div class="line">    <a class="code" href="a00028.html#a00152">PDObjectRef</a> meta = NULL;</div>
+<div class="line">    <a class="code" href="a00023.html#a00171">PDTaskRef</a> mutator;</div>
 <div class="line">    <span class="keywordflow">if</span> (metaRef) {</div>
 <div class="line">        <span class="comment">// we have a metadata entry, so we set up a task to change it</span></div>
 <div class="line">        printf(<span class="stringliteral">&quot;- metadata exists - updating\n&quot;</span>);</div>
-<div class="line">        mutator = <a class="code" href="a00136.html#gaa7793b326f4035bdbc2d0fcd34c39703">PDTaskCreateMutatorForObject</a>(<a class="code" href="a00128.html#ga070fdaa9a0f8ddaf1e2815ffa5b3a961">PDReferenceGetObjectID</a>(metaRef),</div>
+<div class="line">        mutator = <a class="code" href="a00135.html#gaa7793b326f4035bdbc2d0fcd34c39703">PDTaskCreateMutatorForObject</a>(<a class="code" href="a00127.html#ga070fdaa9a0f8ddaf1e2815ffa5b3a961">PDReferenceGetObjectID</a>(metaRef),</div>
 <div class="line">                                               updateMetadata);</div>
 <div class="line">    } <span class="keywordflow">else</span> {</div>
 <div class="line">        <span class="comment">// we don&#39;t have a metadata entry</span></div>
@@ -225,68 +225,68 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">        meta = <a class="code" href="a00019.html#ga87dfa8409888bac8a7c694231186b7ec">PDParserCreateAppendedObject</a>(parser);</div>
 <div class="line">        </div>
 <div class="line">        <span class="keywordtype">char</span> *metaString = <span class="stringliteral">&quot;Hello World!&quot;</span>;</div>
-<div class="line">        <a class="code" href="a00026.html#ga45ac52885d1710e54e2271870b8c13f8">PDObjectSetStream</a>(meta, metaString, strlen(metaString), <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="keyword">false</span>);</div>
+<div class="line">        <a class="code" href="a00028.html#ga45ac52885d1710e54e2271870b8c13f8">PDObjectSetStream</a>(meta, metaString, strlen(metaString), <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="keyword">false</span>);</div>
 <div class="line">    </div>
 <div class="line">        <span class="comment">// create a mutator for the root object</span></div>
-<div class="line">        mutator = <a class="code" href="a00136.html#ga6405c8eb09d5f957e1b7911f743fd489">PDTaskCreateMutatorForPropertyType</a>(<a class="code" href="a00136.html#ggaa2f108018ee986118e960c9004e65f44a4527237134f3627f5a0d387625c6b0b2">PDPropertyRootObject</a>,</div>
+<div class="line">        mutator = <a class="code" href="a00135.html#ga6405c8eb09d5f957e1b7911f743fd489">PDTaskCreateMutatorForPropertyType</a>(<a class="code" href="a00135.html#ggaa2f108018ee986118e960c9004e65f44a4527237134f3627f5a0d387625c6b0b2">PDPropertyRootObject</a>,</div>
 <div class="line">                                                     addMetadata);</div>
 <div class="line"></div>
 <div class="line">        <span class="comment">// and hand it the meta object</span></div>
-<div class="line">        <a class="code" href="a00136.html#ga4382fcaa073650fc176e1d13d587aa4d">PDTaskSetInfo</a>(mutator, meta);</div>
+<div class="line">        <a class="code" href="a00135.html#ga4382fcaa073650fc176e1d13d587aa4d">PDTaskSetInfo</a>(mutator, meta);</div>
 <div class="line">    }</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// whichever it was, we now have a task in mutator that we add to the</span></div>
 <div class="line">    <span class="comment">// pipe and release our task</span></div>
-<div class="line">    <a class="code" href="a00127.html#gada11ae0da3875e70faab112dff7a7216">PDPipeAddTask</a>(pipe, mutator);</div>
-<div class="line">    <a class="code" href="a00138.html#ga19a72abf3c398d15e2e2ba01d38962ef">PDRelease</a>(mutator);</div>
+<div class="line">    <a class="code" href="a00126.html#gada11ae0da3875e70faab112dff7a7216">PDPipeAddTask</a>(pipe, mutator);</div>
+<div class="line">    <a class="code" href="a00137.html#ga19a72abf3c398d15e2e2ba01d38962ef">PDRelease</a>(mutator);</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// execute</span></div>
 <div class="line">    printf(<span class="stringliteral">&quot;- executing pipe\n&quot;</span>);</div>
-<div class="line">    <a class="code" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> obcount = <a class="code" href="a00127.html#ga0250f0103c839ae4ffb95a07e53ca108">PDPipeExecute</a>(pipe);</div>
+<div class="line">    <a class="code" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> obcount = <a class="code" href="a00126.html#ga0250f0103c839ae4ffb95a07e53ca108">PDPipeExecute</a>(pipe);</div>
 <div class="line">    printf(<span class="stringliteral">&quot;- execution finished (%ld objects processed)\n&quot;</span>, obcount);</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// clean up -- we conditionally release the meta object as it may not have</span></div>
 <div class="line">    <span class="comment">// been set up, if there was a meta object in existence already</span></div>
 <div class="line">    <span class="comment">// also note that we do not release root, as it&#39;s not created nor retained</span></div>
 <div class="line">    <span class="comment">// by us</span></div>
-<div class="line">    <a class="code" href="a00138.html#ga19a72abf3c398d15e2e2ba01d38962ef">PDRelease</a>(pipe);</div>
-<div class="line">    <span class="keywordflow">if</span> (meta) <a class="code" href="a00138.html#ga19a72abf3c398d15e2e2ba01d38962ef">PDRelease</a>(meta);</div>
+<div class="line">    <a class="code" href="a00137.html#ga19a72abf3c398d15e2e2ba01d38962ef">PDRelease</a>(pipe);</div>
+<div class="line">    <span class="keywordflow">if</span> (meta) <a class="code" href="a00137.html#ga19a72abf3c398d15e2e2ba01d38962ef">PDRelease</a>(meta);</div>
 <div class="line">}</div>
 <div class="line"></div>
 <div class="line"><span class="comment">//</span></div>
 <div class="line"><span class="comment">// task - adding metadata</span></div>
 <div class="line"><span class="comment">//</span></div>
 <div class="line"></div>
-<div class="line"><a class="code" href="a00136.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> addMetadata(<a class="code" href="a00021.html#a00159">PDPipeRef</a> pipe, <a class="code" href="a00021.html#a00171">PDTaskRef</a> task, <a class="code" href="a00026.html#a00152">PDObjectRef</a> <span class="keywordtype">object</span>, <span class="keywordtype">void</span> *info)</div>
+<div class="line"><a class="code" href="a00135.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> addMetadata(<a class="code" href="a00023.html#a00159">PDPipeRef</a> pipe, <a class="code" href="a00023.html#a00171">PDTaskRef</a> task, <a class="code" href="a00028.html#a00152">PDObjectRef</a> <span class="keywordtype">object</span>, <span class="keywordtype">void</span> *info)</div>
 <div class="line">{</div>
 <div class="line">    printf(<span class="stringliteral">&quot;- performing addMetadata task\n&quot;</span>);</div>
 <div class="line">    </div>
 <div class="line">    <span class="comment">// get the dictionary for the object</span></div>
-<div class="line">    <a class="code" href="a00021.html#a00149">PDDictionaryRef</a> dict = <a class="code" href="a00026.html#gabf179b365305f5684f8014e257944e53">PDObjectGetDictionary</a>(<span class="keywordtype">object</span>);</div>
+<div class="line">    <a class="code" href="a00023.html#a00148">PDDictionaryRef</a> dict = <a class="code" href="a00028.html#gabf179b365305f5684f8014e257944e53">PDObjectGetDictionary</a>(<span class="keywordtype">object</span>);</div>
 <div class="line">    </div>
 <div class="line">    <span class="comment">// if we get here and the root object turned out to have a metadata</span></div>
 <div class="line">    <span class="comment">// object after all, our code is buggy</span></div>
-<div class="line">    <span class="keywordflow">if</span> (<a class="code" href="a00123.html#gac4fa42edf1c071588eabc761ed842404">PDDictionaryGetEntry</a>(dict, <span class="stringliteral">&quot;Metadata&quot;</span>)) {</div>
+<div class="line">    <span class="keywordflow">if</span> (PDDictionaryGetEntry(dict, <span class="stringliteral">&quot;Metadata&quot;</span>)) {</div>
 <div class="line">        die(<span class="stringliteral">&quot;error: metadata already exists! code is buggy!\n&quot;</span>);</div>
 <div class="line">    }</div>
 <div class="line">    </div>
 <div class="line">    <span class="comment">// info is our meta</span></div>
-<div class="line">    <a class="code" href="a00026.html#a00152">PDObjectRef</a> meta = info;</div>
+<div class="line">    <a class="code" href="a00028.html#a00152">PDObjectRef</a> meta = info;</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// set the Root&#39;s metadata reference; we are setting it to a PDObject</span></div>
 <div class="line">    <span class="comment">// but this translates to a PDF indirect reference, as dictionaries</span></div>
 <div class="line">    <span class="comment">// cannot contain entire objects</span></div>
-<div class="line">    <a class="code" href="a00123.html#ga670d173c477d22e69a89eb4640188141">PDDictionarySetEntry</a>(dict, <span class="stringliteral">&quot;Metadata&quot;</span>, meta);    </div>
+<div class="line">    PDDictionarySetEntry(dict, <span class="stringliteral">&quot;Metadata&quot;</span>, meta);    </div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// tell task handler to continue as normal</span></div>
-<div class="line">    <span class="keywordflow">return</span> <a class="code" href="a00136.html#gga91616478cbeb225ea1dc8684f4daaa09ab91b10f2a3fdb44fe9a8afc269354b08">PDTaskDone</a>;</div>
+<div class="line">    <span class="keywordflow">return</span> <a class="code" href="a00135.html#gga91616478cbeb225ea1dc8684f4daaa09ab91b10f2a3fdb44fe9a8afc269354b08">PDTaskDone</a>;</div>
 <div class="line">}</div>
 <div class="line"></div>
 <div class="line"><span class="comment">//</span></div>
 <div class="line"><span class="comment">// task - updating metadata</span></div>
 <div class="line"><span class="comment">//</span></div>
 <div class="line"></div>
-<div class="line"><a class="code" href="a00136.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> updateMetadata(<a class="code" href="a00021.html#a00159">PDPipeRef</a> pipe, <a class="code" href="a00021.html#a00171">PDTaskRef</a> task, <a class="code" href="a00026.html#a00152">PDObjectRef</a> <span class="keywordtype">object</span>, <span class="keywordtype">void</span> *info)</div>
+<div class="line"><a class="code" href="a00135.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> updateMetadata(<a class="code" href="a00023.html#a00159">PDPipeRef</a> pipe, <a class="code" href="a00023.html#a00171">PDTaskRef</a> task, <a class="code" href="a00028.html#a00152">PDObjectRef</a> <span class="keywordtype">object</span>, <span class="keywordtype">void</span> *info)</div>
 <div class="line">{</div>
 <div class="line">    printf(<span class="stringliteral">&quot;- performing updateMetadata task\n&quot;</span>);</div>
 <div class="line">    </div>
@@ -294,10 +294,10 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line">    <span class="comment">// we do it INSIDE OF THE TASK -- the ONLY place where objects we did not </span></div>
 <div class="line">    <span class="comment">// create ourselves can be modified</span></div>
 <div class="line">    <span class="keywordtype">char</span> *metaString = <span class="stringliteral">&quot;Hello Again, World!&quot;</span>;</div>
-<div class="line">    <a class="code" href="a00026.html#ga45ac52885d1710e54e2271870b8c13f8">PDObjectSetStream</a>(<span class="keywordtype">object</span>, metaString, strlen(metaString), <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="keyword">false</span>);</div>
+<div class="line">    <a class="code" href="a00028.html#ga45ac52885d1710e54e2271870b8c13f8">PDObjectSetStream</a>(<span class="keywordtype">object</span>, metaString, strlen(metaString), <span class="keyword">true</span>, <span class="keyword">false</span>, <span class="keyword">false</span>);</div>
 <div class="line"></div>
 <div class="line">    <span class="comment">// tell task handler to continue as normal</span></div>
-<div class="line">    <span class="keywordflow">return</span> <a class="code" href="a00136.html#gga91616478cbeb225ea1dc8684f4daaa09ab91b10f2a3fdb44fe9a8afc269354b08">PDTaskDone</a>;</div>
+<div class="line">    <span class="keywordflow">return</span> <a class="code" href="a00135.html#gga91616478cbeb225ea1dc8684f4daaa09ab91b10f2a3fdb44fe9a8afc269354b08">PDTaskDone</a>;</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>And this is what it looks like when used:</p>
 <div class="fragment"><div class="line">$ gcc replace-metadata.c -lz ../libpajdeg.a -o replace-metadata</div>
@@ -333,7 +333,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- fragment --> </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:36 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

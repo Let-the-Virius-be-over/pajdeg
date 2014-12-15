@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -122,14 +122,14 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;</div>
 <div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="a00063.html">PDDefines.h</a>&quot;</span></div>
 <div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;</div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00021.html#a00151">PDNumberRef</a> PDNullObject;</div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00023.html#a00151">PDNumberRef</a> PDNullObject;</div>
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;</div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;<span class="comment">// retained variants</span></div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00021.html#a00151">PDNumberRef</a> PDNumberCreateWithInteger(<a class="code" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> i);</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00021.html#a00151">PDNumberRef</a> PDNumberCreateWithSize(<a class="code" href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> s);</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00021.html#a00151">PDNumberRef</a> PDNumberCreateWithReal(<a class="code" href="a00029.html#gae0e6a1de2f316b679b976e43084896d4">PDReal</a> r);</div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00021.html#a00151">PDNumberRef</a> PDNumberCreateWithBool(<a class="code" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> b);</div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00021.html#a00151">PDNumberRef</a> PDNumberCreateWithCString(<span class="keyword">const</span> <span class="keywordtype">char</span> *cString);</div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00023.html#a00151">PDNumberRef</a> PDNumberCreateWithInteger(<a class="code" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> i);</div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00023.html#a00151">PDNumberRef</a> PDNumberCreateWithSize(<a class="code" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> s);</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00023.html#a00151">PDNumberRef</a> PDNumberCreateWithReal(<a class="code" href="a00031.html#gae0e6a1de2f316b679b976e43084896d4">PDReal</a> r);</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00023.html#a00151">PDNumberRef</a> PDNumberCreateWithBool(<a class="code" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> b);</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00023.html#a00151">PDNumberRef</a> PDNumberCreateWithCString(<span class="keyword">const</span> <span class="keywordtype">char</span> *cString);</div>
 <div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;</div>
 <div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="comment">// autoreleased variants</span></div>
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="preprocessor">#define PDNumberWithInteger(i)  PDAutorelease(PDNumberCreateWithInteger(i))</span></div>
@@ -138,31 +138,30 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;<span class="preprocessor">#define PDNumberWithBool(b)     PDAutorelease(PDNumberCreateWithBool(b))</span></div>
 <div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;</div>
 <div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;<span class="comment">// NULL n safe</span></div>
-<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> PDNumberGetInteger(<a class="code" href="a00021.html#a00151">PDNumberRef</a> n);</div>
-<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> PDNumberGetSize(<a class="code" href="a00021.html#a00151">PDNumberRef</a> n);</div>
-<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00029.html#gae0e6a1de2f316b679b976e43084896d4">PDReal</a> PDNumberGetReal(<a class="code" href="a00021.html#a00151">PDNumberRef</a> n);</div>
-<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> PDNumberGetBool(<a class="code" href="a00021.html#a00151">PDNumberRef</a> n);</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> PDNumberGetInteger(<a class="code" href="a00023.html#a00151">PDNumberRef</a> n);</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> PDNumberGetSize(<a class="code" href="a00023.html#a00151">PDNumberRef</a> n);</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00031.html#gae0e6a1de2f316b679b976e43084896d4">PDReal</a> PDNumberGetReal(<a class="code" href="a00023.html#a00151">PDNumberRef</a> n);</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> PDNumberGetBool(<a class="code" href="a00023.html#a00151">PDNumberRef</a> n);</div>
 <div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> PDNumberPrinter(<span class="keywordtype">void</span> *inst, <span class="keywordtype">char</span> **<a class="code" href="a00021.html#gaf99415092333a1904b2fc4f733b6d3b1">buf</a>, <a class="code" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> offs, <a class="code" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *cap);</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> PDNumberPrinter(<span class="keywordtype">void</span> *inst, <span class="keywordtype">char</span> **buf, <a class="code" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> offs, <a class="code" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *cap);</div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;</div>
-<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00026.html#gae4bb034a1a82fb7cf865a96d55f5c5e2">PDObjectType</a> PDNumberGetObjectType(<a class="code" href="a00021.html#a00151">PDNumberRef</a> n);</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00028.html#gae4bb034a1a82fb7cf865a96d55f5c5e2">PDObjectType</a> PDNumberGetObjectType(<a class="code" href="a00023.html#a00151">PDNumberRef</a> n);</div>
 <div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;</div>
-<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">char</span> *PDNumberToString(<a class="code" href="a00021.html#a00151">PDNumberRef</a> n);</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">char</span> *PDNumberToString(<a class="code" href="a00023.html#a00151">PDNumberRef</a> n);</div>
 <div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;</div>
 <div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;<span class="preprocessor">#endif // INCLUDED_PDNUMBER_H</span></div>
 <div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;</div>
-<div class="ttc" id="a00021_html_a00151"><div class="ttname"><a href="a00021.html#a00151">PDNumber</a></div><div class="ttdef"><b>Definition:</b> pd_internal.h:790</div></div>
-<div class="ttc" id="a00029_html_ga7bf5d17054ed63682b0cb309545ad1cc"><div class="ttname"><a href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a></div><div class="ttdeci">long PDInteger</div><div class="ttdef"><b>Definition:</b> PDDefines.h:157</div></div>
+<div class="ttc" id="a00031_html_gad244dd3b4044286b711733599137f318"><div class="ttname"><a href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a></div><div class="ttdeci">unsigned char PDBool</div><div class="ttdef"><b>Definition:</b> PDDefines.h:188</div></div>
+<div class="ttc" id="a00031_html_ga7bf5d17054ed63682b0cb309545ad1cc"><div class="ttname"><a href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a></div><div class="ttdeci">long PDInteger</div><div class="ttdef"><b>Definition:</b> PDDefines.h:165</div></div>
 <div class="ttc" id="a00063_html"><div class="ttname"><a href="a00063.html">PDDefines.h</a></div><div class="ttdoc">Definitions for the Pajdeg interface. </div></div>
-<div class="ttc" id="a00029_html_ga5e255303bba6a64f69d4dddb5485df58"><div class="ttname"><a href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a></div><div class="ttdeci">size_t PDSize</div><div class="ttdef"><b>Definition:</b> PDDefines.h:186</div></div>
-<div class="ttc" id="a00026_html_gae4bb034a1a82fb7cf865a96d55f5c5e2"><div class="ttname"><a href="a00026.html#gae4bb034a1a82fb7cf865a96d55f5c5e2">PDObjectType</a></div><div class="ttdeci">PDObjectType</div><div class="ttdef"><b>Definition:</b> PDDefines.h:529</div></div>
-<div class="ttc" id="a00029_html_gad244dd3b4044286b711733599137f318"><div class="ttname"><a href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a></div><div class="ttdeci">unsigned char PDBool</div><div class="ttdef"><b>Definition:</b> PDDefines.h:180</div></div>
-<div class="ttc" id="a00021_html_gaf99415092333a1904b2fc4f733b6d3b1"><div class="ttname"><a href="a00021.html#gaf99415092333a1904b2fc4f733b6d3b1">PDScanner::buf</a></div><div class="ttdeci">char * buf</div><div class="ttdoc">buffer </div><div class="ttdef"><b>Definition:</b> pd_internal.h:510</div></div>
-<div class="ttc" id="a00029_html_gae0e6a1de2f316b679b976e43084896d4"><div class="ttname"><a href="a00029.html#gae0e6a1de2f316b679b976e43084896d4">PDReal</a></div><div class="ttdeci">float PDReal</div><div class="ttdef"><b>Definition:</b> PDDefines.h:167</div></div>
+<div class="ttc" id="a00023_html_a00151"><div class="ttname"><a href="a00023.html#a00151">PDNumber</a></div><div class="ttdef"><b>Definition:</b> pd_internal.h:807</div></div>
+<div class="ttc" id="a00031_html_ga5e255303bba6a64f69d4dddb5485df58"><div class="ttname"><a href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a></div><div class="ttdeci">size_t PDSize</div><div class="ttdef"><b>Definition:</b> PDDefines.h:194</div></div>
+<div class="ttc" id="a00028_html_gae4bb034a1a82fb7cf865a96d55f5c5e2"><div class="ttname"><a href="a00028.html#gae4bb034a1a82fb7cf865a96d55f5c5e2">PDObjectType</a></div><div class="ttdeci">PDObjectType</div><div class="ttdef"><b>Definition:</b> PDDefines.h:548</div></div>
+<div class="ttc" id="a00031_html_gae0e6a1de2f316b679b976e43084896d4"><div class="ttname"><a href="a00031.html#gae0e6a1de2f316b679b976e43084896d4">PDReal</a></div><div class="ttdeci">float PDReal</div><div class="ttdef"><b>Definition:</b> PDDefines.h:175</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:35 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

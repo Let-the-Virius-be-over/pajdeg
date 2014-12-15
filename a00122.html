@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.8"/>
-<title>Pajdeg: Symbol scanning</title>
+<title>Pajdeg: PDDictionary</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -84,32 +84,563 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <div class="header">
   <div class="summary">
-<a href="#groups">Modules</a>  </div>
+<a href="#files">Files</a> &#124;
+<a href="#define-members">Macros</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
-<div class="title">Symbol scanning<div class="ingroups"><a class="el" href="a00119.html">Internal</a></div></div>  </div>
+<div class="title">PDDictionary</div>  </div>
 </div><!--header-->
 <div class="contents">
+
+<p>A hash map construct.  
+<a href="#details">More...</a></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="groups"></a>
-Modules</h2></td></tr>
-<tr class="memitem:a00124"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00124.html">PDEnv</a></td></tr>
-<tr class="memdesc:a00124"><td class="mdescLeft">&#160;</td><td class="mdescRight">An instance of a <a class="el" href="a00021.html#a00166">PDState</a> in a scanner. <br /></td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="files"></a>
+Files</h2></td></tr>
+<tr class="memitem:a00065"><td class="memItemLeft" align="right" valign="top">file &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00065.html">PDDictionary.h</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00126"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00126.html">PDOperator</a></td></tr>
-<tr class="memdesc:a00126"><td class="mdescLeft">&#160;</td><td class="mdescRight">An operator for a given symbol or outcome in a state. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00129"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00129.html">PDScanner</a></td></tr>
-<tr class="memdesc:a00129"><td class="mdescLeft">&#160;</td><td class="mdescRight">The generic scanner used to read symbols from a stream or arbitrary buffer. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00131"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html">PDState</a></td></tr>
-<tr class="memdesc:a00131"><td class="mdescLeft">&#160;</td><td class="mdescRight">A state. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:gab5b90ef1487af605f4512ca932bfcfec"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gab5b90ef1487af605f4512ca932bfcfec"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDDictionaryGetString</b>(d, k)&#160;&#160;&#160;PDDictionaryGetTyped(d,k,<a class="el" href="a00028.html#gga55c6f9dd711635f465a0a72b89565c9ead9b07e48f4682c8b5a2fa28821e5ecfa">PDInstanceTypeString</a>)</td></tr>
+<tr class="separator:gab5b90ef1487af605f4512ca932bfcfec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga450c62a49674089eb42d947cb3934e22"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga450c62a49674089eb42d947cb3934e22"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDDictionaryGetArray</b>(d, k)&#160;&#160;&#160;PDDictionaryGetTyped(d,k,<a class="el" href="a00028.html#gga55c6f9dd711635f465a0a72b89565c9eaf1a46098aa51602eae8f9b8dc56e69a5">PDInstanceTypeArray</a>)</td></tr>
+<tr class="separator:ga450c62a49674089eb42d947cb3934e22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8967b08dd9cf5537f4a3538edf447edc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga8967b08dd9cf5537f4a3538edf447edc"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDDictionaryGetDictionary</b>(d, k)&#160;&#160;&#160;PDDictionaryGetTyped(d,k,<a class="el" href="a00028.html#gga55c6f9dd711635f465a0a72b89565c9eaf7e7f7a8ffc11789b5631373e2188492">PDInstanceTypeDict</a>)</td></tr>
+<tr class="separator:ga8967b08dd9cf5537f4a3538edf447edc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga575051073a1e7e15cd488b356a6be128"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga575051073a1e7e15cd488b356a6be128"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDDictionaryGetReference</b>(d, k)&#160;&#160;&#160;PDDictionaryGetTyped(d,k,<a class="el" href="a00028.html#gga55c6f9dd711635f465a0a72b89565c9eaff8a3976809d03ef45aeb72439107bfb">PDInstanceTypeRef</a>)</td></tr>
+<tr class="separator:ga575051073a1e7e15cd488b356a6be128"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga17c7bc9714fae03b1d1b027569ef479e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga17c7bc9714fae03b1d1b027569ef479e"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDDictionaryGetObject</b>(d, k)&#160;&#160;&#160;PDDictionaryGetTyped(d,k,<a class="el" href="a00028.html#gga55c6f9dd711635f465a0a72b89565c9ea49ff53660228b378e86a6ea9af8b8104">PDInstanceTypeObj</a>)</td></tr>
+<tr class="separator:ga17c7bc9714fae03b1d1b027569ef479e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafe11cff33fe01d3cf9a7f02ebfb4b788"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00122.html#gafe11cff33fe01d3cf9a7f02ebfb4b788">PDDictionaryGetInteger</a>(d, k)&#160;&#160;&#160;PDNumberGetInteger(<a class="el" href="a00122.html#gac257625df54f0fcf61f7819708e399c1">PDDictionaryGet</a>(d,k))</td></tr>
+<tr class="separator:gafe11cff33fe01d3cf9a7f02ebfb4b788"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:gae081b10dbbf1d0c42a3439b41e18d903"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="a00023.html#a00148">PDDictionary</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a></td></tr>
+<tr class="separator:gae081b10dbbf1d0c42a3439b41e18d903"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ga54b24b8e973be6d4f835d465d139e6f6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00122.html#ga54b24b8e973be6d4f835d465d139e6f6">PDDictionaryCreate</a> ()</td></tr>
+<tr class="separator:ga54b24b8e973be6d4f835d465d139e6f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaea28a96b936e43132e2c7c6535e9bfd0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00122.html#gaea28a96b936e43132e2c7c6535e9bfd0">PDDictionaryCreateWithBucketCount</a> (<a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> bucketCount)</td></tr>
+<tr class="separator:gaea28a96b936e43132e2c7c6535e9bfd0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga83e4e60d560f33f88784e78f5dff4294"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00122.html#ga83e4e60d560f33f88784e78f5dff4294">PDDictionaryCreateWithComplex</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> stack)</td></tr>
+<tr class="separator:ga83e4e60d560f33f88784e78f5dff4294"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7cda60f31b7f60e529d434b464e873e2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00122.html#ga7cda60f31b7f60e529d434b464e873e2">PDDictionaryAddEntriesFromComplex</a> (<a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> hm, <a class="el" href="a00023.html#a00142">pd_stack</a> stack)</td></tr>
+<tr class="separator:ga7cda60f31b7f60e529d434b464e873e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga65c35dbf1fd97bd99a75faf8867f4efc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00122.html#ga65c35dbf1fd97bd99a75faf8867f4efc">PDDictionarySet</a> (<a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> hm, const char *key, void *value)</td></tr>
+<tr class="separator:ga65c35dbf1fd97bd99a75faf8867f4efc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac257625df54f0fcf61f7819708e399c1"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00122.html#gac257625df54f0fcf61f7819708e399c1">PDDictionaryGet</a> (<a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> hm, const char *key)</td></tr>
+<tr class="separator:gac257625df54f0fcf61f7819708e399c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga812bbfced89585b8f449901686b5a7b9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00122.html#ga812bbfced89585b8f449901686b5a7b9">PDDictionaryDelete</a> (<a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> hm, const char *key)</td></tr>
+<tr class="separator:ga812bbfced89585b8f449901686b5a7b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab848ab8a23110084e0935b049848d2a3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00122.html#gab848ab8a23110084e0935b049848d2a3">PDDictionaryGetCount</a> (<a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> hm)</td></tr>
+<tr class="separator:gab848ab8a23110084e0935b049848d2a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa4bb5771f95e83abe02c4121ed119e94"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00122.html#gaa4bb5771f95e83abe02c4121ed119e94">PDDictionaryIterate</a> (<a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> hm, <a class="el" href="a00119.html#gabd2d608474422c7e948e919f3e9b1c49">PDHashIterator</a> it, void *ui)</td></tr>
+<tr class="separator:gaa4bb5771f95e83abe02c4121ed119e94"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga292361af98426c5eea0439cfa30dc8b9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00122.html#ga292361af98426c5eea0439cfa30dc8b9">PDDictionaryPopulateKeys</a> (<a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> hm, char **keys)</td></tr>
+<tr class="separator:ga292361af98426c5eea0439cfa30dc8b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf302a513610edb7e68afc53de01dd03a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00122.html#gaf302a513610edb7e68afc53de01dd03a">PDDictionaryClear</a> (<a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> hm)</td></tr>
+<tr class="separator:gaf302a513610edb7e68afc53de01dd03a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabd1b425ac74b6865305a2f3200a8ce35"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00122.html#gabd1b425ac74b6865305a2f3200a8ce35">PDDictionaryPrint</a> (<a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> hm)</td></tr>
+<tr class="separator:gabd1b425ac74b6865305a2f3200a8ce35"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga51c3213040807da312ba1fc3257cd90d"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00122.html#ga51c3213040807da312ba1fc3257cd90d">PDDictionaryToString</a> (<a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> hm)</td></tr>
+<tr class="separator:ga51c3213040807da312ba1fc3257cd90d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0d6238129c1c2bb306f171fa2ea644e3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga0d6238129c1c2bb306f171fa2ea644e3"></a>
+<a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDDictionaryPrinter</b> (void *inst, char **buf, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> offs, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *cap)</td></tr>
+<tr class="separator:ga0d6238129c1c2bb306f171fa2ea644e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2b582bd4e9490138eab941bd548dc2db"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00122.html#ga2b582bd4e9490138eab941bd548dc2db">PDDictionaryAttachCrypto</a> (<a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> hm, <a class="el" href="a00023.html#a00141">pd_crypto</a> crypto, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> objectID, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> genNumber)</td></tr>
+<tr class="separator:ga2b582bd4e9490138eab941bd548dc2db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad9460ddb66c0e589d14142c62929a214"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gad9460ddb66c0e589d14142c62929a214"></a>
+void *&#160;</td><td class="memItemRight" valign="bottom"><b>PDDictionaryGetTyped</b> (<a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> dictionary, const char *key, <a class="el" href="a00028.html#ga55c6f9dd711635f465a0a72b89565c9e">PDInstanceType</a> type)</td></tr>
+<tr class="separator:gad9460ddb66c0e589d14142c62929a214"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<p>A hash map construct. </p>
+<p><a class="el" href="a00023.html#a00148">PDDictionary</a> is a simple hash map implementation, with C string keys and PDType values. </p>
+<h2 class="groupheader">Macro Definition Documentation</h2>
+<a class="anchor" id="gafe11cff33fe01d3cf9a7f02ebfb4b788"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PDDictionaryGetInteger</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">d, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">k&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;PDNumberGetInteger(<a class="el" href="a00122.html#gac257625df54f0fcf61f7819708e399c1">PDDictionaryGet</a>(d,k))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Short cut to getting an integer value from a <a class="el" href="a00023.html#a00148">PDDictionary</a> </p>
+
+</div>
+</div>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a class="anchor" id="gae081b10dbbf1d0c42a3439b41e18d903"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="a00023.html#a00148">PDDictionary</a>* <a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A hash map implementation.</p>
+<p>The hash map construct. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a class="anchor" id="ga7cda60f31b7f60e529d434b464e873e2"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDDictionaryAddEntriesFromComplex </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a>&#160;</td>
+          <td class="paramname"><em>hm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00023.html#a00142">pd_stack</a>&#160;</td>
+          <td class="paramname"><em>stack</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Add all entries from the given PDF dictionary stack to this hash map. Entries will replace pre-existing key/value pairs when a key in the <a class="el" href="a00023.html#a00142">pd_stack</a> matches the key in the hash map.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">hm</td><td>Hash map to add entries to </td></tr>
+    <tr><td class="paramname">stack</td><td>PDF dictionary stack </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga2b582bd4e9490138eab941bd548dc2db"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDDictionaryAttachCrypto </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a>&#160;</td>
+          <td class="paramname"><em>hm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00023.html#a00141">pd_crypto</a>&#160;</td>
+          <td class="paramname"><em>crypto</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramname"><em>objectID</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramname"><em>genNumber</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Supply a crypto object to a hash map, and associate the hash map with a specific object.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">hm</td><td>The hash map </td></tr>
+    <tr><td class="paramname">crypto</td><td>The pd_crypt object </td></tr>
+    <tr><td class="paramname">objectID</td><td>The object ID of the owning object </td></tr>
+    <tr><td class="paramname">genNumber</td><td>Generation number of the owning object </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gaf302a513610edb7e68afc53de01dd03a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDDictionaryClear </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a>&#160;</td>
+          <td class="paramname"><em>hm</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Remove all entries in the dictionary.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">hm</td><td>Dictionary to clear </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga54b24b8e973be6d4f835d465d139e6f6"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> PDDictionaryCreate </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Create a hash map with C string keys using default number of buckets.</p>
+<dl class="section return"><dt>Returns</dt><dd>New hash map </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gaea28a96b936e43132e2c7c6535e9bfd0"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> PDDictionaryCreateWithBucketCount </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a>&#160;</td>
+          <td class="paramname"><em>bucketCount</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Create a hash map with the given number of buckets. The hash map uses C string keys.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">bucketCount</td><td>Number of buckets to use in the hash map</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>New hash map </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga83e4e60d560f33f88784e78f5dff4294"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a> PDDictionaryCreateWithComplex </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00023.html#a00142">pd_stack</a>&#160;</td>
+          <td class="paramname"><em>stack</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Create a hash map with a complex object (a PDF dictionary stack).</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">stack</td><td>PDF dictionary stack</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="a00023.html#a00148">PDDictionary</a> containing the PDF dictionary content </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga812bbfced89585b8f449901686b5a7b9"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDDictionaryDelete </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a>&#160;</td>
+          <td class="paramname"><em>hm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>key</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Delete the given key from the hash map</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">hm</td><td>The hash map </td></tr>
+    <tr><td class="paramname">key</td><td>The key to delete </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gac257625df54f0fcf61f7819708e399c1"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void* PDDictionaryGet </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a>&#160;</td>
+          <td class="paramname"><em>hm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>key</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get the value of the given key.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">hm</td><td>The hash map </td></tr>
+    <tr><td class="paramname">key</td><td>The key </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gab848ab8a23110084e0935b049848d2a3"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> PDDictionaryGetCount </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a>&#160;</td>
+          <td class="paramname"><em>hm</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get the number of items in the hash map currently.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">hm</td><td>The hash amp</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The number of inserted key/value pairs </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gaa4bb5771f95e83abe02c4121ed119e94"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDDictionaryIterate </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a>&#160;</td>
+          <td class="paramname"><em>hm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00119.html#gabd2d608474422c7e948e919f3e9b1c49">PDHashIterator</a>&#160;</td>
+          <td class="paramname"><em>it</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>ui</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Iterate over the hash map entries using the given iterator.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">hm</td><td>The hash map whose key/value pairs should be iterated </td></tr>
+    <tr><td class="paramname">it</td><td>The iterating function </td></tr>
+    <tr><td class="paramname">ui</td><td>User information to pass to iterator, if any </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga292361af98426c5eea0439cfa30dc8b9"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDDictionaryPopulateKeys </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a>&#160;</td>
+          <td class="paramname"><em>hm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char **&#160;</td>
+          <td class="paramname"><em>keys</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Fill in the keys array with the keys in the dictionary.</p>
+<dl class="section note"><dt>Note</dt><dd>keys must have at minimum PDDictionaryGetCount(hm) number of available slots.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">hm</td><td>Hash map </td></tr>
+    <tr><td class="paramname">keys</td><td>Pre-allocated array to populate </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gabd1b425ac74b6865305a2f3200a8ce35"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDDictionaryPrint </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a>&#160;</td>
+          <td class="paramname"><em>hm</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Print the hash map content to stdout.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">hm</td><td>The hash map </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga65c35dbf1fd97bd99a75faf8867f4efc"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDDictionarySet </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a>&#160;</td>
+          <td class="paramname"><em>hm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>key</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set key to value. If value is NULL, an assertion is thrown. To delete keys, use <a class="el" href="a00122.html#ga812bbfced89585b8f449901686b5a7b9">PDDictionaryDelete()</a>.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">hm</td><td>The hash map </td></tr>
+    <tr><td class="paramname">key</td><td>The key </td></tr>
+    <tr><td class="paramname">value</td><td>The value </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga51c3213040807da312ba1fc3257cd90d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* PDDictionaryToString </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00122.html#gae081b10dbbf1d0c42a3439b41e18d903">PDDictionaryRef</a>&#160;</td>
+          <td class="paramname"><em>hm</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Generate a C string formatted according to the PDF specification for this hash map.</p>
+<dl class="section note"><dt>Note</dt><dd>The returned string must be freed.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">hm</td><td>The hash map</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>C string representation of hash map, as a PDF dictionary </dd></dl>
+
+</div>
+</div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:36 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

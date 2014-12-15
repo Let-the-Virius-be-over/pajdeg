@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.8"/>
-<title>Pajdeg: pd_stack.h Source File</title>
+<title>Pajdeg: pd_pdf_private.h Source File</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -90,11 +90,11 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <div class="header">
   <div class="headertitle">
-<div class="title">pd_stack.h</div>  </div>
+<div class="title">pd_pdf_private.h</div>  </div>
 </div><!--header-->
 <div class="contents">
-<a href="a00050.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">//</span></div>
-<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment">// pd_stack.h</span></div>
+<div class="fragment"><div class="line"><a name="l00001"></a><span class="lineno">    1</span>&#160;<span class="comment">//</span></div>
+<div class="line"><a name="l00002"></a><span class="lineno">    2</span>&#160;<span class="comment">// pd_pdf_private.h</span></div>
 <div class="line"><a name="l00003"></a><span class="lineno">    3</span>&#160;<span class="comment">//</span></div>
 <div class="line"><a name="l00004"></a><span class="lineno">    4</span>&#160;<span class="comment">// Copyright (c) 2012 - 2014 Karl-Johan Alm (http://github.com/kallewoof)</span></div>
 <div class="line"><a name="l00005"></a><span class="lineno">    5</span>&#160;<span class="comment">// </span></div>
@@ -117,118 +117,59 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00022"></a><span class="lineno">   22</span>&#160;<span class="comment">// THE SOFTWARE.</span></div>
 <div class="line"><a name="l00023"></a><span class="lineno">   23</span>&#160;<span class="comment">//</span></div>
 <div class="line"><a name="l00024"></a><span class="lineno">   24</span>&#160;</div>
-<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;<span class="preprocessor">#ifndef INCLUDED_pd_stack_h</span></div>
-<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="preprocessor">#define INCLUDED_pd_stack_h</span></div>
-<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;</div>
-<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="preprocessor">#include &lt;sys/types.h&gt;</span></div>
-<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="a00063.html">PDDefines.h</a>&quot;</span></div>
-<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;</div>
-<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> <a class="code" href="a00115.html#ga32330d12fddf4e6de4336c26f29d6252">pd_stack_set_global_preserve_flag</a>(<a class="code" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> preserve);</div>
-<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;</div>
-<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;</div>
-<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> <a class="code" href="a00115.html#ga6a6ca4c9c75fd5d69988457513ba5f4e">pd_stack_push_key</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *stack, <span class="keywordtype">char</span> *key);</div>
-<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;</div>
-<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> <a class="code" href="a00115.html#ga547a424dab30bb7adce66d7c748ee9d4">pd_stack_push_identifier</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *stack, <a class="code" href="a00029.html#ga16e267786da02df3ab22105509be9cb9">PDID</a> identifier);</div>
-<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;</div>
-<div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> <a class="code" href="a00115.html#ga35df93cd2e3b7bd7100981d7d384c82a">pd_stack_push_freeable</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *stack, <span class="keywordtype">void</span> *info);</div>
-<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> <a class="code" href="a00115.html#gaa9f475e85cb9a09899c4a63eb7934a95">pd_stack_push_stack</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *stack, <a class="code" href="a00021.html#a00143">pd_stack</a> pstack);</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> <a class="code" href="a00115.html#ga2a597833b3fe6577e6b4818388331e26">pd_stack_push_object</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *stack, <span class="keywordtype">void</span> *ob);</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;</div>
-<div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> <a class="code" href="a00115.html#gaa8c5d55d4b2d5e4906e9c363dbcc7725">pd_stack_unshift_stack</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *stack, <a class="code" href="a00021.html#a00143">pd_stack</a> sstack);</div>
-<div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;</div>
-<div class="line"><a name="l00124"></a><span class="lineno">  124</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00021.html#a00143">pd_stack</a> <a class="code" href="a00115.html#ga1c98e3679f794c01e24add74a1916c79">pd_stack_copy</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> stack);</div>
-<div class="line"><a name="l00125"></a><span class="lineno">  125</span>&#160;</div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;</div>
-<div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> <a class="code" href="a00115.html#gacda34b55655a5b6713521c592d76b3ec">pd_stack_destroy</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *stack);</div>
-<div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;</div>
-<div class="line"><a name="l00140"></a><span class="lineno">  140</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">char</span> *<a class="code" href="a00115.html#gaff2148916d2f16e1e7cafad4d8742e25">pd_stack_pop_key</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *stack);</div>
-<div class="line"><a name="l00141"></a><span class="lineno">  141</span>&#160;</div>
-<div class="line"><a name="l00147"></a><span class="lineno">  147</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00029.html#ga16e267786da02df3ab22105509be9cb9">PDID</a> <a class="code" href="a00115.html#ga95b46cb97e3dae4a6719ef9740473cec">pd_stack_pop_identifier</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *stack);</div>
-<div class="line"><a name="l00148"></a><span class="lineno">  148</span>&#160;</div>
-<div class="line"><a name="l00154"></a><span class="lineno">  154</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00021.html#a00143">pd_stack</a> <a class="code" href="a00115.html#ga0e2a3caad2a8cace0a3ea6bc9f11f760">pd_stack_pop_stack</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *stack);</div>
-<div class="line"><a name="l00155"></a><span class="lineno">  155</span>&#160;</div>
-<div class="line"><a name="l00161"></a><span class="lineno">  161</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> *<a class="code" href="a00115.html#ga95d1bad6a776123daec7c6e2c9edcd39">pd_stack_pop_object</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *stack);</div>
-<div class="line"><a name="l00162"></a><span class="lineno">  162</span>&#160;</div>
-<div class="line"><a name="l00168"></a><span class="lineno">  168</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> *<a class="code" href="a00115.html#ga37bbc21aab9d629c745012a16c6d02b9">pd_stack_pop_freeable</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *stack);</div>
-<div class="line"><a name="l00169"></a><span class="lineno">  169</span>&#160;</div>
-<div class="line"><a name="l00175"></a><span class="lineno">  175</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> <a class="code" href="a00115.html#ga78d614c9cd53c98e0f5aa2fe09e37f9d">pd_stack_pop_size</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *stack);</div>
-<div class="line"><a name="l00176"></a><span class="lineno">  176</span>&#160;</div>
-<div class="line"><a name="l00182"></a><span class="lineno">  182</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> <a class="code" href="a00115.html#gad81c64e638190a6c00658b1f2e8fc8f3">pd_stack_pop_int</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *stack);</div>
-<div class="line"><a name="l00183"></a><span class="lineno">  183</span>&#160;</div>
-<div class="line"><a name="l00192"></a><span class="lineno">  192</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span>   <a class="code" href="a00115.html#ga9f9ccf727ee332c1fdaf4c7d6e90fd50">pd_stack_assert_expected_key</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *stack, <span class="keyword">const</span> <span class="keywordtype">char</span> *key);</div>
-<div class="line"><a name="l00193"></a><span class="lineno">  193</span>&#160;</div>
-<div class="line"><a name="l00202"></a><span class="lineno">  202</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span>   <a class="code" href="a00115.html#ga15d4edd5af0cbdd86b65eef8a7add42b">pd_stack_assert_expected_int</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *stack, <a class="code" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> i);</div>
-<div class="line"><a name="l00203"></a><span class="lineno">  203</span>&#160;</div>
-<div class="line"><a name="l00209"></a><span class="lineno">  209</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> <a class="code" href="a00115.html#gae5e82abf392a852bf2b79c2f07ddf56d">pd_stack_peek_int</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> stack);</div>
-<div class="line"><a name="l00210"></a><span class="lineno">  210</span>&#160;</div>
-<div class="line"><a name="l00212"></a><span class="lineno">  212</span>&#160;</div>
-<div class="line"><a name="l00219"></a><span class="lineno">  219</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> <a class="code" href="a00115.html#ga26966ce513efaac3385a695a11527a56">pd_stack_get_count</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> stack);</div>
-<div class="line"><a name="l00220"></a><span class="lineno">  220</span>&#160;</div>
-<div class="line"><a name="l00227"></a><span class="lineno">  227</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> <a class="code" href="a00115.html#ga08f64a033671484bef6ca67c610228db">pd_stack_pop_into</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *dest, <a class="code" href="a00021.html#a00143">pd_stack</a> *source);</div>
-<div class="line"><a name="l00228"></a><span class="lineno">  228</span>&#160;</div>
-<div class="line"><a name="l00237"></a><span class="lineno"><a class="line" href="a00115.html#gad0661a32420f2836bb1f0501ce3a5c57">  237</a></span>&#160;<span class="preprocessor">#define pd_stack_for_each(stack, iter) for (iter = stack; iter; iter = iter-&gt;prev)</span></div>
-<div class="line"><a name="l00238"></a><span class="lineno">  238</span>&#160;</div>
-<div class="line"><a name="l00247"></a><span class="lineno">  247</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00021.html#a00143">pd_stack</a> <a class="code" href="a00115.html#ga70f89728dc0761a6f380d5028eda5daa">pd_stack_get_dict_key</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> dictStack, <span class="keyword">const</span> <span class="keywordtype">char</span> *key, <a class="code" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> <span class="keyword">remove</span>);</div>
-<div class="line"><a name="l00248"></a><span class="lineno">  248</span>&#160;</div>
-<div class="line"><a name="l00263"></a><span class="lineno">  263</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> <a class="code" href="a00115.html#gabd18d36eebed638e6487e71f135bda1f">pd_stack_get_next_dict_key</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> *iterStack, <span class="keywordtype">char</span> **key, <span class="keywordtype">char</span> **value);</div>
-<div class="line"><a name="l00264"></a><span class="lineno">  264</span>&#160;</div>
-<div class="line"><a name="l00275"></a><span class="lineno">  275</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00021.html#a00143">pd_stack</a> <a class="code" href="a00115.html#ga7185ebdb2e983277d2ddfdd8d0e4d939">pd_stack_get_arr</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> arrStack);</div>
-<div class="line"><a name="l00276"></a><span class="lineno">  276</span>&#160;</div>
-<div class="line"><a name="l00284"></a><span class="lineno">  284</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> <a class="code" href="a00115.html#ga3b874155098271427503203490bbec8c">pd_stack_replace_info_object</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> stack, <span class="keywordtype">char</span> type, <span class="keywordtype">void</span> *info);</div>
-<div class="line"><a name="l00285"></a><span class="lineno">  285</span>&#160;</div>
-<div class="line"><a name="l00292"></a><span class="lineno">  292</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00021.html#a00143">pd_stack</a> <a class="code" href="a00115.html#ga76c9f90ff82849704030968ade5107bc">pd_stack_create_from_definition</a>(<span class="keyword">const</span> <span class="keywordtype">void</span> **defs);</div>
-<div class="line"><a name="l00293"></a><span class="lineno">  293</span>&#160;</div>
-<div class="line"><a name="l00295"></a><span class="lineno">  295</span>&#160;</div>
-<div class="line"><a name="l00301"></a><span class="lineno">  301</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> <a class="code" href="a00115.html#ga6b870fbe1a06149e2e5822b5b471a36f">pd_stack_print</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> stack);</div>
-<div class="line"><a name="l00307"></a><span class="lineno">  307</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> <a class="code" href="a00115.html#gac869b5ebbf8ab3f652af0b29a5a69360">pd_stack_show</a>(<a class="code" href="a00021.html#a00143">pd_stack</a> stack);</div>
-<div class="line"><a name="l00308"></a><span class="lineno">  308</span>&#160;</div>
-<div class="line"><a name="l00318"></a><span class="lineno">  318</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00119.html#ga5b2718f9c54710125b934c61765f9d23">PDDeallocator</a> <a class="code" href="a00050.html#aaec6962f87dfb7fbc2e51a49b80bb015">pd_stack_dealloc</a>;</div>
-<div class="line"><a name="l00319"></a><span class="lineno">  319</span>&#160;</div>
-<div class="line"><a name="l00323"></a><span class="lineno"><a class="line" href="a00050.html#a73cc1e7f427adcff882a7ae7acdfe4cb">  323</a></span>&#160;<span class="preprocessor">#define PDDeallocateViaStackDealloc(ob) (*pd_stack_dealloc)(ob)</span></div>
-<div class="line"><a name="l00324"></a><span class="lineno">  324</span>&#160;</div>
-<div class="line"><a name="l00325"></a><span class="lineno">  325</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="ttc" id="a00115_html_ga2a597833b3fe6577e6b4818388331e26"><div class="ttname"><a href="a00115.html#ga2a597833b3fe6577e6b4818388331e26">pd_stack_push_object</a></div><div class="ttdeci">void pd_stack_push_object(pd_stack *stack, void *ob)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:97</div></div>
-<div class="ttc" id="a00115_html_ga76c9f90ff82849704030968ade5107bc"><div class="ttname"><a href="a00115.html#ga76c9f90ff82849704030968ade5107bc">pd_stack_create_from_definition</a></div><div class="ttdeci">pd_stack pd_stack_create_from_definition(const void **defs)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:499</div></div>
-<div class="ttc" id="a00115_html_gacda34b55655a5b6713521c592d76b3ec"><div class="ttname"><a href="a00115.html#gacda34b55655a5b6713521c592d76b3ec">pd_stack_destroy</a></div><div class="ttdeci">void pd_stack_destroy(pd_stack *stack)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:310</div></div>
-<div class="ttc" id="a00115_html_gac869b5ebbf8ab3f652af0b29a5a69360"><div class="ttname"><a href="a00115.html#gac869b5ebbf8ab3f652af0b29a5a69360">pd_stack_show</a></div><div class="ttdeci">void pd_stack_show(pd_stack stack)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:612</div></div>
-<div class="ttc" id="a00115_html_ga32330d12fddf4e6de4336c26f29d6252"><div class="ttname"><a href="a00115.html#ga32330d12fddf4e6de4336c26f29d6252">pd_stack_set_global_preserve_flag</a></div><div class="ttdeci">void pd_stack_set_global_preserve_flag(PDBool preserve)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:36</div></div>
-<div class="ttc" id="a00115_html_ga6a6ca4c9c75fd5d69988457513ba5f4e"><div class="ttname"><a href="a00115.html#ga6a6ca4c9c75fd5d69988457513ba5f4e">pd_stack_push_key</a></div><div class="ttdeci">void pd_stack_push_key(pd_stack *stack, char *key)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:53</div></div>
-<div class="ttc" id="a00021_html_a00143"><div class="ttname"><a href="a00021.html#a00143">pd_stack</a></div><div class="ttdef"><b>Definition:</b> pd_internal.h:533</div></div>
-<div class="ttc" id="a00115_html_ga547a424dab30bb7adce66d7c748ee9d4"><div class="ttname"><a href="a00115.html#ga547a424dab30bb7adce66d7c748ee9d4">pd_stack_push_identifier</a></div><div class="ttdeci">void pd_stack_push_identifier(pd_stack *stack, PDID identifier)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:44</div></div>
-<div class="ttc" id="a00115_html_ga26966ce513efaac3385a695a11527a56"><div class="ttname"><a href="a00115.html#ga26966ce513efaac3385a695a11527a56">pd_stack_get_count</a></div><div class="ttdeci">PDInteger pd_stack_get_count(pd_stack stack)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:453</div></div>
-<div class="ttc" id="a00115_html_gaa8c5d55d4b2d5e4906e9c363dbcc7725"><div class="ttname"><a href="a00115.html#gaa8c5d55d4b2d5e4906e9c363dbcc7725">pd_stack_unshift_stack</a></div><div class="ttdeci">void pd_stack_unshift_stack(pd_stack *stack, pd_stack sstack)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:80</div></div>
-<div class="ttc" id="a00115_html_gad81c64e638190a6c00658b1f2e8fc8f3"><div class="ttname"><a href="a00115.html#gad81c64e638190a6c00658b1f2e8fc8f3">pd_stack_pop_int</a></div><div class="ttdeci">PDInteger pd_stack_pop_int(pd_stack *stack)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:165</div></div>
-<div class="ttc" id="a00115_html_ga35df93cd2e3b7bd7100981d7d384c82a"><div class="ttname"><a href="a00115.html#ga35df93cd2e3b7bd7100981d7d384c82a">pd_stack_push_freeable</a></div><div class="ttdeci">void pd_stack_push_freeable(pd_stack *stack, void *info)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:62</div></div>
-<div class="ttc" id="a00115_html_ga6b870fbe1a06149e2e5822b5b471a36f"><div class="ttname"><a href="a00115.html#ga6b870fbe1a06149e2e5822b5b471a36f">pd_stack_print</a></div><div class="ttdeci">void pd_stack_print(pd_stack stack)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:559</div></div>
-<div class="ttc" id="a00029_html_ga7bf5d17054ed63682b0cb309545ad1cc"><div class="ttname"><a href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a></div><div class="ttdeci">long PDInteger</div><div class="ttdef"><b>Definition:</b> PDDefines.h:157</div></div>
-<div class="ttc" id="a00115_html_ga15d4edd5af0cbdd86b65eef8a7add42b"><div class="ttname"><a href="a00115.html#ga15d4edd5af0cbdd86b65eef8a7add42b">pd_stack_assert_expected_int</a></div><div class="ttdeci">void pd_stack_assert_expected_int(pd_stack *stack, PDInteger i)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:137</div></div>
-<div class="ttc" id="a00115_html_gae5e82abf392a852bf2b79c2f07ddf56d"><div class="ttname"><a href="a00115.html#gae5e82abf392a852bf2b79c2f07ddf56d">pd_stack_peek_int</a></div><div class="ttdeci">PDInteger pd_stack_peek_int(pd_stack stack)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:178</div></div>
-<div class="ttc" id="a00115_html_ga08f64a033671484bef6ca67c610228db"><div class="ttname"><a href="a00115.html#ga08f64a033671484bef6ca67c610228db">pd_stack_pop_into</a></div><div class="ttdeci">void pd_stack_pop_into(pd_stack *dest, pd_stack *source)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:229</div></div>
-<div class="ttc" id="a00063_html"><div class="ttname"><a href="a00063.html">PDDefines.h</a></div><div class="ttdoc">Definitions for the Pajdeg interface. </div></div>
-<div class="ttc" id="a00115_html_ga95b46cb97e3dae4a6719ef9740473cec"><div class="ttname"><a href="a00115.html#ga95b46cb97e3dae4a6719ef9740473cec">pd_stack_pop_identifier</a></div><div class="ttdeci">PDID pd_stack_pop_identifier(pd_stack *stack)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:107</div></div>
-<div class="ttc" id="a00115_html_ga95d1bad6a776123daec7c6e2c9edcd39"><div class="ttname"><a href="a00115.html#ga95d1bad6a776123daec7c6e2c9edcd39">pd_stack_pop_object</a></div><div class="ttdeci">void * pd_stack_pop_object(pd_stack *stack)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:207</div></div>
-<div class="ttc" id="a00029_html_ga5e255303bba6a64f69d4dddb5485df58"><div class="ttname"><a href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a></div><div class="ttdeci">size_t PDSize</div><div class="ttdef"><b>Definition:</b> PDDefines.h:186</div></div>
-<div class="ttc" id="a00115_html_ga70f89728dc0761a6f380d5028eda5daa"><div class="ttname"><a href="a00115.html#ga70f89728dc0761a6f380d5028eda5daa">pd_stack_get_dict_key</a></div><div class="ttdeci">pd_stack pd_stack_get_dict_key(pd_stack dictStack, const char *key, PDBool remove)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:316</div></div>
-<div class="ttc" id="a00029_html_gad244dd3b4044286b711733599137f318"><div class="ttname"><a href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a></div><div class="ttdeci">unsigned char PDBool</div><div class="ttdef"><b>Definition:</b> PDDefines.h:180</div></div>
-<div class="ttc" id="a00029_html_ga16e267786da02df3ab22105509be9cb9"><div class="ttname"><a href="a00029.html#ga16e267786da02df3ab22105509be9cb9">PDID</a></div><div class="ttdeci">const char ** PDID</div><div class="ttdef"><b>Definition:</b> PDDefines.h:257</div></div>
-<div class="ttc" id="a00115_html_ga3b874155098271427503203490bbec8c"><div class="ttname"><a href="a00115.html#ga3b874155098271427503203490bbec8c">pd_stack_replace_info_object</a></div><div class="ttdeci">void pd_stack_replace_info_object(pd_stack stack, char type, void *info)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:291</div></div>
-<div class="ttc" id="a00115_html_ga0e2a3caad2a8cace0a3ea6bc9f11f760"><div class="ttname"><a href="a00115.html#ga0e2a3caad2a8cace0a3ea6bc9f11f760">pd_stack_pop_stack</a></div><div class="ttdeci">pd_stack pd_stack_pop_stack(pd_stack *stack)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:196</div></div>
-<div class="ttc" id="a00115_html_gaa9f475e85cb9a09899c4a63eb7934a95"><div class="ttname"><a href="a00115.html#gaa9f475e85cb9a09899c4a63eb7934a95">pd_stack_push_stack</a></div><div class="ttdeci">void pd_stack_push_stack(pd_stack *stack, pd_stack pstack)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:71</div></div>
-<div class="ttc" id="a00115_html_ga9f9ccf727ee332c1fdaf4c7d6e90fd50"><div class="ttname"><a href="a00115.html#ga9f9ccf727ee332c1fdaf4c7d6e90fd50">pd_stack_assert_expected_key</a></div><div class="ttdeci">void pd_stack_assert_expected_key(pd_stack *stack, const char *key)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:118</div></div>
-<div class="ttc" id="a00115_html_ga7185ebdb2e983277d2ddfdd8d0e4d939"><div class="ttname"><a href="a00115.html#ga7185ebdb2e983277d2ddfdd8d0e4d939">pd_stack_get_arr</a></div><div class="ttdeci">pd_stack pd_stack_get_arr(pd_stack arrStack)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:461</div></div>
-<div class="ttc" id="a00115_html_ga1c98e3679f794c01e24add74a1916c79"><div class="ttname"><a href="a00115.html#ga1c98e3679f794c01e24add74a1916c79">pd_stack_copy</a></div><div class="ttdeci">pd_stack pd_stack_copy(pd_stack stack)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:242</div></div>
-<div class="ttc" id="a00115_html_gaff2148916d2f16e1e7cafad4d8742e25"><div class="ttname"><a href="a00115.html#gaff2148916d2f16e1e7cafad4d8742e25">pd_stack_pop_key</a></div><div class="ttdeci">char * pd_stack_pop_key(pd_stack *stack)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:185</div></div>
-<div class="ttc" id="a00115_html_ga78d614c9cd53c98e0f5aa2fe09e37f9d"><div class="ttname"><a href="a00115.html#ga78d614c9cd53c98e0f5aa2fe09e37f9d">pd_stack_pop_size</a></div><div class="ttdeci">PDSize pd_stack_pop_size(pd_stack *stack)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:152</div></div>
-<div class="ttc" id="a00115_html_gabd18d36eebed638e6487e71f135bda1f"><div class="ttname"><a href="a00115.html#gabd18d36eebed638e6487e71f135bda1f">pd_stack_get_next_dict_key</a></div><div class="ttdeci">PDBool pd_stack_get_next_dict_key(pd_stack *iterStack, char **key, char **value)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:357</div></div>
-<div class="ttc" id="a00119_html_ga5b2718f9c54710125b934c61765f9d23"><div class="ttname"><a href="a00119.html#ga5b2718f9c54710125b934c61765f9d23">PDDeallocator</a></div><div class="ttdeci">void(* PDDeallocator)(void *ob)</div><div class="ttdef"><b>Definition:</b> PDDefines.h:272</div></div>
-<div class="ttc" id="a00115_html_ga37bbc21aab9d629c745012a16c6d02b9"><div class="ttname"><a href="a00115.html#ga37bbc21aab9d629c745012a16c6d02b9">pd_stack_pop_freeable</a></div><div class="ttdeci">void * pd_stack_pop_freeable(pd_stack *stack)</div><div class="ttdef"><b>Definition:</b> pd_stack.c:218</div></div>
-<div class="ttc" id="a00050_html_aaec6962f87dfb7fbc2e51a49b80bb015"><div class="ttname"><a href="a00050.html#aaec6962f87dfb7fbc2e51a49b80bb015">pd_stack_dealloc</a></div><div class="ttdeci">PDDeallocator pd_stack_dealloc</div><div class="ttdef"><b>Definition:</b> pd_stack.c:32</div></div>
+<div class="line"><a name="l00025"></a><span class="lineno">   25</span>&#160;<span class="preprocessor">#ifndef INCLUDED_pd_pdf_private_h</span></div>
+<div class="line"><a name="l00026"></a><span class="lineno">   26</span>&#160;<span class="preprocessor">#define INCLUDED_pd_pdf_private_h</span></div>
+<div class="line"><a name="l00027"></a><span class="lineno">   27</span>&#160;</div>
+<div class="line"><a name="l00028"></a><span class="lineno">   28</span>&#160;<span class="preprocessor">#define PDDeallocateViaStackDealloc(ob) (*pd_stack_dealloc)(ob)</span></div>
+<div class="line"><a name="l00029"></a><span class="lineno">   29</span>&#160;</div>
+<div class="line"><a name="l00030"></a><span class="lineno">   30</span>&#160;<span class="preprocessor">#define currch  (scv-&gt;allocBuf)[scv-&gt;offs]</span></div>
+<div class="line"><a name="l00031"></a><span class="lineno">   31</span>&#160;<span class="preprocessor">#define currchi scv-&gt;left--; (scv-&gt;allocBuf)[(scv-&gt;offs)++]</span></div>
+<div class="line"><a name="l00032"></a><span class="lineno">   32</span>&#160;<span class="preprocessor">#define currstr &amp;currch</span></div>
+<div class="line"><a name="l00033"></a><span class="lineno">   33</span>&#160;<span class="preprocessor">#define iterate(v) scv-&gt;offs += v; scv-&gt;left -= v</span></div>
+<div class="line"><a name="l00034"></a><span class="lineno">   34</span>&#160;</div>
+<div class="line"><a name="l00035"></a><span class="lineno">   35</span>&#160;<span class="preprocessor">#define putfmt(fmt...)  \</span></div>
+<div class="line"><a name="l00036"></a><span class="lineno">   36</span>&#160;<span class="preprocessor">    sz = sprintf(currstr, fmt); \</span></div>
+<div class="line"><a name="l00037"></a><span class="lineno">   37</span>&#160;<span class="preprocessor">    iterate(sz)</span></div>
+<div class="line"><a name="l00038"></a><span class="lineno">   38</span>&#160;</div>
+<div class="line"><a name="l00039"></a><span class="lineno">   39</span>&#160;<span class="preprocessor">#define putstr(str, len) \</span></div>
+<div class="line"><a name="l00040"></a><span class="lineno">   40</span>&#160;<span class="preprocessor">    memcpy(currstr, str, len); \</span></div>
+<div class="line"><a name="l00041"></a><span class="lineno">   41</span>&#160;<span class="preprocessor">    iterate(len)</span></div>
+<div class="line"><a name="l00042"></a><span class="lineno">   42</span>&#160;</div>
+<div class="line"><a name="l00043"></a><span class="lineno">   43</span>&#160;<span class="preprocessor">#define PDStringGrow(req) \</span></div>
+<div class="line"><a name="l00044"></a><span class="lineno">   44</span>&#160;<span class="preprocessor">    if (scv-&gt;left &lt; req) { \</span></div>
+<div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;<span class="preprocessor">        scv-&gt;allocBuf = realloc(scv-&gt;allocBuf, scv-&gt;offs + req); \</span></div>
+<div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;<span class="preprocessor">        scv-&gt;left = req; \</span></div>
+<div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;<span class="preprocessor">    }</span></div>
+<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;<span class="preprocessor">#define PDStringFromObRef(ref, reflen) \</span></div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;<span class="preprocessor">    PDInteger obid = pd_stack_pop_int(s); \</span></div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;<span class="preprocessor">    PDInteger genid = pd_stack_pop_int(s); \</span></div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="preprocessor">    PDInteger sz;\</span></div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;<span class="preprocessor">    \</span></div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;<span class="preprocessor">    char req = 5 + reflen + 2; \</span></div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="preprocessor">    if (obid &gt; 999) req += 3; \</span></div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;<span class="preprocessor">    if (genid &gt; 99) req += 5; \</span></div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;<span class="preprocessor">    PDStringGrow(req); \</span></div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;<span class="preprocessor">    putfmt(&quot;%ld %ld &quot; ref, obid, genid)</span></div>
+<div class="line"><a name="l00059"></a><span class="lineno">   59</span>&#160;</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;<span class="comment">// get primitive if primtiive, otherwise delegate to arbitrary func</span></div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;<span class="preprocessor">#define PDStringFromAnything() \</span></div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;<span class="preprocessor">    if ((*s)-&gt;type == PD_STACK_STRING) {\</span></div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;<span class="preprocessor">        char *str = pd_stack_pop_key(s);\</span></div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;<span class="preprocessor">        PDInteger len = strlen(str);\</span></div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;<span class="preprocessor">        PDStringGrow(len);\</span></div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;<span class="preprocessor">        putstr(str, len);\</span></div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;<span class="preprocessor">        PDDeallocateViaStackDealloc(str); \</span></div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;<span class="preprocessor">    } else {\</span></div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;<span class="preprocessor">        pd_stack co = pd_stack_pop_stack(s); \</span></div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;<span class="preprocessor">        PDStringFromArbitrary(&amp;co, scv);\</span></div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160;<span class="preprocessor">    }</span></div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;</div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;<span class="preprocessor">#endif</span></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:35 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

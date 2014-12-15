@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.8"/>
-<title>Pajdeg: PDState</title>
+<title>Pajdeg: PDStaticHash</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -85,117 +85,323 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="header">
   <div class="summary">
 <a href="#files">Files</a> &#124;
+<a href="#define-members">Macros</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
-<div class="title">PDState<div class="ingroups"><a class="el" href="a00119.html">Internal</a> &raquo; <a class="el" href="a00122.html">Symbol scanning</a></div></div>  </div>
+<div class="title">PDStaticHash<div class="ingroups"><a class="el" href="a00119.html">Algorithm-related</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>A state.  
+<p>A (very) simple hash table implementation.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="files"></a>
 Files</h2></td></tr>
-<tr class="memitem:a00093"><td class="memItemLeft" align="right" valign="top">file &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00093.html">PDState.h</a></td></tr>
+<tr class="memitem:a00095"><td class="memItemLeft" align="right" valign="top">file &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00095.html">PDStaticHash.h</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:ga87c3533e69c5cd87ec3851e900c82ed2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#ga87c3533e69c5cd87ec3851e900c82ed2">static_hash_idx</a>(mask, shift, key)&#160;&#160;&#160;(((long)key ^ ((long)key &gt;&gt; shift)) &amp; mask)</td></tr>
+<tr class="separator:ga87c3533e69c5cd87ec3851e900c82ed2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacd44a55a88ee6637a09f81d0e89a8f06"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#gacd44a55a88ee6637a09f81d0e89a8f06">PDStaticHashIdx</a>(stha, key)&#160;&#160;&#160;<a class="el" href="a00131.html#ga87c3533e69c5cd87ec3851e900c82ed2">static_hash_idx</a>(stha-&gt;mask, stha-&gt;shift, key)</td></tr>
+<tr class="separator:gacd44a55a88ee6637a09f81d0e89a8f06"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga05c728dbe8d7ce68f041d1440c82b4f4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#ga05c728dbe8d7ce68f041d1440c82b4f4">PDStaticHashValueForHash</a>(stha, hash)&#160;&#160;&#160;stha-&gt;table[hash]</td></tr>
+<tr class="separator:ga05c728dbe8d7ce68f041d1440c82b4f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac245d1835cfa436b4d1369372f13d545"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#gac245d1835cfa436b4d1369372f13d545">PDStaticHashValueForKey</a>(stha, key)&#160;&#160;&#160;stha-&gt;table[<a class="el" href="a00131.html#gacd44a55a88ee6637a09f81d0e89a8f06">PDStaticHashIdx</a>(stha, key)]</td></tr>
+<tr class="separator:gac245d1835cfa436b4d1369372f13d545"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae2d4fb7ba843b730317c8763ee918fbc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#gae2d4fb7ba843b730317c8763ee918fbc">PDStaticHashValueForHashAs</a>(stha, hash, type)&#160;&#160;&#160;<a class="el" href="a00023.html#ga890ffb07cd69e25829f6b28734de717c">as</a>(type, <a class="el" href="a00131.html#ga05c728dbe8d7ce68f041d1440c82b4f4">PDStaticHashValueForHash</a>(stha, hash))</td></tr>
+<tr class="separator:gae2d4fb7ba843b730317c8763ee918fbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa6734691480d55b232daddb8c0327bcd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#gaa6734691480d55b232daddb8c0327bcd">PDStaticHashValueForKeyAs</a>(stha, key, type)&#160;&#160;&#160;<a class="el" href="a00023.html#ga890ffb07cd69e25829f6b28734de717c">as</a>(type, <a class="el" href="a00131.html#gac245d1835cfa436b4d1369372f13d545">PDStaticHashValueForKey</a>(stha, key))</td></tr>
+<tr class="separator:gaa6734691480d55b232daddb8c0327bcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:gaba029115435d5202e49d049a44e02df9"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="a00021.html#a00166">PDState</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a></td></tr>
-<tr class="separator:gaba029115435d5202e49d049a44e02df9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga682f9887db16859dda35a2edf1702aa4"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="a00023.html#a00167">PDStaticHash</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#ga682f9887db16859dda35a2edf1702aa4">PDStaticHashRef</a></td></tr>
+<tr class="separator:ga682f9887db16859dda35a2edf1702aa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gaea15f58a630c9e2b0021301d366dfdeb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00131.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#gaea15f58a630c9e2b0021301d366dfdeb">PDStateCreate</a> (char *name)</td></tr>
-<tr class="separator:gaea15f58a630c9e2b0021301d366dfdeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf6f63096c16d629dc0006352efa851f6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#gaf6f63096c16d629dc0006352efa851f6">PDStateCompile</a> (<a class="el" href="a00131.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a> state)</td></tr>
-<tr class="separator:gaf6f63096c16d629dc0006352efa851f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac1bd6521fcd45505d6ce1140e88e1197"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#gac1bd6521fcd45505d6ce1140e88e1197">PDStateDefineOperatorsWithDefinition</a> (<a class="el" href="a00131.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a> state, const void **defs)</td></tr>
-<tr class="separator:gac1bd6521fcd45505d6ce1140e88e1197"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga45e3d4cfd119ee91a101516faf6ba085"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00131.html#ga682f9887db16859dda35a2edf1702aa4">PDStaticHashRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#ga45e3d4cfd119ee91a101516faf6ba085">PDStaticHashCreate</a> (<a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> entries, void **keys, void **values)</td></tr>
+<tr class="separator:ga45e3d4cfd119ee91a101516faf6ba085"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0c06637bab6289d1a677553a7373d793"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#ga0c06637bab6289d1a677553a7373d793">PDStaticHashDisownKeysValues</a> (<a class="el" href="a00131.html#ga682f9887db16859dda35a2edf1702aa4">PDStaticHashRef</a> sh, <a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> disownKeys, <a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> disownValues)</td></tr>
+<tr class="separator:ga0c06637bab6289d1a677553a7373d793"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p>A state. </p>
-<p>A state in Pajdeg is a definition of a given set of conditions.</p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="a00047.html">pd_pdf_implementation.h</a> </dd></dl>
-<h2 class="groupheader">Typedef Documentation</h2>
-<a class="anchor" id="gaba029115435d5202e49d049a44e02df9"></a>
+<p>A (very) simple hash table implementation. </p>
+<p>Limited to predefined set of primitive keys on creation. \(O(1)\) but triggers false positives for undefined keys.</p>
+<p>This is used as a pre-filter in the <a class="el" href="a00023.html#a00159">PDPipe</a> implementation to reduce the misses for the more cumbersome <a class="el" href="a00023.html#a00140">pd_btree</a> containing tasks. It is also used in the PDF spec implementation's <a class="el" href="a00114.html#gac52d39e24c77bfafdbe4ccbae505f597">PDStringFromComplex()</a> function.</p>
+<p>The static hash generates a hash table of \(2^n\) size, where \(n\) is the lowest possible number where the primitive value of the range of keys produces all unique indices based on the following formula, where \(K\), \(s\), and \(m\) are the key, shift and mask parameters</p>
+<p>\((K \oplus (K \gg s)) \land m\)</p>
+<p>The shifting is necessary because the range of keys tend to align, and in bad cases, the alignment happens in the low bits, resulting in redundancy. Unfortunately, determining the mask and shift values for a given instance is expensive and fairly unoptimized at the moment, with the excuse that creation does not occur repeatedly.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="a00126.html" title="The Pajdeg pipe. ">PDPipe</a> </dd>
+<dd>
+<a class="el" href="a00114.html">Pajdeg PDF Implementation</a> </dd></dl>
+<h2 class="groupheader">Macro Definition Documentation</h2>
+<a class="anchor" id="gacd44a55a88ee6637a09f81d0e89a8f06"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef struct <a class="el" href="a00021.html#a00166">PDState</a>* <a class="el" href="a00131.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>A state.</p>
-<p>A state in Pajdeg is a definition of a given set of conditions.</p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="a00047.html">pd_pdf_implementation.h</a> </dd></dl>
-
-</div>
-</div>
-<h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="gaf6f63096c16d629dc0006352efa851f6"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void PDStateCompile </td>
+          <td class="memname">#define PDStaticHashIdx</td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="a00131.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a>&#160;</td>
-          <td class="paramname"><em>state</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Compile a state.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">state</td><td>The state. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a class="anchor" id="gaea15f58a630c9e2b0021301d366dfdeb"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="a00131.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a> PDStateCreate </td>
-          <td>(</td>
-          <td class="paramtype">char *&#160;</td>
-          <td class="paramname"><em>name</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Create a new state with the given name.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">name</td><td>The name of the state, e.g. "dict". </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a class="anchor" id="gac1bd6521fcd45505d6ce1140e88e1197"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void PDStateDefineOperatorsWithDefinition </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00131.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a>&#160;</td>
-          <td class="paramname"><em>state</em>, </td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">stha, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const void **&#160;</td>
-          <td class="paramname"><em>defs</em>&#160;</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">key&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;<a class="el" href="a00131.html#ga87c3533e69c5cd87ec3851e900c82ed2">static_hash_idx</a>(stha-&gt;mask, stha-&gt;shift, key)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Generate a hash for the given key in the given static hash.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">stha</td><td>The PDStaticHashRef instance. </td></tr>
+    <tr><td class="paramname">key</td><td>The key. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga05c728dbe8d7ce68f041d1440c82b4f4"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PDStaticHashValueForHash</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">stha, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">hash&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;stha-&gt;table[hash]</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Obtain value for given hash.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">stha</td><td>The PDStaticHashRef instance. </td></tr>
+    <tr><td class="paramname">hash</td><td>The hash. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gae2d4fb7ba843b730317c8763ee918fbc"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PDStaticHashValueForHashAs</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">stha, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">hash, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">type&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;<a class="el" href="a00023.html#ga890ffb07cd69e25829f6b28734de717c">as</a>(type, <a class="el" href="a00131.html#ga05c728dbe8d7ce68f041d1440c82b4f4">PDStaticHashValueForHash</a>(stha, hash))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Obtain typecast value for hash.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">stha</td><td>The PDStaticHashRef instance. </td></tr>
+    <tr><td class="paramname">hash</td><td>The hash. </td></tr>
+    <tr><td class="paramname">type</td><td>The type. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gac245d1835cfa436b4d1369372f13d545"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PDStaticHashValueForKey</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">stha, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">key&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;stha-&gt;table[<a class="el" href="a00131.html#gacd44a55a88ee6637a09f81d0e89a8f06">PDStaticHashIdx</a>(stha, key)]</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Obtain value for given key.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">stha</td><td>The PDStaticHashRef instance. </td></tr>
+    <tr><td class="paramname">key</td><td>The key. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gaa6734691480d55b232daddb8c0327bcd"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PDStaticHashValueForKeyAs</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">stha, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">key, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">type&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;<a class="el" href="a00023.html#ga890ffb07cd69e25829f6b28734de717c">as</a>(type, <a class="el" href="a00131.html#gac245d1835cfa436b4d1369372f13d545">PDStaticHashValueForKey</a>(stha, key))</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Obtain typecast value for key.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">stha</td><td>The PDStaticHashRef instance. </td></tr>
+    <tr><td class="paramname">key</td><td>The key. </td></tr>
+    <tr><td class="paramname">type</td><td>The type. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga87c3533e69c5cd87ec3851e900c82ed2"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define static_hash_idx</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">mask, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">shift, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">key&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td>&#160;&#160;&#160;(((long)key ^ ((long)key &gt;&gt; shift)) &amp; mask)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Generate a hash for the given key based on provided mask and shift.</p>
+<dl class="section note"><dt>Note</dt><dd>Does not rely on a <a class="el" href="a00023.html#a00167">PDStaticHash</a> instance.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">mask</td><td>The mask. </td></tr>
+    <tr><td class="paramname">shift</td><td>The shift. </td></tr>
+    <tr><td class="paramname">key</td><td>The key. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a class="anchor" id="ga682f9887db16859dda35a2edf1702aa4"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="a00023.html#a00167">PDStaticHash</a>* <a class="el" href="a00131.html#ga682f9887db16859dda35a2edf1702aa4">PDStaticHashRef</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A (very) simple hash table implementation.</p>
+<p>Limited to predefined set of primitive keys on creation. O(1) but triggers false positives in some instances. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a class="anchor" id="ga45e3d4cfd119ee91a101516faf6ba085"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00131.html#ga682f9887db16859dda35a2edf1702aa4">PDStaticHashRef</a> PDStaticHashCreate </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramname"><em>entries</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>keys</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void **&#160;</td>
+          <td class="paramname"><em>values</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -204,11 +410,57 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Define state operators using a PDDef definition.</p>
+<p>Create a static hash with keys and values.</p>
+<p>Sets up a static hash with given entries, where given keys are hashed as longs into indices inside the internal table, with guaranteed non-collision and O(1) mapping of keys to values.</p>
+<dl class="section note"><dt>Note</dt><dd>Setting up is expensive. </dd></dl>
+<dl class="section warning"><dt>Warning</dt><dd>Triggers false-positives for non-complete input.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">state</td><td>The state. </td></tr>
-    <tr><td class="paramname">defs</td><td>PDDef definitions. </td></tr>
+    <tr><td class="paramname">entries</td><td>The number of entries. </td></tr>
+    <tr><td class="paramname">keys</td><td>The array of keys. Note that keys are primitives. </td></tr>
+    <tr><td class="paramname">values</td><td>The array of values corresponding to the array of keys. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="todo"><dt><b><a class="el" href="a00138.html#_todo000006">Todo:</a></b></dt><dd>had 1 assert below; so this needs to be ripped out asap </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga0c06637bab6289d1a677553a7373d793"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDStaticHashDisownKeysValues </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00131.html#ga682f9887db16859dda35a2edf1702aa4">PDStaticHashRef</a>&#160;</td>
+          <td class="paramname"><em>sh</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td>
+          <td class="paramname"><em>disownKeys</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td>
+          <td class="paramname"><em>disownValues</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Indicate that keys and/or values are not owned by the static hash and should not be freed on destruction; enabled flags are not disabled even if false is passed in (once disowned, always disowned)</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">sh</td><td>The static hash </td></tr>
+    <tr><td class="paramname">disownKeys</td><td>Whether keys should be disowned. </td></tr>
+    <tr><td class="paramname">disownValues</td><td>Whether values should be disowned. </td></tr>
   </table>
   </dd>
 </dl>
@@ -218,7 +470,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:36 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

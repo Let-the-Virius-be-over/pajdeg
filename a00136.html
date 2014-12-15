@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.8"/>
-<title>Pajdeg: PDTask</title>
+<title>Pajdeg: PDTwinStream</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -88,236 +88,196 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a href="#typedef-members">Typedefs</a> &#124;
 <a href="#enum-members">Enumerations</a>  </div>
   <div class="headertitle">
-<div class="title">PDTask<div class="ingroups"><a class="el" href="a00031.html">User level</a> &raquo; <a class="el" href="a00121.html">Pajdeg Pipes</a></div></div>  </div>
+<div class="title">PDTwinStream<div class="ingroups"><a class="el" href="a00118.html">Internal</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>A Pajdeg pipe task.  
+<p>The twin stream.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="files"></a>
 Files</h2></td></tr>
-<tr class="memitem:a00105"><td class="memItemLeft" align="right" valign="top">file &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00105.html">PDTask.h</a></td></tr>
+<tr class="memitem:a00107"><td class="memItemLeft" align="right" valign="top">file &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00107.html">PDTwinStream.h</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:ga1b4030793025ce1ee4e26b55bf15dcca"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="a00021.html#a00171">PDTask</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a></td></tr>
-<tr class="separator:ga1b4030793025ce1ee4e26b55bf15dcca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1f6c988a4788cd2148ebc7d726c1fbc6"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="a00136.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a> )(<a class="el" href="a00127.html#gae605ead1049d6717b3bc4c94e0d95720">PDPipeRef</a> pipe, <a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> task, <a class="el" href="a00026.html#ga006d92afec9a8da0ac7ed54122050e73">PDObjectRef</a> object, void *info)</td></tr>
-<tr class="separator:ga1f6c988a4788cd2148ebc7d726c1fbc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga00460c750d52f0d7d3c7f8187a71211d"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="a00023.html#a00172">PDTwinStream</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a></td></tr>
+<tr class="separator:ga00460c750d52f0d7d3c7f8187a71211d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:ga69ef241e642b310365656328b8e68c0d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga69ef241e642b310365656328b8e68c0d">PDFType</a> { <br />
-&#160;&#160;<a class="el" href="a00136.html#gga69ef241e642b310365656328b8e68c0daf6142ffadbfbf10987809db4f056c692">PDFTypePage</a> = 1, 
-<a class="el" href="a00136.html#gga69ef241e642b310365656328b8e68c0da7caaff42ca208e3b9d86c8216ce093da">PDFTypePages</a>, 
-<a class="el" href="a00136.html#gga69ef241e642b310365656328b8e68c0da4c69739bcb001c9e8a3061602aa5648c">PDFTypeCatalog</a>, 
-<a class="el" href="a00136.html#gga69ef241e642b310365656328b8e68c0da330cc1a5d8b4a178711a7dd8c0d30bfe">PDFTypeAnnot</a>, 
-<br />
-&#160;&#160;<a class="el" href="a00136.html#gga69ef241e642b310365656328b8e68c0da30f30380e4c80bb90011d4370751560e">PDFTypeFont</a>, 
-<a class="el" href="a00136.html#gga69ef241e642b310365656328b8e68c0dabcb6fff3abe9637f1751ecc49f2aa528">PDFTypeFontDescriptor</a>, 
-<a class="el" href="a00136.html#gga69ef241e642b310365656328b8e68c0da15b4ec23e1913e3e8c8ba67bfb49e4e7">PDFTypeAction</a>, 
-<a class="el" href="a00136.html#gga69ef241e642b310365656328b8e68c0da4acfa88f98ce9519a1260f2658af969b">_PDFTypeCount</a>
-<br />
+<tr class="memitem:gaf130a3ab8c13e88a11470d189407623a"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#gaf130a3ab8c13e88a11470d189407623a">PDTwinStreamMethod</a> { <a class="el" href="a00136.html#ggaf130a3ab8c13e88a11470d189407623aae975fe9adea14669173b004814ed55c6">PDTwinStreamReadWrite</a>, 
+<a class="el" href="a00136.html#ggaf130a3ab8c13e88a11470d189407623aab3c8507fbd0f466580096673834dd935">PDTwinStreamRandomAccess</a>, 
+<a class="el" href="a00136.html#ggaf130a3ab8c13e88a11470d189407623aa89845202b3eb7db4d5c916775ad85f8e">PDTwinStreamReversed</a>
  }</td></tr>
-<tr class="separator:ga69ef241e642b310365656328b8e68c0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa2f108018ee986118e960c9004e65f44"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a> { <br />
-&#160;&#160;<a class="el" href="a00136.html#ggaa2f108018ee986118e960c9004e65f44ab4faa881f7a73eb221eb48bfef454067">PDPropertyObjectId</a> = 1, 
-<a class="el" href="a00136.html#ggaa2f108018ee986118e960c9004e65f44a4527237134f3627f5a0d387625c6b0b2">PDPropertyRootObject</a>, 
-<a class="el" href="a00136.html#ggaa2f108018ee986118e960c9004e65f44abd33683f69954b90cfbfa45c62ca583f">PDPropertyInfoObject</a>, 
-<a class="el" href="a00136.html#ggaa2f108018ee986118e960c9004e65f44aaa5689b4525cc13a2769da7784ff1cf1">PDPropertyPDFType</a>, 
-<br />
-&#160;&#160;<a class="el" href="a00136.html#ggaa2f108018ee986118e960c9004e65f44a8672f57887d62a5bd7f8d273ef937a68">PDPropertyPage</a>
-<br />
- }</td></tr>
-<tr class="separator:gaa2f108018ee986118e960c9004e65f44"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga91616478cbeb225ea1dc8684f4daaa09"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> { <a class="el" href="a00136.html#gga91616478cbeb225ea1dc8684f4daaa09a5b94fdddf12f68b3c8ebc5d87c78246d">PDTaskFailure</a> = -1, 
-<a class="el" href="a00136.html#gga91616478cbeb225ea1dc8684f4daaa09ab91b10f2a3fdb44fe9a8afc269354b08">PDTaskDone</a> = 0, 
-<a class="el" href="a00136.html#gga91616478cbeb225ea1dc8684f4daaa09a0539cd0d74e6470ed3be445d97eb710b">PDTaskSkipRest</a> = 1, 
-<a class="el" href="a00136.html#gga91616478cbeb225ea1dc8684f4daaa09aab00058c1a76c0cc9eac0cd04b89493b">PDTaskUnload</a> = 2
- }</td></tr>
-<tr class="separator:ga91616478cbeb225ea1dc8684f4daaa09"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:gaf130a3ab8c13e88a11470d189407623a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
-Creating and manipulating filters</h2></td></tr>
-<tr><td class="ititle" colspan="2"><p><a class="anchor" id="amgrp0530e7e523ba32f6a5c0f53c60244422"></a></p><hr/>
- <hr/>
- </td></tr>
-<tr class="memitem:ga2ceeb7733d8f6789143efa5fbb51cb9a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga2ceeb7733d8f6789143efa5fbb51cb9a">PDTaskCreateFilter</a> (<a class="el" href="a00136.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a> propertyType)</td></tr>
-<tr class="separator:ga2ceeb7733d8f6789143efa5fbb51cb9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad655f5ca90cd5e070ce17d58bf6f8e78"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#gad655f5ca90cd5e070ce17d58bf6f8e78">PDTaskCreateFilterWithValue</a> (<a class="el" href="a00136.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a> propertyType, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> value)</td></tr>
-<tr class="separator:gad655f5ca90cd5e070ce17d58bf6f8e78"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac42bb37d75a3234ecd8d3566e3f6eaee"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#gac42bb37d75a3234ecd8d3566e3f6eaee">PDTaskCreateMutator</a> (<a class="el" href="a00136.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a> mutatorFunc)</td></tr>
-<tr class="separator:gac42bb37d75a3234ecd8d3566e3f6eaee"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4d2e117e1508716bcf3e62d2c54434ac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga4d2e117e1508716bcf3e62d2c54434ac">PDTaskAppendTask</a> (<a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> parentTask, <a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> childTask)</td></tr>
-<tr class="separator:ga4d2e117e1508716bcf3e62d2c54434ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4382fcaa073650fc176e1d13d587aa4d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga4382fcaa073650fc176e1d13d587aa4d">PDTaskSetInfo</a> (<a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> task, void *info)</td></tr>
-<tr class="separator:ga4382fcaa073650fc176e1d13d587aa4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga34f837ba8d4abfe6b54be454fa46c71f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00136.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga34f837ba8d4abfe6b54be454fa46c71f">PDTaskExec</a> (<a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> task, <a class="el" href="a00127.html#gae605ead1049d6717b3bc4c94e0d95720">PDPipeRef</a> pipe, <a class="el" href="a00026.html#ga006d92afec9a8da0ac7ed54122050e73">PDObjectRef</a> object)</td></tr>
-<tr class="separator:ga34f837ba8d4abfe6b54be454fa46c71f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+Construction</h2></td></tr>
+<tr class="memitem:ga2e47111fa2352f20e7272c83595ad14e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga2e47111fa2352f20e7272c83595ad14e">PDTwinStreamCreate</a> (FILE *fi, FILE *fo)</td></tr>
+<tr class="separator:ga2e47111fa2352f20e7272c83595ad14e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
-Convenience functions</h2></td></tr>
-<tr><td class="ititle" colspan="2"><p><a class="anchor" id="amgrp261f53803206021e88706036c48954d0"></a></p><hr/>
- <hr/>
- </td></tr>
-<tr class="memitem:gaa7793b326f4035bdbc2d0fcd34c39703"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#gaa7793b326f4035bdbc2d0fcd34c39703">PDTaskCreateMutatorForObject</a> (long objectID, <a class="el" href="a00136.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a> mutatorFunc)</td></tr>
-<tr class="separator:gaa7793b326f4035bdbc2d0fcd34c39703"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga6405c8eb09d5f957e1b7911f743fd489"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga6405c8eb09d5f957e1b7911f743fd489">PDTaskCreateMutatorForPropertyType</a> (<a class="el" href="a00136.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a> propertyType, <a class="el" href="a00136.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a> mutatorFunc)</td></tr>
-<tr class="separator:ga6405c8eb09d5f957e1b7911f743fd489"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga2100ddc1a647286f66079dfade1f2b07"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga2100ddc1a647286f66079dfade1f2b07">PDTaskCreateMutatorForPropertyTypeWithValue</a> (<a class="el" href="a00136.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a> propertyType, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> value, <a class="el" href="a00136.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a> mutatorFunc)</td></tr>
-<tr class="separator:ga2100ddc1a647286f66079dfade1f2b07"><td class="memSeparator" colspan="2">&#160;</td></tr>
+Configuring / querying</h2></td></tr>
+<tr class="memitem:ga0df4dff9c6515c5e86cf96f238ca8748"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga0df4dff9c6515c5e86cf96f238ca8748">PDTWinStreamSetMethod</a> (<a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a> ts, <a class="el" href="a00136.html#gaf130a3ab8c13e88a11470d189407623a">PDTwinStreamMethod</a> method)</td></tr>
+<tr class="separator:ga0df4dff9c6515c5e86cf96f238ca8748"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabeabe2a0421a37b0ac1754323ed73de6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#gabeabe2a0421a37b0ac1754323ed73de6">PDTwinStreamGetScanner</a> (<a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a> ts)</td></tr>
+<tr class="separator:gabeabe2a0421a37b0ac1754323ed73de6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf37cb0ff62eab358393da22fb6ca2181"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#gaf37cb0ff62eab358393da22fb6ca2181">PDTwinStreamSetupScannerWithState</a> (<a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a> ts, <a class="el" href="a00130.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a> state)</td></tr>
+<tr class="separator:gaf37cb0ff62eab358393da22fb6ca2181"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4639f4825b76e60ff69c7c8e8ffd6c70"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga4639f4825b76e60ff69c7c8e8ffd6c70">PDTwinStreamGetInputOffset</a>(str)&#160;&#160;&#160;(str-&gt;offsi + str-&gt;cursor)</td></tr>
+<tr class="separator:ga4639f4825b76e60ff69c7c8e8ffd6c70"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab69488c4c50f85b6e0ef1ef9cb7955ef"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#gab69488c4c50f85b6e0ef1ef9cb7955ef">PDTwinStreamGetOutputOffset</a>(str)&#160;&#160;&#160;(str-&gt;offso)</td></tr>
+<tr class="separator:gab69488c4c50f85b6e0ef1ef9cb7955ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
+Reading</h2></td></tr>
+<tr class="memitem:gae2b0263fe0f2237159746d50a3e12512"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#gae2b0263fe0f2237159746d50a3e12512">PDTwinStreamGrowInputBuffer</a> (void *ts, <a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, char **buf, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *size, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> req)</td></tr>
+<tr class="separator:gae2b0263fe0f2237159746d50a3e12512"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga91e4e960e84fbb39a74fb37145fcb2be"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga91e4e960e84fbb39a74fb37145fcb2be">PDTwinStreamGrowInputBufferReversed</a> (void *ts, <a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, char **buf, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *size, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> req)</td></tr>
+<tr class="separator:ga91e4e960e84fbb39a74fb37145fcb2be"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4a3cd5996921a51e0a6d2fc34eb35818"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga4a3cd5996921a51e0a6d2fc34eb35818">PDTwinStreamDisallowGrowth</a> (void *ts, <a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, char **buf, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *size, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> req)</td></tr>
+<tr class="separator:ga4a3cd5996921a51e0a6d2fc34eb35818"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad1add06011fc6c21adfe765f85bc5ec6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#gad1add06011fc6c21adfe765f85bc5ec6">PDTwinStreamSeek</a> (<a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a> ts, <a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> position)</td></tr>
+<tr class="separator:gad1add06011fc6c21adfe765f85bc5ec6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8460bed4866b47ef092b4167e73fb9d1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga8460bed4866b47ef092b4167e73fb9d1">PDTwinStreamAdvance</a> (<a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a> ts, <a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> bytes)</td></tr>
+<tr class="separator:ga8460bed4866b47ef092b4167e73fb9d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga162015cb2c6e8a0b753dde1851cab717"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga162015cb2c6e8a0b753dde1851cab717">PDTwinStreamFetchBranch</a> (<a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a> ts, <a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> position, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> bytes, char **buf)</td></tr>
+<tr class="separator:ga162015cb2c6e8a0b753dde1851cab717"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga174e110f60d8baf52521f6589a7ea31f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga174e110f60d8baf52521f6589a7ea31f">PDTwinStreamCutBranch</a> (<a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a> ts, char *buf)</td></tr>
+<tr class="separator:ga174e110f60d8baf52521f6589a7ea31f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
+Committing</h2></td></tr>
+<tr class="memitem:gab343255d458bde48019d7c04317df9b1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#gab343255d458bde48019d7c04317df9b1">PDTWinStreamPassthroughContent</a> (<a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a> ts)</td></tr>
+<tr class="separator:gab343255d458bde48019d7c04317df9b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga998a0f32dce19dac0b273c90b8952aad"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#ga998a0f32dce19dac0b273c90b8952aad">PDTwinStreamDiscardContent</a> (<a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a> ts)</td></tr>
+<tr class="separator:ga998a0f32dce19dac0b273c90b8952aad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac90896d54a91b7176d4517706694b612"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#gac90896d54a91b7176d4517706694b612">PDTwinStreamInsertContent</a> (<a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a> ts, <a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> bytes, const char *content)</td></tr>
+<tr class="separator:gac90896d54a91b7176d4517706694b612"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaac25bdedc89cbedc7da16a1e8f4b5e5e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#gaac25bdedc89cbedc7da16a1e8f4b5e5e">PDTwinStreamPrune</a> (<a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a> ts, <a class="el" href="a00031.html#ga2c4cdb81ea3cd830cbadca665e75fbe3">PDOffset</a> mark)</td></tr>
+<tr class="separator:gaac25bdedc89cbedc7da16a1e8f4b5e5e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa1c1972af14aef02ab7ae3c6553fdc65"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html#gaa1c1972af14aef02ab7ae3c6553fdc65">PDTwinStreamCreateScanner</a> (<a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a> ts, <a class="el" href="a00130.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a> state)</td></tr>
+<tr class="separator:gaa1c1972af14aef02ab7ae3c6553fdc65"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p>A Pajdeg pipe task. </p>
-<h2 class="groupheader">Typedef Documentation</h2>
-<a class="anchor" id="ga1f6c988a4788cd2148ebc7d726c1fbc6"></a>
+<p>The twin stream. </p>
+<p>The twin stream is similar to how a *NIX pipe works, except it provides functionality for jumping back and forth in the input stream while simultaneously streaming data through the scanner, parser, and into the output stream.</p>
+<p>Generally, this is done in the following steps, iterated over and over until the input ends:</p>
+<ol type="1">
+<li>Request to grow some buffer comes in.</li>
+<li>Pull data from input stream onto heap and drop buffer inside heap.</li>
+<li>Request to discard/pass through content comes in from parser, at which point the master scanner position is adjusted.</li>
+</ol>
+<p>Beyond this, there are also requests to insert content. </p>
+<h2 class="groupheader">Macro Definition Documentation</h2>
+<a class="anchor" id="ga4639f4825b76e60ff69c7c8e8ffd6c70"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="a00136.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a>(* PDTaskFunc)(<a class="el" href="a00127.html#gae605ead1049d6717b3bc4c94e0d95720">PDPipeRef</a> pipe, <a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> task, <a class="el" href="a00026.html#ga006d92afec9a8da0ac7ed54122050e73">PDObjectRef</a> object, void *info)</td>
+          <td class="memname">#define PDTwinStreamGetInputOffset</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">str</td><td>)</td>
+          <td>&#160;&#160;&#160;(str-&gt;offsi + str-&gt;cursor)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Function signature for task callbacks. </p>
+<p>Get the absolute input offset for the given stream.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">str</td><td>Stream. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
-<a class="anchor" id="ga1b4030793025ce1ee4e26b55bf15dcca"></a>
+<a class="anchor" id="gab69488c4c50f85b6e0ef1ef9cb7955ef"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef struct <a class="el" href="a00021.html#a00171">PDTask</a>* <a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a></td>
+          <td class="memname">#define PDTwinStreamGetOutputOffset</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">str</td><td>)</td>
+          <td>&#160;&#160;&#160;(str-&gt;offso)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>A task. </p>
+<p>Get the absolute output offset for the given stream.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">str</td><td>Stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a class="anchor" id="ga00460c750d52f0d7d3c7f8187a71211d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="a00023.html#a00172">PDTwinStream</a>* <a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A double-edged stream. </p>
 
 </div>
 </div>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
-<a class="anchor" id="ga69ef241e642b310365656328b8e68c0d"></a>
+<a class="anchor" id="gaf130a3ab8c13e88a11470d189407623a"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">enum <a class="el" href="a00136.html#ga69ef241e642b310365656328b8e68c0d">PDFType</a></td>
+          <td class="memname">enum <a class="el" href="a00136.html#gaf130a3ab8c13e88a11470d189407623a">PDTwinStreamMethod</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>PDF object types.</p>
-<dl class="section note"><dt>Note</dt><dd>If this is modified, typeHash in PDPipe.c must be updated accordingly. </dd></dl>
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="gga69ef241e642b310365656328b8e68c0daf6142ffadbfbf10987809db4f056c692"></a>PDFTypePage&#160;</td><td class="fielddoc">
-<p>all page objects </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="gga69ef241e642b310365656328b8e68c0da7caaff42ca208e3b9d86c8216ce093da"></a>PDFTypePages&#160;</td><td class="fielddoc">
-<p>all pages objects; pages objects are dictionaries with arrays of page objects (the "Kids") </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="gga69ef241e642b310365656328b8e68c0da4c69739bcb001c9e8a3061602aa5648c"></a>PDFTypeCatalog&#160;</td><td class="fielddoc">
-<p>all catalog objects; normally, the Root object is the only catalog in a PDF </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="gga69ef241e642b310365656328b8e68c0da330cc1a5d8b4a178711a7dd8c0d30bfe"></a>PDFTypeAnnot&#160;</td><td class="fielddoc">
-<p>all annotation objects, such as links </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="gga69ef241e642b310365656328b8e68c0da30f30380e4c80bb90011d4370751560e"></a>PDFTypeFont&#160;</td><td class="fielddoc">
-<p>font objects </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="gga69ef241e642b310365656328b8e68c0dabcb6fff3abe9637f1751ecc49f2aa528"></a>PDFTypeFontDescriptor&#160;</td><td class="fielddoc">
-<p>font descriptor objects </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="gga69ef241e642b310365656328b8e68c0da15b4ec23e1913e3e8c8ba67bfb49e4e7"></a>PDFTypeAction&#160;</td><td class="fielddoc">
-<p>action objects; usually associated with a link annotation </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="gga69ef241e642b310365656328b8e68c0da4acfa88f98ce9519a1260f2658af969b"></a>_PDFTypeCount&#160;</td><td class="fielddoc">
-<p>enum item count </p>
-</td></tr>
-</table>
-
-</div>
-</div>
-<a class="anchor" id="gaa2f108018ee986118e960c9004e65f44"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="a00136.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Task filter property type. </p>
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="ggaa2f108018ee986118e960c9004e65f44ab4faa881f7a73eb221eb48bfef454067"></a>PDPropertyObjectId&#160;</td><td class="fielddoc">
-<p>value = object ID; only called for the live object, even if multiple copies exist </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ggaa2f108018ee986118e960c9004e65f44a4527237134f3627f5a0d387625c6b0b2"></a>PDPropertyRootObject&#160;</td><td class="fielddoc">
-<p>triggered when root object is encountered </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ggaa2f108018ee986118e960c9004e65f44abd33683f69954b90cfbfa45c62ca583f"></a>PDPropertyInfoObject&#160;</td><td class="fielddoc">
-<p>triggered when info object is encountered </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ggaa2f108018ee986118e960c9004e65f44aaa5689b4525cc13a2769da7784ff1cf1"></a>PDPropertyPDFType&#160;</td><td class="fielddoc">
-<p>triggered for each object of the given PDFType value </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ggaa2f108018ee986118e960c9004e65f44a8672f57887d62a5bd7f8d273ef937a68"></a>PDPropertyPage&#160;</td><td class="fielddoc">
-<p>value = page number </p>
-</td></tr>
-</table>
-
-</div>
-</div>
-<a class="anchor" id="ga91616478cbeb225ea1dc8684f4daaa09"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="a00136.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Task result type.</p>
-<p>Tasks are chained together. When triggered, the first task in the list of tasks for the specific state is executed. Before moving on to the next task in the list, each task has a number of options specified in the task result.</p>
+<p>The twin stream has three methods available for reading data: read/write, random access, and reversed.</p>
 <ul>
-<li>A task has the option of canceling the entire PDF creation process due to some serious issue, via PDTaskFailure.</li>
-<li>It may also `filter' out its child tasks dynamically by returning PDTaskSkipRest for given conditions. This will stop the iterator, and any tasks remaining in the queue will be skipped.</li>
+<li>Read/write is the default method, and is the only method allowed for writing to the output stream.</li>
+<li>Random access turns the stream temporarily into a regular file reader, permitting random access to the input file. This mode is used when collecting XREF tables on parser initialization.</li>
+<li>Reverse turns the stream inside out, in the sense that the heap is filled from the bottom, and buffer fills begin at the end and iterate back toward the beginning. </li>
 </ul>
-<p>Returning PDTaskDone means the task ended normally, and that the next task, if any, may execute. This is usually the preferred return value. </p>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="gga91616478cbeb225ea1dc8684f4daaa09a5b94fdddf12f68b3c8ebc5d87c78246d"></a>PDTaskFailure&#160;</td><td class="fielddoc">
-<p>the entire pipe operation is terminated and the destination file is left unfinished </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="ggaf130a3ab8c13e88a11470d189407623aae975fe9adea14669173b004814ed55c6"></a>PDTwinStreamReadWrite&#160;</td><td class="fielddoc">
+<p>reads and writes from start to end of input into output, skipping/replacing/inserting as appropriate </p>
 </td></tr>
-<tr><td class="fieldname"><a class="anchor" id="gga91616478cbeb225ea1dc8684f4daaa09ab91b10f2a3fdb44fe9a8afc269354b08"></a>PDTaskDone&#160;</td><td class="fielddoc">
-<p>the task ended as normal </p>
+<tr><td class="fieldname"><a class="anchor" id="ggaf130a3ab8c13e88a11470d189407623aab3c8507fbd0f466580096673834dd935"></a>PDTwinStreamRandomAccess&#160;</td><td class="fielddoc">
+<p>random access, jumping to positions in the input, not writing anything to output </p>
 </td></tr>
-<tr><td class="fieldname"><a class="anchor" id="gga91616478cbeb225ea1dc8684f4daaa09a0539cd0d74e6470ed3be445d97eb710b"></a>PDTaskSkipRest&#160;</td><td class="fielddoc">
-<p>the task ended, and requires that remaining tasks in its pipeline are skipped </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="gga91616478cbeb225ea1dc8684f4daaa09aab00058c1a76c0cc9eac0cd04b89493b"></a>PDTaskUnload&#160;</td><td class="fielddoc">
-<p>the task ended as normal; additionally, it should never be called again </p>
+<tr><td class="fieldname"><a class="anchor" id="ggaf130a3ab8c13e88a11470d189407623aa89845202b3eb7db4d5c916775ad85f8e"></a>PDTwinStreamReversed&#160;</td><td class="fielddoc">
+<p>reads from the end of the input file, filling the heap from the end up towards the beginning </p>
 </td></tr>
 </table>
 
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="ga4d2e117e1508716bcf3e62d2c54434ac"></a>
+<a class="anchor" id="ga8460bed4866b47ef092b4167e73fb9d1"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void PDTaskAppendTask </td>
+          <td class="memname">void PDTwinStreamAdvance </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td>
-          <td class="paramname"><em>parentTask</em>, </td>
+          <td class="paramtype"><a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a>&#160;</td>
+          <td class="paramname"><em>ts</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td>
-          <td class="paramname"><em>childTask</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a>&#160;</td>
+          <td class="paramname"><em>bytes</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -326,221 +286,588 @@ Convenience functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Append a child task to a task. Child tasks are executed after their parent tasks, unless the parent decides to stop the chain. Note that childTask's child will be set to whatever value parentTask's child is, and parentTask will take childTask as its new child. Thus, adding child A then child B to parent P will result in the execution order</p>
-<p>P -&gt; B -&gt; A </p>
-
-</div>
-</div>
-<a class="anchor" id="ga2ceeb7733d8f6789143efa5fbb51cb9a"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> PDTaskCreateFilter </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00136.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a>&#160;</td>
-          <td class="paramname"><em>propertyType</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Create a filtering task. Filtering tasks find objects in a pipe based on given criteria and forward these to their child tasks. </p>
-
-</div>
-</div>
-<a class="anchor" id="gad655f5ca90cd5e070ce17d58bf6f8e78"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> PDTaskCreateFilterWithValue </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00136.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a>&#160;</td>
-          <td class="paramname"><em>propertyType</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
-          <td class="paramname"><em>value</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Create a filtering task with the given argument. </p>
-
-</div>
-</div>
-<a class="anchor" id="gac42bb37d75a3234ecd8d3566e3f6eaee"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> PDTaskCreateMutator </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00136.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a>&#160;</td>
-          <td class="paramname"><em>mutatorFunc</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Create a mutator task. Mutator tasks receive objects from the pipe if their parent tasks pass them through. A mutator task can be a filter, if it uses PDTaskSkipRest to abort for objects that should be skipped. </p>
-
-</div>
-</div>
-<a class="anchor" id="gaa7793b326f4035bdbc2d0fcd34c39703"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> PDTaskCreateMutatorForObject </td>
-          <td>(</td>
-          <td class="paramtype">long&#160;</td>
-          <td class="paramname"><em>objectID</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="a00136.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a>&#160;</td>
-          <td class="paramname"><em>mutatorFunc</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Create a mutator for the given object ID. </p>
-
-</div>
-</div>
-<a class="anchor" id="ga6405c8eb09d5f957e1b7911f743fd489"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> PDTaskCreateMutatorForPropertyType </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00136.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a>&#160;</td>
-          <td class="paramname"><em>propertyType</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="a00136.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a>&#160;</td>
-          <td class="paramname"><em>mutatorFunc</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Create a mutator for the given (value-less) property type. </p>
-
-</div>
-</div>
-<a class="anchor" id="ga2100ddc1a647286f66079dfade1f2b07"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> PDTaskCreateMutatorForPropertyTypeWithValue </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00136.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a>&#160;</td>
-          <td class="paramname"><em>propertyType</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
-          <td class="paramname"><em>value</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="a00136.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a>&#160;</td>
-          <td class="paramname"><em>mutatorFunc</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Create a mutator for the given property type with the given value. </p>
-
-</div>
-</div>
-<a class="anchor" id="ga34f837ba8d4abfe6b54be454fa46c71f"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="a00136.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> PDTaskExec </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td>
-          <td class="paramname"><em>task</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="a00127.html#gae605ead1049d6717b3bc4c94e0d95720">PDPipeRef</a>&#160;</td>
-          <td class="paramname"><em>pipe</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="a00026.html#ga006d92afec9a8da0ac7ed54122050e73">PDObjectRef</a>&#160;</td>
-          <td class="paramname"><em>object</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Execute a task, possibly resulting in a chain of tasks executing if the task has children. </p>
-
-</div>
-</div>
-<a class="anchor" id="ga4382fcaa073650fc176e1d13d587aa4d"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void PDTaskSetInfo </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00136.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td>
-          <td class="paramname"><em>task</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>info</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Set the info object for a task.</p>
-<p>The info object is passed as is to the task upon execution.</p>
+<p>Iterate forward `bytes' bytes in input file </p><dl class="section warning"><dt>Warning</dt><dd>Behavior undefined unless PDTwinStreamRandomAccess has been set.</dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">task</td><td>The task. </td></tr>
-    <tr><td class="paramname">info</td><td>The info object. </td></tr>
+    <tr><td class="paramname">ts</td><td>The stream. </td></tr>
+    <tr><td class="paramname">bytes</td><td>Number of bytes to advance in input stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga2e47111fa2352f20e7272c83595ad14e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a> PDTwinStreamCreate </td>
+          <td>(</td>
+          <td class="paramtype">FILE *&#160;</td>
+          <td class="paramname"><em>fi</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">FILE *&#160;</td>
+          <td class="paramname"><em>fo</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Create a new stream with the given file handlers.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">fi</td><td>Input file handler. </td></tr>
+    <tr><td class="paramname">fo</td><td>Output file handler. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gaa1c1972af14aef02ab7ae3c6553fdc65"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> PDTwinStreamCreateScanner </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a>&#160;</td>
+          <td class="paramname"><em>ts</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00130.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a>&#160;</td>
+          <td class="paramname"><em>state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Create a new scanner for use in this stream.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ts</td><td>The stream </td></tr>
+    <tr><td class="paramname">state</td><td>Root state</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The new scanner, with is context set up to grow from this stream </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga174e110f60d8baf52521f6589a7ea31f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDTwinStreamCutBranch </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a>&#160;</td>
+          <td class="paramname"><em>ts</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>buf</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Deallocate (if necessary) a fetched branch buffer.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ts</td><td>The stream. </td></tr>
+    <tr><td class="paramname">buf</td><td>The buffer. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga4a3cd5996921a51e0a6d2fc34eb35818"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDTwinStreamDisallowGrowth </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>ts</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char **&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *&#160;</td>
+          <td class="paramname"><em>size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramname"><em>req</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Do not grow buffer. A call to this method will flag the outgrown flag.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ts</td><td>PDTwinStreamRef instance </td></tr>
+    <tr><td class="paramname">scanner</td><td>The scanner making the request. </td></tr>
+    <tr><td class="paramname">buf</td><td>Pointer to buffer that should be grown. </td></tr>
+    <tr><td class="paramname">size</td><td>Pointer to size variable that contains current size, and should be updated with new size after growth. </td></tr>
+    <tr><td class="paramname">req</td><td>The requested amount of data. If 0, an optimal amount in terms of performance is selected. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga998a0f32dce19dac0b273c90b8952aad"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDTwinStreamDiscardContent </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a>&#160;</td>
+          <td class="paramname"><em>ts</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Discard content by not writing it to output.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ts</td><td>The stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga162015cb2c6e8a0b753dde1851cab717"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> PDTwinStreamFetchBranch </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a>&#160;</td>
+          <td class="paramname"><em>ts</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a>&#160;</td>
+          <td class="paramname"><em>position</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramname"><em>bytes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char **&#160;</td>
+          <td class="paramname"><em>buf</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Temporarily jump to and read given amount from given offset in input, then immediately jump back to original position.</p>
+<dl class="section note"><dt>Note</dt><dd>Uses existing heap if position + size is within bounds. Extends heap if appropriate, otherwise seeks to and reads the content into buf directly.</dd>
+<dd>
+buf may become invalidated as soon as any of the other functions are used, but should be discarded using <a class="el" href="a00136.html#ga174e110f60d8baf52521f6589a7ea31f">PDTwinStreamCutBranch()</a> when no longer needed.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ts</td><td>The stream. </td></tr>
+    <tr><td class="paramname">position</td><td>The absolute position to seek to. </td></tr>
+    <tr><td class="paramname">bytes</td><td>Number of bytes to read </td></tr>
+    <tr><td class="paramname">buf</td><td>Pointer to string that should be updated. The string must not be freed. Instead, <a class="el" href="a00136.html#ga174e110f60d8baf52521f6589a7ea31f">PDTwinStreamCutBranch()</a> should be used, or nothing done at all. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The actual amount read (which may be lower, e.g. if EOF is hit). </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gabeabe2a0421a37b0ac1754323ed73de6"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> PDTwinStreamGetScanner </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a>&#160;</td>
+          <td class="paramname"><em>ts</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Get twin stream scanner.</p>
+<p>This is NULL until set up with a state.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ts</td><td>The stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gae2b0263fe0f2237159746d50a3e12512"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDTwinStreamGrowInputBuffer </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>ts</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char **&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *&#160;</td>
+          <td class="paramname"><em>size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramname"><em>req</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Grow buffer (reallocating if necessary) to where it holds the requested amount.</p>
+<p>Fitted for PDScannerBufFunc</p>
+<p>Initial buffers are obtained by passing NULL as buffer with 0 as size</p>
+<dl class="section warning"><dt>Warning</dt><dd>Passing a NULL buffer with non-zero size or vice versa is undefined </dd>
+<dd>
+Behavior is undefined if PDTwinStreamReversed has been set</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ts</td><td>PDTwinStreamRef instance </td></tr>
+    <tr><td class="paramname">scanner</td><td>The scanner making the request. </td></tr>
+    <tr><td class="paramname">buf</td><td>Pointer to buffer that should be grown. </td></tr>
+    <tr><td class="paramname">size</td><td>Pointer to size variable that contains current size, and should be updated with new size after growth. </td></tr>
+    <tr><td class="paramname">req</td><td>The requested amount of data. If 0, an optimal amount in terms of performance is selected. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga91e4e960e84fbb39a74fb37145fcb2be"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDTwinStreamGrowInputBufferReversed </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>ts</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char **&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *&#160;</td>
+          <td class="paramname"><em>size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramname"><em>req</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Grow buffer backwards, i.e. by prepending the buffer with previous content.</p>
+<dl class="section warning"><dt>Warning</dt><dd>Behavior is undefined unless PDTwinStreamReversed has been set</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ts</td><td>PDTwinStreamRef instance </td></tr>
+    <tr><td class="paramname">scanner</td><td>The scanner making the request. </td></tr>
+    <tr><td class="paramname">buf</td><td>Pointer to buffer that should be grown. </td></tr>
+    <tr><td class="paramname">size</td><td>Pointer to size variable that contains current size, and should be updated with new size after growth. </td></tr>
+    <tr><td class="paramname">req</td><td>The requested amount of data. If 0, an optimal amount in terms of performance is selected. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gac90896d54a91b7176d4517706694b612"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDTwinStreamInsertContent </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a>&#160;</td>
+          <td class="paramname"><em>ts</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a>&#160;</td>
+          <td class="paramname"><em>bytes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>content</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Insert new content into output.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ts</td><td>The stream. </td></tr>
+    <tr><td class="paramname">bytes</td><td>Number of bytes to write. </td></tr>
+    <tr><td class="paramname">content</td><td>The content to write. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gab343255d458bde48019d7c04317df9b1"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDTWinStreamPassthroughContent </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a>&#160;</td>
+          <td class="paramname"><em>ts</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Pass through content based on the master scanner's position in the stream.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ts</td><td>The stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gaac25bdedc89cbedc7da16a1e8f4b5e5e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDTwinStreamPrune </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a>&#160;</td>
+          <td class="paramname"><em>ts</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga2c4cdb81ea3cd830cbadca665e75fbe3">PDOffset</a>&#160;</td>
+          <td class="paramname"><em>mark</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Prune the stream.</p>
+<p>This is basically only used when updating objects, to preserve prefix content in scanner iteration.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ts</td><td>The stream. </td></tr>
+    <tr><td class="paramname">mark</td><td>Comparison mark. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gad1add06011fc6c21adfe765f85bc5ec6"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDTwinStreamSeek </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a>&#160;</td>
+          <td class="paramname"><em>ts</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a>&#160;</td>
+          <td class="paramname"><em>position</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Jump to byte position in input file</p>
+<dl class="section warning"><dt>Warning</dt><dd>behavior undefined unless PDTwinStreamRandomAccess has been set</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ts</td><td>The stream. </td></tr>
+    <tr><td class="paramname">position</td><td>The absolute position to seek to. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga0df4dff9c6515c5e86cf96f238ca8748"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDTWinStreamSetMethod </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a>&#160;</td>
+          <td class="paramname"><em>ts</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00136.html#gaf130a3ab8c13e88a11470d189407623a">PDTwinStreamMethod</a>&#160;</td>
+          <td class="paramname"><em>method</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set the stream method for the given stream.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ts</td><td>The stream. </td></tr>
+    <tr><td class="paramname">method</td><td>The PDTwinStreamMethod.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="a00136.html#gaf130a3ab8c13e88a11470d189407623a">PDTwinStreamMethod</a> </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gaf37cb0ff62eab358393da22fb6ca2181"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> PDTwinStreamSetupScannerWithState </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00136.html#ga00460c750d52f0d7d3c7f8187a71211d">PDTwinStreamRef</a>&#160;</td>
+          <td class="paramname"><em>ts</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00130.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a>&#160;</td>
+          <td class="paramname"><em>state</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set up twin stream scanner with given state.</p>
+<p>It can be set multiple times. Previous instances are destroyed</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ts</td><td>The stream. </td></tr>
+    <tr><td class="paramname">state</td><td>The state. </td></tr>
   </table>
   </dd>
 </dl>
@@ -550,7 +877,7 @@ Convenience functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:36 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

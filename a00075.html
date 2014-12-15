@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -94,7 +94,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a href="#func-members">Functions</a> &#124;
 <a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
-<div class="title">PDOperator.h File Reference<div class="ingroups"><a class="el" href="a00119.html">Internal</a> &raquo; <a class="el" href="a00122.html">Symbol scanning</a> &raquo; <a class="el" href="a00126.html">PDOperator</a></div></div>  </div>
+<div class="title">PDOperator.h File Reference<div class="ingroups"><a class="el" href="a00118.html">Internal</a> &raquo; <a class="el" href="a00121.html">Symbol scanning</a> &raquo; <a class="el" href="a00125.html">PDOperator</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="a00063_source.html">PDDefines.h</a>&quot;</code><br />
@@ -104,54 +104,54 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:gad639ff83b69466711e062f3fb9d5ddbe"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gad639ff83b69466711e062f3fb9d5ddbe"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00126.html#gad639ff83b69466711e062f3fb9d5ddbe">PDOperatorSymbolGlobRegular</a>&#160;&#160;&#160;0</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#gad639ff83b69466711e062f3fb9d5ddbe">PDOperatorSymbolGlobRegular</a>&#160;&#160;&#160;0</td></tr>
 <tr class="memdesc:gad639ff83b69466711e062f3fb9d5ddbe"><td class="mdescLeft">&#160;</td><td class="mdescRight">PDF regular character. <br /></td></tr>
 <tr class="separator:gad639ff83b69466711e062f3fb9d5ddbe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac21f235145f10add2e73823d1219e09e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gac21f235145f10add2e73823d1219e09e"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00126.html#gac21f235145f10add2e73823d1219e09e">PDOperatorSymbolGlobWhitespace</a>&#160;&#160;&#160;1</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#gac21f235145f10add2e73823d1219e09e">PDOperatorSymbolGlobWhitespace</a>&#160;&#160;&#160;1</td></tr>
 <tr class="memdesc:gac21f235145f10add2e73823d1219e09e"><td class="mdescLeft">&#160;</td><td class="mdescRight">PDF whitespace character. <br /></td></tr>
 <tr class="separator:gac21f235145f10add2e73823d1219e09e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga8f05a6eca75eacdd9bdd6a31185e29db"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga8f05a6eca75eacdd9bdd6a31185e29db"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00126.html#ga8f05a6eca75eacdd9bdd6a31185e29db">PDOperatorSymbolGlobDelimiter</a>&#160;&#160;&#160;4</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga8f05a6eca75eacdd9bdd6a31185e29db">PDOperatorSymbolGlobDelimiter</a>&#160;&#160;&#160;4</td></tr>
 <tr class="memdesc:ga8f05a6eca75eacdd9bdd6a31185e29db"><td class="mdescLeft">&#160;</td><td class="mdescRight">PDF delimiter character. <br /></td></tr>
 <tr class="separator:ga8f05a6eca75eacdd9bdd6a31185e29db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga945d084c8a029bf8daae94e5b245e8b2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga945d084c8a029bf8daae94e5b245e8b2"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00126.html#ga945d084c8a029bf8daae94e5b245e8b2">PDOperatorSymbolExtNumeric</a>&#160;&#160;&#160;8</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga945d084c8a029bf8daae94e5b245e8b2">PDOperatorSymbolExtNumeric</a>&#160;&#160;&#160;8</td></tr>
 <tr class="memdesc:ga945d084c8a029bf8daae94e5b245e8b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Numeric value. <br /></td></tr>
 <tr class="separator:ga945d084c8a029bf8daae94e5b245e8b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1c39d9559d5b13313bc26106f37130fa"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga1c39d9559d5b13313bc26106f37130fa"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00126.html#ga1c39d9559d5b13313bc26106f37130fa">PDOperatorSymbolExtFake</a>&#160;&#160;&#160;16</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga1c39d9559d5b13313bc26106f37130fa">PDOperatorSymbolExtFake</a>&#160;&#160;&#160;16</td></tr>
 <tr class="memdesc:ga1c39d9559d5b13313bc26106f37130fa"><td class="mdescLeft">&#160;</td><td class="mdescRight">"Fake" symbol <br /></td></tr>
 <tr class="separator:ga1c39d9559d5b13313bc26106f37130fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga88eb015771b77d47b95a94833d970653"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga88eb015771b77d47b95a94833d970653"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00126.html#ga88eb015771b77d47b95a94833d970653">PDOperatorSymbolExtEOB</a>&#160;&#160;&#160;32</td></tr>
+#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga88eb015771b77d47b95a94833d970653">PDOperatorSymbolExtEOB</a>&#160;&#160;&#160;32</td></tr>
 <tr class="memdesc:ga88eb015771b77d47b95a94833d970653"><td class="mdescLeft">&#160;</td><td class="mdescRight">End of buffer (usually synonymous with end of file) symbol. <br /></td></tr>
 <tr class="separator:ga88eb015771b77d47b95a94833d970653"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5d6261879689e88e64559f3bd9f5101d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00126.html#ga5d6261879689e88e64559f3bd9f5101d">PDSymbolUpdateNumeric</a>(numeric, real, c, first_character)</td></tr>
+<tr class="memitem:ga5d6261879689e88e64559f3bd9f5101d"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga5d6261879689e88e64559f3bd9f5101d">PDSymbolUpdateNumeric</a>(numeric, real, c, first_character)</td></tr>
 <tr class="separator:ga5d6261879689e88e64559f3bd9f5101d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga9dc833d39f84f457757b654c188107e6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00126.html#ga9dc833d39f84f457757b654c188107e6">PDSymbolDetermineNumeric</a>(numeric, real, c, sym, len)</td></tr>
+<tr class="memitem:ga9dc833d39f84f457757b654c188107e6"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga9dc833d39f84f457757b654c188107e6">PDSymbolDetermineNumeric</a>(numeric, real, c, sym, len)</td></tr>
 <tr class="separator:ga9dc833d39f84f457757b654c188107e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gad10657312aac8717725cf58086042759"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00126.html#gad10657312aac8717725cf58086042759">PDOperatorSymbolGlobSetup</a> ()</td></tr>
+<tr class="memitem:gad10657312aac8717725cf58086042759"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#gad10657312aac8717725cf58086042759">PDOperatorSymbolGlobSetup</a> ()</td></tr>
 <tr class="separator:gad10657312aac8717725cf58086042759"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga0f709a797dc519b6a137ef16fd8b7c92"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00126.html#ga0f709a797dc519b6a137ef16fd8b7c92">PDOperatorSymbolGlobDefine</a> (char *str)</td></tr>
+<tr class="memitem:ga0f709a797dc519b6a137ef16fd8b7c92"><td class="memItemLeft" align="right" valign="top">char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga0f709a797dc519b6a137ef16fd8b7c92">PDOperatorSymbolGlobDefine</a> (char *str)</td></tr>
 <tr class="separator:ga0f709a797dc519b6a137ef16fd8b7c92"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae2d50a0259864a251ccd790a4abc52da"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00126.html#gac7a8727e713bbd75eb057feaa425dee8">PDOperatorRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00126.html#gae2d50a0259864a251ccd790a4abc52da">PDOperatorCreateFromDefinition</a> (const void **defs)</td></tr>
+<tr class="memitem:gae2d50a0259864a251ccd790a4abc52da"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00125.html#gac7a8727e713bbd75eb057feaa425dee8">PDOperatorRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#gae2d50a0259864a251ccd790a4abc52da">PDOperatorCreateFromDefinition</a> (const void **defs)</td></tr>
 <tr class="separator:gae2d50a0259864a251ccd790a4abc52da"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga6d83d2e697c5723f6d5c62af0d120862"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00126.html#ga6d83d2e697c5723f6d5c62af0d120862">PDOperatorCompileStates</a> (<a class="el" href="a00126.html#gac7a8727e713bbd75eb057feaa425dee8">PDOperatorRef</a> op)</td></tr>
+<tr class="memitem:ga6d83d2e697c5723f6d5c62af0d120862"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga6d83d2e697c5723f6d5c62af0d120862">PDOperatorCompileStates</a> (<a class="el" href="a00125.html#gac7a8727e713bbd75eb057feaa425dee8">PDOperatorRef</a> op)</td></tr>
 <tr class="separator:ga6d83d2e697c5723f6d5c62af0d120862"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
 Variables</h2></td></tr>
-<tr class="memitem:ga160f3d49aa2723ed9585c9fedf397d4b"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00126.html#ga160f3d49aa2723ed9585c9fedf397d4b">PDOperatorSymbolGlob</a></td></tr>
+<tr class="memitem:ga160f3d49aa2723ed9585c9fedf397d4b"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga160f3d49aa2723ed9585c9fedf397d4b">PDOperatorSymbolGlob</a></td></tr>
 <tr class="separator:ga160f3d49aa2723ed9585c9fedf397d4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga7526fd6e617e436e5367d315e15395d2"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00126.html#ga7526fd6e617e436e5367d315e15395d2">PDOperatorSymbolGlobHex</a></td></tr>
+<tr class="memitem:ga7526fd6e617e436e5367d315e15395d2"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga7526fd6e617e436e5367d315e15395d2">PDOperatorSymbolGlobHex</a></td></tr>
 <tr class="separator:ga7526fd6e617e436e5367d315e15395d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga776b42bf623eef8ecef6ba0fdd721933"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00126.html#ga776b42bf623eef8ecef6ba0fdd721933">PDOperatorSymbolGlobDehex</a></td></tr>
+<tr class="memitem:ga776b42bf623eef8ecef6ba0fdd721933"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga776b42bf623eef8ecef6ba0fdd721933">PDOperatorSymbolGlobDehex</a></td></tr>
 <tr class="separator:ga776b42bf623eef8ecef6ba0fdd721933"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga3ac7765f0e717ae8678f44e7d6b06cc8"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00126.html#ga3ac7765f0e717ae8678f44e7d6b06cc8">PDOperatorSymbolGlobEscaping</a></td></tr>
+<tr class="memitem:ga3ac7765f0e717ae8678f44e7d6b06cc8"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00125.html#ga3ac7765f0e717ae8678f44e7d6b06cc8">PDOperatorSymbolGlobEscaping</a></td></tr>
 <tr class="separator:ga3ac7765f0e717ae8678f44e7d6b06cc8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -159,7 +159,7 @@ Variables</h2></td></tr>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:35 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -96,7 +96,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
-<div class="title">PDXTable.h File Reference<div class="ingroups"><a class="el" href="a00119.html">Internal</a> &raquo; <a class="el" href="a00035.html">PDXTable</a></div></div>  </div>
+<div class="title">PDXTable.h File Reference<div class="ingroups"><a class="el" href="a00118.html">Internal</a> &raquo; <a class="el" href="a00037.html">PDXTable</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &lt;sys/types.h&gt;</code><br />
@@ -106,58 +106,58 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Data Structures</h2></td></tr>
-<tr class="memitem:a00173"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#a00173">PDXTable</a></td></tr>
+<tr class="memitem:a00173"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00037.html#a00173">PDXTable</a></td></tr>
 <tr class="separator:a00173"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:ga6bee65464782f30af9cef98f84c1e2c1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga6bee65464782f30af9cef98f84c1e2c1">PDXTableGetTypeForID</a>(table, id)&#160;&#160;&#160;(<a class="el" href="a00035.html#ga77325ef738dc5a3d28a57846a42f0595">PDXType</a>)((table-&gt;xrefs)[id*table-&gt;width])</td></tr>
+<tr class="memitem:ga6bee65464782f30af9cef98f84c1e2c1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00037.html#ga6bee65464782f30af9cef98f84c1e2c1">PDXTableGetTypeForID</a>(table, id)&#160;&#160;&#160;(<a class="el" href="a00037.html#ga77325ef738dc5a3d28a57846a42f0595">PDXType</a>)((table-&gt;xrefs)[id*table-&gt;width])</td></tr>
 <tr class="separator:ga6bee65464782f30af9cef98f84c1e2c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae52e118cfc45f8e3f5f53d2481473fce"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gae52e118cfc45f8e3f5f53d2481473fce">PDXTableSetTypeForID</a>(table, id, t)&#160;&#160;&#160;*(<a class="el" href="a00035.html#ga77325ef738dc5a3d28a57846a42f0595">PDXType</a>*)&amp;((table-&gt;xrefs)[id*table-&gt;width]) = t</td></tr>
+<tr class="memitem:gae52e118cfc45f8e3f5f53d2481473fce"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00037.html#gae52e118cfc45f8e3f5f53d2481473fce">PDXTableSetTypeForID</a>(table, id, t)&#160;&#160;&#160;*(<a class="el" href="a00037.html#ga77325ef738dc5a3d28a57846a42f0595">PDXType</a>*)&amp;((table-&gt;xrefs)[id*table-&gt;width]) = t</td></tr>
 <tr class="separator:gae52e118cfc45f8e3f5f53d2481473fce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad52edd1cb2acb1c50340ca968777c128"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gad52edd1cb2acb1c50340ca968777c128">PDXTableIsIDFree</a>(xtable, id)&#160;&#160;&#160;(<a class="el" href="a00035.html#gga385c44f6fb256e5716a2302a5b940388aacfabf5941005635d12d930e3462fae5">PDXTypeFreed</a> == <a class="el" href="a00035.html#ga6bee65464782f30af9cef98f84c1e2c1">PDXTableGetTypeForID</a>(xtable, id))</td></tr>
+<tr class="memitem:gad52edd1cb2acb1c50340ca968777c128"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00037.html#gad52edd1cb2acb1c50340ca968777c128">PDXTableIsIDFree</a>(xtable, id)&#160;&#160;&#160;(<a class="el" href="a00037.html#gga385c44f6fb256e5716a2302a5b940388aacfabf5941005635d12d930e3462fae5">PDXTypeFreed</a> == <a class="el" href="a00037.html#ga6bee65464782f30af9cef98f84c1e2c1">PDXTableGetTypeForID</a>(xtable, id))</td></tr>
 <tr class="separator:gad52edd1cb2acb1c50340ca968777c128"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:ga77325ef738dc5a3d28a57846a42f0595"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga77325ef738dc5a3d28a57846a42f0595"></a>
-typedef unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga77325ef738dc5a3d28a57846a42f0595">PDXType</a></td></tr>
+typedef unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00037.html#ga77325ef738dc5a3d28a57846a42f0595">PDXType</a></td></tr>
 <tr class="memdesc:ga77325ef738dc5a3d28a57846a42f0595"><td class="mdescLeft">&#160;</td><td class="mdescRight">The type representation of an XREF entry. <br /></td></tr>
 <tr class="separator:ga77325ef738dc5a3d28a57846a42f0595"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:ga4a1f3a4c28ecf31eab187c424ccebd9d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga4a1f3a4c28ecf31eab187c424ccebd9d">PDXFormat</a> { <a class="el" href="a00035.html#gga4a1f3a4c28ecf31eab187c424ccebd9da0e1384b153c491f6cb9445bda3058fe9">PDXTableFormatText</a> = 0, 
-<a class="el" href="a00035.html#gga4a1f3a4c28ecf31eab187c424ccebd9da325f1e446e9e59f7246407f9a0440ce1">PDXTableFormatBinary</a> = 1
+<tr class="memitem:ga4a1f3a4c28ecf31eab187c424ccebd9d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00037.html#ga4a1f3a4c28ecf31eab187c424ccebd9d">PDXFormat</a> { <a class="el" href="a00037.html#gga4a1f3a4c28ecf31eab187c424ccebd9da0e1384b153c491f6cb9445bda3058fe9">PDXTableFormatText</a> = 0, 
+<a class="el" href="a00037.html#gga4a1f3a4c28ecf31eab187c424ccebd9da325f1e446e9e59f7246407f9a0440ce1">PDXTableFormatBinary</a> = 1
  }</td></tr>
 <tr class="separator:ga4a1f3a4c28ecf31eab187c424ccebd9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga385c44f6fb256e5716a2302a5b940388"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom">{ <a class="el" href="a00035.html#gga385c44f6fb256e5716a2302a5b940388aacfabf5941005635d12d930e3462fae5">PDXTypeFreed</a> = 0, 
-<a class="el" href="a00035.html#gga385c44f6fb256e5716a2302a5b940388a948d3a37d32d6740e1cbbe46acd6e748">PDXTypeUsed</a> = 1, 
-<a class="el" href="a00035.html#gga385c44f6fb256e5716a2302a5b940388af671e13f0a999548e00087347492cd77">PDXTypeComp</a> = 2
+<tr class="memitem:ga385c44f6fb256e5716a2302a5b940388"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom">{ <a class="el" href="a00037.html#gga385c44f6fb256e5716a2302a5b940388aacfabf5941005635d12d930e3462fae5">PDXTypeFreed</a> = 0, 
+<a class="el" href="a00037.html#gga385c44f6fb256e5716a2302a5b940388a948d3a37d32d6740e1cbbe46acd6e748">PDXTypeUsed</a> = 1, 
+<a class="el" href="a00037.html#gga385c44f6fb256e5716a2302a5b940388af671e13f0a999548e00087347492cd77">PDXTypeComp</a> = 2
  }</td></tr>
 <tr class="separator:ga385c44f6fb256e5716a2302a5b940388"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gab747de2b80242abe73ae76c2d5c32080"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00029.html#ga2c4cdb81ea3cd830cbadca665e75fbe3">PDOffset</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gab747de2b80242abe73ae76c2d5c32080">PDXTableGetOffsetForID</a> (<a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> obid)</td></tr>
+<tr class="memitem:gab747de2b80242abe73ae76c2d5c32080"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#ga2c4cdb81ea3cd830cbadca665e75fbe3">PDOffset</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00037.html#gab747de2b80242abe73ae76c2d5c32080">PDXTableGetOffsetForID</a> (<a class="el" href="a00023.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> obid)</td></tr>
 <tr class="separator:gab747de2b80242abe73ae76c2d5c32080"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga0a4c67b2a70c5177cc1504ea8dbe1160"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga0a4c67b2a70c5177cc1504ea8dbe1160">PDXTableSetOffsetForID</a> (<a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> obid, <a class="el" href="a00029.html#ga2c4cdb81ea3cd830cbadca665e75fbe3">PDOffset</a> offset)</td></tr>
+<tr class="memitem:ga0a4c67b2a70c5177cc1504ea8dbe1160"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00037.html#ga0a4c67b2a70c5177cc1504ea8dbe1160">PDXTableSetOffsetForID</a> (<a class="el" href="a00023.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> obid, <a class="el" href="a00031.html#ga2c4cdb81ea3cd830cbadca665e75fbe3">PDOffset</a> offset)</td></tr>
 <tr class="separator:ga0a4c67b2a70c5177cc1504ea8dbe1160"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5befaaf404064394fd40aad33d277b25"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga5befaaf404064394fd40aad33d277b25">PDXTableGetGenForID</a> (<a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> obid)</td></tr>
+<tr class="memitem:ga5befaaf404064394fd40aad33d277b25"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00037.html#ga5befaaf404064394fd40aad33d277b25">PDXTableGetGenForID</a> (<a class="el" href="a00023.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> obid)</td></tr>
 <tr class="separator:ga5befaaf404064394fd40aad33d277b25"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1f48f59f6e408190d927e9c9f70269cb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga1f48f59f6e408190d927e9c9f70269cb">PDXTableSetGenForID</a> (<a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> obid, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> gen)</td></tr>
+<tr class="memitem:ga1f48f59f6e408190d927e9c9f70269cb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00037.html#ga1f48f59f6e408190d927e9c9f70269cb">PDXTableSetGenForID</a> (<a class="el" href="a00023.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> obid, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> gen)</td></tr>
 <tr class="separator:ga1f48f59f6e408190d927e9c9f70269cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad28eed0ad0217445361d015f5f18a49d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gad28eed0ad0217445361d015f5f18a49d">PDXTableFetchXRefs</a> (<a class="el" href="a00019.html#gaac5205e9bfb0f78710333c894c3d318a">PDParserRef</a> parser)</td></tr>
+<tr class="memitem:gad28eed0ad0217445361d015f5f18a49d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00037.html#gad28eed0ad0217445361d015f5f18a49d">PDXTableFetchXRefs</a> (<a class="el" href="a00019.html#gaac5205e9bfb0f78710333c894c3d318a">PDParserRef</a> parser)</td></tr>
 <tr class="separator:gad28eed0ad0217445361d015f5f18a49d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf3eeb50f5a826f87d9b1ceea486e81c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gaf3eeb50f5a826f87d9b1ceea486e81c3">PDXTablePassoverXRefEntry</a> (<a class="el" href="a00019.html#gaac5205e9bfb0f78710333c894c3d318a">PDParserRef</a> parser, <a class="el" href="a00021.html#a00143">pd_stack</a> stack, <a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> includeTrailer)</td></tr>
+<tr class="memitem:gaf3eeb50f5a826f87d9b1ceea486e81c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00037.html#gaf3eeb50f5a826f87d9b1ceea486e81c3">PDXTablePassoverXRefEntry</a> (<a class="el" href="a00019.html#gaac5205e9bfb0f78710333c894c3d318a">PDParserRef</a> parser, <a class="el" href="a00023.html#a00142">pd_stack</a> stack, <a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> includeTrailer)</td></tr>
 <tr class="separator:gaf3eeb50f5a826f87d9b1ceea486e81c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5a9b1479578bf89b9ae4c32b01a875a9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga5a9b1479578bf89b9ae4c32b01a875a9">PDXTableInsert</a> (<a class="el" href="a00019.html#gaac5205e9bfb0f78710333c894c3d318a">PDParserRef</a> parser)</td></tr>
+<tr class="memitem:ga5a9b1479578bf89b9ae4c32b01a875a9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00037.html#ga5a9b1479578bf89b9ae4c32b01a875a9">PDXTableInsert</a> (<a class="el" href="a00019.html#gaac5205e9bfb0f78710333c894c3d318a">PDParserRef</a> parser)</td></tr>
 <tr class="separator:ga5a9b1479578bf89b9ae4c32b01a875a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga9c5bd1ada8f5d841d8228e9b7a2e8e7f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga9c5bd1ada8f5d841d8228e9b7a2e8e7f">PDXTableWEntry</a> (<a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table)</td></tr>
+<tr class="memitem:ga9c5bd1ada8f5d841d8228e9b7a2e8e7f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00037.html#ga9c5bd1ada8f5d841d8228e9b7a2e8e7f">PDXTableWEntry</a> (<a class="el" href="a00023.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table)</td></tr>
 <tr class="separator:ga9c5bd1ada8f5d841d8228e9b7a2e8e7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4168e7da10c47dbd0bb9c53f6b967fca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#ga4168e7da10c47dbd0bb9c53f6b967fca">PDXTableSetSizes</a> (<a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, unsigned char typeSize, unsigned char offsSize, unsigned char genSize)</td></tr>
+<tr class="memitem:ga4168e7da10c47dbd0bb9c53f6b967fca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00037.html#ga4168e7da10c47dbd0bb9c53f6b967fca">PDXTableSetSizes</a> (<a class="el" href="a00023.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, unsigned char typeSize, unsigned char offsSize, unsigned char genSize)</td></tr>
 <tr class="separator:ga4168e7da10c47dbd0bb9c53f6b967fca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gafd6d47a58d37661727e3721b92a6c12a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html#gafd6d47a58d37661727e3721b92a6c12a">PDXTableGrow</a> (<a class="el" href="a00021.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, <a class="el" href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> cap)</td></tr>
+<tr class="memitem:gafd6d47a58d37661727e3721b92a6c12a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00037.html#gafd6d47a58d37661727e3721b92a6c12a">PDXTableGrow</a> (<a class="el" href="a00023.html#gaa17a6181053e799e01d965f942e1c87e">PDXTableRef</a> table, <a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> cap)</td></tr>
 <tr class="separator:gafd6d47a58d37661727e3721b92a6c12a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -165,7 +165,7 @@ Functions</h2></td></tr>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:36 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

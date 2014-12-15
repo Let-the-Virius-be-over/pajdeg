@@ -1,12 +1,11 @@
 var searchData=
 [
-  ['pd_5fcrypto_2eh',['pd_crypto.h',['../a00042.html',1,'']]],
-  ['pd_5finternal_2eh',['pd_internal.h',['../a00043.html',1,'']]],
-  ['pd_5fpdf_5fimplementation_2eh',['pd_pdf_implementation.h',['../a00047.html',1,'']]],
-  ['pd_5fstack_2eh',['pd_stack.h',['../a00050.html',1,'']]],
-  ['pdarray_2eh',['PDArray.h',['../a00052.html',1,'']]],
-  ['pdcatalog_2eh',['PDCatalog.h',['../a00054.html',1,'']]],
-  ['pdcollection_2eh',['PDCollection.h',['../a00056.html',1,'']]],
+  ['pd_5fcrypto_2eh',['pd_crypto.h',['../a00044.html',1,'']]],
+  ['pd_5finternal_2eh',['pd_internal.h',['../a00045.html',1,'']]],
+  ['pd_5fpdf_5fimplementation_2eh',['pd_pdf_implementation.h',['../a00049.html',1,'']]],
+  ['pd_5fstack_2eh',['pd_stack.h',['../a00052.html',1,'']]],
+  ['pdarray_2eh',['PDArray.h',['../a00054.html',1,'']]],
+  ['pdcatalog_2eh',['PDCatalog.h',['../a00056.html',1,'']]],
   ['pdcontentstream_2eh',['PDContentStream.h',['../a00058.html',1,'']]],
   ['pdcontentstreamprinter_2eh',['PDContentStreamPrinter.h',['../a00060.html',1,'']]],
   ['pdcontentstreamtextextractor_2eh',['PDContentStreamTextExtractor.h',['../a00062.html',1,'']]],

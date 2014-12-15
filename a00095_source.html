@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -122,36 +122,36 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;</div>
 <div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;<span class="preprocessor">#include &quot;<a class="code" href="a00063.html">PDDefines.h</a>&quot;</span></div>
 <div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;</div>
-<div class="line"><a name="l00066"></a><span class="lineno"><a class="line" href="a00132.html#ga87c3533e69c5cd87ec3851e900c82ed2">   66</a></span>&#160;<span class="preprocessor">#define static_hash_idx(mask, shift, key)    (((long)key ^ ((long)key &gt;&gt; shift)) &amp; mask)</span></div>
+<div class="line"><a name="l00066"></a><span class="lineno"><a class="line" href="a00131.html#ga87c3533e69c5cd87ec3851e900c82ed2">   66</a></span>&#160;<span class="preprocessor">#define static_hash_idx(mask, shift, key)    (((long)key ^ ((long)key &gt;&gt; shift)) &amp; mask)</span></div>
 <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;</div>
-<div class="line"><a name="l00074"></a><span class="lineno"><a class="line" href="a00132.html#gacd44a55a88ee6637a09f81d0e89a8f06">   74</a></span>&#160;<span class="preprocessor">#define PDStaticHashIdx(stha, key)     static_hash_idx(stha-&gt;mask, stha-&gt;shift, key)</span></div>
+<div class="line"><a name="l00074"></a><span class="lineno"><a class="line" href="a00131.html#gacd44a55a88ee6637a09f81d0e89a8f06">   74</a></span>&#160;<span class="preprocessor">#define PDStaticHashIdx(stha, key)     static_hash_idx(stha-&gt;mask, stha-&gt;shift, key)</span></div>
 <div class="line"><a name="l00075"></a><span class="lineno">   75</span>&#160;</div>
-<div class="line"><a name="l00082"></a><span class="lineno"><a class="line" href="a00132.html#ga05c728dbe8d7ce68f041d1440c82b4f4">   82</a></span>&#160;<span class="preprocessor">#define PDStaticHashValueForHash(stha, hash) stha-&gt;table[hash]</span></div>
+<div class="line"><a name="l00082"></a><span class="lineno"><a class="line" href="a00131.html#ga05c728dbe8d7ce68f041d1440c82b4f4">   82</a></span>&#160;<span class="preprocessor">#define PDStaticHashValueForHash(stha, hash) stha-&gt;table[hash]</span></div>
 <div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;</div>
-<div class="line"><a name="l00090"></a><span class="lineno"><a class="line" href="a00132.html#gac245d1835cfa436b4d1369372f13d545">   90</a></span>&#160;<span class="preprocessor">#define PDStaticHashValueForKey(stha, key)   stha-&gt;table[PDStaticHashIdx(stha, key)]</span></div>
+<div class="line"><a name="l00090"></a><span class="lineno"><a class="line" href="a00131.html#gac245d1835cfa436b4d1369372f13d545">   90</a></span>&#160;<span class="preprocessor">#define PDStaticHashValueForKey(stha, key)   stha-&gt;table[PDStaticHashIdx(stha, key)]</span></div>
 <div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;</div>
-<div class="line"><a name="l00099"></a><span class="lineno"><a class="line" href="a00132.html#gae2d4fb7ba843b730317c8763ee918fbc">   99</a></span>&#160;<span class="preprocessor">#define PDStaticHashValueForHashAs(stha, hash, type) as(type, PDStaticHashValueForHash(stha, hash))</span></div>
+<div class="line"><a name="l00099"></a><span class="lineno"><a class="line" href="a00131.html#gae2d4fb7ba843b730317c8763ee918fbc">   99</a></span>&#160;<span class="preprocessor">#define PDStaticHashValueForHashAs(stha, hash, type) as(type, PDStaticHashValueForHash(stha, hash))</span></div>
 <div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;</div>
-<div class="line"><a name="l00108"></a><span class="lineno"><a class="line" href="a00132.html#gaa6734691480d55b232daddb8c0327bcd">  108</a></span>&#160;<span class="preprocessor">#define PDStaticHashValueForKeyAs(stha, key, type)   as(type, PDStaticHashValueForKey(stha, key))</span></div>
+<div class="line"><a name="l00108"></a><span class="lineno"><a class="line" href="a00131.html#gaa6734691480d55b232daddb8c0327bcd">  108</a></span>&#160;<span class="preprocessor">#define PDStaticHashValueForKeyAs(stha, key, type)   as(type, PDStaticHashValueForKey(stha, key))</span></div>
 <div class="line"><a name="l00109"></a><span class="lineno">  109</span>&#160;</div>
-<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00021.html#a00167">PDStaticHashRef</a> <a class="code" href="a00132.html#ga45e3d4cfd119ee91a101516faf6ba085">PDStaticHashCreate</a>(<a class="code" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> entries, <span class="keywordtype">void</span> **keys, <span class="keywordtype">void</span> **values);</div>
+<div class="line"><a name="l00122"></a><span class="lineno">  122</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00023.html#a00167">PDStaticHashRef</a> <a class="code" href="a00131.html#ga45e3d4cfd119ee91a101516faf6ba085">PDStaticHashCreate</a>(<a class="code" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> entries, <span class="keywordtype">void</span> **keys, <span class="keywordtype">void</span> **values);</div>
 <div class="line"><a name="l00123"></a><span class="lineno">  123</span>&#160;</div>
-<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> <a class="code" href="a00132.html#ga0c06637bab6289d1a677553a7373d793">PDStaticHashDisownKeysValues</a>(<a class="code" href="a00021.html#a00167">PDStaticHashRef</a> sh, <a class="code" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> disownKeys, <a class="code" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> disownValues);</div>
+<div class="line"><a name="l00131"></a><span class="lineno">  131</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> <a class="code" href="a00131.html#ga0c06637bab6289d1a677553a7373d793">PDStaticHashDisownKeysValues</a>(<a class="code" href="a00023.html#a00167">PDStaticHashRef</a> sh, <a class="code" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> disownKeys, <a class="code" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> disownValues);</div>
 <div class="line"><a name="l00132"></a><span class="lineno">  132</span>&#160;</div>
 <div class="line"><a name="l00133"></a><span class="lineno">  133</span>&#160;<span class="comment">// add key/value entry to a static hash; often expensive</span></div>
 <div class="line"><a name="l00134"></a><span class="lineno">  134</span>&#160;<span class="comment">//extern void PDStaticHashAdd(void *key, void *value);</span></div>
 <div class="line"><a name="l00135"></a><span class="lineno">  135</span>&#160;</div>
 <div class="line"><a name="l00138"></a><span class="lineno">  138</span>&#160;<span class="preprocessor">#endif</span></div>
-<div class="ttc" id="a00132_html_ga45e3d4cfd119ee91a101516faf6ba085"><div class="ttname"><a href="a00132.html#ga45e3d4cfd119ee91a101516faf6ba085">PDStaticHashCreate</a></div><div class="ttdeci">PDStaticHashRef PDStaticHashCreate(PDInteger entries, void **keys, void **values)</div><div class="ttdef"><b>Definition:</b> PDStaticHash.c:40</div></div>
-<div class="ttc" id="a00021_html_a00167"><div class="ttname"><a href="a00021.html#a00167">PDStaticHash</a></div><div class="ttdef"><b>Definition:</b> pd_internal.h:694</div></div>
-<div class="ttc" id="a00029_html_ga7bf5d17054ed63682b0cb309545ad1cc"><div class="ttname"><a href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a></div><div class="ttdeci">long PDInteger</div><div class="ttdef"><b>Definition:</b> PDDefines.h:157</div></div>
+<div class="ttc" id="a00031_html_gad244dd3b4044286b711733599137f318"><div class="ttname"><a href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a></div><div class="ttdeci">unsigned char PDBool</div><div class="ttdef"><b>Definition:</b> PDDefines.h:188</div></div>
+<div class="ttc" id="a00131_html_ga0c06637bab6289d1a677553a7373d793"><div class="ttname"><a href="a00131.html#ga0c06637bab6289d1a677553a7373d793">PDStaticHashDisownKeysValues</a></div><div class="ttdeci">void PDStaticHashDisownKeysValues(PDStaticHashRef sh, PDBool disownKeys, PDBool disownValues)</div><div class="ttdef"><b>Definition:</b> PDStaticHash.c:101</div></div>
+<div class="ttc" id="a00031_html_ga7bf5d17054ed63682b0cb309545ad1cc"><div class="ttname"><a href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a></div><div class="ttdeci">long PDInteger</div><div class="ttdef"><b>Definition:</b> PDDefines.h:165</div></div>
 <div class="ttc" id="a00063_html"><div class="ttname"><a href="a00063.html">PDDefines.h</a></div><div class="ttdoc">Definitions for the Pajdeg interface. </div></div>
-<div class="ttc" id="a00029_html_gad244dd3b4044286b711733599137f318"><div class="ttname"><a href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a></div><div class="ttdeci">unsigned char PDBool</div><div class="ttdef"><b>Definition:</b> PDDefines.h:180</div></div>
-<div class="ttc" id="a00132_html_ga0c06637bab6289d1a677553a7373d793"><div class="ttname"><a href="a00132.html#ga0c06637bab6289d1a677553a7373d793">PDStaticHashDisownKeysValues</a></div><div class="ttdeci">void PDStaticHashDisownKeysValues(PDStaticHashRef sh, PDBool disownKeys, PDBool disownValues)</div><div class="ttdef"><b>Definition:</b> PDStaticHash.c:101</div></div>
+<div class="ttc" id="a00023_html_a00167"><div class="ttname"><a href="a00023.html#a00167">PDStaticHash</a></div><div class="ttdef"><b>Definition:</b> pd_internal.h:711</div></div>
+<div class="ttc" id="a00131_html_ga45e3d4cfd119ee91a101516faf6ba085"><div class="ttname"><a href="a00131.html#ga45e3d4cfd119ee91a101516faf6ba085">PDStaticHashCreate</a></div><div class="ttdeci">PDStaticHashRef PDStaticHashCreate(PDInteger entries, void **keys, void **values)</div><div class="ttdef"><b>Definition:</b> PDStaticHash.c:40</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:35 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

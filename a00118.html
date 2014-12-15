@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.8"/>
-<title>Pajdeg: PDCollection</title>
+<title>Pajdeg: Internal</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -84,81 +84,117 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <div class="header">
   <div class="summary">
-<a href="#files">Files</a> &#124;
+<a href="#groups">Modules</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
-<a href="#enum-members">Enumerations</a>  </div>
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
-<div class="title">PDCollection</div>  </div>
+<div class="title">Internal</div>  </div>
 </div><!--header-->
 <div class="contents">
-
-<p>A wrapper around pd_dicts and pd_arrays.  
-<a href="#details">More...</a></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="files"></a>
-Files</h2></td></tr>
-<tr class="memitem:a00056"><td class="memItemLeft" align="right" valign="top">file &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00056.html">PDCollection.h</a></td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="groups"></a>
+Modules</h2></td></tr>
+<tr class="memitem:a00121"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00121.html">Symbol scanning</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00035"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00035.html">PDStreamFilter</a></td></tr>
+<tr class="memdesc:a00035"><td class="mdescLeft">&#160;</td><td class="mdescRight">The stream filter interface. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00132"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00132.html">PDStreamFilterFlateDecode</a></td></tr>
+<tr class="memdesc:a00132"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flate Decode (compression/decompression) stream filter. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00133"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00133.html">PDStreamFilterPrediction</a></td></tr>
+<tr class="memdesc:a00133"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prediction filter. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00136"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00136.html">PDTwinStream</a></td></tr>
+<tr class="memdesc:a00136"><td class="mdescLeft">&#160;</td><td class="mdescRight">The twin stream. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00137"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00137.html">PDType</a></td></tr>
+<tr class="memdesc:a00137"><td class="mdescLeft">&#160;</td><td class="mdescRight">The generic Pajdeg object type. <br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00037"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00037.html">PDXTable</a></td></tr>
+<tr class="memdesc:a00037"><td class="mdescLeft">&#160;</td><td class="mdescRight">PDF XRef (cross reference) table. <br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:gab134b22adb8466f1312fbee2c8d7d662"><td class="memItemLeft" align="right" valign="top">typedef struct PDCollection *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00118.html#gab134b22adb8466f1312fbee2c8d7d662">PDCollectionRef</a></td></tr>
-<tr class="separator:gab134b22adb8466f1312fbee2c8d7d662"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5b2718f9c54710125b934c61765f9d23"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00118.html#ga5b2718f9c54710125b934c61765f9d23">PDDeallocator</a> )(void *ob)</td></tr>
+<tr class="separator:ga5b2718f9c54710125b934c61765f9d23"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac99f6ac4f3a3a707be94c5db47727ba5"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00118.html#gac99f6ac4f3a3a707be94c5db47727ba5">PDSynchronizer</a> )(void *parser, void *object, const void *syncInfo)</td></tr>
+<tr class="separator:gac99f6ac4f3a3a707be94c5db47727ba5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9c60781bac4625fe162accf27aba04c7"><td class="memItemLeft" align="right" valign="top">typedef union PDType *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00118.html#ga9c60781bac4625fe162accf27aba04c7">PDTypeRef</a></td></tr>
+<tr class="separator:ga9c60781bac4625fe162accf27aba04c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
-Enumerations</h2></td></tr>
-<tr class="memitem:gabbc7ec27cca915b8ba6584584a34a64c"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00118.html#gabbc7ec27cca915b8ba6584584a34a64c">PDCollectionType</a> { <a class="el" href="a00118.html#ggabbc7ec27cca915b8ba6584584a34a64ca46ba779fe51747b06b6fb75628ea0354">PDCollectionTypeArray</a> = 1, 
-<a class="el" href="a00118.html#ggabbc7ec27cca915b8ba6584584a34a64ca9fe01004e23d798d8812f3bca5504a22">PDCollectionTypeDictionary</a> = 2, 
-<a class="el" href="a00118.html#ggabbc7ec27cca915b8ba6584584a34a64ca2e2b16886d484e7df664721ce3cf9094">PDCollectionTypeStack</a> = 3
- }</td></tr>
-<tr class="separator:gabbc7ec27cca915b8ba6584584a34a64c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:ga04549464b833e169a0586a08067e657b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00118.html#ga04549464b833e169a0586a08067e657b">PDNOP</a> (void *)</td></tr>
+<tr class="separator:ga04549464b833e169a0586a08067e657b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p>A wrapper around pd_dicts and pd_arrays. </p>
-<p>A simple wrapper around core collection types. It mostly exists to provide consistency in places where a retainable object is expected regardless of input data. </p>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a class="anchor" id="gab134b22adb8466f1312fbee2c8d7d662"></a>
+<a class="anchor" id="ga5b2718f9c54710125b934c61765f9d23"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef struct PDCollection* <a class="el" href="a00118.html#gab134b22adb8466f1312fbee2c8d7d662">PDCollectionRef</a></td>
+          <td class="memname">typedef void(* PDDeallocator)(void *ob)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>A collection object. </p>
+<p>Deallocation signature.</p>
+<p>When encountered, the default is usually the built-in free() method, unless otherwise stated. </p>
 
 </div>
 </div>
-<h2 class="groupheader">Enumeration Type Documentation</h2>
-<a class="anchor" id="gabbc7ec27cca915b8ba6584584a34a64c"></a>
+<a class="anchor" id="gac99f6ac4f3a3a707be94c5db47727ba5"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">enum <a class="el" href="a00118.html#gabbc7ec27cca915b8ba6584584a34a64c">PDCollectionType</a></td>
+          <td class="memname">typedef void(* PDSynchronizer)(void *parser, void *object, const void *syncInfo)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The type of a collection. </p>
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="ggabbc7ec27cca915b8ba6584584a34a64ca46ba779fe51747b06b6fb75628ea0354"></a>PDCollectionTypeArray&#160;</td><td class="fielddoc">
-<p>A PDArrayRef. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ggabbc7ec27cca915b8ba6584584a34a64ca9fe01004e23d798d8812f3bca5504a22"></a>PDCollectionTypeDictionary&#160;</td><td class="fielddoc">
-<p>A PDDictionaryRef. </p>
-</td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ggabbc7ec27cca915b8ba6584584a34a64ca2e2b16886d484e7df664721ce3cf9094"></a>PDCollectionTypeStack&#160;</td><td class="fielddoc">
-<p>A <a class="el" href="a00021.html#a00143">pd_stack</a>. </p>
-</td></tr>
-</table>
+<p>Synchronization signature.</p>
+<p>Used in the <a class="el" href="a00023.html#a00158">PDParser</a> to require synchronization of the given object instance, as it is about to be written to the output stream. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga9c60781bac4625fe162accf27aba04c7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef union PDType* <a class="el" href="a00118.html#ga9c60781bac4625fe162accf27aba04c7">PDTypeRef</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Pajdeg type.</p>
+<p>The PDType structure facilitates the retain and release layer for Pajdeg objects. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a class="anchor" id="ga04549464b833e169a0586a08067e657b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDNOP </td>
+          <td>(</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>NOP function (e.g. used as NULL deallocator). </p>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:36 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

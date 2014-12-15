@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.8"/>
-<title>Pajdeg: pd_md5_ctx Struct Reference</title>
+<title>Pajdeg: hm_printer Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -93,32 +93,32 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div class="summary">
 <a href="#pub-attribs">Data Fields</a>  </div>
   <div class="headertitle">
-<div class="title">pd_md5_ctx Struct Reference</div>  </div>
+<div class="title">hm_printer Struct Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:a545af0a4eee533a82fca7d33c773d0a4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a545af0a4eee533a82fca7d33c773d0a4"></a>
-u_int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00022.html#a545af0a4eee533a82fca7d33c773d0a4">state</a> [4]</td></tr>
-<tr class="memdesc:a545af0a4eee533a82fca7d33c773d0a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">state (ABCD) <br /></td></tr>
-<tr class="separator:a545af0a4eee533a82fca7d33c773d0a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c2d97feb4297ad20f49c872aa9e409d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a3c2d97feb4297ad20f49c872aa9e409d"></a>
-u_int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00022.html#a3c2d97feb4297ad20f49c872aa9e409d">count</a> [2]</td></tr>
-<tr class="memdesc:a3c2d97feb4297ad20f49c872aa9e409d"><td class="mdescLeft">&#160;</td><td class="mdescRight">number of bits, modulo 2^64 (lsb first) <br /></td></tr>
-<tr class="separator:a3c2d97feb4297ad20f49c872aa9e409d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2007aa60c57e6be38e72b8f00f04afe4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a2007aa60c57e6be38e72b8f00f04afe4"></a>
-unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00022.html#a2007aa60c57e6be38e72b8f00f04afe4">buffer</a> [64]</td></tr>
-<tr class="memdesc:a2007aa60c57e6be38e72b8f00f04afe4"><td class="mdescLeft">&#160;</td><td class="mdescRight">input buffer <br /></td></tr>
-<tr class="separator:a2007aa60c57e6be38e72b8f00f04afe4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5e1fccd8065f9e1b73e14db261b29d4c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a5e1fccd8065f9e1b73e14db261b29d4c"></a>
+char **&#160;</td><td class="memItemRight" valign="bottom"><b>bv</b></td></tr>
+<tr class="separator:a5e1fccd8065f9e1b73e14db261b29d4c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a197371e91a122af14af27f6e7d06c277"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a197371e91a122af14af27f6e7d06c277"></a>
+char **&#160;</td><td class="memItemRight" valign="bottom"><b>buf</b></td></tr>
+<tr class="separator:a197371e91a122af14af27f6e7d06c277"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac89511f7d3f16601e9cd2b52fffc57eb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ac89511f7d3f16601e9cd2b52fffc57eb"></a>
+<a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>cap</b></td></tr>
+<tr class="separator:ac89511f7d3f16601e9cd2b52fffc57eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92d72f78057985b415dcf4701c4921e1"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a92d72f78057985b415dcf4701c4921e1"></a>
+<a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *&#160;</td><td class="memItemRight" valign="bottom"><b>offs</b></td></tr>
+<tr class="separator:a92d72f78057985b415dcf4701c4921e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/>The documentation for this struct was generated from the following file:<ul>
-<li><a class="el" href="a00045_source.html">pd_md5.h</a></li>
+<li>PDDictionary.c</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:36 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -93,7 +93,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <a href="#define-members">Macros</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
-<div class="title">PDStaticHash.h File Reference<div class="ingroups"><a class="el" href="a00120.html">Algorithm-related</a> &raquo; <a class="el" href="a00132.html">PDStaticHash</a></div></div>  </div>
+<div class="title">PDStaticHash.h File Reference<div class="ingroups"><a class="el" href="a00119.html">Algorithm-related</a> &raquo; <a class="el" href="a00131.html">PDStaticHash</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="a00063_source.html">PDDefines.h</a>&quot;</code><br />
@@ -102,24 +102,24 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:ga87c3533e69c5cd87ec3851e900c82ed2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00132.html#ga87c3533e69c5cd87ec3851e900c82ed2">static_hash_idx</a>(mask, shift, key)&#160;&#160;&#160;(((long)key ^ ((long)key &gt;&gt; shift)) &amp; mask)</td></tr>
+<tr class="memitem:ga87c3533e69c5cd87ec3851e900c82ed2"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#ga87c3533e69c5cd87ec3851e900c82ed2">static_hash_idx</a>(mask, shift, key)&#160;&#160;&#160;(((long)key ^ ((long)key &gt;&gt; shift)) &amp; mask)</td></tr>
 <tr class="separator:ga87c3533e69c5cd87ec3851e900c82ed2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gacd44a55a88ee6637a09f81d0e89a8f06"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00132.html#gacd44a55a88ee6637a09f81d0e89a8f06">PDStaticHashIdx</a>(stha, key)&#160;&#160;&#160;<a class="el" href="a00132.html#ga87c3533e69c5cd87ec3851e900c82ed2">static_hash_idx</a>(stha-&gt;mask, stha-&gt;shift, key)</td></tr>
+<tr class="memitem:gacd44a55a88ee6637a09f81d0e89a8f06"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#gacd44a55a88ee6637a09f81d0e89a8f06">PDStaticHashIdx</a>(stha, key)&#160;&#160;&#160;<a class="el" href="a00131.html#ga87c3533e69c5cd87ec3851e900c82ed2">static_hash_idx</a>(stha-&gt;mask, stha-&gt;shift, key)</td></tr>
 <tr class="separator:gacd44a55a88ee6637a09f81d0e89a8f06"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga05c728dbe8d7ce68f041d1440c82b4f4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00132.html#ga05c728dbe8d7ce68f041d1440c82b4f4">PDStaticHashValueForHash</a>(stha, hash)&#160;&#160;&#160;stha-&gt;table[hash]</td></tr>
+<tr class="memitem:ga05c728dbe8d7ce68f041d1440c82b4f4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#ga05c728dbe8d7ce68f041d1440c82b4f4">PDStaticHashValueForHash</a>(stha, hash)&#160;&#160;&#160;stha-&gt;table[hash]</td></tr>
 <tr class="separator:ga05c728dbe8d7ce68f041d1440c82b4f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac245d1835cfa436b4d1369372f13d545"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00132.html#gac245d1835cfa436b4d1369372f13d545">PDStaticHashValueForKey</a>(stha, key)&#160;&#160;&#160;stha-&gt;table[<a class="el" href="a00132.html#gacd44a55a88ee6637a09f81d0e89a8f06">PDStaticHashIdx</a>(stha, key)]</td></tr>
+<tr class="memitem:gac245d1835cfa436b4d1369372f13d545"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#gac245d1835cfa436b4d1369372f13d545">PDStaticHashValueForKey</a>(stha, key)&#160;&#160;&#160;stha-&gt;table[<a class="el" href="a00131.html#gacd44a55a88ee6637a09f81d0e89a8f06">PDStaticHashIdx</a>(stha, key)]</td></tr>
 <tr class="separator:gac245d1835cfa436b4d1369372f13d545"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae2d4fb7ba843b730317c8763ee918fbc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00132.html#gae2d4fb7ba843b730317c8763ee918fbc">PDStaticHashValueForHashAs</a>(stha, hash, type)&#160;&#160;&#160;<a class="el" href="a00021.html#ga890ffb07cd69e25829f6b28734de717c">as</a>(type, <a class="el" href="a00132.html#ga05c728dbe8d7ce68f041d1440c82b4f4">PDStaticHashValueForHash</a>(stha, hash))</td></tr>
+<tr class="memitem:gae2d4fb7ba843b730317c8763ee918fbc"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#gae2d4fb7ba843b730317c8763ee918fbc">PDStaticHashValueForHashAs</a>(stha, hash, type)&#160;&#160;&#160;<a class="el" href="a00023.html#ga890ffb07cd69e25829f6b28734de717c">as</a>(type, <a class="el" href="a00131.html#ga05c728dbe8d7ce68f041d1440c82b4f4">PDStaticHashValueForHash</a>(stha, hash))</td></tr>
 <tr class="separator:gae2d4fb7ba843b730317c8763ee918fbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa6734691480d55b232daddb8c0327bcd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00132.html#gaa6734691480d55b232daddb8c0327bcd">PDStaticHashValueForKeyAs</a>(stha, key, type)&#160;&#160;&#160;<a class="el" href="a00021.html#ga890ffb07cd69e25829f6b28734de717c">as</a>(type, <a class="el" href="a00132.html#gac245d1835cfa436b4d1369372f13d545">PDStaticHashValueForKey</a>(stha, key))</td></tr>
+<tr class="memitem:gaa6734691480d55b232daddb8c0327bcd"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#gaa6734691480d55b232daddb8c0327bcd">PDStaticHashValueForKeyAs</a>(stha, key, type)&#160;&#160;&#160;<a class="el" href="a00023.html#ga890ffb07cd69e25829f6b28734de717c">as</a>(type, <a class="el" href="a00131.html#gac245d1835cfa436b4d1369372f13d545">PDStaticHashValueForKey</a>(stha, key))</td></tr>
 <tr class="separator:gaa6734691480d55b232daddb8c0327bcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ga45e3d4cfd119ee91a101516faf6ba085"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00132.html#ga682f9887db16859dda35a2edf1702aa4">PDStaticHashRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00132.html#ga45e3d4cfd119ee91a101516faf6ba085">PDStaticHashCreate</a> (<a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> entries, void **keys, void **values)</td></tr>
+<tr class="memitem:ga45e3d4cfd119ee91a101516faf6ba085"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00131.html#ga682f9887db16859dda35a2edf1702aa4">PDStaticHashRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#ga45e3d4cfd119ee91a101516faf6ba085">PDStaticHashCreate</a> (<a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> entries, void **keys, void **values)</td></tr>
 <tr class="separator:ga45e3d4cfd119ee91a101516faf6ba085"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga0c06637bab6289d1a677553a7373d793"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00132.html#ga0c06637bab6289d1a677553a7373d793">PDStaticHashDisownKeysValues</a> (<a class="el" href="a00132.html#ga682f9887db16859dda35a2edf1702aa4">PDStaticHashRef</a> sh, <a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> disownKeys, <a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> disownValues)</td></tr>
+<tr class="memitem:ga0c06637bab6289d1a677553a7373d793"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00131.html#ga0c06637bab6289d1a677553a7373d793">PDStaticHashDisownKeysValues</a> (<a class="el" href="a00131.html#ga682f9887db16859dda35a2edf1702aa4">PDStaticHashRef</a> sh, <a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> disownKeys, <a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> disownValues)</td></tr>
 <tr class="separator:ga0c06637bab6289d1a677553a7373d793"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -127,7 +127,7 @@ Functions</h2></td></tr>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:35 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

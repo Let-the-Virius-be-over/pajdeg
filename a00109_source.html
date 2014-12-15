@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -127,7 +127,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> _PDReleaseDebug(<span class="keyword">const</span> <span class="keywordtype">char</span> *file, <span class="keywordtype">int</span> lineNumber, <span class="keywordtype">void</span> *pajdegObject);</div>
 <div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> PDReleaseFunc(<span class="keywordtype">void</span> *pajdegObject);</div>
 <div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;<span class="preprocessor">#else</span></div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> <a class="code" href="a00138.html#ga19a72abf3c398d15e2e2ba01d38962ef">PDRelease</a>(<span class="keywordtype">void</span> *pajdegObject);</div>
+<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> <a class="code" href="a00137.html#ga19a72abf3c398d15e2e2ba01d38962ef">PDRelease</a>(<span class="keywordtype">void</span> *pajdegObject);</div>
 <div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;<span class="preprocessor">#define PDReleaseFunc PDRelease</span></div>
 <div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;</div>
@@ -135,30 +135,30 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;<span class="preprocessor">#define PDRetain(ob) _PDRetainDebug(__FILE__,__LINE__,ob)</span></div>
 <div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> *_PDRetainDebug(<span class="keyword">const</span> <span class="keywordtype">char</span> *file, <span class="keywordtype">int</span> lineNumber, <span class="keywordtype">void</span> *pajdegObject);</div>
 <div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;<span class="preprocessor">#else</span></div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> *<a class="code" href="a00138.html#ga9370bed619648d5036a557a6d8be24ae">PDRetain</a>(<span class="keywordtype">void</span> *pajdegObject);</div>
+<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> *<a class="code" href="a00137.html#ga9370bed619648d5036a557a6d8be24ae">PDRetain</a>(<span class="keywordtype">void</span> *pajdegObject);</div>
 <div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;</div>
 <div class="line"><a name="l00113"></a><span class="lineno">  113</span>&#160;<span class="preprocessor">#ifdef DEBUG_PD_RELEASES</span></div>
 <div class="line"><a name="l00114"></a><span class="lineno">  114</span>&#160;<span class="preprocessor">#define PDAutorelease(ob) _PDAutoreleaseDebug(__FILE__,__LINE__,ob)</span></div>
 <div class="line"><a name="l00115"></a><span class="lineno">  115</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> *_PDAutoreleaseDebug(<span class="keyword">const</span> <span class="keywordtype">char</span> *file, <span class="keywordtype">int</span> lineNumber, <span class="keywordtype">void</span> *pajdegObject);</div>
 <div class="line"><a name="l00116"></a><span class="lineno">  116</span>&#160;<span class="preprocessor">#else</span></div>
-<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> *<a class="code" href="a00138.html#gaf354766bc46d0f92dda176a782a9c276">PDAutorelease</a>(<span class="keywordtype">void</span> *pajdegObject);</div>
+<div class="line"><a name="l00117"></a><span class="lineno">  117</span>&#160;<span class="keyword">extern</span> <span class="keywordtype">void</span> *<a class="code" href="a00137.html#gaf354766bc46d0f92dda176a782a9c276">PDAutorelease</a>(<span class="keywordtype">void</span> *pajdegObject);</div>
 <div class="line"><a name="l00118"></a><span class="lineno">  118</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="line"><a name="l00119"></a><span class="lineno">  119</span>&#160;</div>
-<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00026.html#ga55c6f9dd711635f465a0a72b89565c9e">PDInstanceType</a> <a class="code" href="a00138.html#gac1913e08246c02d6538c18591e3df2d1">PDResolve</a>(<span class="keywordtype">void</span> *pajdegObject);</div>
+<div class="line"><a name="l00127"></a><span class="lineno">  127</span>&#160;<span class="keyword">extern</span> <a class="code" href="a00028.html#ga55c6f9dd711635f465a0a72b89565c9e">PDInstanceType</a> <a class="code" href="a00137.html#gac1913e08246c02d6538c18591e3df2d1">PDResolve</a>(<span class="keywordtype">void</span> *pajdegObject);</div>
 <div class="line"><a name="l00128"></a><span class="lineno">  128</span>&#160;</div>
 <div class="line"><a name="l00129"></a><span class="lineno">  129</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="line"><a name="l00130"></a><span class="lineno">  130</span>&#160;</div>
+<div class="ttc" id="a00137_html_ga19a72abf3c398d15e2e2ba01d38962ef"><div class="ttname"><a href="a00137.html#ga19a72abf3c398d15e2e2ba01d38962ef">PDRelease</a></div><div class="ttdeci">void PDRelease(void *pajdegObject)</div><div class="ttdef"><b>Definition:</b> PDType.c:143</div></div>
+<div class="ttc" id="a00137_html_gac1913e08246c02d6538c18591e3df2d1"><div class="ttname"><a href="a00137.html#gac1913e08246c02d6538c18591e3df2d1">PDResolve</a></div><div class="ttdeci">PDInstanceType PDResolve(void *pajdegObject)</div><div class="ttdef"><b>Definition:</b> PDType.c:204</div></div>
+<div class="ttc" id="a00137_html_gaf354766bc46d0f92dda176a782a9c276"><div class="ttname"><a href="a00137.html#gaf354766bc46d0f92dda176a782a9c276">PDAutorelease</a></div><div class="ttdeci">void * PDAutorelease(void *pajdegObject)</div><div class="ttdef"><b>Definition:</b> PDType.c:190</div></div>
+<div class="ttc" id="a00028_html_ga55c6f9dd711635f465a0a72b89565c9e"><div class="ttname"><a href="a00028.html#ga55c6f9dd711635f465a0a72b89565c9e">PDInstanceType</a></div><div class="ttdeci">PDInstanceType</div><div class="ttdef"><b>Definition:</b> PDDefines.h:516</div></div>
 <div class="ttc" id="a00063_html"><div class="ttname"><a href="a00063.html">PDDefines.h</a></div><div class="ttdoc">Definitions for the Pajdeg interface. </div></div>
-<div class="ttc" id="a00138_html_gac1913e08246c02d6538c18591e3df2d1"><div class="ttname"><a href="a00138.html#gac1913e08246c02d6538c18591e3df2d1">PDResolve</a></div><div class="ttdeci">PDInstanceType PDResolve(void *pajdegObject)</div><div class="ttdef"><b>Definition:</b> PDType.c:204</div></div>
-<div class="ttc" id="a00138_html_ga9370bed619648d5036a557a6d8be24ae"><div class="ttname"><a href="a00138.html#ga9370bed619648d5036a557a6d8be24ae">PDRetain</a></div><div class="ttdeci">void * PDRetain(void *pajdegObject)</div><div class="ttdef"><b>Definition:</b> PDType.c:169</div></div>
-<div class="ttc" id="a00026_html_ga55c6f9dd711635f465a0a72b89565c9e"><div class="ttname"><a href="a00026.html#ga55c6f9dd711635f465a0a72b89565c9e">PDInstanceType</a></div><div class="ttdeci">PDInstanceType</div><div class="ttdef"><b>Definition:</b> PDDefines.h:497</div></div>
-<div class="ttc" id="a00138_html_gaf354766bc46d0f92dda176a782a9c276"><div class="ttname"><a href="a00138.html#gaf354766bc46d0f92dda176a782a9c276">PDAutorelease</a></div><div class="ttdeci">void * PDAutorelease(void *pajdegObject)</div><div class="ttdef"><b>Definition:</b> PDType.c:190</div></div>
-<div class="ttc" id="a00138_html_ga19a72abf3c398d15e2e2ba01d38962ef"><div class="ttname"><a href="a00138.html#ga19a72abf3c398d15e2e2ba01d38962ef">PDRelease</a></div><div class="ttdeci">void PDRelease(void *pajdegObject)</div><div class="ttdef"><b>Definition:</b> PDType.c:143</div></div>
+<div class="ttc" id="a00137_html_ga9370bed619648d5036a557a6d8be24ae"><div class="ttname"><a href="a00137.html#ga9370bed619648d5036a557a6d8be24ae">PDRetain</a></div><div class="ttdeci">void * PDRetain(void *pajdegObject)</div><div class="ttdef"><b>Definition:</b> PDType.c:169</div></div>
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:35 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

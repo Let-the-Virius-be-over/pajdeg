@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.8"/>
-<title>Pajdeg: PDArray.h File Reference</title>
+<title>Pajdeg: pd_stack.h File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -91,82 +91,133 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="header">
   <div class="summary">
 <a href="#define-members">Macros</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#func-members">Functions</a> &#124;
+<a href="#var-members">Variables</a>  </div>
   <div class="headertitle">
-<div class="title">PDArray.h File Reference<div class="ingroups"><a class="el" href="a00116.html">PDArray</a></div></div>  </div>
+<div class="title">pd_stack.h File Reference<div class="ingroups"><a class="el" href="a00119.html">Algorithm-related</a> &raquo; <a class="el" href="a00115.html">pd_stack</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="a00063_source.html">PDDefines.h</a>&quot;</code><br />
+<div class="textblock"><code>#include &lt;sys/types.h&gt;</code><br />
+<code>#include &quot;<a class="el" href="a00063_source.html">PDDefines.h</a>&quot;</code><br />
 </div>
 <p><a href="a00052_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:ga64635881fc0d988ebb2e11877fc24549"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga64635881fc0d988ebb2e11877fc24549"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDArrayGetString</b>(a, i)&#160;&#160;&#160;<a class="el" href="a00116.html#ga8a4501058ce5bf87a06518c1c7568eb0">PDArrayGetTypedElement</a>(a,i,<a class="el" href="a00026.html#gga55c6f9dd711635f465a0a72b89565c9ead9b07e48f4682c8b5a2fa28821e5ecfa">PDInstanceTypeString</a>)</td></tr>
-<tr class="separator:ga64635881fc0d988ebb2e11877fc24549"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga96046174e0924ca94c12e933d9a121a2"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga96046174e0924ca94c12e933d9a121a2"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDArrayGetArray</b>(a, i)&#160;&#160;&#160;<a class="el" href="a00116.html#ga8a4501058ce5bf87a06518c1c7568eb0">PDArrayGetTypedElement</a>(a,i,<a class="el" href="a00026.html#gga55c6f9dd711635f465a0a72b89565c9eaf1a46098aa51602eae8f9b8dc56e69a5">PDInstanceTypeArray</a>)</td></tr>
-<tr class="separator:ga96046174e0924ca94c12e933d9a121a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga9792314bba798dc325eaea8ba68a7ee8"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga9792314bba798dc325eaea8ba68a7ee8"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDArrayGetDictionary</b>(a, i)&#160;&#160;&#160;<a class="el" href="a00116.html#ga8a4501058ce5bf87a06518c1c7568eb0">PDArrayGetTypedElement</a>(a,i,<a class="el" href="a00026.html#gga55c6f9dd711635f465a0a72b89565c9eaf7e7f7a8ffc11789b5631373e2188492">PDInstanceTypeDict</a>)</td></tr>
-<tr class="separator:ga9792314bba798dc325eaea8ba68a7ee8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gacff5c47aa53748ab83d7f6dfbc6b820f"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gacff5c47aa53748ab83d7f6dfbc6b820f"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDArrayGetReference</b>(a, i)&#160;&#160;&#160;<a class="el" href="a00116.html#ga8a4501058ce5bf87a06518c1c7568eb0">PDArrayGetTypedElement</a>(a,i,<a class="el" href="a00026.html#gga55c6f9dd711635f465a0a72b89565c9eaff8a3976809d03ef45aeb72439107bfb">PDInstanceTypeRef</a>)</td></tr>
-<tr class="separator:gacff5c47aa53748ab83d7f6dfbc6b820f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga6db5462c0ed0af70a2a237219bae1ac3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga6db5462c0ed0af70a2a237219bae1ac3"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDArrayGetObject</b>(a, i)&#160;&#160;&#160;<a class="el" href="a00116.html#ga8a4501058ce5bf87a06518c1c7568eb0">PDArrayGetTypedElement</a>(a,i,<a class="el" href="a00026.html#gga55c6f9dd711635f465a0a72b89565c9ea49ff53660228b378e86a6ea9af8b8104">PDInstanceTypeObj</a>)</td></tr>
-<tr class="separator:ga6db5462c0ed0af70a2a237219bae1ac3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa9530c8b5af9188687df96e4b02b291c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaa9530c8b5af9188687df96e4b02b291c"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDArrayGetInteger</b>(a, i)&#160;&#160;&#160;PDNumberGetInteger(<a class="el" href="a00116.html#gacf8fac58dc08aa7fab5c6dfd55a6737d">PDArrayGetElement</a>(a,i))</td></tr>
-<tr class="separator:gaa9530c8b5af9188687df96e4b02b291c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gabe5e4087d76c1db9a8d5777622c2ccf0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gabe5e4087d76c1db9a8d5777622c2ccf0"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>encryptable</b>(str)&#160;&#160;&#160;(strlen(str) &gt; 0 &amp;&amp; str[0] == '(' &amp;&amp; str[strlen(str)-1] == ')')</td></tr>
-<tr class="separator:gabe5e4087d76c1db9a8d5777622c2ccf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73cc1e7f427adcff882a7ae7acdfe4cb"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00052.html#a73cc1e7f427adcff882a7ae7acdfe4cb">PDDeallocateViaStackDealloc</a>(ob)&#160;&#160;&#160;(*<a class="el" href="a00052.html#aaec6962f87dfb7fbc2e51a49b80bb015">pd_stack_dealloc</a>)(ob)</td></tr>
+<tr class="separator:a73cc1e7f427adcff882a7ae7acdfe4cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:ga75b30df9006fade601319f5a3e96ecd4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00116.html#ga75b30df9006fade601319f5a3e96ecd4">PDArrayCreateWithCapacity</a> (<a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> capacity)</td></tr>
-<tr class="separator:ga75b30df9006fade601319f5a3e96ecd4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad53db7d4c4e96287ce516ddc7f8f7eb7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00116.html#gad53db7d4c4e96287ce516ddc7f8f7eb7">PDArrayCreateWithStackList</a> (<a class="el" href="a00021.html#a00143">pd_stack</a> stack)</td></tr>
-<tr class="separator:gad53db7d4c4e96287ce516ddc7f8f7eb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga3f1c444a7071ec2ecb7151a35ee433e5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00116.html#ga3f1c444a7071ec2ecb7151a35ee433e5">PDArrayCreateWithComplex</a> (<a class="el" href="a00021.html#a00143">pd_stack</a> stack)</td></tr>
-<tr class="separator:ga3f1c444a7071ec2ecb7151a35ee433e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf3bf91c4981b7e90dd697b134ac30fa9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00116.html#gaf3bf91c4981b7e90dd697b134ac30fa9">PDArrayClear</a> (<a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a> array)</td></tr>
-<tr class="separator:gaf3bf91c4981b7e90dd697b134ac30fa9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga88397042494933cb2451d56e9c1fb541"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00116.html#ga88397042494933cb2451d56e9c1fb541">PDArrayGetCount</a> (<a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a> array)</td></tr>
-<tr class="separator:ga88397042494933cb2451d56e9c1fb541"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gacf8fac58dc08aa7fab5c6dfd55a6737d"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00116.html#gacf8fac58dc08aa7fab5c6dfd55a6737d">PDArrayGetElement</a> (<a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a> array, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> index)</td></tr>
-<tr class="separator:gacf8fac58dc08aa7fab5c6dfd55a6737d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8a4501058ce5bf87a06518c1c7568eb0"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00116.html#ga8a4501058ce5bf87a06518c1c7568eb0">PDArrayGetTypedElement</a> (<a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a> array, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> index, <a class="el" href="a00026.html#ga55c6f9dd711635f465a0a72b89565c9e">PDInstanceType</a> type)</td></tr>
-<tr class="separator:ga8a4501058ce5bf87a06518c1c7568eb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga387f18412a2d93bfe6dc0c339a66d368"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00116.html#ga387f18412a2d93bfe6dc0c339a66d368">PDArrayAppend</a> (<a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a> array, void *value)</td></tr>
-<tr class="separator:ga387f18412a2d93bfe6dc0c339a66d368"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga9cf470883c48ecde1949d499bba0a16f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00116.html#ga9cf470883c48ecde1949d499bba0a16f">PDArrayInsertAtIndex</a> (<a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a> array, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> index, void *value)</td></tr>
-<tr class="separator:ga9cf470883c48ecde1949d499bba0a16f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga353702c40f46b7409065cf7fcfa9238d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00116.html#ga353702c40f46b7409065cf7fcfa9238d">PDArrayGetIndex</a> (<a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a> array, void *value)</td></tr>
-<tr class="separator:ga353702c40f46b7409065cf7fcfa9238d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaabd48532a08c9c24630031f209ca196d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00116.html#gaabd48532a08c9c24630031f209ca196d">PDArrayDeleteAtIndex</a> (<a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a> array, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> index)</td></tr>
-<tr class="separator:gaabd48532a08c9c24630031f209ca196d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gacad040add8c549045cc792b28d040448"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00116.html#gacad040add8c549045cc792b28d040448">PDArrayReplaceAtIndex</a> (<a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a> array, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> index, void *value)</td></tr>
-<tr class="separator:gacad040add8c549045cc792b28d040448"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa71a61d61aa040aab3137dbe87d4889f"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00116.html#gaa71a61d61aa040aab3137dbe87d4889f">PDArrayToString</a> (<a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a> array)</td></tr>
-<tr class="separator:gaa71a61d61aa040aab3137dbe87d4889f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga2281d560d1402ba97c4c4db9e98b89ca"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga2281d560d1402ba97c4c4db9e98b89ca"></a>
-<a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDArrayPrinter</b> (void *inst, char **buf, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> offs, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *cap)</td></tr>
-<tr class="separator:ga2281d560d1402ba97c4c4db9e98b89ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga950ef7d1948a34a65718c15bd3e7614a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga950ef7d1948a34a65718c15bd3e7614a"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>PDArrayPrint</b> (<a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a> array)</td></tr>
-<tr class="separator:ga950ef7d1948a34a65718c15bd3e7614a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga9a6b8dd645700c0d77da349bd6c41b8b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00116.html#ga9a6b8dd645700c0d77da349bd6c41b8b">PDArrayAttachCrypto</a> (<a class="el" href="a00116.html#gac8419fb57b9cf66f0ca5c9c0c8621017">PDArrayRef</a> array, <a class="el" href="a00021.html#a00142">pd_crypto</a> crypto, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> objectID, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> genNumber)</td></tr>
-<tr class="separator:ga9a6b8dd645700c0d77da349bd6c41b8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga32330d12fddf4e6de4336c26f29d6252"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga32330d12fddf4e6de4336c26f29d6252">pd_stack_set_global_preserve_flag</a> (<a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> preserve)</td></tr>
+<tr class="separator:ga32330d12fddf4e6de4336c26f29d6252"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Pushing onto stack</div></td></tr>
+<tr class="memitem:ga6a6ca4c9c75fd5d69988457513ba5f4e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga6a6ca4c9c75fd5d69988457513ba5f4e">pd_stack_push_key</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *stack, char *key)</td></tr>
+<tr class="separator:ga6a6ca4c9c75fd5d69988457513ba5f4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga547a424dab30bb7adce66d7c748ee9d4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga547a424dab30bb7adce66d7c748ee9d4">pd_stack_push_identifier</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *stack, <a class="el" href="a00031.html#ga16e267786da02df3ab22105509be9cb9">PDID</a> identifier)</td></tr>
+<tr class="separator:ga547a424dab30bb7adce66d7c748ee9d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga35df93cd2e3b7bd7100981d7d384c82a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga35df93cd2e3b7bd7100981d7d384c82a">pd_stack_push_freeable</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *stack, void *info)</td></tr>
+<tr class="separator:ga35df93cd2e3b7bd7100981d7d384c82a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa9f475e85cb9a09899c4a63eb7934a95"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#gaa9f475e85cb9a09899c4a63eb7934a95">pd_stack_push_stack</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *stack, <a class="el" href="a00023.html#a00142">pd_stack</a> pstack)</td></tr>
+<tr class="separator:gaa9f475e85cb9a09899c4a63eb7934a95"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2a597833b3fe6577e6b4818388331e26"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga2a597833b3fe6577e6b4818388331e26">pd_stack_push_object</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *stack, void *ob)</td></tr>
+<tr class="separator:ga2a597833b3fe6577e6b4818388331e26"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa8c5d55d4b2d5e4906e9c363dbcc7725"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#gaa8c5d55d4b2d5e4906e9c363dbcc7725">pd_stack_unshift_stack</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *stack, <a class="el" href="a00023.html#a00142">pd_stack</a> sstack)</td></tr>
+<tr class="separator:gaa8c5d55d4b2d5e4906e9c363dbcc7725"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1c98e3679f794c01e24add74a1916c79"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00023.html#a00142">pd_stack</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga1c98e3679f794c01e24add74a1916c79">pd_stack_copy</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> stack)</td></tr>
+<tr class="separator:ga1c98e3679f794c01e24add74a1916c79"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Popping from stack</div></td></tr>
+<tr class="memitem:gacda34b55655a5b6713521c592d76b3ec"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#gacda34b55655a5b6713521c592d76b3ec">pd_stack_destroy</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *stack)</td></tr>
+<tr class="separator:gacda34b55655a5b6713521c592d76b3ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaff2148916d2f16e1e7cafad4d8742e25"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#gaff2148916d2f16e1e7cafad4d8742e25">pd_stack_pop_key</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *stack)</td></tr>
+<tr class="separator:gaff2148916d2f16e1e7cafad4d8742e25"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga95b46cb97e3dae4a6719ef9740473cec"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#ga16e267786da02df3ab22105509be9cb9">PDID</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga95b46cb97e3dae4a6719ef9740473cec">pd_stack_pop_identifier</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *stack)</td></tr>
+<tr class="separator:ga95b46cb97e3dae4a6719ef9740473cec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0e2a3caad2a8cace0a3ea6bc9f11f760"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00023.html#a00142">pd_stack</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga0e2a3caad2a8cace0a3ea6bc9f11f760">pd_stack_pop_stack</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *stack)</td></tr>
+<tr class="separator:ga0e2a3caad2a8cace0a3ea6bc9f11f760"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga95d1bad6a776123daec7c6e2c9edcd39"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga95d1bad6a776123daec7c6e2c9edcd39">pd_stack_pop_object</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *stack)</td></tr>
+<tr class="separator:ga95d1bad6a776123daec7c6e2c9edcd39"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga37bbc21aab9d629c745012a16c6d02b9"><td class="memItemLeft" align="right" valign="top">void *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga37bbc21aab9d629c745012a16c6d02b9">pd_stack_pop_freeable</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *stack)</td></tr>
+<tr class="separator:ga37bbc21aab9d629c745012a16c6d02b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga78d614c9cd53c98e0f5aa2fe09e37f9d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga78d614c9cd53c98e0f5aa2fe09e37f9d">pd_stack_pop_size</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *stack)</td></tr>
+<tr class="separator:ga78d614c9cd53c98e0f5aa2fe09e37f9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad81c64e638190a6c00658b1f2e8fc8f3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#gad81c64e638190a6c00658b1f2e8fc8f3">pd_stack_pop_int</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *stack)</td></tr>
+<tr class="separator:gad81c64e638190a6c00658b1f2e8fc8f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9f9ccf727ee332c1fdaf4c7d6e90fd50"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga9f9ccf727ee332c1fdaf4c7d6e90fd50">pd_stack_assert_expected_key</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *stack, const char *key)</td></tr>
+<tr class="separator:ga9f9ccf727ee332c1fdaf4c7d6e90fd50"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga15d4edd5af0cbdd86b65eef8a7add42b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga15d4edd5af0cbdd86b65eef8a7add42b">pd_stack_assert_expected_int</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *stack, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> i)</td></tr>
+<tr class="separator:ga15d4edd5af0cbdd86b65eef8a7add42b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae5e82abf392a852bf2b79c2f07ddf56d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#gae5e82abf392a852bf2b79c2f07ddf56d">pd_stack_peek_int</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> stack)</td></tr>
+<tr class="separator:gae5e82abf392a852bf2b79c2f07ddf56d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><div class="groupHeader">Debugging</div></td></tr>
+<tr class="memitem:ga6b870fbe1a06149e2e5822b5b471a36f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga6b870fbe1a06149e2e5822b5b471a36f">pd_stack_print</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> stack)</td></tr>
+<tr class="separator:ga6b870fbe1a06149e2e5822b5b471a36f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac869b5ebbf8ab3f652af0b29a5a69360"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#gac869b5ebbf8ab3f652af0b29a5a69360">pd_stack_show</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> stack)</td></tr>
+<tr class="separator:gac869b5ebbf8ab3f652af0b29a5a69360"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
+Variables</h2></td></tr>
+<tr class="memitem:aaec6962f87dfb7fbc2e51a49b80bb015"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00118.html#ga5b2718f9c54710125b934c61765f9d23">PDDeallocator</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00052.html#aaec6962f87dfb7fbc2e51a49b80bb015">pd_stack_dealloc</a></td></tr>
+<tr class="separator:aaec6962f87dfb7fbc2e51a49b80bb015"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
+Convenience features</h2></td></tr>
+<tr class="memitem:gad0661a32420f2836bb1f0501ce3a5c57"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#gad0661a32420f2836bb1f0501ce3a5c57">pd_stack_for_each</a>(stack, iter)&#160;&#160;&#160;for (iter = stack; iter; iter = iter-&gt;prev)</td></tr>
+<tr class="separator:gad0661a32420f2836bb1f0501ce3a5c57"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga26966ce513efaac3385a695a11527a56"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga26966ce513efaac3385a695a11527a56">pd_stack_get_count</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> stack)</td></tr>
+<tr class="separator:ga26966ce513efaac3385a695a11527a56"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga08f64a033671484bef6ca67c610228db"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga08f64a033671484bef6ca67c610228db">pd_stack_pop_into</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *dest, <a class="el" href="a00023.html#a00142">pd_stack</a> *source)</td></tr>
+<tr class="separator:ga08f64a033671484bef6ca67c610228db"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga70f89728dc0761a6f380d5028eda5daa"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00023.html#a00142">pd_stack</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga70f89728dc0761a6f380d5028eda5daa">pd_stack_get_dict_key</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> dictStack, const char *key, <a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> remove)</td></tr>
+<tr class="separator:ga70f89728dc0761a6f380d5028eda5daa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabd18d36eebed638e6487e71f135bda1f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#gabd18d36eebed638e6487e71f135bda1f">pd_stack_get_next_dict_key</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> *iterStack, char **key, char **value)</td></tr>
+<tr class="separator:gabd18d36eebed638e6487e71f135bda1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7185ebdb2e983277d2ddfdd8d0e4d939"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00023.html#a00142">pd_stack</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga7185ebdb2e983277d2ddfdd8d0e4d939">pd_stack_get_arr</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> arrStack)</td></tr>
+<tr class="separator:ga7185ebdb2e983277d2ddfdd8d0e4d939"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3b874155098271427503203490bbec8c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga3b874155098271427503203490bbec8c">pd_stack_replace_info_object</a> (<a class="el" href="a00023.html#a00142">pd_stack</a> stack, char type, void *info)</td></tr>
+<tr class="separator:ga3b874155098271427503203490bbec8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga76c9f90ff82849704030968ade5107bc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00023.html#a00142">pd_stack</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00115.html#ga76c9f90ff82849704030968ade5107bc">pd_stack_create_from_definition</a> (const void **defs)</td></tr>
+<tr class="separator:ga76c9f90ff82849704030968ade5107bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p>Array object </p>
-</div></div><!-- contents -->
+<div class="textblock"><p>Stack header file. </p>
+</div><h2 class="groupheader">Macro Definition Documentation</h2>
+<a class="anchor" id="a73cc1e7f427adcff882a7ae7acdfe4cb"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PDDeallocateViaStackDealloc</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">ob</td><td>)</td>
+          <td>&#160;&#160;&#160;(*<a class="el" href="a00052.html#aaec6962f87dfb7fbc2e51a49b80bb015">pd_stack_dealloc</a>)(ob)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Deallocate something using stack deallocator. </p>
+
+</div>
+</div>
+<h2 class="groupheader">Variable Documentation</h2>
+<a class="anchor" id="aaec6962f87dfb7fbc2e51a49b80bb015"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00118.html#ga5b2718f9c54710125b934c61765f9d23">PDDeallocator</a> pd_stack_dealloc</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The global deallocator for stacks. Defaults to the built-in free() function, but is overridden when global preserve flag is set.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="a00115.html#ga32330d12fddf4e6de4336c26f29d6252">pd_stack_set_global_preserve_flag</a> </dd></dl>
+
+</div>
+</div>
+</div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:35 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

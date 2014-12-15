@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.8"/>
-<title>Pajdeg: PDString</title>
+<title>Pajdeg: PDTask</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -85,254 +85,328 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="header">
   <div class="summary">
 <a href="#files">Files</a> &#124;
-<a href="#nested-classes">Data Structures</a> &#124;
-<a href="#define-members">Macros</a> &#124;
 <a href="#typedef-members">Typedefs</a> &#124;
-<a href="#enum-members">Enumerations</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#enum-members">Enumerations</a>  </div>
   <div class="headertitle">
-<div class="title">PDString</div>  </div>
+<div class="title">PDTask<div class="ingroups"><a class="el" href="a00033.html">User level</a> &raquo; <a class="el" href="a00120.html">Pajdeg Pipes</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>A wrapper around PDF strings.  
+<p>A Pajdeg pipe task.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="files"></a>
 Files</h2></td></tr>
-<tr class="memitem:a00103"><td class="memItemLeft" align="right" valign="top">file &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00103.html">PDString.h</a></td></tr>
+<tr class="memitem:a00105"><td class="memItemLeft" align="right" valign="top">file &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00105.html">PDTask.h</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
-Data Structures</h2></td></tr>
-<tr class="memitem:a00169"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00021.html#a00169">PDString</a></td></tr>
-<tr class="separator:a00169"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
-Macros</h2></td></tr>
-<tr class="memitem:ga840d44adbf18f262603c21189ea4899b"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga840d44adbf18f262603c21189ea4899b">PDStringCreateBinaryFromString</a>(string)&#160;&#160;&#160;<a class="el" href="a00135.html#ga220fbb2356c67fb556ccad76f65721e6">PDStringCreateFromStringWithType</a>(string, <a class="el" href="a00135.html#ggad7fabe5bf68aa7d5f988ca576cff0be8a3a066fe3f1f7885ce76d60057e130c89">PDStringTypeBinary</a>, <a class="el" href="a00043.html#a65e9886d74aaee76545e83dd09011727">false</a>)</td></tr>
-<tr class="separator:ga840d44adbf18f262603c21189ea4899b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf1694a4fb6b0454d7021d5c1a494cc1b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaf1694a4fb6b0454d7021d5c1a494cc1b"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDStringEscapingCString</b>(unescapedCString)&#160;&#160;&#160;<a class="el" href="a00138.html#gaf354766bc46d0f92dda176a782a9c276">PDAutorelease</a>(<a class="el" href="a00135.html#ga222b4e1455d7d9729d3b30e29c317209">PDStringCreateUnescaped</a>(unescapedCString))</td></tr>
-<tr class="separator:gaf1694a4fb6b0454d7021d5c1a494cc1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa7921a7f38cab981c9d3bbab1abc2f33"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaa7921a7f38cab981c9d3bbab1abc2f33"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDStringWithCString</b>(cString)&#160;&#160;&#160;<a class="el" href="a00138.html#gaf354766bc46d0f92dda176a782a9c276">PDAutorelease</a>(<a class="el" href="a00135.html#gadc306f2215c74839ec29f59703212f0d">PDStringCreate</a>(cString))</td></tr>
-<tr class="separator:gaa7921a7f38cab981c9d3bbab1abc2f33"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1da5b610d40f52531205231ef8a7e09c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga1da5b610d40f52531205231ef8a7e09c"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>PDStringWithName</b>(name)&#160;&#160;&#160;<a class="el" href="a00138.html#gaf354766bc46d0f92dda176a782a9c276">PDAutorelease</a>(<a class="el" href="a00135.html#gac1eb6df170f792793c51be6befad7fbf">PDStringCreateWithName</a>(name))</td></tr>
-<tr class="separator:ga1da5b610d40f52531205231ef8a7e09c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:ga48f7056b66013cc712559bfa56c00dbd"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="a00021.html#a00169">PDString</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a></td></tr>
-<tr class="separator:ga48f7056b66013cc712559bfa56c00dbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1b4030793025ce1ee4e26b55bf15dcca"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="a00023.html#a00171">PDTask</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a></td></tr>
+<tr class="separator:ga1b4030793025ce1ee4e26b55bf15dcca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1f6c988a4788cd2148ebc7d726c1fbc6"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="a00135.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a> )(<a class="el" href="a00126.html#gae605ead1049d6717b3bc4c94e0d95720">PDPipeRef</a> pipe, <a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> task, <a class="el" href="a00028.html#ga006d92afec9a8da0ac7ed54122050e73">PDObjectRef</a> object, void *info)</td></tr>
+<tr class="separator:ga1f6c988a4788cd2148ebc7d726c1fbc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:gad7fabe5bf68aa7d5f988ca576cff0be8"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#gad7fabe5bf68aa7d5f988ca576cff0be8">PDStringType</a> { <a class="el" href="a00135.html#ggad7fabe5bf68aa7d5f988ca576cff0be8a6a63e7775fb89d73f23b003d2f7b499f">PDStringTypeEscaped</a> = 1, 
-<a class="el" href="a00135.html#ggad7fabe5bf68aa7d5f988ca576cff0be8a408a82fb3a210724114969b2816e211f">PDStringTypeHex</a> = 2, 
-<a class="el" href="a00135.html#ggad7fabe5bf68aa7d5f988ca576cff0be8a3a066fe3f1f7885ce76d60057e130c89">PDStringTypeBinary</a> = 3, 
-<a class="el" href="a00135.html#ggad7fabe5bf68aa7d5f988ca576cff0be8a210056056c3f5e2e995612d0a7845466">PDStringTypeName</a> = 4
+<tr class="memitem:ga69ef241e642b310365656328b8e68c0d"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga69ef241e642b310365656328b8e68c0d">PDFType</a> { <br />
+&#160;&#160;<a class="el" href="a00135.html#gga69ef241e642b310365656328b8e68c0daf6142ffadbfbf10987809db4f056c692">PDFTypePage</a> = 1, 
+<a class="el" href="a00135.html#gga69ef241e642b310365656328b8e68c0da7caaff42ca208e3b9d86c8216ce093da">PDFTypePages</a>, 
+<a class="el" href="a00135.html#gga69ef241e642b310365656328b8e68c0da4c69739bcb001c9e8a3061602aa5648c">PDFTypeCatalog</a>, 
+<a class="el" href="a00135.html#gga69ef241e642b310365656328b8e68c0da330cc1a5d8b4a178711a7dd8c0d30bfe">PDFTypeAnnot</a>, 
+<br />
+&#160;&#160;<a class="el" href="a00135.html#gga69ef241e642b310365656328b8e68c0da30f30380e4c80bb90011d4370751560e">PDFTypeFont</a>, 
+<a class="el" href="a00135.html#gga69ef241e642b310365656328b8e68c0dabcb6fff3abe9637f1751ecc49f2aa528">PDFTypeFontDescriptor</a>, 
+<a class="el" href="a00135.html#gga69ef241e642b310365656328b8e68c0da15b4ec23e1913e3e8c8ba67bfb49e4e7">PDFTypeAction</a>, 
+<a class="el" href="a00135.html#gga69ef241e642b310365656328b8e68c0da4acfa88f98ce9519a1260f2658af969b">_PDFTypeCount</a>
+<br />
  }</td></tr>
-<tr class="separator:gad7fabe5bf68aa7d5f988ca576cff0be8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="separator:ga69ef241e642b310365656328b8e68c0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa2f108018ee986118e960c9004e65f44"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a> { <br />
+&#160;&#160;<a class="el" href="a00135.html#ggaa2f108018ee986118e960c9004e65f44ab4faa881f7a73eb221eb48bfef454067">PDPropertyObjectId</a> = 1, 
+<a class="el" href="a00135.html#ggaa2f108018ee986118e960c9004e65f44a4527237134f3627f5a0d387625c6b0b2">PDPropertyRootObject</a>, 
+<a class="el" href="a00135.html#ggaa2f108018ee986118e960c9004e65f44abd33683f69954b90cfbfa45c62ca583f">PDPropertyInfoObject</a>, 
+<a class="el" href="a00135.html#ggaa2f108018ee986118e960c9004e65f44aaa5689b4525cc13a2769da7784ff1cf1">PDPropertyPDFType</a>, 
+<br />
+&#160;&#160;<a class="el" href="a00135.html#ggaa2f108018ee986118e960c9004e65f44a8672f57887d62a5bd7f8d273ef937a68">PDPropertyPage</a>
+<br />
+ }</td></tr>
+<tr class="separator:gaa2f108018ee986118e960c9004e65f44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga91616478cbeb225ea1dc8684f4daaa09"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> { <a class="el" href="a00135.html#gga91616478cbeb225ea1dc8684f4daaa09a5b94fdddf12f68b3c8ebc5d87c78246d">PDTaskFailure</a> = -1, 
+<a class="el" href="a00135.html#gga91616478cbeb225ea1dc8684f4daaa09ab91b10f2a3fdb44fe9a8afc269354b08">PDTaskDone</a> = 0, 
+<a class="el" href="a00135.html#gga91616478cbeb225ea1dc8684f4daaa09a0539cd0d74e6470ed3be445d97eb710b">PDTaskSkipRest</a> = 1, 
+<a class="el" href="a00135.html#gga91616478cbeb225ea1dc8684f4daaa09aab00058c1a76c0cc9eac0cd04b89493b">PDTaskUnload</a> = 2
+ }</td></tr>
+<tr class="separator:ga91616478cbeb225ea1dc8684f4daaa09"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:gadc306f2215c74839ec29f59703212f0d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#gadc306f2215c74839ec29f59703212f0d">PDStringCreate</a> (char *string)</td></tr>
-<tr class="separator:gadc306f2215c74839ec29f59703212f0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga222b4e1455d7d9729d3b30e29c317209"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga222b4e1455d7d9729d3b30e29c317209">PDStringCreateUnescaped</a> (char *unescapedString)</td></tr>
-<tr class="separator:ga222b4e1455d7d9729d3b30e29c317209"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac1eb6df170f792793c51be6befad7fbf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#gac1eb6df170f792793c51be6befad7fbf">PDStringCreateWithName</a> (char *name)</td></tr>
-<tr class="separator:gac1eb6df170f792793c51be6befad7fbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga49558e8bd8b91c1bfe55965415d46dfb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga49558e8bd8b91c1bfe55965415d46dfb">PDStringCreateBinary</a> (char *data, <a class="el" href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> length)</td></tr>
-<tr class="separator:ga49558e8bd8b91c1bfe55965415d46dfb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga0b147afa9e5d71c71d72f9a665b27880"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga0b147afa9e5d71c71d72f9a665b27880">PDStringCreateWithHexString</a> (char *hex)</td></tr>
-<tr class="separator:ga0b147afa9e5d71c71d72f9a665b27880"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga220fbb2356c67fb556ccad76f65721e6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga220fbb2356c67fb556ccad76f65721e6">PDStringCreateFromStringWithType</a> (<a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> string, <a class="el" href="a00135.html#gad7fabe5bf68aa7d5f988ca576cff0be8">PDStringType</a> type, <a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> wrap)</td></tr>
-<tr class="separator:ga220fbb2356c67fb556ccad76f65721e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaceec0e4ef026248e4461cb499fa9dc54"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#gaceec0e4ef026248e4461cb499fa9dc54">PDStringForceWrappedState</a> (<a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> string, <a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> wrapped)</td></tr>
-<tr class="separator:gaceec0e4ef026248e4461cb499fa9dc54"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga61a1fd9badb8714cce67d761b3a63fc6"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga61a1fd9badb8714cce67d761b3a63fc6">PDStringEscapedValue</a> (<a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> string, <a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> wrap)</td></tr>
-<tr class="separator:ga61a1fd9badb8714cce67d761b3a63fc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf2100a2de3273b38d7af6fb33bc161d2"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#gaf2100a2de3273b38d7af6fb33bc161d2">PDStringNameValue</a> (<a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> string, <a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> wrap)</td></tr>
-<tr class="separator:gaf2100a2de3273b38d7af6fb33bc161d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga656fec642b48c701a1ba7000b8b8692c"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga656fec642b48c701a1ba7000b8b8692c">PDStringBinaryValue</a> (<a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> string, <a class="el" href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> *outLength)</td></tr>
-<tr class="separator:ga656fec642b48c701a1ba7000b8b8692c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac0c31345d2f3212bf37cc2086436e884"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#gac0c31345d2f3212bf37cc2086436e884">PDStringHexValue</a> (<a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> string, <a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> wrap)</td></tr>
-<tr class="separator:gac0c31345d2f3212bf37cc2086436e884"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga9443f4bee569ed0f0758548cf10c3b99"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga9443f4bee569ed0f0758548cf10c3b99"></a>
-<a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDStringEqualsCString</b> (<a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> string, const char *cString)</td></tr>
-<tr class="separator:ga9443f4bee569ed0f0758548cf10c3b99"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga75fb042c70dd35059f3b34f85cae7519"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga75fb042c70dd35059f3b34f85cae7519"></a>
-<a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDStringEqualsString</b> (<a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> string, <a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> string2)</td></tr>
-<tr class="separator:ga75fb042c70dd35059f3b34f85cae7519"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga85b17555138978bac22efc9fcaf263c0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga85b17555138978bac22efc9fcaf263c0"></a>
-<a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDStringIsWrapped</b> (<a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> string)</td></tr>
-<tr class="separator:ga85b17555138978bac22efc9fcaf263c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga181c3fb90af3cd7b1211cb1997e80849"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga181c3fb90af3cd7b1211cb1997e80849"></a>
-<a class="el" href="a00135.html#gad7fabe5bf68aa7d5f988ca576cff0be8">PDStringType</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDStringGetType</b> (<a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> string)</td></tr>
-<tr class="separator:ga181c3fb90af3cd7b1211cb1997e80849"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf80ed9cc64a0fdcfe3b67212eaebfb02"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#gaf80ed9cc64a0fdcfe3b67212eaebfb02">PDStringIsEncrypted</a> (<a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> string)</td></tr>
-<tr class="separator:gaf80ed9cc64a0fdcfe3b67212eaebfb02"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga77695915a0a27d7dd7fb66605f334e72"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga77695915a0a27d7dd7fb66605f334e72">PDStringAttachCrypto</a> (<a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> string, <a class="el" href="a00021.html#a00142">pd_crypto</a> crypto, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> objectID, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> genNumber, <a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> encrypted)</td></tr>
-<tr class="separator:ga77695915a0a27d7dd7fb66605f334e72"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5fa0b556e76a0879e5b2dd1e1bf0a1ed"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga5fa0b556e76a0879e5b2dd1e1bf0a1ed">PDStringCreateEncrypted</a> (<a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> string)</td></tr>
-<tr class="separator:ga5fa0b556e76a0879e5b2dd1e1bf0a1ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac0e5a03194e25904eb9c09fd78322181"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#gac0e5a03194e25904eb9c09fd78322181">PDStringCreateDecrypted</a> (<a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> string)</td></tr>
-<tr class="separator:gac0e5a03194e25904eb9c09fd78322181"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga30423530f34c2e5d33df4dbde1c53165"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga30423530f34c2e5d33df4dbde1c53165"></a>
-<a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDStringPrinter</b> (void *inst, char **buf, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> offs, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *cap)</td></tr>
-<tr class="separator:ga30423530f34c2e5d33df4dbde1c53165"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
+Creating and manipulating filters</h2></td></tr>
+<tr><td class="ititle" colspan="2"><p><a class="anchor" id="amgrp0530e7e523ba32f6a5c0f53c60244422"></a></p><hr/>
+ <hr/>
+ </td></tr>
+<tr class="memitem:ga2ceeb7733d8f6789143efa5fbb51cb9a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga2ceeb7733d8f6789143efa5fbb51cb9a">PDTaskCreateFilter</a> (<a class="el" href="a00135.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a> propertyType)</td></tr>
+<tr class="separator:ga2ceeb7733d8f6789143efa5fbb51cb9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad655f5ca90cd5e070ce17d58bf6f8e78"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#gad655f5ca90cd5e070ce17d58bf6f8e78">PDTaskCreateFilterWithValue</a> (<a class="el" href="a00135.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a> propertyType, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> value)</td></tr>
+<tr class="separator:gad655f5ca90cd5e070ce17d58bf6f8e78"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac42bb37d75a3234ecd8d3566e3f6eaee"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#gac42bb37d75a3234ecd8d3566e3f6eaee">PDTaskCreateMutator</a> (<a class="el" href="a00135.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a> mutatorFunc)</td></tr>
+<tr class="separator:gac42bb37d75a3234ecd8d3566e3f6eaee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4d2e117e1508716bcf3e62d2c54434ac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga4d2e117e1508716bcf3e62d2c54434ac">PDTaskAppendTask</a> (<a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> parentTask, <a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> childTask)</td></tr>
+<tr class="separator:ga4d2e117e1508716bcf3e62d2c54434ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4382fcaa073650fc176e1d13d587aa4d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga4382fcaa073650fc176e1d13d587aa4d">PDTaskSetInfo</a> (<a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> task, void *info)</td></tr>
+<tr class="separator:ga4382fcaa073650fc176e1d13d587aa4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga34f837ba8d4abfe6b54be454fa46c71f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00135.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga34f837ba8d4abfe6b54be454fa46c71f">PDTaskExec</a> (<a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> task, <a class="el" href="a00126.html#gae605ead1049d6717b3bc4c94e0d95720">PDPipeRef</a> pipe, <a class="el" href="a00028.html#ga006d92afec9a8da0ac7ed54122050e73">PDObjectRef</a> object)</td></tr>
+<tr class="separator:ga34f837ba8d4abfe6b54be454fa46c71f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
+Convenience functions</h2></td></tr>
+<tr><td class="ititle" colspan="2"><p><a class="anchor" id="amgrp261f53803206021e88706036c48954d0"></a></p><hr/>
+ <hr/>
+ </td></tr>
+<tr class="memitem:gaa7793b326f4035bdbc2d0fcd34c39703"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#gaa7793b326f4035bdbc2d0fcd34c39703">PDTaskCreateMutatorForObject</a> (long objectID, <a class="el" href="a00135.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a> mutatorFunc)</td></tr>
+<tr class="separator:gaa7793b326f4035bdbc2d0fcd34c39703"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6405c8eb09d5f957e1b7911f743fd489"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga6405c8eb09d5f957e1b7911f743fd489">PDTaskCreateMutatorForPropertyType</a> (<a class="el" href="a00135.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a> propertyType, <a class="el" href="a00135.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a> mutatorFunc)</td></tr>
+<tr class="separator:ga6405c8eb09d5f957e1b7911f743fd489"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2100ddc1a647286f66079dfade1f2b07"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00135.html#ga2100ddc1a647286f66079dfade1f2b07">PDTaskCreateMutatorForPropertyTypeWithValue</a> (<a class="el" href="a00135.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a> propertyType, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> value, <a class="el" href="a00135.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a> mutatorFunc)</td></tr>
+<tr class="separator:ga2100ddc1a647286f66079dfade1f2b07"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p>A wrapper around PDF strings. </p>
-<p><a class="el" href="a00021.html#a00169">PDString</a> objects exist to provide a unified way to maintain and convert between different string types. In particular, it is responsible for providing a means to escape and unescape content, as well as convert to and from hex strings (written as &lt;abc123&gt; in PDFs). </p>
-<hr/><h2 class="groupheader">Data Structure Documentation</h2>
-<a name="a00169" id="a00169"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">struct PDString</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="textblock"><p>Internal string structure. </p>
-</div><table class="memberdecls">
-<tr><td colspan="2"><h3>Data Fields</h3></td></tr>
-<tr class="memitem:gab15d66c65e350108e520eaaf365dcdc4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gab15d66c65e350108e520eaaf365dcdc4"></a>
-<a class="el" href="a00135.html#gad7fabe5bf68aa7d5f988ca576cff0be8">PDStringType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00021.html#gab15d66c65e350108e520eaaf365dcdc4">type</a></td></tr>
-<tr class="memdesc:gab15d66c65e350108e520eaaf365dcdc4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Type of the string. <br /></td></tr>
-<tr class="separator:gab15d66c65e350108e520eaaf365dcdc4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaccebb83c9231ef70c81b5748f209bd1e"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaccebb83c9231ef70c81b5748f209bd1e"></a>
-<a class="el" href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00021.html#gaccebb83c9231ef70c81b5748f209bd1e">length</a></td></tr>
-<tr class="memdesc:gaccebb83c9231ef70c81b5748f209bd1e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Length of the string. <br /></td></tr>
-<tr class="separator:gaccebb83c9231ef70c81b5748f209bd1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5eb4b3430238a19c8e952e9173f8e147"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga5eb4b3430238a19c8e952e9173f8e147"></a>
-<a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00021.html#ga5eb4b3430238a19c8e952e9173f8e147">wrapped</a></td></tr>
-<tr class="memdesc:ga5eb4b3430238a19c8e952e9173f8e147"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether the string is wrapped. <br /></td></tr>
-<tr class="separator:ga5eb4b3430238a19c8e952e9173f8e147"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga7f62b6562f0f23b499c4ec2b95ecc06a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga7f62b6562f0f23b499c4ec2b95ecc06a"></a>
-char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00021.html#ga7f62b6562f0f23b499c4ec2b95ecc06a">data</a></td></tr>
-<tr class="memdesc:ga7f62b6562f0f23b499c4ec2b95ecc06a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Buffer containing string data. <br /></td></tr>
-<tr class="separator:ga7f62b6562f0f23b499c4ec2b95ecc06a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1872a19588e58aed710816cac30e55a9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga1872a19588e58aed710816cac30e55a9"></a>
-<a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00021.html#ga1872a19588e58aed710816cac30e55a9">alt</a></td></tr>
-<tr class="memdesc:ga1872a19588e58aed710816cac30e55a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Alternative representation. <br /></td></tr>
-<tr class="separator:ga1872a19588e58aed710816cac30e55a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga67bd2a4ff163b3b86a0aaacb66306d9a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga67bd2a4ff163b3b86a0aaacb66306d9a"></a>
-<a class="el" href="a00043.html#a1998b7a185614abf1dcf7748abb2d6e4">PDCryptoInstanceRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00021.html#ga67bd2a4ff163b3b86a0aaacb66306d9a">ci</a></td></tr>
-<tr class="memdesc:ga67bd2a4ff163b3b86a0aaacb66306d9a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Crypto instance. <br /></td></tr>
-<tr class="separator:ga67bd2a4ff163b3b86a0aaacb66306d9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gadc79e0ba0b6871cd62e63e384c0f7abb"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gadc79e0ba0b6871cd62e63e384c0f7abb"></a>
-<a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00021.html#gadc79e0ba0b6871cd62e63e384c0f7abb">encrypted</a></td></tr>
-<tr class="memdesc:gadc79e0ba0b6871cd62e63e384c0f7abb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Flag indicating whether the string is encrypted or not; the value of this flag is UNDEFINED if ci == NULL. <br /></td></tr>
-<tr class="separator:gadc79e0ba0b6871cd62e63e384c0f7abb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table>
-
-</div>
-</div>
-<h2 class="groupheader">Macro Definition Documentation</h2>
-<a class="anchor" id="ga840d44adbf18f262603c21189ea4899b"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define PDStringCreateBinaryFromString</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">string</td><td>)</td>
-          <td>&#160;&#160;&#160;<a class="el" href="a00135.html#ga220fbb2356c67fb556ccad76f65721e6">PDStringCreateFromStringWithType</a>(string, <a class="el" href="a00135.html#ggad7fabe5bf68aa7d5f988ca576cff0be8a3a066fe3f1f7885ce76d60057e130c89">PDStringTypeBinary</a>, <a class="el" href="a00043.html#a65e9886d74aaee76545e83dd09011727">false</a>)</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Short hand for creating a binary string from an existing PDStringRef</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">string</td><td>String whose binary form is desired</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>Binary <a class="el" href="a00021.html#a00169">PDString</a> object </dd></dl>
-
-</div>
-</div>
+<p>A Pajdeg pipe task. </p>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a class="anchor" id="ga48f7056b66013cc712559bfa56c00dbd"></a>
+<a class="anchor" id="ga1f6c988a4788cd2148ebc7d726c1fbc6"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef struct <a class="el" href="a00021.html#a00169">PDString</a>* <a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a></td>
+          <td class="memname">typedef <a class="el" href="a00135.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a>(* PDTaskFunc)(<a class="el" href="a00126.html#gae605ead1049d6717b3bc4c94e0d95720">PDPipeRef</a> pipe, <a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> task, <a class="el" href="a00028.html#ga006d92afec9a8da0ac7ed54122050e73">PDObjectRef</a> object, void *info)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>A string object. </p>
+<p>Function signature for task callbacks. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga1b4030793025ce1ee4e26b55bf15dcca"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="a00023.html#a00171">PDTask</a>* <a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A task. </p>
 
 </div>
 </div>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
-<a class="anchor" id="gad7fabe5bf68aa7d5f988ca576cff0be8"></a>
+<a class="anchor" id="ga69ef241e642b310365656328b8e68c0d"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">enum <a class="el" href="a00135.html#gad7fabe5bf68aa7d5f988ca576cff0be8">PDStringType</a></td>
+          <td class="memname">enum <a class="el" href="a00135.html#ga69ef241e642b310365656328b8e68c0d">PDFType</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>The type of a string. </p>
+<p>PDF object types.</p>
+<dl class="section note"><dt>Note</dt><dd>If this is modified, typeHash in PDPipe.c must be updated accordingly. </dd></dl>
 <table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="ggad7fabe5bf68aa7d5f988ca576cff0be8a6a63e7775fb89d73f23b003d2f7b499f"></a>PDStringTypeEscaped&#160;</td><td class="fielddoc">
-<p>A regular string, escaped and NUL-terminated. </p>
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="gga69ef241e642b310365656328b8e68c0daf6142ffadbfbf10987809db4f056c692"></a>PDFTypePage&#160;</td><td class="fielddoc">
+<p>all page objects </p>
 </td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ggad7fabe5bf68aa7d5f988ca576cff0be8a408a82fb3a210724114969b2816e211f"></a>PDStringTypeHex&#160;</td><td class="fielddoc">
-<p>A HEX string, NUL-terminated. </p>
+<tr><td class="fieldname"><a class="anchor" id="gga69ef241e642b310365656328b8e68c0da7caaff42ca208e3b9d86c8216ce093da"></a>PDFTypePages&#160;</td><td class="fielddoc">
+<p>all pages objects; pages objects are dictionaries with arrays of page objects (the "Kids") </p>
 </td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ggad7fabe5bf68aa7d5f988ca576cff0be8a3a066fe3f1f7885ce76d60057e130c89"></a>PDStringTypeBinary&#160;</td><td class="fielddoc">
-<p>A binary string, which may or may not be NUL-terminated, and may contain any character. </p>
+<tr><td class="fieldname"><a class="anchor" id="gga69ef241e642b310365656328b8e68c0da4c69739bcb001c9e8a3061602aa5648c"></a>PDFTypeCatalog&#160;</td><td class="fielddoc">
+<p>all catalog objects; normally, the Root object is the only catalog in a PDF </p>
 </td></tr>
-<tr><td class="fieldname"><a class="anchor" id="ggad7fabe5bf68aa7d5f988ca576cff0be8a210056056c3f5e2e995612d0a7845466"></a>PDStringTypeName&#160;</td><td class="fielddoc">
-<p>A regular string prefixed with a forward slash. </p>
+<tr><td class="fieldname"><a class="anchor" id="gga69ef241e642b310365656328b8e68c0da330cc1a5d8b4a178711a7dd8c0d30bfe"></a>PDFTypeAnnot&#160;</td><td class="fielddoc">
+<p>all annotation objects, such as links </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga69ef241e642b310365656328b8e68c0da30f30380e4c80bb90011d4370751560e"></a>PDFTypeFont&#160;</td><td class="fielddoc">
+<p>font objects </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga69ef241e642b310365656328b8e68c0dabcb6fff3abe9637f1751ecc49f2aa528"></a>PDFTypeFontDescriptor&#160;</td><td class="fielddoc">
+<p>font descriptor objects </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga69ef241e642b310365656328b8e68c0da15b4ec23e1913e3e8c8ba67bfb49e4e7"></a>PDFTypeAction&#160;</td><td class="fielddoc">
+<p>action objects; usually associated with a link annotation </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga69ef241e642b310365656328b8e68c0da4acfa88f98ce9519a1260f2658af969b"></a>_PDFTypeCount&#160;</td><td class="fielddoc">
+<p>enum item count </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a class="anchor" id="gaa2f108018ee986118e960c9004e65f44"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="a00135.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Task filter property type. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="ggaa2f108018ee986118e960c9004e65f44ab4faa881f7a73eb221eb48bfef454067"></a>PDPropertyObjectId&#160;</td><td class="fielddoc">
+<p>value = object ID; only called for the live object, even if multiple copies exist </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="ggaa2f108018ee986118e960c9004e65f44a4527237134f3627f5a0d387625c6b0b2"></a>PDPropertyRootObject&#160;</td><td class="fielddoc">
+<p>triggered when root object is encountered </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="ggaa2f108018ee986118e960c9004e65f44abd33683f69954b90cfbfa45c62ca583f"></a>PDPropertyInfoObject&#160;</td><td class="fielddoc">
+<p>triggered when info object is encountered </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="ggaa2f108018ee986118e960c9004e65f44aaa5689b4525cc13a2769da7784ff1cf1"></a>PDPropertyPDFType&#160;</td><td class="fielddoc">
+<p>triggered for each object of the given PDFType value </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="ggaa2f108018ee986118e960c9004e65f44a8672f57887d62a5bd7f8d273ef937a68"></a>PDPropertyPage&#160;</td><td class="fielddoc">
+<p>value = page number </p>
+</td></tr>
+</table>
+
+</div>
+</div>
+<a class="anchor" id="ga91616478cbeb225ea1dc8684f4daaa09"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="a00135.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Task result type.</p>
+<p>Tasks are chained together. When triggered, the first task in the list of tasks for the specific state is executed. Before moving on to the next task in the list, each task has a number of options specified in the task result.</p>
+<ul>
+<li>A task has the option of canceling the entire PDF creation process due to some serious issue, via PDTaskFailure.</li>
+<li>It may also `filter' out its child tasks dynamically by returning PDTaskSkipRest for given conditions. This will stop the iterator, and any tasks remaining in the queue will be skipped.</li>
+</ul>
+<p>Returning PDTaskDone means the task ended normally, and that the next task, if any, may execute. This is usually the preferred return value. </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a class="anchor" id="gga91616478cbeb225ea1dc8684f4daaa09a5b94fdddf12f68b3c8ebc5d87c78246d"></a>PDTaskFailure&#160;</td><td class="fielddoc">
+<p>the entire pipe operation is terminated and the destination file is left unfinished </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga91616478cbeb225ea1dc8684f4daaa09ab91b10f2a3fdb44fe9a8afc269354b08"></a>PDTaskDone&#160;</td><td class="fielddoc">
+<p>the task ended as normal </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga91616478cbeb225ea1dc8684f4daaa09a0539cd0d74e6470ed3be445d97eb710b"></a>PDTaskSkipRest&#160;</td><td class="fielddoc">
+<p>the task ended, and requires that remaining tasks in its pipeline are skipped </p>
+</td></tr>
+<tr><td class="fieldname"><a class="anchor" id="gga91616478cbeb225ea1dc8684f4daaa09aab00058c1a76c0cc9eac0cd04b89493b"></a>PDTaskUnload&#160;</td><td class="fielddoc">
+<p>the task ended as normal; additionally, it should never be called again </p>
 </td></tr>
 </table>
 
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="ga77695915a0a27d7dd7fb66605f334e72"></a>
+<a class="anchor" id="ga4d2e117e1508716bcf3e62d2c54434ac"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void PDStringAttachCrypto </td>
+          <td class="memname">void PDTaskAppendTask </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td>
-          <td class="paramname"><em>string</em>, </td>
+          <td class="paramtype"><a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td>
+          <td class="paramname"><em>parentTask</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="a00021.html#a00142">pd_crypto</a>&#160;</td>
-          <td class="paramname"><em>crypto</em>, </td>
+          <td class="paramtype"><a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td>
+          <td class="paramname"><em>childTask</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Append a child task to a task. Child tasks are executed after their parent tasks, unless the parent decides to stop the chain. The child is appended to the end, as one would intuitively expect. Adding child A, followed by adding child B, to parent P, will result in the execution order</p>
+<p>P -&gt; A -&gt; B </p>
+
+</div>
+</div>
+<a class="anchor" id="ga2ceeb7733d8f6789143efa5fbb51cb9a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> PDTaskCreateFilter </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00135.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a>&#160;</td>
+          <td class="paramname"><em>propertyType</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Create a filtering task. Filtering tasks find objects in a pipe based on given criteria and forward these to their child tasks. </p>
+
+</div>
+</div>
+<a class="anchor" id="gad655f5ca90cd5e070ce17d58bf6f8e78"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> PDTaskCreateFilterWithValue </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00135.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a>&#160;</td>
+          <td class="paramname"><em>propertyType</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Create a filtering task with the given argument. </p>
+
+</div>
+</div>
+<a class="anchor" id="gac42bb37d75a3234ecd8d3566e3f6eaee"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> PDTaskCreateMutator </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00135.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a>&#160;</td>
+          <td class="paramname"><em>mutatorFunc</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Create a mutator task. Mutator tasks receive objects from the pipe if their parent tasks pass them through. A mutator task can be a filter, if it uses PDTaskSkipRest to abort for objects that should be skipped. </p>
+
+</div>
+</div>
+<a class="anchor" id="gaa7793b326f4035bdbc2d0fcd34c39703"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> PDTaskCreateMutatorForObject </td>
+          <td>(</td>
+          <td class="paramtype">long&#160;</td>
           <td class="paramname"><em>objectID</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
-          <td class="paramname"><em>genNumber</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td>
-          <td class="paramname"><em>encrypted</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="a00135.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a>&#160;</td>
+          <td class="paramname"><em>mutatorFunc</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -341,35 +415,25 @@ char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a0
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Attach a crypto object to the string, and associate the array with a specific object. The encrypted flag is used to determine if the <a class="el" href="a00021.html#a00169">PDString</a> is encrypted or not in its current state.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">string</td><td><a class="el" href="a00021.html#a00169">PDString</a> instance whose crypto object is to be set </td></tr>
-    <tr><td class="paramname">crypto</td><td><a class="el" href="a00021.html#a00142">pd_crypto</a> object </td></tr>
-    <tr><td class="paramname">objectID</td><td>The object ID of the owning object </td></tr>
-    <tr><td class="paramname">genNumber</td><td>Generation number of the owning object </td></tr>
-    <tr><td class="paramname">encrypted</td><td>Whether string is encrypted or not, currently </td></tr>
-  </table>
-  </dd>
-</dl>
+<p>Create a mutator for the given object ID. </p>
 
 </div>
 </div>
-<a class="anchor" id="ga656fec642b48c701a1ba7000b8b8692c"></a>
+<a class="anchor" id="ga6405c8eb09d5f957e1b7911f743fd489"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const char* PDStringBinaryValue </td>
+          <td class="memname"><a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> PDTaskCreateMutatorForPropertyType </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td>
-          <td class="paramname"><em>string</em>, </td>
+          <td class="paramtype"><a class="el" href="a00135.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a>&#160;</td>
+          <td class="paramname"><em>propertyType</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> *&#160;</td>
-          <td class="paramname"><em>outLength</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="a00135.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a>&#160;</td>
+          <td class="paramname"><em>mutatorFunc</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -378,63 +442,31 @@ char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a0
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Generate the binary value of string, writing its length to the PDSize pointed to by outLength and returning the binary value.</p>
-<dl class="section note"><dt>Note</dt><dd>The returned string should not be freed. </dd>
-<dd>
-It is safe to pass a NULL string value. If string is NULL, NULL is returned.</dd></dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">string</td><td><a class="el" href="a00021.html#a00169">PDString</a> instance </td></tr>
-    <tr><td class="paramname">outLength</td><td>Pointer to PDSize object into which the length of the returned binary data is to be written. May be NULL.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>C string pointer to binary data. </dd></dl>
+<p>Create a mutator for the given (value-less) property type. </p>
 
 </div>
 </div>
-<a class="anchor" id="gadc306f2215c74839ec29f59703212f0d"></a>
+<a class="anchor" id="ga2100ddc1a647286f66079dfade1f2b07"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> PDStringCreate </td>
+          <td class="memname"><a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a> PDTaskCreateMutatorForPropertyTypeWithValue </td>
           <td>(</td>
-          <td class="paramtype">char *&#160;</td>
-          <td class="paramname"><em>string</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Create a <a class="el" href="a00021.html#a00169">PDString</a> from an existing, escaped string.</p>
-<dl class="section note"><dt>Note</dt><dd>Ownership of the string is taken, and the string is freed when the <a class="el" href="a00021.html#a00169">PDString</a> object is released. </dd>
-<dd>
-Use PDStringCreateBinary for strings that need to be escaped, even if they're proper NUL-terminated strings.</dd></dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">string</td><td>NUL-terminated, escaped string optionally wrapped in parentheses.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>New <a class="el" href="a00021.html#a00169">PDString</a> instance for string </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="ga49558e8bd8b91c1bfe55965415d46dfb"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> PDStringCreateBinary </td>
-          <td>(</td>
-          <td class="paramtype">char *&#160;</td>
-          <td class="paramname"><em>data</em>, </td>
+          <td class="paramtype"><a class="el" href="a00135.html#gaa2f108018ee986118e960c9004e65f44">PDPropertyType</a>&#160;</td>
+          <td class="paramname"><em>propertyType</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a>&#160;</td>
-          <td class="paramname"><em>length</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramname"><em>value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00135.html#ga1f6c988a4788cd2148ebc7d726c1fbc6">PDTaskFunc</a>&#160;</td>
+          <td class="paramname"><em>mutatorFunc</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -443,90 +475,31 @@ Use PDStringCreateBinary for strings that need to be escaped, even if they're pr
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Create a <a class="el" href="a00021.html#a00169">PDString</a> from an existing, unescaped or binary string of the given length.</p>
-<dl class="section note"><dt>Note</dt><dd>Ownership of the data is taken, and the data is freed when the <a class="el" href="a00021.html#a00169">PDString</a> object is released.</dd></dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">data</td><td>Data containing binary string </td></tr>
-    <tr><td class="paramname">length</td><td>Length of the data, in bytes</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>New <a class="el" href="a00021.html#a00169">PDString</a> instance for data </dd></dl>
+<p>Create a mutator for the given property type with the given value. </p>
 
 </div>
 </div>
-<a class="anchor" id="gac0e5a03194e25904eb9c09fd78322181"></a>
+<a class="anchor" id="ga34f837ba8d4abfe6b54be454fa46c71f"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> PDStringCreateDecrypted </td>
+          <td class="memname"><a class="el" href="a00135.html#ga91616478cbeb225ea1dc8684f4daaa09">PDTaskResult</a> PDTaskExec </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td>
-          <td class="paramname"><em>string</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Create a <a class="el" href="a00021.html#a00169">PDString</a> by decrypting string.</p>
-<dl class="section note"><dt>Note</dt><dd>If string is not encrypted, it is retained and returned as is.</dd></dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">string</td><td><a class="el" href="a00021.html#a00169">PDString</a> instance</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>A retained decrypted PDStringRef for string </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="ga5fa0b556e76a0879e5b2dd1e1bf0a1ed"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> PDStringCreateEncrypted </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td>
-          <td class="paramname"><em>string</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Create a <a class="el" href="a00021.html#a00169">PDString</a> by encrypting string.</p>
-<dl class="section note"><dt>Note</dt><dd>If string is already encrypted, or if no crypto has been attached, the string is retained and returned as is.</dd></dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">string</td><td><a class="el" href="a00021.html#a00169">PDString</a> instance to encrypt</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>A retained encrypted PDStringRef for string </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="ga220fbb2356c67fb556ccad76f65721e6"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> PDStringCreateFromStringWithType </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td>
-          <td class="paramname"><em>string</em>, </td>
+          <td class="paramtype"><a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td>
+          <td class="paramname"><em>task</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="a00135.html#gad7fabe5bf68aa7d5f988ca576cff0be8">PDStringType</a>&#160;</td>
-          <td class="paramname"><em>type</em>, </td>
+          <td class="paramtype"><a class="el" href="a00126.html#gae605ead1049d6717b3bc4c94e0d95720">PDPipeRef</a>&#160;</td>
+          <td class="paramname"><em>pipe</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td>
-          <td class="paramname"><em>wrap</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="a00028.html#ga006d92afec9a8da0ac7ed54122050e73">PDObjectRef</a>&#160;</td>
+          <td class="paramname"><em>object</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -535,108 +508,25 @@ Use PDStringCreateBinary for strings that need to be escaped, even if they're pr
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Create a <a class="el" href="a00021.html#a00169">PDString</a> from an existing <a class="el" href="a00021.html#a00169">PDString</a> instance, with an explicit type. In effect, this creates a new <a class="el" href="a00021.html#a00169">PDString</a> object whose type matches the given type. This method is recommended for converting between types, unless the C string value is explicitly desired.</p>
-<dl class="section note"><dt>Note</dt><dd>If string is already of the given type, it is retained and returned as is.</dd></dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">string</td><td><a class="el" href="a00021.html#a00169">PDString</a> instance used in transformation </td></tr>
-    <tr><td class="paramname">type</td><td>String type to transform to </td></tr>
-    <tr><td class="paramname">wrap</td><td>Whether the string should be wrapped ("()" for escaped, "&lt;&gt;" for hex)</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>A <a class="el" href="a00021.html#a00169">PDString</a> whose value is identical to that of string, and whose type is the given type </dd></dl>
+<p>Execute a task, possibly resulting in a chain of tasks executing if the task has children. </p>
 
 </div>
 </div>
-<a class="anchor" id="ga222b4e1455d7d9729d3b30e29c317209"></a>
+<a class="anchor" id="ga4382fcaa073650fc176e1d13d587aa4d"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> PDStringCreateUnescaped </td>
+          <td class="memname">void PDTaskSetInfo </td>
           <td>(</td>
-          <td class="paramtype">char *&#160;</td>
-          <td class="paramname"><em>unescapedString</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Create a <a class="el" href="a00021.html#a00169">PDString</a> from an existing, unescaped string by escaping the string and keeping the resulting value.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">unescapedString</td><td>A string that needs to be, but is not currently, escaped.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>New <a class="el" href="a00021.html#a00169">PDString</a> instance for escaped variant of unescapedString </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="ga0b147afa9e5d71c71d72f9a665b27880"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> PDStringCreateWithHexString </td>
-          <td>(</td>
-          <td class="paramtype">char *&#160;</td>
-          <td class="paramname"><em>hex</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Create a <a class="el" href="a00021.html#a00169">PDString</a> from an existing hex string.</p>
-<dl class="section note"><dt>Note</dt><dd>Ownership of the data is taken, and the data is freed when the <a class="el" href="a00021.html#a00169">PDString</a> object is released.</dd></dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">hex</td><td>Hex string, optionally wrapped in less/greater-than signs.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>New <a class="el" href="a00021.html#a00169">PDString</a> instance for hex </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="gac1eb6df170f792793c51be6befad7fbf"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a> PDStringCreateWithName </td>
-          <td>(</td>
-          <td class="paramtype">char *&#160;</td>
-          <td class="paramname"><em>name</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Create a <a class="el" href="a00021.html#a00169">PDString</a> from an existing, escaped name. Names differ from regular strings in one single way: they have a slash prefix. Beyond that, they can be wrapped or non-wrapped, just like normal.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">name</td><td>Name string, with or without prefix slash, with or without wrapping.</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>New <a class="el" href="a00021.html#a00169">PDString</a> instance for name </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="ga61a1fd9badb8714cce67d761b3a63fc6"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const char* PDStringEscapedValue </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td>
-          <td class="paramname"><em>string</em>, </td>
+          <td class="paramtype"><a class="el" href="a00135.html#ga1b4030793025ce1ee4e26b55bf15dcca">PDTaskRef</a>&#160;</td>
+          <td class="paramname"><em>task</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td>
-          <td class="paramname"><em>wrap</em>&#160;</td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>info</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -645,159 +535,22 @@ Use PDStringCreateBinary for strings that need to be escaped, even if they're pr
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Generate a C string containing the escaped contents of string and return it. If wrap is set, the string is wrapped in parentheses.</p>
-<dl class="section note"><dt>Note</dt><dd>The returned string should not be freed. </dd>
-<dd>
-It is safe to pass a NULL string value. If string is NULL, NULL is returned.</dd></dl>
+<p>Set the info object for a task.</p>
+<p>The info object is passed as is to the task upon execution.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">string</td><td><a class="el" href="a00021.html#a00169">PDString</a> instance </td></tr>
-    <tr><td class="paramname">wrap</td><td>Whether or not the returned string should be enclosed in parentheses</td></tr>
+    <tr><td class="paramname">task</td><td>The task. </td></tr>
+    <tr><td class="paramname">info</td><td>The info object. </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>Escaped NUL-terminated C string. </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="gaceec0e4ef026248e4461cb499fa9dc54"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void PDStringForceWrappedState </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td>
-          <td class="paramname"><em>string</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td>
-          <td class="paramname"><em>wrapped</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Force the wrapped state of a string. Normally, when a regular string is set up, its 'wrapped' flag is set to true if the string is equal to "(whatever)", but in some rare instances, the wrapped string is "((value))", which unwrapped appears as "(value)", but is interpreted as "value"; wrapped = true.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">string</td><td><a class="el" href="a00021.html#a00169">PDString</a> </td></tr>
-    <tr><td class="paramname">wrapped</td><td>The wrapped state of the <a class="el" href="a00021.html#a00169">PDString</a> </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a class="anchor" id="gac0c31345d2f3212bf37cc2086436e884"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const char* PDStringHexValue </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td>
-          <td class="paramname"><em>string</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td>
-          <td class="paramname"><em>wrap</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Generate a hex string based on the value of string, returning it.</p>
-<dl class="section note"><dt>Note</dt><dd>The returned string should not be freed. </dd>
-<dd>
-It is safe to pass a NULL string value. If string is NULL, NULL is returned.</dd></dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">string</td><td><a class="el" href="a00021.html#a00169">PDString</a> instance </td></tr>
-    <tr><td class="paramname">wrap</td><td>Whether or not the returned string should be enclosed in less/greater-than signs</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>Hex string. </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="gaf80ed9cc64a0fdcfe3b67212eaebfb02"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a> PDStringIsEncrypted </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td>
-          <td class="paramname"><em>string</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Determine if the given string is currently encrypted or not.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">string</td><td>String to check</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>true if encrypted, false if not </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="gaf2100a2de3273b38d7af6fb33bc161d2"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const char* PDStringNameValue </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="a00135.html#ga48f7056b66013cc712559bfa56c00dbd">PDStringRef</a>&#160;</td>
-          <td class="paramname"><em>string</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td>
-          <td class="paramname"><em>wrap</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Generate a C string containing the escaped contents of string as a name, i.e. with a forward slash preceding it. If wrap is set, the string (after forward slash) is wrapped in parentheses.</p>
-<dl class="section note"><dt>Note</dt><dd>The returned string should not be freed. </dd>
-<dd>
-It is safe to pass a NULL string value. If string is NULL, NULL is returned.</dd></dl>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">string</td><td><a class="el" href="a00021.html#a00169">PDString</a> instance </td></tr>
-    <tr><td class="paramname">wrap</td><td>Whether or not the returned string should be enclosed in parentheses</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>Escaped NUL-terminated C string with a forward slash prefix. </dd></dl>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:36 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

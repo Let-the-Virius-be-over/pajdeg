@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.8"/>
-<title>Pajdeg: User level</title>
+<title>Pajdeg: Core types</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -84,184 +84,318 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <div class="header">
   <div class="summary">
-<a href="#groups">Modules</a> &#124;
-<a href="#files">Files</a> &#124;
 <a href="#nested-classes">Data Structures</a> &#124;
 <a href="#define-members">Macros</a> &#124;
-<a href="#typedef-members">Typedefs</a> &#124;
-<a href="#var-members">Variables</a>  </div>
+<a href="#typedef-members">Typedefs</a>  </div>
   <div class="headertitle">
-<div class="title">User level</div>  </div>
+<div class="title">Core types</div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>The user level (most commonly used) objects.  
+<p>Internal type definitions.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="groups"></a>
-Modules</h2></td></tr>
-<tr class="memitem:a00023"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00023.html">PDContentStream</a></td></tr>
-<tr class="memdesc:a00023"><td class="mdescLeft">&#160;</td><td class="mdescRight">A content stream, i.e. a stream containing Adobe commands, such as for writing text and similar. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00121"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00121.html">Pajdeg Pipes</a></td></tr>
-<tr class="memdesc:a00121"><td class="mdescLeft">&#160;</td><td class="mdescRight">Piping PDFs through Pajdeg. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00026"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00026.html">PDObject</a></td></tr>
-<tr class="memdesc:a00026"><td class="mdescLeft">&#160;</td><td class="mdescRight">A PDF object. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00021"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00021.html">PDObjectStream</a></td></tr>
-<tr class="memdesc:a00021"><td class="mdescLeft">&#160;</td><td class="mdescRight">A PDF object stream, i.e. a stream of PDF objects inside a stream. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00027"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00027.html">PDPage</a></td></tr>
-<tr class="memdesc:a00027"><td class="mdescLeft">&#160;</td><td class="mdescRight">A PDF page. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00128"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html">PDReference</a></td></tr>
-<tr class="memdesc:a00128"><td class="mdescLeft">&#160;</td><td class="mdescRight">A PDF object reference. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a00130"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00130.html">PDSelection</a></td></tr>
-<tr class="memdesc:a00130"><td class="mdescLeft">&#160;</td><td class="mdescRight">A selection in a PDF document, with an associated page, rect, and text value. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="files"></a>
-Files</h2></td></tr>
-<tr class="memitem:a00081"><td class="memItemLeft" align="right" valign="top">file &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00081.html">PDParserAttachment.h</a></td></tr>
-<tr class="memdesc:a00081"><td class="mdescLeft">&#160;</td><td class="mdescRight">An attachment between two parsers. <br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Data Structures</h2></td></tr>
-<tr class="memitem:a00165"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#a00165">PDSelection</a></td></tr>
-<tr class="separator:a00165"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00160"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#a00160">PDPoint</a></td></tr>
+<tr class="separator:a00160"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00161"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#a00161">PDRect</a></td></tr>
+<tr class="separator:a00161"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:gac4f41b4c6821143e5a758f3d453fc0de"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#gac4f41b4c6821143e5a758f3d453fc0de">kPDFTypeStrings</a>&#160;&#160;&#160;NULL, &quot;/Page&quot;, &quot;/Pages&quot;, &quot;/Catalog&quot;, &quot;/Annot&quot;, &quot;/Font&quot;, &quot;/FontDescriptor&quot;, &quot;/Action&quot;</td></tr>
-<tr class="separator:gac4f41b4c6821143e5a758f3d453fc0de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacbaeed15512c3e38c7774fa8248119c3"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#gacbaeed15512c3e38c7774fa8248119c3">PDIntegerFromString</a>&#160;&#160;&#160;atol</td></tr>
+<tr class="separator:gacbaeed15512c3e38c7774fa8248119c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga07e3d3fe18fb2ede078490c4e3fd890c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#ga07e3d3fe18fb2ede078490c4e3fd890c">PDRealFromString</a>&#160;&#160;&#160;atof</td></tr>
+<tr class="separator:ga07e3d3fe18fb2ede078490c4e3fd890c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga005cbc5c33efbb838aca5a831a7385a4"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#ga005cbc5c33efbb838aca5a831a7385a4">PDSizeFromString</a>&#160;&#160;&#160;atol</td></tr>
+<tr class="separator:ga005cbc5c33efbb838aca5a831a7385a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7251f31d629f83faec5a37ecf27ae002"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#ga7251f31d629f83faec5a37ecf27ae002">PDOffsetFromString</a>&#160;&#160;&#160;atoll</td></tr>
+<tr class="separator:ga7251f31d629f83faec5a37ecf27ae002"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga939fe9d0848dbc8d22229d8a1d303f37"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#ga939fe9d0848dbc8d22229d8a1d303f37">PDRectFromOSRect</a>(osr)&#160;&#160;&#160;(<a class="el" href="a00031.html#a00161">PDRect</a>) {{osr.origin.x, osr.origin.y}, {osr.origin.x+osr.size.width, osr.origin.y+osr.size.height}}</td></tr>
+<tr class="separator:ga939fe9d0848dbc8d22229d8a1d303f37"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gace78ccf497b9d7ef7cb769ccccd02686"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#gace78ccf497b9d7ef7cb769ccccd02686">PDRectToOSRect</a>(rect)&#160;&#160;&#160;{{rect.a.x, rect.a.y}, {rect.b.x-rect.a.x, rect.b.y-rect.a.y}}</td></tr>
+<tr class="separator:gace78ccf497b9d7ef7cb769ccccd02686"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:ga003bf181e478035b315dfd22607efccd"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#ga003bf181e478035b315dfd22607efccd">PDTextSearchOperatorFunc</a> )(<a class="el" href="a00130.html#ga25891a948d3bffeea13ea1082323d8fa">PDSelectionRef</a> selection)</td></tr>
-<tr class="separator:ga003bf181e478035b315dfd22607efccd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4018f31115a51a8ca00d2f08f9e6bbba"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="a00028.html">PDParserAttachment</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#ga4018f31115a51a8ca00d2f08f9e6bbba">PDParserAttachmentRef</a></td></tr>
-<tr class="separator:ga4018f31115a51a8ca00d2f08f9e6bbba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga112d131a7adbde12b97479f3dd7c510c"><td class="memItemLeft" align="right" valign="top">typedef <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#ga112d131a7adbde12b97479f3dd7c510c">PDInstancePrinter</a> )(void *inst, char **buf, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> offs, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *cap)</td></tr>
-<tr class="separator:ga112d131a7adbde12b97479f3dd7c510c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="var-members"></a>
-Variables</h2></td></tr>
-<tr class="memitem:gaeaceef33059a7ebc6e8bfb50af91c905"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#ga112d131a7adbde12b97479f3dd7c510c">PDInstancePrinter</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#gaeaceef33059a7ebc6e8bfb50af91c905">PDInstancePrinters</a> []</td></tr>
-<tr class="separator:gaeaceef33059a7ebc6e8bfb50af91c905"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7bf5d17054ed63682b0cb309545ad1cc"><td class="memItemLeft" align="right" valign="top">typedef long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a></td></tr>
+<tr class="separator:ga7bf5d17054ed63682b0cb309545ad1cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae0e6a1de2f316b679b976e43084896d4"><td class="memItemLeft" align="right" valign="top">typedef float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#gae0e6a1de2f316b679b976e43084896d4">PDReal</a></td></tr>
+<tr class="separator:gae0e6a1de2f316b679b976e43084896d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad244dd3b4044286b711733599137f318"><td class="memItemLeft" align="right" valign="top">typedef unsigned char&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a></td></tr>
+<tr class="separator:gad244dd3b4044286b711733599137f318"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5e255303bba6a64f69d4dddb5485df58"><td class="memItemLeft" align="right" valign="top">typedef size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a></td></tr>
+<tr class="separator:ga5e255303bba6a64f69d4dddb5485df58"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2c4cdb81ea3cd830cbadca665e75fbe3"><td class="memItemLeft" align="right" valign="top">typedef long long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#ga2c4cdb81ea3cd830cbadca665e75fbe3">PDOffset</a></td></tr>
+<tr class="separator:ga2c4cdb81ea3cd830cbadca665e75fbe3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae2123973b1deba86675b12441b0546a7"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="a00031.html#a00160">PDPoint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#gae2123973b1deba86675b12441b0546a7">PDPoint</a></td></tr>
+<tr class="separator:gae2123973b1deba86675b12441b0546a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga439f6c7ba7dd90da6bfeaf6a745feb0c"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="a00031.html#a00161">PDRect</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#ga439f6c7ba7dd90da6bfeaf6a745feb0c">PDRect</a></td></tr>
+<tr class="separator:ga439f6c7ba7dd90da6bfeaf6a745feb0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga16e267786da02df3ab22105509be9cb9"><td class="memItemLeft" align="right" valign="top">typedef const char **&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00031.html#ga16e267786da02df3ab22105509be9cb9">PDID</a></td></tr>
+<tr class="separator:ga16e267786da02df3ab22105509be9cb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p>The user level (most commonly used) objects. </p>
+<p>Internal type definitions. </p>
+<p>These have been matched up with the Core Graphics CGPDF* type definitions in most cases, except where this resulted in performance or other issues. </p>
 <hr/><h2 class="groupheader">Data Structure Documentation</h2>
-<a name="a00165" id="a00165"></a>
+<a name="a00160" id="a00160"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">struct PDSelection</td>
+          <td class="memname">struct PDPoint</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<div class="textblock"><p>A selection in a PDF</p>
-<p>Although selections may span across multiple pages, this is currently ignored. </p>
-</div><table class="memberdecls">
+<div class="textblock"></div><table class="memberdecls">
 <tr><td colspan="2"><h3>Data Fields</h3></td></tr>
-<tr class="memitem:af7c00a0fa8a546a2454f414039732cc9"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="af7c00a0fa8a546a2454f414039732cc9"></a>
-<a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><b>page</b></td></tr>
-<tr class="separator:af7c00a0fa8a546a2454f414039732cc9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1e16a6d2b8e989de81b62d867fbf8888"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a1e16a6d2b8e989de81b62d867fbf8888"></a>
-<a class="el" href="a00029.html#a00161">PDRect</a>&#160;</td><td class="memItemRight" valign="bottom"><b>position</b></td></tr>
-<tr class="separator:a1e16a6d2b8e989de81b62d867fbf8888"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a67523280274b6737605a6336df29d73b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a67523280274b6737605a6336df29d73b"></a>
-const char *&#160;</td><td class="memItemRight" valign="bottom"><b>text</b></td></tr>
-<tr class="separator:a67523280274b6737605a6336df29d73b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afccbad27fb6ea09b7efa7d3899914975"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afccbad27fb6ea09b7efa7d3899914975"></a>
+<a class="el" href="a00031.html#gae0e6a1de2f316b679b976e43084896d4">PDReal</a>&#160;</td><td class="memItemRight" valign="bottom"><b>x</b></td></tr>
+<tr class="separator:afccbad27fb6ea09b7efa7d3899914975"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7bd26b31583132b9e929e5a7f6ccd538"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a7bd26b31583132b9e929e5a7f6ccd538"></a>
+<a class="el" href="a00031.html#gae0e6a1de2f316b679b976e43084896d4">PDReal</a>&#160;</td><td class="memItemRight" valign="bottom"><b>y</b></td></tr>
+<tr class="separator:a7bd26b31583132b9e929e5a7f6ccd538"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+
+</div>
+</div>
+<a name="a00161" id="a00161"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct PDRect</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="textblock"></div><table class="memberdecls">
+<tr><td colspan="2"><h3>Data Fields</h3></td></tr>
+<tr class="memitem:a0cb19a9c1124977664df4ac72a58e906"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0cb19a9c1124977664df4ac72a58e906"></a>
+<a class="el" href="a00031.html#a00160">PDPoint</a>&#160;</td><td class="memItemRight" valign="bottom"><b>a</b></td></tr>
+<tr class="separator:a0cb19a9c1124977664df4ac72a58e906"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0a540b7f807f04ddb292182ea91761bc"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a0a540b7f807f04ddb292182ea91761bc"></a>
+<a class="el" href="a00031.html#a00160">PDPoint</a>&#160;</td><td class="memItemRight" valign="bottom"><b>b</b></td></tr>
+<tr class="separator:a0a540b7f807f04ddb292182ea91761bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 
 </div>
 </div>
 <h2 class="groupheader">Macro Definition Documentation</h2>
-<a class="anchor" id="gac4f41b4c6821143e5a758f3d453fc0de"></a>
+<a class="anchor" id="gacbaeed15512c3e38c7774fa8248119c3"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">#define kPDFTypeStrings&#160;&#160;&#160;NULL, &quot;/Page&quot;, &quot;/Pages&quot;, &quot;/Catalog&quot;, &quot;/Annot&quot;, &quot;/Font&quot;, &quot;/FontDescriptor&quot;, &quot;/Action&quot;</td>
+          <td class="memname">#define PDIntegerFromString&#160;&#160;&#160;atol</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Link between numeric PDFType enumerator (used for <a class="el" href="a00021.html#a00171">PDTask</a> values which are restricted to integers) and the actual string to look for in the PDF data. </p>
+<p>C atoXX function matching PDInteger size </p>
+
+</div>
+</div>
+<a class="anchor" id="ga7251f31d629f83faec5a37ecf27ae002"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PDOffsetFromString&#160;&#160;&#160;atoll</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>C atoXX function matching PDOffset </p>
+
+</div>
+</div>
+<a class="anchor" id="ga07e3d3fe18fb2ede078490c4e3fd890c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PDRealFromString&#160;&#160;&#160;atof</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>C atoXX function matching PDReal </p>
+
+</div>
+</div>
+<a class="anchor" id="ga939fe9d0848dbc8d22229d8a1d303f37"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PDRectFromOSRect</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">osr</td><td>)</td>
+          <td>&#160;&#160;&#160;(<a class="el" href="a00031.html#a00161">PDRect</a>) {{osr.origin.x, osr.origin.y}, {osr.origin.x+osr.size.width, osr.origin.y+osr.size.height}}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Convert from an origin-size rect (e.g. CGRect) to a tl-br rect (<a class="el" href="a00031.html#a00161">PDRect</a>).</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">osr</td><td>The rect structured as { {origin x, origin y}, {width, height} }. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="a00031.html#a00161">PDRect</a> version. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gace78ccf497b9d7ef7cb769ccccd02686"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PDRectToOSRect</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">rect</td><td>)</td>
+          <td>&#160;&#160;&#160;{{rect.a.x, rect.a.y}, {rect.b.x-rect.a.x, rect.b.y-rect.a.y}}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Convert to an origin-size rect (e.g. CGRect) from a tl-br rect (<a class="el" href="a00031.html#a00161">PDRect</a>).</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rect</td><td><a class="el" href="a00031.html#a00161">PDRect</a> version. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The rect structured as { {origin x, origin y}, {width, height} }. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga005cbc5c33efbb838aca5a831a7385a4"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define PDSizeFromString&#160;&#160;&#160;atol</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>C atoXX function matching PDSize </p>
 
 </div>
 </div>
 <h2 class="groupheader">Typedef Documentation</h2>
-<a class="anchor" id="ga112d131a7adbde12b97479f3dd7c510c"></a>
+<a class="anchor" id="gad244dd3b4044286b711733599137f318"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>(* PDInstancePrinter)(void *inst, char **buf, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> offs, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *cap)</td>
+          <td class="memname">typedef unsigned char <a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>String printing signature.</p>
-<p>Used to write PDInstance objects into a C string buffer. </p>
+<p>PDF boolean identifier. </p>
 
 </div>
 </div>
-<a class="anchor" id="ga4018f31115a51a8ca00d2f08f9e6bbba"></a>
+<a class="anchor" id="ga16e267786da02df3ab22105509be9cb9"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef struct <a class="el" href="a00028.html">PDParserAttachment</a>* <a class="el" href="a00031.html#ga4018f31115a51a8ca00d2f08f9e6bbba">PDParserAttachmentRef</a></td>
+          <td class="memname">typedef const char** <a class="el" href="a00031.html#ga16e267786da02df3ab22105509be9cb9">PDID</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>An attachment to a foreign parser.</p>
-<p>Attachments exist for the sole purpose of keeping track of which objects have been imported from the foreign parser already. Since many indirect object references are shared between multiple objects, the attachment ensures that a given object is only imported once, even if several consecutive object imports are made. </p>
+<p>Convert an array string [a b c d] into a <a class="el" href="a00031.html#a00161">PDRect</a>. Convert a <a class="el" href="a00031.html#a00161">PDRect</a> into an [a b c d] array string. Identifier type.</p>
+<p>The PDID type in Pajdeg has two purposes: it works like a container for generic data of unknown origin, and it is a numeric pointer to a string identifier.</p>
+<p>Wherever used, the PDID implies that its content is "protected" and should never be modified, such as freed.</p>
+<p>The <a class="el" href="a00023.html#a00142">pd_stack</a> implementation adheres this convention in most cases, but some debug related functions, such as pd_stack_print, will assume that a PDID is of the latter type, and will attempt to print out the string pointed to in parentheses.</p>
+<p>PDIDs are used extensively in the PDF specification implementation definitions located in <a class="el" href="a00049.html">pd_pdf_implementation.h</a> </p>
 
 </div>
 </div>
-<a class="anchor" id="ga003bf181e478035b315dfd22607efccd"></a>
+<a class="anchor" id="ga7bf5d17054ed63682b0cb309545ad1cc"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef <a class="el" href="a00029.html#gad244dd3b4044286b711733599137f318">PDBool</a>(* PDTextSearchOperatorFunc)(<a class="el" href="a00130.html#ga25891a948d3bffeea13ea1082323d8fa">PDSelectionRef</a> selection)</td>
+          <td class="memname">typedef long <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Text search operator function signature, used by <a class="el" href="a00023.html#a00146">PDContentStream</a>'s text searcher.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">selection</td><td>Selection that was matched to the search string</td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>Whether or not search should continue or abort </dd></dl>
+<p>PDF integer type in Pajdeg. </p>
 
 </div>
 </div>
-<h2 class="groupheader">Variable Documentation</h2>
-<a class="anchor" id="gaeaceef33059a7ebc6e8bfb50af91c905"></a>
+<a class="anchor" id="ga2c4cdb81ea3cd830cbadca665e75fbe3"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="a00031.html#ga112d131a7adbde12b97479f3dd7c510c">PDInstancePrinter</a> PDInstancePrinters[]</td>
+          <td class="memname">typedef long long <a class="el" href="a00031.html#ga2c4cdb81ea3cd830cbadca665e75fbe3">PDOffset</a></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>String printer function pointer array, matching up with all non-negative PDInstanceType entries. </p>
+<p>Offset type (signed). </p>
+
+</div>
+</div>
+<a class="anchor" id="gae2123973b1deba86675b12441b0546a7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="a00031.html#a00160">PDPoint</a> <a class="el" href="a00031.html#a00160">PDPoint</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A point with x and y coordinates. </p>
+
+</div>
+</div>
+<a class="anchor" id="gae0e6a1de2f316b679b976e43084896d4"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef float <a class="el" href="a00031.html#gae0e6a1de2f316b679b976e43084896d4">PDReal</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>PDF real type in Pajdeg. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga439f6c7ba7dd90da6bfeaf6a745feb0c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="a00031.html#a00161">PDRect</a> <a class="el" href="a00031.html#a00161">PDRect</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A rectangle made up of two <a class="el" href="a00031.html#a00160">PDPoint</a> structures. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga5e255303bba6a64f69d4dddb5485df58"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef size_t <a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Size type (unsigned). </p>
 
 </div>
 </div>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:36 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

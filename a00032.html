@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.8"/>
-<title>Pajdeg: PDSplayTree Struct Reference</title>
+<title>Pajdeg: PDPredictor Struct Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -93,29 +93,34 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div class="summary">
 <a href="#pub-attribs">Data Fields</a>  </div>
   <div class="headertitle">
-<div class="title">PDSplayTree Struct Reference</div>  </div>
+<div class="title">PDPredictor Struct Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Data Fields</h2></td></tr>
-<tr class="memitem:a468c876765c7b5f89018e5594ab6bb28"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a468c876765c7b5f89018e5594ab6bb28"></a>
-<a class="el" href="a00119.html#ga5b2718f9c54710125b934c61765f9d23">PDDeallocator</a>&#160;</td><td class="memItemRight" valign="bottom"><b>deallocator</b></td></tr>
-<tr class="separator:a468c876765c7b5f89018e5594ab6bb28"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a833d32493810c100e7c4bf9588291216"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a833d32493810c100e7c4bf9588291216"></a>
-<a class="el" href="a00036.html">st_node</a>&#160;</td><td class="memItemRight" valign="bottom"><b>root</b></td></tr>
-<tr class="separator:a833d32493810c100e7c4bf9588291216"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a01b27c00eed25577435b90c054f7af93"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a01b27c00eed25577435b90c054f7af93"></a>
-<a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><b>count</b></td></tr>
-<tr class="separator:a01b27c00eed25577435b90c054f7af93"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8e9a7e7ac5dd67a6b5aadfa8f356e706"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a8e9a7e7ac5dd67a6b5aadfa8f356e706"></a>
+unsigned char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00032.html#a8e9a7e7ac5dd67a6b5aadfa8f356e706">prevRow</a></td></tr>
+<tr class="memdesc:a8e9a7e7ac5dd67a6b5aadfa8f356e706"><td class="mdescLeft">&#160;</td><td class="mdescRight">Previous row cache. <br /></td></tr>
+<tr class="separator:a8e9a7e7ac5dd67a6b5aadfa8f356e706"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a41f404e786cb40e46d0898b7e68dfe42"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="a41f404e786cb40e46d0898b7e68dfe42"></a>
+<a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00032.html#a41f404e786cb40e46d0898b7e68dfe42">columns</a></td></tr>
+<tr class="memdesc:a41f404e786cb40e46d0898b7e68dfe42"><td class="mdescLeft">&#160;</td><td class="mdescRight">Columns per row. <br /></td></tr>
+<tr class="separator:a41f404e786cb40e46d0898b7e68dfe42"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afecba6158f30fc9529a1e1614c26e096"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="afecba6158f30fc9529a1e1614c26e096"></a>
+<a class="el" href="a00133.html#ga10bcd66ef0d6d18291cc4ce65614e41a">PDPredictorType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00032.html#afecba6158f30fc9529a1e1614c26e096">predictor</a></td></tr>
+<tr class="memdesc:afecba6158f30fc9529a1e1614c26e096"><td class="mdescLeft">&#160;</td><td class="mdescRight">Predictor type (strategy) <br /></td></tr>
+<tr class="separator:afecba6158f30fc9529a1e1614c26e096"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<hr/>The documentation for this struct was generated from the following file:<ul>
-<li>PDSplayTree.c</li>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Predictor settings, including options and state data for an ongoing predictor/unpredictor operation. </p>
+</div><hr/>The documentation for this struct was generated from the following file:<ul>
+<li>PDStreamFilterPrediction.c</li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:36 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>

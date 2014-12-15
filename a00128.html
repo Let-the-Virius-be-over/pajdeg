@@ -4,7 +4,7 @@
 <meta http-equiv="Content-Type" content="text/xhtml;charset=UTF-8"/>
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.8"/>
-<title>Pajdeg: PDReference</title>
+<title>Pajdeg: PDScanner</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -29,7 +29,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">Pajdeg
-   &#160;<span id="projectnumber">0.0.6</span>
+   &#160;<span id="projectnumber">0.2.0</span>
    </div>
    <div id="projectbrief">Pajdeg</div>
   </td>
@@ -85,103 +85,158 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="header">
   <div class="summary">
 <a href="#files">Files</a> &#124;
-<a href="#nested-classes">Data Structures</a> &#124;
-<a href="#typedef-members">Typedefs</a> &#124;
-<a href="#func-members">Functions</a>  </div>
+<a href="#typedef-members">Typedefs</a>  </div>
   <div class="headertitle">
-<div class="title">PDReference<div class="ingroups"><a class="el" href="a00031.html">User level</a></div></div>  </div>
+<div class="title">PDScanner<div class="ingroups"><a class="el" href="a00118.html">Internal</a> &raquo; <a class="el" href="a00121.html">Symbol scanning</a></div></div>  </div>
 </div><!--header-->
 <div class="contents">
 
-<p>A PDF object reference.  
+<p>The generic scanner used to read symbols from a stream or arbitrary buffer.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="files"></a>
 Files</h2></td></tr>
-<tr class="memitem:a00085"><td class="memItemLeft" align="right" valign="top">file &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00085.html">PDReference.h</a></td></tr>
+<tr class="memitem:a00087"><td class="memItemLeft" align="right" valign="top">file &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00087.html">PDScanner.h</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
-Data Structures</h2></td></tr>
-<tr class="memitem:a00162"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00021.html#a00162">PDReference</a></td></tr>
-<tr class="separator:a00162"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
-<tr class="memitem:gabfc26b5329015281947a491f12866f96"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="a00021.html#a00162">PDReference</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#gabfc26b5329015281947a491f12866f96">PDReferenceRef</a></td></tr>
-<tr class="separator:gabfc26b5329015281947a491f12866f96"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga361cbc12b048ed3fdc9c35940cbc4fbd"><td class="memItemLeft" align="right" valign="top">typedef struct <a class="el" href="a00023.html#a00163">PDScanner</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a></td></tr>
+<tr class="separator:ga361cbc12b048ed3fdc9c35940cbc4fbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga92172d304fc8c58de7e78e284593aff2"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga92172d304fc8c58de7e78e284593aff2">PDScannerBufFunc</a> )(void *info, <a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, char **buf, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *size, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> req)</td></tr>
+<tr class="separator:ga92172d304fc8c58de7e78e284593aff2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae5853a144676cc599a26e58f6787bb31"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#gae5853a144676cc599a26e58f6787bb31">PDScannerPopFunc</a> )(<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner)</td></tr>
+<tr class="separator:gae5853a144676cc599a26e58f6787bb31"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
-Functions</h2></td></tr>
-<tr class="memitem:gaf9482c2af1d1d34f2f51aff6bba48cb0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00128.html#gabfc26b5329015281947a491f12866f96">PDReferenceRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#gaf9482c2af1d1d34f2f51aff6bba48cb0">PDReferenceCreateFromStackDictEntry</a> (<a class="el" href="a00021.html#a00143">pd_stack</a> stack)</td></tr>
-<tr class="separator:gaf9482c2af1d1d34f2f51aff6bba48cb0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae65dd451510a789d3527619ec05f61c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00128.html#gabfc26b5329015281947a491f12866f96">PDReferenceRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#gae65dd451510a789d3527619ec05f61c3">PDReferenceCreate</a> (<a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> obid, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> genid)</td></tr>
-<tr class="separator:gae65dd451510a789d3527619ec05f61c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga070fdaa9a0f8ddaf1e2815ffa5b3a961"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga070fdaa9a0f8ddaf1e2815ffa5b3a961">PDReferenceGetObjectID</a> (<a class="el" href="a00128.html#gabfc26b5329015281947a491f12866f96">PDReferenceRef</a> reference)</td></tr>
-<tr class="separator:ga070fdaa9a0f8ddaf1e2815ffa5b3a961"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga6855ff414ae09abf03cbbb9c071661c2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga6855ff414ae09abf03cbbb9c071661c2">PDReferenceGetGenerationID</a> (<a class="el" href="a00128.html#gabfc26b5329015281947a491f12866f96">PDReferenceRef</a> reference)</td></tr>
-<tr class="separator:ga6855ff414ae09abf03cbbb9c071661c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga19a90d605b6ceeafa1439c5c6a3e2d32"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga19a90d605b6ceeafa1439c5c6a3e2d32"></a>
-<a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><b>PDReferencePrinter</b> (void *inst, char **buf, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> offs, <a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *cap)</td></tr>
-<tr class="separator:ga19a90d605b6ceeafa1439c5c6a3e2d32"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
+Creating / deleting scanners</h2></td></tr>
+<tr class="memitem:gae5ccc9f718826e5bc8ecb3b45fe63cf8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#gae5ccc9f718826e5bc8ecb3b45fe63cf8">PDScannerCreateWithState</a> (<a class="el" href="a00130.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a> state)</td></tr>
+<tr class="separator:gae5ccc9f718826e5bc8ecb3b45fe63cf8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga48a0f0f24afb173ad4301092a31d9f67"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga48a0f0f24afb173ad4301092a31d9f67">PDScannerCreateWithStateAndPopFunc</a> (<a class="el" href="a00130.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a> state, <a class="el" href="a00128.html#gae5853a144676cc599a26e58f6787bb31">PDScannerPopFunc</a> popFunc)</td></tr>
+<tr class="separator:ga48a0f0f24afb173ad4301092a31d9f67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8def18a33d6ce73f9d6694dce1fa347c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga8def18a33d6ce73f9d6694dce1fa347c">PDScannerAttachFixedSizeBuffer</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, char *buf, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> len)</td></tr>
+<tr class="separator:ga8def18a33d6ce73f9d6694dce1fa347c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
+Using</h2></td></tr>
+<tr class="memitem:gae1d98b9f54bc1cc2742becb0c41cf25c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00023.html#a00142">pd_stack</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#gae1d98b9f54bc1cc2742becb0c41cf25c">PDScannerGenerateStackFromFixedBuffer</a> (<a class="el" href="a00130.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a> state, char *buf, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> len)</td></tr>
+<tr class="separator:gae1d98b9f54bc1cc2742becb0c41cf25c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafad77e7619cac5c2fa8b04cdb3095f93"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#gafad77e7619cac5c2fa8b04cdb3095f93">PDScannerPopString</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, char **value)</td></tr>
+<tr class="separator:gafad77e7619cac5c2fa8b04cdb3095f93"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga980a4905a7069fe0275b60477a1f7c78"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga980a4905a7069fe0275b60477a1f7c78">PDScannerPopStack</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, <a class="el" href="a00023.html#a00142">pd_stack</a> *value)</td></tr>
+<tr class="separator:ga980a4905a7069fe0275b60477a1f7c78"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga88f788923190b248b00a171740574181"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga88f788923190b248b00a171740574181">PDScannerAssertString</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, char *value)</td></tr>
+<tr class="separator:ga88f788923190b248b00a171740574181"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad4b50d3b475859f2bd0b38ae5f9f8769"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#gad4b50d3b475859f2bd0b38ae5f9f8769">PDScannerAssertStackType</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner)</td></tr>
+<tr class="separator:gad4b50d3b475859f2bd0b38ae5f9f8769"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad4c31ab25eb7a4850f17ffbb770e4ba3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#gad4c31ab25eb7a4850f17ffbb770e4ba3">PDScannerAssertComplex</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, const char *identifier)</td></tr>
+<tr class="separator:gad4c31ab25eb7a4850f17ffbb770e4ba3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
+Raw streams</h2></td></tr>
+<tr class="memitem:ga7e95e6b212bd9026ec14cfbd6bcee518"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga7e95e6b212bd9026ec14cfbd6bcee518">PDScannerSkip</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, <a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a> bytes)</td></tr>
+<tr class="separator:ga7e95e6b212bd9026ec14cfbd6bcee518"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2777610f17eff0d64c4f0a818669699a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga2777610f17eff0d64c4f0a818669699a">PDScannerPassSymbolCharacterType</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> symbolCharType)</td></tr>
+<tr class="separator:ga2777610f17eff0d64c4f0a818669699a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga97f6905d846c668ec5113cf131eab30d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga97f6905d846c668ec5113cf131eab30d">PDScannerAttachFilter</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, <a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a> filter)</td></tr>
+<tr class="separator:ga97f6905d846c668ec5113cf131eab30d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga283f386854430a132b608fd6e3eed767"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga283f386854430a132b608fd6e3eed767">PDScannerDetachFilter</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner)</td></tr>
+<tr class="separator:ga283f386854430a132b608fd6e3eed767"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaedccd89fbe938ae0cd2f59fa799139ae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#gaedccd89fbe938ae0cd2f59fa799139ae">PDScannerReadStream</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> bytes, char *dest, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> capacity)</td></tr>
+<tr class="separator:gaedccd89fbe938ae0cd2f59fa799139ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga45c84a33b2d9813bac120b6f4273fc7e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga45c84a33b2d9813bac120b6f4273fc7e">PDScannerReadStreamNext</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, char *dest, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> capacity)</td></tr>
+<tr class="separator:ga45c84a33b2d9813bac120b6f4273fc7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
+Adjusting scanner / source</h2></td></tr>
+<tr class="memitem:gabd56cfbc7e78921e604a186c39035580"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#gabd56cfbc7e78921e604a186c39035580">PDScannerPushContext</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, void *ctxInfo, <a class="el" href="a00128.html#ga92172d304fc8c58de7e78e284593aff2">PDScannerBufFunc</a> ctxBufFunc)</td></tr>
+<tr class="separator:gabd56cfbc7e78921e604a186c39035580"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafe6a57643513f8554ff722fca03ae2a0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#gafe6a57643513f8554ff722fca03ae2a0">PDScannerPopContext</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner)</td></tr>
+<tr class="separator:gafe6a57643513f8554ff722fca03ae2a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae7c7dfac41a1950a736ccb6d076e4330"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#gae7c7dfac41a1950a736ccb6d076e4330">PDScannerSetLoopCap</a> (<a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> cap)</td></tr>
+<tr class="separator:gae7c7dfac41a1950a736ccb6d076e4330"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6bd473cdfa4437e42948b204faf4714d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga6bd473cdfa4437e42948b204faf4714d">PDScannerPopSymbol</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner)</td></tr>
+<tr class="separator:ga6bd473cdfa4437e42948b204faf4714d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac90961f6c1135e6286d9de820b904462"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#gac90961f6c1135e6286d9de820b904462">PDScannerPopSymbolRev</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner)</td></tr>
+<tr class="separator:gac90961f6c1135e6286d9de820b904462"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
+Aligning, resetting, trimming scanner</h2></td></tr>
+<tr class="memitem:ga6875733f833080be3b630caa33107bb3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga6875733f833080be3b630caa33107bb3">PDScannerAlign</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, <a class="el" href="a00031.html#ga2c4cdb81ea3cd830cbadca665e75fbe3">PDOffset</a> offset)</td></tr>
+<tr class="separator:ga6875733f833080be3b630caa33107bb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga37d0794d681d7d8e829b87b6e78c2dd3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga37d0794d681d7d8e829b87b6e78c2dd3">PDScannerTrim</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, <a class="el" href="a00031.html#ga2c4cdb81ea3cd830cbadca665e75fbe3">PDOffset</a> bytes)</td></tr>
+<tr class="separator:ga37d0794d681d7d8e829b87b6e78c2dd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga88e5b92f49c7bb06daa92838fbed2421"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga88e5b92f49c7bb06daa92838fbed2421">PDScannerReset</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner)</td></tr>
+<tr class="separator:ga88e5b92f49c7bb06daa92838fbed2421"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
+Debugging</h2></td></tr>
+<tr class="memitem:ga87f2785bd200d8acea7ecc27489f964e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00128.html#ga87f2785bd200d8acea7ecc27489f964e">PDScannerPrintStateTrace</a> (<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner)</td></tr>
+<tr class="separator:ga87f2785bd200d8acea7ecc27489f964e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<p>A PDF object reference. </p>
-<hr/><h2 class="groupheader">Data Structure Documentation</h2>
-<a name="a00162" id="a00162"></a>
+<p>The generic scanner used to read symbols from a stream or arbitrary buffer. </p>
+<p>The Pajdeg scanner takes a PDStateRef state and optionally a PDScannerPopFunc and allows the interpretation of symbols as defined by the state and its sub-states.</p>
+<p>The most public functions of the scanner are PDScannerPopString and PDScannerPopStack. The former attempts to retrieve a string from the input stream, and the other a <a class="el" href="a00023.html#a00142">pd_stack</a>. If the next value scanned is not the requested type, the function keeps the value around and returns falsity. It is not uncommon to attempt to pop a stack, and upon failure, to pop a string and behave accordingly. </p>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a class="anchor" id="ga92172d304fc8c58de7e78e284593aff2"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">struct PDReference</td>
+          <td class="memname">typedef void(* PDScannerBufFunc)(void *info, <a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner, char **buf, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> *size, <a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> req)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<div class="textblock"><p>Internal reference structure </p>
-</div><table class="memberdecls">
-<tr><td colspan="2"><h3>Data Fields</h3></td></tr>
-<tr class="memitem:ga9d20562f1b8ee0ebb57912a6fac776de"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga9d20562f1b8ee0ebb57912a6fac776de"></a>
-<a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00021.html#ga9d20562f1b8ee0ebb57912a6fac776de">obid</a></td></tr>
-<tr class="memdesc:ga9d20562f1b8ee0ebb57912a6fac776de"><td class="mdescLeft">&#160;</td><td class="mdescRight">The object ID. <br /></td></tr>
-<tr class="separator:ga9d20562f1b8ee0ebb57912a6fac776de"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac836ea855f7a5deaf31a0eed095a10a4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gac836ea855f7a5deaf31a0eed095a10a4"></a>
-<a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="a00021.html#gac836ea855f7a5deaf31a0eed095a10a4">genid</a></td></tr>
-<tr class="memdesc:gac836ea855f7a5deaf31a0eed095a10a4"><td class="mdescLeft">&#160;</td><td class="mdescRight">The generation number. <br /></td></tr>
-<tr class="separator:gac836ea855f7a5deaf31a0eed095a10a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table>
+<p>Called whenever the scanner needs more data.</p>
+<p>The scanner's buffer function requires that the buffer is intact in the sense that the content in the range 0..*size (on call) remains intact and in the same position relative to *buf; req may be set if the scanner has an idea of how much data it needs, but is most often 0. </p>
 
 </div>
 </div>
-<h2 class="groupheader">Typedef Documentation</h2>
-<a class="anchor" id="gabfc26b5329015281947a491f12866f96"></a>
+<a class="anchor" id="gae5853a144676cc599a26e58f6787bb31"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">typedef struct <a class="el" href="a00021.html#a00162">PDReference</a>* <a class="el" href="a00128.html#gabfc26b5329015281947a491f12866f96">PDReferenceRef</a></td>
+          <td class="memname">typedef void(* PDScannerPopFunc)(<a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> scanner)</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>A reference to a PDF object. </p>
+<p>Pop function signature.</p>
+<p>The pop function is used to lex symbols out of the buffer, potentially requesting more data via the supplied PDScannerBufFunc.</p>
+<p>It defaults to a simple read-forward but can be swapped for special purpose readers on demand. It is internally swapped for the reverse lexer when the initial "startxref" value is located. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga361cbc12b048ed3fdc9c35940cbc4fbd"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef struct <a class="el" href="a00023.html#a00163">PDScanner</a>* <a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>A scanner. </p>
 
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="gae65dd451510a789d3527619ec05f61c3"></a>
+<a class="anchor" id="ga6875733f833080be3b630caa33107bb3"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="a00128.html#gabfc26b5329015281947a491f12866f96">PDReferenceRef</a> PDReferenceCreate </td>
+          <td class="memname">void PDScannerAlign </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
-          <td class="paramname"><em>obid</em>, </td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
-          <td class="paramname"><em>genid</em>&#160;</td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga2c4cdb81ea3cd830cbadca665e75fbe3">PDOffset</a>&#160;</td>
+          <td class="paramname"><em>offset</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -190,81 +245,767 @@ Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Create a reference for the given object ID and generation number.</p>
+<p>Align buffer along with pointers with given offset (often negative).</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">obid</td><td>Object ID. </td></tr>
-    <tr><td class="paramname">genid</td><td>Generation number. </td></tr>
+    <tr><td class="paramname">scanner</td><td>The scanner. </td></tr>
+    <tr><td class="paramname">offset</td><td>The offset. </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a class="anchor" id="gaf9482c2af1d1d34f2f51aff6bba48cb0"></a>
+<a class="anchor" id="gad4c31ab25eb7a4850f17ffbb770e4ba3"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="a00128.html#gabfc26b5329015281947a491f12866f96">PDReferenceRef</a> PDReferenceCreateFromStackDictEntry </td>
+          <td class="memname">void PDScannerAssertComplex </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="a00021.html#a00143">pd_stack</a>&#160;</td>
-          <td class="paramname"><em>stack</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>identifier</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Create a reference based on a stack.</p>
-<p>The stack may be a dictionary entry containing a ref stack, or just a ref stack on its own.</p>
+<p>Require that the next result is a complex of the given type, or throw assertion.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">stack</td><td>The dictionary or reference stack. </td></tr>
+    <tr><td class="paramname">scanner</td><td>The scanner. </td></tr>
+    <tr><td class="paramname">identifier</td><td>The identifier. </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a class="anchor" id="ga6855ff414ae09abf03cbbb9c071661c2"></a>
+<a class="anchor" id="gad4b50d3b475859f2bd0b38ae5f9f8769"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> PDReferenceGetGenerationID </td>
+          <td class="memname">void PDScannerAssertStackType </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="a00128.html#gabfc26b5329015281947a491f12866f96">PDReferenceRef</a>&#160;</td>
-          <td class="paramname"><em>reference</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Get the generation ID for the reference.</p>
+<p>Require that the next result is a stack (the stack is discarded), or throw assertion.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">reference</td><td>The reference. </td></tr>
+    <tr><td class="paramname">scanner</td><td>The scanner. </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a class="anchor" id="ga070fdaa9a0f8ddaf1e2815ffa5b3a961"></a>
+<a class="anchor" id="ga88f788923190b248b00a171740574181"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="a00029.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> PDReferenceGetObjectID </td>
+          <td class="memname">void PDScannerAssertString </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="a00128.html#gabfc26b5329015281947a491f12866f96">PDReferenceRef</a>&#160;</td>
-          <td class="paramname"><em>reference</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Require that the next result is a string, and that it is equal to the given value, or throw assertion.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scanner</td><td>The scanner. </td></tr>
+    <tr><td class="paramname">value</td><td>Expected string. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga97f6905d846c668ec5113cf131eab30d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> PDScannerAttachFilter </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00035.html#ga25d6a2b08f3a7fcfe3235c0addc49142">PDStreamFilterRef</a>&#160;</td>
+          <td class="paramname"><em>filter</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Attach a stream filter to the scanner.</p>
+<p>Stream filters are used to e.g. compress/decompress or encrypt/decrypt binary content.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scanner</td><td>The scanner. </td></tr>
+    <tr><td class="paramname">filter</td><td>The filter. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga8def18a33d6ce73f9d6694dce1fa347c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDScannerAttachFixedSizeBuffer </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Attach a fixed-size buffer to the scanner. The scanner will refuse to use the buffering function, if one is present.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scanner</td><td>The scanner. </td></tr>
+    <tr><td class="paramname">buf</td><td>The buffer. </td></tr>
+    <tr><td class="paramname">len</td><td>The length of the buffer. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gae5ccc9f718826e5bc8ecb3b45fe63cf8"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> PDScannerCreateWithState </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00130.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a>&#160;</td>
+          <td class="paramname"><em>state</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Get the object ID for the reference.</p>
+<p>Create a scanner using the default pop function.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">reference</td><td>The reference. </td></tr>
+    <tr><td class="paramname">state</td><td>The root state to use in the scanner. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga48a0f0f24afb173ad4301092a31d9f67"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a> PDScannerCreateWithStateAndPopFunc </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00130.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00128.html#gae5853a144676cc599a26e58f6787bb31">PDScannerPopFunc</a>&#160;</td>
+          <td class="paramname"><em>popFunc</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Create a scanner using the provided pop function.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td>The root state to use in the scanner. </td></tr>
+    <tr><td class="paramname">popFunc</td><td>The pop function to use. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga283f386854430a132b608fd6e3eed767"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDScannerDetachFilter </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Detach attached stream filter from the scanner.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scanner</td><td>The scanner. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gae1d98b9f54bc1cc2742becb0c41cf25c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00023.html#a00142">pd_stack</a> PDScannerGenerateStackFromFixedBuffer </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00130.html#gaba029115435d5202e49d049a44e02df9">PDStateRef</a>&#160;</td>
+          <td class="paramname"><em>state</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Set up a temporary scanner with the given root state, and process buf, returning a <a class="el" href="a00023.html#a00142">pd_stack</a> entry after tearing down the scanner again.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">state</td><td>The root state </td></tr>
+    <tr><td class="paramname">buf</td><td>Buffer </td></tr>
+    <tr><td class="paramname">len</td><td>Length of buffer in bytes</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="a00023.html#a00142">pd_stack</a> entry or NULL on failure </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga2777610f17eff0d64c4f0a818669699a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> PDScannerPassSymbolCharacterType </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramname"><em>symbolCharType</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Skip until the given symbol character type is encountered, stopping after the symbol character type.</p>
+<dl class="section note"><dt>Note</dt><dd>Buffer growth is never done in this method, which means if the scanner's buffer is only partially complete, it may stop prematurely.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scanner</td><td>The scanner. </td></tr>
+    <tr><td class="paramname">symbolCharType</td><td>The symbol character type. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The number of bytes skipped. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gafe6a57643513f8554ff722fca03ae2a0"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDScannerPopContext </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Pop the scanner's current context.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scanner</td><td>Scanner </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga980a4905a7069fe0275b60477a1f7c78"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> PDScannerPopStack </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00023.html#a00142">pd_stack</a> *&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Pop the next stack.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scanner</td><td>The scanner. </td></tr>
+    <tr><td class="paramname">value</td><td>Pointer to stack ref. Must be freed. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if the next value was a stack. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gafad77e7619cac5c2fa8b04cdb3095f93"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00031.html#gad244dd3b4044286b711733599137f318">PDBool</a> PDScannerPopString </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char **&#160;</td>
+          <td class="paramname"><em>value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Pop the next string.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scanner</td><td>The scanner. </td></tr>
+    <tr><td class="paramname">value</td><td>Pointer to string variable. Must be freed. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if the next value was a string. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga6bd473cdfa4437e42948b204faf4714d"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDScannerPopSymbol </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Pop a symbol as normal, via forward reading of buffer.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scanner</td><td>The scanner.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="a00128.html#ga48a0f0f24afb173ad4301092a31d9f67">PDScannerCreateWithStateAndPopFunc</a> </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gac90961f6c1135e6286d9de820b904462"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDScannerPopSymbolRev </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Pop a symbol reversedly, by iterating backward.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scanner</td><td>The scanner.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="a00128.html#ga48a0f0f24afb173ad4301092a31d9f67">PDScannerCreateWithStateAndPopFunc</a> </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga87f2785bd200d8acea7ecc27489f964e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDScannerPrintStateTrace </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Print a trace of states to stdout for the scanner.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scanner</td><td>The scanner. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gabd56cfbc7e78921e604a186c39035580"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDScannerPushContext </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>ctxInfo</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga92172d304fc8c58de7e78e284593aff2">PDScannerBufFunc</a>&#160;</td>
+          <td class="paramname"><em>ctxBufFunc</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Push a new buffer context onto a scanner, keeping the old one on a stack.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scanner</td><td>Scanner </td></tr>
+    <tr><td class="paramname">ctxInfo</td><td>Info object for the buffer function </td></tr>
+    <tr><td class="paramname">ctxBufFunc</td><td>Buffer function </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gaedccd89fbe938ae0cd2f59fa799139ae"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> PDScannerReadStream </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramname"><em>bytes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>dest</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramname"><em>capacity</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Read parts or entire stream at current position via attached filter.</p>
+<p>Iterates scanner and stream (contrary to PDScannerSkip above, which only iterates scanner).</p>
+<dl class="section note"><dt>Note</dt><dd>If a decompression filter is attached, not all data may be read at once due to capacity limitations, and may require calls to <a class="el" href="a00128.html#ga45c84a33b2d9813bac120b6f4273fc7e">PDScannerReadStreamNext()</a>.</dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="a00128.html#ga97f6905d846c668ec5113cf131eab30d">PDScannerAttachFilter</a> </dd>
+<dd>
+<a class="el" href="a00128.html#ga45c84a33b2d9813bac120b6f4273fc7e">PDScannerReadStreamNext</a></dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scanner</td><td>The scanner. </td></tr>
+    <tr><td class="paramname">bytes</td><td>The number of raw bytes to read. </td></tr>
+    <tr><td class="paramname">dest</td><td>The destination buffer. </td></tr>
+    <tr><td class="paramname">capacity</td><td>The capacity of the destination buffer. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The number of bytes stored in dest. If this value is equal to capacity, there may be more data available via PDScannerReadStreamNext. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga45c84a33b2d9813bac120b6f4273fc7e"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a> PDScannerReadStreamNext </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>dest</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramname"><em>capacity</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Continue reading stream data via attached filter.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="a00128.html#ga97f6905d846c668ec5113cf131eab30d">PDScannerAttachFilter</a> </dd>
+<dd>
+<a class="el" href="a00128.html#gaedccd89fbe938ae0cd2f59fa799139ae">PDScannerReadStream</a></dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scanner</td><td>The scanner. </td></tr>
+    <tr><td class="paramname">dest</td><td>The destination buffer. </td></tr>
+    <tr><td class="paramname">capacity</td><td>The capacity of the destination buffer. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The number of bytes stored in dest. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga88e5b92f49c7bb06daa92838fbed2421"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDScannerReset </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Reset scanner buffer including size, offset, trail, etc., as well as discarding symbols and results.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scanner</td><td>The scanner. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gae7c7dfac41a1950a736ccb6d076e4330"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDScannerSetLoopCap </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga7bf5d17054ed63682b0cb309545ad1cc">PDInteger</a>&#160;</td>
+          <td class="paramname"><em>cap</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Push a global scanner context.</p>
+<p>Global scanner contexts, consisting of an info pointer and a buffer function; can be pushed to provide a temporary context e.g. for off-reading.</p>
+<dl class="section note"><dt>Note</dt><dd>These are global. All instances of PDScannerRef will switch to using the pushed context and switch back when popped.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">ctxInfo</td><td>The info object. Can be anything, but in Pajdeg it is always a PDTwinStreamRef. It is passed on to the buffer function when called. </td></tr>
+    <tr><td class="paramname">ctxBufFunc</td><td>The buffer function. Pop global scanner context.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd>PDScannerContextPush Set a cap on # of loops scanners make before considering a pop a failure.</dd></dl>
+<p>This is used when reading a PDF for the first time to not scan through the entire thing backwards looking for the startxref entry.</p>
+<p>The loop cap is reset after every successful pop.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cap</td><td>The cap. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga7e95e6b212bd9026ec14cfbd6bcee518"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDScannerSkip </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga5e255303bba6a64f69d4dddb5485df58">PDSize</a>&#160;</td>
+          <td class="paramname"><em>bytes</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Skip over a chunk of data internally, usually a PDF stream.</p>
+<dl class="section note"><dt>Note</dt><dd>The stream is not iterated, only the scanner's internal buffer offset is.</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scanner</td><td>The scanner. </td></tr>
+    <tr><td class="paramname">bytes</td><td>The amount of bytes to skip. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga37d0794d681d7d8e829b87b6e78c2dd3"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void PDScannerTrim </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="a00128.html#ga361cbc12b048ed3fdc9c35940cbc4fbd">PDScannerRef</a>&#160;</td>
+          <td class="paramname"><em>scanner</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="a00031.html#ga2c4cdb81ea3cd830cbadca665e75fbe3">PDOffset</a>&#160;</td>
+          <td class="paramname"><em>bytes</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>Trim off of head from buffer (only used if buffer is a non-allocated pointer into a heap).</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">scanner</td><td>The scanner. </td></tr>
+    <tr><td class="paramname">bytes</td><td>Bytes to trim off. </td></tr>
   </table>
   </dd>
 </dl>
@@ -274,7 +1015,7 @@ Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sat Nov 15 2014 11:21:36 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Dec 15 2014 19:33:53 for Pajdeg by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.8
 </small></address>
