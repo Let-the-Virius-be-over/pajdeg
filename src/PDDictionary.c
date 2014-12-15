@@ -31,14 +31,14 @@
 #include "PDArray.h"
 #include "PDString.h"
 
-//#define PDHM_PROF // if set, profiling is done (and printed to stdout occasionally) about how well the hash map is performing
-
 #ifdef PDHM_PROF
 #define prof_ctr_mask     1023 // the mask used to cycle
 static int prof_counter = 0;   // cycles 0..1023 and prints profile info at every 0
 
 static unsigned long long 
+    operations = 0,             // # of operations in total
     creations = 0,              // # of hash map creations
+    capCountSum = 0,            // the highest count seen on deletion
     destroys = 0,               // # of hash map destructions
     node_creations = 0,         // # of nodes created
     node_destroys = 0,          // # of nodes deleted
@@ -84,6 +84,8 @@ static inline void prof_report()
 {
     printf("                     HASH MAP PROFILING\n"
            "=================================================================================================\n"
+           "total operation count : %10llu\n"
+           "average count / dict  : %10lf\n"
            "creations  : %10llu   destroys   : %10llu\n"
            "nodes      : %10llu              : %10llu\n"
            "bucket sum : %10llu   top sized  : %10llu\n"
@@ -95,6 +97,8 @@ static inline void prof_report()
            "   on set  : %10llu   on get     : %10llu\n"
            "collision ratio : %f\n"
            "   set collisions : %f   get/del collisions : %f\n"
+           , operations
+           , (double)capCountSum / (double)destroys
            , creations, destroys
            , node_creations, node_destroys
            , totbucks, topbucksize
@@ -129,12 +133,13 @@ static inline void prof_report()
 
 void PDDictionaryDestroy(PDDictionaryRef hm)
 {
+    prof(capCountSum += hm->maxCount);
     prof(destroys++);
     free(hm->buckets);
     PDRelease(hm->populated);
 }
 
-PDSize PDHashGeneratorCString(const char *key) 
+static inline PDSize PDHashGeneratorCString(const char *key) 
 {
     prof(cstring_hashgens++);
     // from http://c.learncodethehardway.org/book/ex37.html
@@ -156,7 +161,7 @@ PDSize PDHashGeneratorCString(const char *key)
 }
 
 #ifdef PDHM_PROF
-int PDHashComparatorCString(const char *key1, const char *key2)
+static inline int PDHashComparatorCString(const char *key1, const char *key2)
 {
     prof(cstring_hashcomps++);
     return strcmp(key1, key2);
@@ -172,6 +177,7 @@ PDDictionaryRef _PDDictionaryCreateWithSettings(PDSize bucketc)
     prof(creations++; totbucks += bucketc; totemptybucks += bucketc);
     PDDictionaryRef hm = PDAllocTyped(PDInstanceTypeDict, sizeof(struct PDDictionary), PDDictionaryDestroy, false);
     hm->count = 0;
+    prof(hm->maxCount = 0);
     hm->bucketc = bucketc;   // 128 (0b10000000)
     hm->bucketm = bucketc-1; // 127 (0b01111111)
     hm->buckets = calloc(sizeof(PDArrayRef), hm->bucketc);
@@ -306,6 +312,7 @@ void PDDictionarySet(PDDictionaryRef hm, const char *key, void *value)
     if (hm->ci) (*PDInstanceCryptoExchanges[PDResolve(value)])(value, hm->ci, false);
 #endif
     
+    prof(operations++);
     prof(totsets++);
     PDSize hash = PDHashGeneratorCString(key);
     PDInteger nodeIndex;
@@ -321,6 +328,7 @@ void PDDictionarySet(PDDictionaryRef hm, const char *key, void *value)
     } else {
         reg_buck_insert(bucket);
         hm->count++;
+        prof(if (hm->count > hm->maxCount) hm->maxCount = hm->count);
         PDDictionaryNodeRef node = PDDictionaryNodeCreate(hash, strdup(key), value);
         PDArrayAppend(bucket, node);
         PDRelease(node);
@@ -329,6 +337,7 @@ void PDDictionarySet(PDDictionaryRef hm, const char *key, void *value)
 
 void *PDDictionaryGet(PDDictionaryRef hm, const char *key)
 {
+    prof(operations++);
     prof(totgets++);
     PDSize hash = PDHashGeneratorCString(key);
     PDInteger nodeIndex;
@@ -344,6 +353,7 @@ void *PDDictionaryGetTyped(PDDictionaryRef dictionary, const char *key, PDInstan
 
 void PDDictionaryDelete(PDDictionaryRef hm, const char *key)
 {
+    prof(operations++);
     prof(totdels++);
     PDSize hash = PDHashGeneratorCString(key);
     PDInteger nodeIndex;
@@ -356,6 +366,7 @@ void PDDictionaryDelete(PDDictionaryRef hm, const char *key)
 
 void PDDictionaryClear(PDDictionaryRef hm)
 {
+    prof(operations++);
     PDInteger blen = PDArrayGetCount(hm->populated);
     for (PDInteger i = 0; i < blen; i++) {
         PDArrayRef bucket = PDArrayGetElement(hm->populated, i);

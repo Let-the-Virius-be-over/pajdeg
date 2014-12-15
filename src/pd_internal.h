@@ -618,10 +618,18 @@ struct PDDictionaryNode {
 };
 
 /**
+ *  If set, profiling is done (and printed to stdout occasionally) about how well the hash map is performing
+ */
+//#define PDHM_PROF
+
+/**
  The internal dictionary structure.
  */
 struct PDDictionary {
     PDInteger        count;     ///< Number of entries
+#ifdef PDHM_PROF
+    PDInteger        maxCount;  ///< Max entries seen in this dictionary
+#endif
     PDInteger        bucketc;   ///< Number of buckets
     PDInteger        bucketm;   ///< Bucket mask
     PDArrayRef      *buckets;   ///< Buckets containing content
