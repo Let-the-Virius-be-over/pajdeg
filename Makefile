@@ -4,13 +4,13 @@ SRCDIR	= src
 
 all:	pajdeg
 
-pajdeg:	$(SRCDIR)
+pajdeg:	$(SRCDIR) libpajdeg.a
 	cd $(SRCDIR) && make 
-	cp $(SRCDIR)/libpajdeg.a .
+	mv $(SRCDIR)/libpajdeg.a .
 
 debug:	$(SRCDIR)
 	cd $(SRCDIR) && make debug
-	cp $(SRCDIR)/libpajdegD.a .
+	mv $(SRCDIR)/libpajdegD.a .
 
 clean:
 	rm libpajdeg*.a
