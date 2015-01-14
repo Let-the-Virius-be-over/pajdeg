@@ -373,7 +373,7 @@
 #ifndef INCLUDED_PAJDEG_H
 #   define INCLUDED_PAJDEG_H
 
-#   define PAJDEG_VERSION   "0.2.2"
+#   define PAJDEG_VERSION   "0.3.0"
 
 #   include "PDPipe.h"
 #   include "PDObject.h"
@@ -381,4 +381,7 @@
 #   include "PDParser.h"
 #   include "PDReference.h"
 #   include "PDScanner.h"
+#   include "PDDictionary.h"
+#   include "PDArray.h"
+#   include "PDString.h"
 #endif
