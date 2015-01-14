@@ -638,7 +638,17 @@ typedef enum {
     PDStringEncodingUTF16LE = 4,    ///< UTF-16 encoding (little endian)
     PDStringEncodingUTF32 = 5,      ///< UTF-32 encoding
     PDStringEncodingMacRoman = 6,   ///< Mac Roman encoding
-    __PDSTRINGENC_END = 6,          ///< --marker--
+    PDStringEncodingEUCJP = 7,      ///< EUC-JP
+    PDStringEncodingSHIFTJIS = 8,   ///< SHIFT-JIS
+    PDStringEncodingISO8859_1 = 9,  ///< ISO-8859-1 (latin1)
+    PDStringEncodingISO8859_2 = 10, ///< ISO-8859-2 (latin2)
+    PDStringEncodingCP1251 = 11,    ///< Windows CP-1251
+    PDStringEncodingCP1252 = 12,    ///< Windows CP-1252
+    PDStringEncodingCP1253 = 13,    ///< Windows CP-1253
+    PDStringEncodingCP1254 = 14,    ///< Windows CP-1254
+    PDStringEncodingCP1250 = 15,    ///< Windows CP-1250
+    PDStringEncodingISO2022JP = 16, ///< ISO-2022-JP
+    __PDSTRINGENC_END = 16,         ///< --marker--
     PDStringEncodingUndefined = 999,///< The encoding used was not determined correctly. The string may be a binary value or similar
 } PDStringEncoding;
 

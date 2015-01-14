@@ -57,18 +57,63 @@ const struct iconv_fallbacks pdstring_iconv_fallbacks = {
 
 void PDStringDetermineEncoding(PDStringRef string);
 
-static char **enc_names = NULL;
+static PDStringEncoding autoList[] = {
+    2, // starting index = utf-8
+    0, // ascii -> default (end)
+    6, // utf-8 -> mac-roman
+    4, // utf-16be -> utf-16le
+    5, // utf-16le -> utf-32
+    7, // utf-32 -> euc-jp
+    3, // mac-roman -> utf-16be
+    8, // euc-jp -> shift-jis
+    9, // shift-jis -> iso-8859-1
+    10, // iso-8859-1 -> iso-8859-2
+    1, // iso-8859-2 -> ascii
+};
+
+#define PDStringEncodingEnumerate(enc) \
+            for (PDStringEncoding enc = autoList[0]; \
+                 enc > 0 && enc < __PDSTRINGENC_END; \
+                 enc = autoList[enc])
+
+static const char *enc_ascii = "ASCII";
+static const char *enc_utf8 = "UTF-8";
+static const char *enc_utf16be = "UTF-16BE";
+static const char *enc_utf16le = "UTF-16LE";
+static const char *enc_utf32 = "UTF-32";
+static const char *enc_macroman = "MACROMAN";
+static const char *enc_eucjp = "EUC-JP";
+static const char *enc_shift_jis = "SHIFT_JIS";
+static const char *enc_iso_8859_1 = "ISO-8859-1";
+static const char *enc_iso_8859_2 = "ISO-8859-2";
+static const char *enc_cp1251 = "CP1251";
+static const char *enc_cp1252 = "CP1252";
+static const char *enc_cp1253 = "CP1253";
+static const char *enc_cp1254 = "CP1254";
+static const char *enc_cp1250 = "CP1250";
+static const char *enc_iso_2022_jp = "ISO-2022-JP";
+static const char **enc_names = NULL;
 
 static inline void setup_enc_names() 
 {
-    PDAssert(__PDSTRINGENC_END == 6);
+    PDAssert(__PDSTRINGENC_END == 16);
     enc_names = malloc(sizeof(char*) * __PDSTRINGENC_END);
-    enc_names[0] = "ASCII";
-    enc_names[1] = "UTF-8";
-    enc_names[2] = "UTF-16BE";
-    enc_names[3] = "UTF-16LE";
-    enc_names[4] = "UTF-32";
-    enc_names[5] = "MACROMAN";
+    enc_names[ 0] = enc_ascii;
+    enc_names[ 1] = enc_utf8;
+    enc_names[ 2] = enc_utf16be;
+    enc_names[ 3] = enc_utf16le;
+    enc_names[ 4] = enc_utf32;
+    enc_names[ 5] = enc_macroman;
+    enc_names[ 6] = enc_eucjp;
+    enc_names[ 7] = enc_shift_jis;
+    enc_names[ 8] = enc_iso_8859_1;
+    enc_names[ 9] = enc_iso_8859_2;
+    enc_names[10] = enc_cp1251;
+    enc_names[11] = enc_cp1252;
+    enc_names[12] = enc_cp1253;
+    enc_names[13] = enc_cp1254;
+    enc_names[14] = enc_cp1250;
+    enc_names[15] = enc_iso_2022_jp;
 }
 
 const char *PDStringEncodingToIconvName(PDStringEncoding enc)
@@ -82,11 +127,10 @@ PDStringRef PDUTF8String(PDStringRef string)
 {
     PDStringRef source = string;
     
-    // we get a lot of "( )" strings, so we check that first off
-    PDBool onlySpace = true;
-    for (int i = string->wrapped; onlySpace && i < string->length - string->wrapped; i++) 
-        onlySpace = string->data[i] == ' ';
-    if (onlySpace) {
+    // we get a lot of plain strings, so we check that first off
+    PDBool onlyPlain = true;
+    for (int i = string->wrapped; onlyPlain && i < string->length - string->wrapped; i++) onlyPlain = string->data[i] == ' ' || (string->data[i] >= 'a' && string->data[i] <= 'z') || (string->data[i] >= 'A' && string->data[i] <= 'Z') || (string->data[i] >= '0' && string->data[i] <= '9') || string->data[i] == '\n' || string->data[i] == '\r' || string->data[i] == '\t';
+    if (onlyPlain) {
         string->enc = PDStringEncodingUTF8;
         return string;
     }
@@ -104,7 +148,7 @@ PDStringRef PDUTF8String(PDStringRef string)
     PDInteger cap = (3 * source->length)>>1;
     char *results = malloc(sizeof(char) * cap);
     
-    for (PDStringEncoding enc = PDStringEncodingUTF8; enc > 0; enc -= 1 + (enc-1 == PDStringEncodingUTF8)) {
+    PDStringEncodingEnumerate(enc) {
         size_t targetLeft = cap;
         char *targetStart = results;
 
@@ -120,7 +164,7 @@ PDStringRef PDUTF8String(PDStringRef string)
             iconv_unicode_mb_to_uc_fb_called = iconv_unicode_uc_to_mb_fb_called = false;
             oldSourceLeft = sourceLeft;
             iconv(cd, &sourceData, &sourceLeft, &targetStart, &targetLeft);
-            if (oldSourceLeft == sourceLeft || sourceLeft == 0 || iconv_unicode_uc_to_mb_fb_called || iconv_unicode_mb_to_uc_fb_called) break;
+            if (oldSourceLeft == sourceLeft || targetLeft > 4 || sourceLeft == 0 || iconv_unicode_uc_to_mb_fb_called || iconv_unicode_mb_to_uc_fb_called) break;
             
             targetLeft += cap;
             cap <<= 1;
@@ -143,8 +187,6 @@ PDStringRef PDUTF8String(PDStringRef string)
             string->alt->enc = PDStringEncodingUTF8;
             return string->alt;
         }
-        
-        if (enc == PDStringEncodingUTF8) enc = __PDSTRINGENC_END + 1;
     }
     
     free(results);
@@ -177,7 +219,7 @@ PDStringRef PDUTF16String(PDStringRef string)
     PDInteger cap = (3 * source->length)>>1;
     char *results = malloc(sizeof(char) * cap);
     
-    for (PDStringEncoding enc = PDStringEncodingUTF8; enc > 0; enc -= 1 + (enc-1 == PDStringEncodingUTF8)) {
+    for (PDStringEncoding enc = PDStringEncodingUTF16BE; enc > 0; enc -= 1 + (enc-1 == PDStringEncodingUTF16BE)) {
         size_t targetLeft = cap;
         char *targetStart = results;
 
