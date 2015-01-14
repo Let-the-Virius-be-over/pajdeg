@@ -698,11 +698,9 @@ void *PDInstanceCreateFromComplex(pd_stack *complex)
         }
         else if (PDIdentifies(tid, PD_DICT)) {
             result = PDDictionaryCreateWithComplex(*complex);
-//            result = PDCollectionCreateWithDictionary(pd_dict_from_pdf_dict_stack(*complex));
         }
         else if (PDIdentifies(tid, PD_ARRAY)) {
             result = PDArrayCreateWithComplex(*complex);
-//            result = PDCollectionCreateWithArray(pd_array_from_pdf_array_stack(*complex));
         }
         else if (PDIdentifies(tid, PD_DE)) {
             *complex = (*complex)->prev->prev->info;
@@ -718,7 +716,6 @@ void *PDInstanceCreateFromComplex(pd_stack *complex)
     } else if ((*complex)->prev) {
         // short array is the "default" when a prev exists and type != PD_STACK_ID
         result = PDArrayCreateWithStackList(*complex);
-//        result = PDCollectionCreateWithArray(pd_array_from_stack(*complex));
     } else if ((*complex)->type == PD_STACK_STRING) {
         // a stack string can be a number of things:
         // 1. true, false or null
