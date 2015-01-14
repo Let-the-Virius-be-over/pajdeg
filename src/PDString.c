@@ -51,6 +51,9 @@ char *PDStringNameToEscaped(char *string, PDSize len, PDBool hasW, PDBool addW);
 char *PDStringNameToHex(char *string, PDSize len, PDBool hasW, PDBool addW);                        ///< "/foo123"              -> "abc123"
 char *PDStringNameToBinary(char *string, PDSize len, PDBool hasW, PDSize *outLength);               ///< "/foo123"              -> "01101010"
 
+// Defined in PDStringUTF.c
+extern void PDStringDetermineEncoding(PDStringRef string);
+
 // Public
 
 void PDStringDestroy(PDStringRef string)
@@ -84,6 +87,7 @@ PDStringRef PDStringCreate(char *string)
 #endif
     
     PDStringRef res = PDAllocTyped(PDInstanceTypeString, sizeof(struct PDString), PDStringDestroy, false);
+    res->enc = PDStringEncodingDefault;
     res->data = string;
     res->alt = NULL;
     res->length = strlen(string);
@@ -225,6 +229,12 @@ PDBool PDStringIsWrapped(PDStringRef string)
 PDStringType PDStringGetType(PDStringRef string)
 {
     return string->type;
+}
+
+PDStringEncoding PDStringGetEncoding(PDStringRef string)
+{
+    if (string->enc == PDStringEncodingDefault) PDStringDetermineEncoding(string);
+    return string->enc;
 }
 
 const char *PDStringEscapedValue(PDStringRef string, PDBool wrap)

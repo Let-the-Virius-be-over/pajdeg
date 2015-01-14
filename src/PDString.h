@@ -110,6 +110,24 @@ extern PDStringRef PDStringCreateWithHexString(char *hex);
 extern PDStringRef PDStringCreateFromStringWithType(PDStringRef string, PDStringType type, PDBool wrap);
 
 /**
+ *  Create a UTF-8 encoded version of the given string.
+ *
+ *  @param string The string to convert to UTF-8
+ *
+ *  @return A new UTF-8 encoded version of string, or string itself (retained) if it is already UTF-8 encoded
+ */
+extern PDStringRef PDStringCreateUTF8Encoded(PDStringRef string);
+
+/**
+ *  Create a UTF-16 encoded version of the given string.
+ *
+ *  @param string The string to convert to UTF-16
+ *
+ *  @return A new UTF-16 encoded version of string, or string itself (retained) if it is already UTF-16 encoded
+ */
+extern PDStringRef PDStringCreateUTF16Encoded(PDStringRef string);
+
+/**
  *  Force the wrapped state of a string. 
  *  Normally, when a regular string is set up, its 'wrapped' flag is set to true if the string is equal
  *  to "(whatever)", but in some rare instances, the wrapped string is "((value))", which unwrapped 
@@ -194,11 +212,21 @@ extern const char *PDStringHexValue(PDStringRef string, PDBool wrap);
 
 extern PDBool PDStringEqualsCString(PDStringRef string, const char *cString);
 
+/**
+ *  Compare the two strings and determine if their content is equal, disregarding wrapping and representation type.
+ *
+ *  @param string  First string to compare
+ *  @param string2 Second string to compare
+ *
+ *  @return Boolean value indicating whether the strings are equal
+ */
 extern PDBool PDStringEqualsString(PDStringRef string, PDStringRef string2);
 
 extern PDBool PDStringIsWrapped(PDStringRef string);
 
 extern PDStringType PDStringGetType(PDStringRef string);
+
+extern PDStringEncoding PDStringGetEncoding(PDStringRef string);
 
 #ifdef PD_SUPPORT_CRYPTO
 
