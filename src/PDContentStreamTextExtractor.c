@@ -117,6 +117,7 @@ typedef struct PDContentStreamTextExtractorUI *PDContentStreamTextExtractorUI;
 struct PDContentStreamTextExtractorUI {
     char **result;
     char *buf;
+    PDParserRef parser;
     PDInteger offset;
     PDInteger size;
     PDReal TM[6];   // text matrix; all except TM_x and TM_y are currently undefined!
@@ -167,15 +168,32 @@ static inline void PDContentStreamTextExtractorNewline(PDContentStreamTextExtrac
     tui->buf[tui->offset] = 0;
 }
 
+//PDOperatorState PDContentStreamTextExtractor_Tf(PDContentStreamRef cs, PDContentStreamTextExtractorUI userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
+//{
+//    // Set text font and size: font = args[0], size = args[1]
+//    PDAssert(PDArrayGetCount(args) == 2);
+//    PDStringRef font = PDArrayGetElement(args, 0);
+//    PDStringRef size = PDArrayGetElement(args, 1);
+//    // font should be a /name
+//    PDAssert(PDStringGetType(font) == PDStringTypeName);
+//    
+//    fprintf(userInfo->stream, "%sTf \tSet text font and size: font = %s, size = %s\n", userInfo->spacing, PDStringEscapedValue(PDArrayGetElement(args, 0), false), PDStringEscapedValue(PDArrayGetElement(args, 1), false));
+//    return PDOperatorStateIndependent;
+//}
+
+
 PDOperatorState PDContentStreamTextExtractor_Tj(PDContentStreamRef cs, PDContentStreamTextExtractorUI userInfo, PDArrayRef args, pd_stack inState, pd_stack *outState)
 {
     // these should have a single string as arg but we won't whine if that's not the case
+    PDStringRef utf8string;
     PDInteger argc = PDArrayGetCount(args);
     PDSize length;
     const char *data;
     for (PDInteger i = 0; i < argc; i++) {
-        data = PDStringBinaryValue(PDArrayGetElement(args, i), &length);
+        utf8string = PDStringCreateUTF8Encoded(PDArrayGetElement(args, i));
+        data = PDStringBinaryValue(utf8string, &length);
         PDContentStreamTextExtractorPrint(userInfo, data, length);
+        PDRelease(utf8string);
     }
     return PDOperatorStateIndependent;
 }
@@ -191,13 +209,16 @@ PDOperatorState PDContentStreamTextExtractor_TJ(PDContentStreamRef cs, PDContent
             argc = PDArrayGetCount(args);
         }
     }
+    PDStringRef utf8string;
     PDSize length;
     const char *data;
     for (PDInteger i = 0; i < argc; i++) {
         void *v = PDArrayGetElement(args, i);
         if (PDResolve(v) == PDInstanceTypeString) {
-            data = PDStringBinaryValue(v, &length);
+            utf8string = PDStringCreateUTF8Encoded(v);
+            data = PDStringBinaryValue(utf8string, &length);
             PDContentStreamTextExtractorPrint(userInfo, data, length);
+            PDRelease(utf8string);
         }
     }
     
@@ -275,10 +296,11 @@ PDOperatorState PDContentStreamTextExtractor_Tcite(PDContentStreamRef cs, PDCont
     return PDContentStreamTextExtractor_Tj(cs, userInfo, args, inState, outState);
 }
 
-PDContentStreamRef PDContentStreamCreateTextExtractor(PDObjectRef object, char **result)
+PDContentStreamRef PDContentStreamCreateTextExtractor(PDParserRef parser, PDObjectRef object, char **result)
 {
     PDContentStreamRef cs = PDContentStreamCreateWithObject(object);
     PDContentStreamTextExtractorUI teUI = malloc(sizeof(struct PDContentStreamTextExtractorUI));
+    teUI->parser = parser;
     teUI->result = result;
     *result = teUI->buf = malloc(128);
     teUI->buf[0] = '\n';
