@@ -640,6 +640,21 @@ struct PDDictionary {
 #endif
 };
 
+/**
+ *  The internal font dictionary structure.
+ */
+struct PDFontDictionary {
+    PDDictionaryRef fonts;      ///< Dictionary mapping font names to their values
+    PDParserRef     parser;     ///< The owning parser
+};
+
+/**
+ *  The internal font object structure.
+ */
+struct PDFont {
+    PDObjectRef     obj;        ///< Font object reference
+};
+
 #ifdef PD_SUPPORT_CRYPTO
 
 /**
@@ -824,6 +839,7 @@ struct PDNumber {
  */
 struct PDString {
     PDStringType type;      ///< Type of the string
+    PDStringEncoding enc;   ///< Encoding of the string
     PDSize length;          ///< Length of the string
     PDBool wrapped;         ///< Whether the string is wrapped
     char *data;             ///< Buffer containing string data
@@ -838,18 +854,6 @@ extern void PDStringAttachCryptoInstance(PDStringRef string, PDCryptoInstanceRef
 extern void PDArrayAttachCryptoInstance(PDArrayRef array, PDCryptoInstanceRef ci, PDBool encrypted);
 extern void PDDictionaryAttachCryptoInstance(PDDictionaryRef dictionary, PDCryptoInstanceRef ci, PDBool encrypted);
 extern void PDDictionaryAttachCryptoInstance(PDDictionaryRef hm, PDCryptoInstanceRef ci, PDBool encrypted);
-
-///// @name Collection
-//
-///**
-// Internal collection structure.
-// 
-// @ingroup PDCOLLECTION
-// */
-//struct PDCollection {
-//    PDCollectionType type;  ///< Type of the collection
-//    void *data;             ///< Contained data, 
-//};
 
 /// @name Conversion (PDF specification)
 
@@ -961,6 +965,20 @@ extern void _PDBreak();
 #       define PDAssert(args...) 
 #   endif
 #endif
+
+/**
+ @def PDRequire
+ Require that the given state is true, and print out msg (format string), and return retval if it is not.
+ In addition, if asserts are enabled, throw an assertion. The difference between this and PDAssert is that
+ this code is guaranteed to abort the operation even if in a production environment, whereas PDAssert will
+ be silently ignored for !DEBUG && !PD_ASSERTS.
+ */
+#define PDRequire(state, retval, msg...) \
+        if (!(state)) { \
+            PDWarn("requirement failure : " msg); \
+            PDAssert(state); \
+            return retval; \
+        }
 
 /**
  Macro for making casting of types a bit less of an eyesore. 
