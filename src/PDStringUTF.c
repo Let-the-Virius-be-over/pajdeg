@@ -152,7 +152,7 @@ PDStringRef PDUTF8String(PDStringRef string)
         size_t targetLeft = cap;
         char *targetStart = results;
 
-        cd = iconv_open(enc == PDStringEncodingUTF8 ? "UTF-16" : "UTF-8", PDStringEncodingToIconvName(enc));
+        cd = iconv_open(enc == PDStringEncodingUTF8 ? enc_utf16be : enc_utf8, PDStringEncodingToIconvName(enc));
         
         iconvctl(cd, ICONV_SET_FALLBACKS, (void*)&pdstring_iconv_fallbacks);
         
@@ -223,7 +223,7 @@ PDStringRef PDUTF16String(PDStringRef string)
         size_t targetLeft = cap;
         char *targetStart = results;
 
-        cd = iconv_open(enc == PDStringEncodingUTF16BE ? "UTF-8" : "UTF-16BE", PDStringEncodingToIconvName(enc));
+        cd = iconv_open(enc == PDStringEncodingUTF16BE ? enc_utf8 : enc_utf16be, PDStringEncodingToIconvName(enc));
         
         char *sourceData = (char *)&source->data[string->wrapped];
         size_t sourceLeft = source->length - (string->wrapped<<1);
