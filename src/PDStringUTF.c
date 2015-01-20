@@ -1,7 +1,7 @@
 //
 // PDStringUTF.c
 //
-// Copyright (c) 2012 - 2014 Karl-Johan Alm (http://github.com/kallewoof)
+// Copyright (c) 2012 - 2015 Karl-Johan Alm (http://github.com/kallewoof)
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,6 +24,10 @@
 
 #include <iconv.h>
 #include "PDString.h"
+#include "PDDictionary.h"
+#include "PDFont.h"
+#include "PDCMap.h"
+#include "PDNumber.h"
 #include "pd_internal.h"
 
 PDBool iconv_unicode_mb_to_uc_fb_called = false;
@@ -93,6 +97,7 @@ static const char *enc_cp1254 = "CP1254";
 static const char *enc_cp1250 = "CP1250";
 static const char *enc_iso_2022_jp = "ISO-2022-JP";
 static const char **enc_names = NULL;
+static PDDictionaryRef encMap = NULL;
 
 static inline void setup_enc_names() 
 {
@@ -114,6 +119,33 @@ static inline void setup_enc_names()
     enc_names[13] = enc_cp1254;
     enc_names[14] = enc_cp1250;
     enc_names[15] = enc_iso_2022_jp;
+    
+    encMap = PDDictionaryCreate();
+    
+    // same as above; this is not strictly necessary, but for convenience, Pajdeg's PDStringEncodingByName also accepts the (internally canonical) iconv names
+    PDDictionarySet(encMap, enc_ascii, PDNumberWithInteger(PDStringEncodingASCII));
+    PDDictionarySet(encMap, enc_utf8, PDNumberWithInteger(PDStringEncodingUTF8));
+    PDDictionarySet(encMap, enc_utf16be, PDNumberWithInteger(PDStringEncodingUTF16BE));
+    PDDictionarySet(encMap, enc_utf16le, PDNumberWithInteger(PDStringEncodingUTF16LE));
+    PDDictionarySet(encMap, enc_utf32, PDNumberWithInteger(PDStringEncodingUTF32));
+    PDDictionarySet(encMap, enc_macroman, PDNumberWithInteger(PDStringEncodingMacRoman));
+    PDDictionarySet(encMap, enc_eucjp, PDNumberWithInteger(PDStringEncodingEUCJP));
+    PDDictionarySet(encMap, enc_shift_jis, PDNumberWithInteger(PDStringEncodingSHIFTJIS));
+    PDDictionarySet(encMap, enc_iso_8859_1, PDNumberWithInteger(PDStringEncodingISO8859_1));
+    PDDictionarySet(encMap, enc_iso_8859_2, PDNumberWithInteger(PDStringEncodingISO8859_2));
+    PDDictionarySet(encMap, enc_cp1251, PDNumberWithInteger(PDStringEncodingCP1251));
+    PDDictionarySet(encMap, enc_cp1252, PDNumberWithInteger(PDStringEncodingCP1252));
+    PDDictionarySet(encMap, enc_cp1253, PDNumberWithInteger(PDStringEncodingCP1253));
+    PDDictionarySet(encMap, enc_cp1254, PDNumberWithInteger(PDStringEncodingCP1254));
+    PDDictionarySet(encMap, enc_cp1250, PDNumberWithInteger(PDStringEncodingCP1250));
+    PDDictionarySet(encMap, enc_iso_2022_jp, PDNumberWithInteger(PDStringEncodingISO2022JP));
+    
+    // PDF specification names
+    PDDictionarySet(encMap, "Identity-H", PDNumberWithInteger(PDStringEncodingUTF16BE));
+    PDDictionarySet(encMap, "Identity-V", PDNumberWithInteger(PDStringEncodingUTF16BE));
+    PDDictionarySet(encMap, "WinAnsiEncoding", PDNumberWithInteger(PDStringEncodingCP1252));
+    PDDictionarySet(encMap, "MacRomanEncoding", PDNumberWithInteger(PDStringEncodingMacRoman));
+    PDDictionarySet(encMap, "MacRomanEncodingASCII", PDNumberWithInteger(PDStringEncodingMacRoman));
 }
 
 const char *PDStringEncodingToIconvName(PDStringEncoding enc)
@@ -123,13 +155,37 @@ const char *PDStringEncodingToIconvName(PDStringEncoding enc)
     return enc_names[enc-1];
 }
 
+PDStringEncoding PDStringEncodingGetByName(const char *encodingName)
+{
+    if (enc_names == NULL) setup_enc_names();
+    PDNumberRef encNum = PDDictionaryGet(encMap, encodingName);
+    if (NULL == encNum) {
+        PDError("Unknown encoding string: %s", encodingName);
+        return PDStringEncodingUndefined;
+    }
+    return (PDStringEncoding) PDNumberGetInteger(encNum);
+}
+
+void PDStringSetEncoding(PDStringRef string, PDStringEncoding encoding)
+{
+    string->enc = encoding;
+}
+
+void PDStringSetFont(PDStringRef string, PDFontRef font)
+{
+    PDRetain(font);
+    PDRelease(string->font);
+    string->font = font;
+    if (font) string->enc = PDFontGetEncoding(font);
+}
+
 PDStringRef PDUTF8String(PDStringRef string)
 {
     PDStringRef source = string;
     
     // we get a lot of plain strings, so we check that first off
-    PDBool onlyPlain = true;
-    for (int i = string->wrapped; onlyPlain && i < string->length - string->wrapped; i++) onlyPlain = string->data[i] == ' ' || (string->data[i] >= 'a' && string->data[i] <= 'z') || (string->data[i] >= 'A' && string->data[i] <= 'Z') || (string->data[i] >= '0' && string->data[i] <= '9') || string->data[i] == '\n' || string->data[i] == '\r' || string->data[i] == '\t';
+    PDBool onlyPlain = PDStringGetType(string) == PDStringTypeBinary || PDStringGetType(string) == PDStringTypeEscaped;
+    for (int i = string->wrapped; onlyPlain && i < string->length - string->wrapped; i++) onlyPlain = string->data[i] == ' ' || (string->data[i] >= 'a' && string->data[i] <= 'z') || (string->data[i] >= 'A' && string->data[i] <= 'Z') || (string->data[i] >= '0' && string->data[i] <= '9') || string->data[i] == '\n' || string->data[i] == '\r' || string->data[i] == '\t' || string->data[i] == '\\' || string->data[i] == '"' || string->data[i] == '\'' || string->data[i] == '.' || string->data[i] == '(' || string->data[i] == ')';
     if (onlyPlain) {
         string->enc = PDStringEncodingUTF8;
         return string;
@@ -143,6 +199,14 @@ PDStringRef PDUTF8String(PDStringRef string)
         source = PDAutorelease(PDStringCreateBinaryFromString(string));
     }
     
+    PDStringEncoding knownEncoding = PDStringEncodingDefault;
+    
+    // does this string have a font, with a toUnicode mapping? if so we can get a UTF16BE from it
+    if (source->font && source->font->toUnicode) {
+        source = PDCMapApply(source->font->toUnicode, source);
+        knownEncoding = source->enc = PDStringEncodingUTF16BE;
+    }
+    
     iconv_t cd;
     
     PDInteger cap = (3 * source->length)>>1;
@@ -151,13 +215,18 @@ PDStringRef PDUTF8String(PDStringRef string)
     PDStringEncodingEnumerate(enc) {
         size_t targetLeft = cap;
         char *targetStart = results;
+        
+        if (knownEncoding) {
+            enc = knownEncoding;
+            knownEncoding = PDStringEncodingDefault;
+        }
 
         cd = iconv_open(enc == PDStringEncodingUTF8 ? enc_utf16be : enc_utf8, PDStringEncodingToIconvName(enc));
         
         iconvctl(cd, ICONV_SET_FALLBACKS, (void*)&pdstring_iconv_fallbacks);
         
-        char *sourceData = (char *)&source->data[string->wrapped];
-        size_t sourceLeft = source->length - (string->wrapped<<1);
+        char *sourceData = (char *)&source->data[source->wrapped];
+        size_t sourceLeft = source->length - (source->wrapped<<1);
         size_t oldSourceLeft;
         
         while (1) {
@@ -225,8 +294,8 @@ PDStringRef PDUTF16String(PDStringRef string)
 
         cd = iconv_open(enc == PDStringEncodingUTF16BE ? enc_utf8 : enc_utf16be, PDStringEncodingToIconvName(enc));
         
-        char *sourceData = (char *)&source->data[string->wrapped];
-        size_t sourceLeft = source->length - (string->wrapped<<1);
+        char *sourceData = (char *)&source->data[source->wrapped];
+        size_t sourceLeft = source->length - (source->wrapped<<1);
         size_t oldSourceLeft;
         
         while (1) {
@@ -268,21 +337,12 @@ PDStringRef PDUTF16String(PDStringRef string)
 
 void PDStringDetermineEncoding(PDStringRef string)
 {
-    PDStringRef source = string;
-    
     if (string->enc != PDStringEncodingDefault) return;
     
-    // we need an escaped or binary representation of the string
-    if (PDStringTypeBinary != string->type && PDStringTypeEscaped != string->type) {
-        source = PDAutorelease(PDStringCreateBinaryFromString(string));
-    }
-    
     // we try to create UTF8 string; the string will have its encoding set on return
-    PDStringRef u8string = PDUTF8String(string);
-    
-    if (u8string) return;
-    
-    PDWarn("Undefined string encoding encountered");
+    if (! PDUTF8String(string)) {
+        PDWarn("Undefined string encoding encountered");
+    }
 }
 
 PDStringRef PDStringCreateUTF8Encoded(PDStringRef string)

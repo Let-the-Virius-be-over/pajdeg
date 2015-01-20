@@ -1,7 +1,7 @@
 //
 // PDFont.h
 //
-// Copyright (c) 2012 - 2014 Karl-Johan Alm (http://github.com/kallewoof)
+// Copyright (c) 2012 - 2015 Karl-Johan Alm (http://github.com/kallewoof)
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -40,10 +40,29 @@
 /**
  *  Create a PDFont object from a font object in a PDF dictionary.
  *
- *  @param obj Font object in PDF dictionary
+ *  @param parser Parser from which to fetch content necessary to generate the font object
+ *  @param obj    Font object in PDF dictionary
  *
  *  @return A new PDFont object
  */
-extern PDFontRef PDFontCreate(PDObjectRef obj);
+extern PDFontRef PDFontCreate(PDParserRef parser, PDObjectRef obj);
+
+/**
+ *  Get the name of the encoding used for the font.
+ *
+ *  @param font The font object
+ *
+ *  @return The string value of the encoding (e.g. /Identity-H or /WinAnsiEncoding) or NULL if undefined
+ */
+extern PDStringRef PDFontGetEncodingName(PDFontRef font);
+
+/**
+ *  Get the encoding used for the font.
+ *
+ *  @param font The font object
+ *
+ *  @return The PDStringEncoding value of the encoding, or PDStringEncodingUndefined if undefined
+ */
+extern PDStringEncoding PDFontGetEncoding(PDFontRef font);
 
 #endif // INCLUDED_PDFont_h

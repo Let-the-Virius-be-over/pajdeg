@@ -1,7 +1,7 @@
 //
 // PDString.c
 //
-// Copyright (c) 2012 - 2014 Karl-Johan Alm (http://github.com/kallewoof)
+// Copyright (c) 2012 - 2015 Karl-Johan Alm (http://github.com/kallewoof)
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -62,6 +62,7 @@ void PDStringDestroy(PDStringRef string)
     PDRelease(string->ci);
 #endif
     PDRelease(string->alt);
+    PDRelease(string->font);
     free(string->data);
 }
 
@@ -90,6 +91,7 @@ PDStringRef PDStringCreate(char *string)
     res->enc = PDStringEncodingDefault;
     res->data = string;
     res->alt = NULL;
+    res->font = NULL;
     res->length = strlen(string);
     res->type = PDStringTypeEscaped;
     res->wrapped = (string[0] == '(' && string[res->length-1] == ')');
@@ -127,8 +129,10 @@ PDStringRef PDStringCreateWithName(char *name)
     }
     
     PDStringRef res = PDAllocTyped(PDInstanceTypeString, sizeof(struct PDString), PDStringDestroy, false);
+    res->enc = PDStringEncodingDefault;
     res->data = name;
     res->alt = NULL;
+    res->font = NULL;
     res->length = strlen(name);
     res->type = PDStringTypeName;
     res->wrapped = res->length > 1 && (name[1] == '(' && name[res->length-1] == ')');
@@ -145,8 +149,10 @@ PDStringRef PDStringCreateBinary(char *data, PDSize length)
 #endif
 
     PDStringRef res = PDAllocTyped(PDInstanceTypeString, sizeof(struct PDString), PDStringDestroy, false);
+    res->enc = PDStringEncodingDefault;
     res->data = data;
     res->alt = NULL;
+    res->font = NULL;
     res->length = length;
     res->type = PDStringTypeBinary;
     res->wrapped = false;
@@ -162,8 +168,10 @@ PDStringRef PDStringCreateWithHexString(char *hex)
     PDStringVerifyOwnership(hex, strlen(hex));
 #endif
     PDStringRef res = PDAllocTyped(PDInstanceTypeString, sizeof(struct PDString), PDStringDestroy, false);
+    res->enc = PDStringEncodingDefault;
     res->data = hex;
     res->alt = NULL;
+    res->font = NULL;
     res->length = strlen(hex);
     res->type = PDStringTypeHex;
     res->wrapped = (hex[0] == '<' && hex[res->length-1] == '>');
@@ -173,13 +181,34 @@ PDStringRef PDStringCreateWithHexString(char *hex)
     return res;
 }
 
-PDStringRef PDStringCreateFromStringWithType(PDStringRef string, PDStringType type, PDBool wrap)
+PDStringRef PDStringCopy(PDStringRef string)
 {
-    if (string->type == type && (string->type == PDStringTypeBinary || string->wrapped == wrap))
-        return PDRetain(string);
+    char *data = malloc(string->length + 1);
+    memcpy(data, string->data, string->length);
+    data[string->length] = 0;
+    
+    PDStringRef res = PDAllocTyped(PDInstanceTypeString, sizeof(struct PDString), PDStringDestroy, false);
+    res->enc = string->enc;
+    res->data = data;
+    res->alt = PDRetain(string->alt);
+    res->font = PDRetain(string->font);
+    res->length = string->length;
+    res->type = string->type;
+    res->wrapped = string->wrapped;
+#ifdef PD_SUPPORT_CRYPTO
+    res->ci = string->ci;
+#endif
+    return res;
+}
+
+PDStringRef PDStringCreateFromStringWithType(PDStringRef string, PDStringType type, PDBool wrap, PDBool requireCopy)
+{
+    if (string->type == type && (string->type == PDStringTypeBinary || string->wrapped == wrap)) {
+        return requireCopy ? PDStringCopy(string) : PDRetain(string);
+    }
     
     if (string->alt && string->alt->type == type && (string->alt->type == PDStringTypeBinary || string->alt->wrapped == wrap))
-        return PDRetain(string->alt);
+        return requireCopy ? PDStringCopy(string->alt) : PDRetain(string->alt);
     
     const char *res;
     char *buf;
@@ -212,6 +241,7 @@ PDStringRef PDStringCreateFromStringWithType(PDStringRef string, PDStringType ty
 #ifdef PD_SUPPORT_CRYPTO
     if (string->ci) PDStringAttachCryptoInstance(result, string->ci, string->encrypted);
 #endif
+    if (string->font) PDStringSetFont(result, string->font);
     return result;
 }
 
@@ -375,11 +405,11 @@ const char *PDStringHexValue(PDStringRef string, PDBool wrap)
     
     char *data;
     if (source->type == PDStringTypeBinary)
-        data = strdup(PDStringBinaryToHex(source->data, source->length, wrap));
+        data = PDStringBinaryToHex(source->data, source->length, wrap);
     else if (source->type == PDStringTypeEscaped)
-        data = strdup(PDStringEscapedToHex(source->data, source->length, source->wrapped, wrap));
+        data = PDStringEscapedToHex(source->data, source->length, source->wrapped, wrap);
     else if (source->type == PDStringTypeName)
-        data = strdup(PDStringNameToHex(source->data, source->length, source->wrapped, wrap));
+        data = PDStringNameToHex(source->data, source->length, source->wrapped, wrap);
     else
         data = PDStringTransform(source->data, source->length, false, source->wrapped, 0, wrap ? '<' : 0, wrap ? '>' : 0);
 //        if (wrap) 
@@ -472,7 +502,7 @@ char *PDStringEscapedToBinary(char *string, PDSize len, PDBool wrapped, PDSize *
 {
     const char *str = string + (wrapped);
     PDSize ix = len - (wrapped<<1);
-    char *res = malloc(len);
+    char *res = malloc(len+1);
     PDBool esc = false;
     PDSize si = 0;
     int escseq;
@@ -521,7 +551,7 @@ char *PDStringEscapedToBinary(char *string, PDSize len, PDBool wrapped, PDSize *
         }
     }
     res[si] = 0;
-    *outLength = si;
+    if (outLength) *outLength = si;
     return res;
 }
 
@@ -556,13 +586,13 @@ char *PDStringBinaryToHex(char *string, PDSize len, PDBool wrapped)
     if (rescap < 10) rescap = 10;
     PDSize reslen = 0;
     char *res = malloc(rescap);
-    char ch;
+    unsigned char ch;
     PDSize i;
     
     if (wrapped) res[reslen++] = '<';
     
     for (i = 0; i < len; i++) {
-        ch = string[i];
+        ch = (unsigned char)string[i];
         res[reslen++] = PDOperatorSymbolGlobDehex[ch >> 4];
         res[reslen++] = PDOperatorSymbolGlobDehex[ch & 0xf];
     }
@@ -657,7 +687,7 @@ PDInteger PDStringPrinter(void *inst, char **buf, PDInteger offs, PDInteger *cap
 #endif
     
     if ((i->type == PDStringTypeEscaped || i->type == PDStringTypeHex) && ! i->wrapped) {
-        PDStringRef wrapped = PDStringCreateFromStringWithType(i, i->type, true);
+        PDStringRef wrapped = PDStringCreateFromStringWithType(i, i->type, true, false);
         offs = PDStringPrinter(wrapped, buf, offs, cap);
         PDRelease(wrapped);
         return offs;
@@ -691,7 +721,7 @@ PDBool PDStringEqualsCString(PDStringRef string, const char *cString)
 {
     PDBool result;
     
-    PDStringRef compat = PDStringCreateFromStringWithType(string, cString[0] == '/' ? PDStringTypeName : PDStringTypeEscaped, false);
+    PDStringRef compat = PDStringCreateFromStringWithType(string, cString[0] == '/' ? PDStringTypeName : PDStringTypeEscaped, false, false);
     
     result = 0 == strcmp(cString, compat->data);
     
@@ -712,7 +742,7 @@ PDBool PDStringEqualsString(PDStringRef string, PDStringRef string2)
         if (string->type == PDStringTypeHex)
             return PDStringEqualsString(string2, string);
         
-        string2 = PDStringCreateFromStringWithType(string2, string->type, false);
+        string2 = PDStringCreateFromStringWithType(string2, string->type, false, false);
         releaseString2 = true;
     }
     

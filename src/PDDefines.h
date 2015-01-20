@@ -1,7 +1,7 @@
 //
 // PDDefines.h
 //
-// Copyright (c) 2012 - 2014 Karl-Johan Alm (http://github.com/kallewoof)
+// Copyright (c) 2012 - 2015 Karl-Johan Alm (http://github.com/kallewoof)
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -384,6 +384,16 @@ typedef struct PDFontDictionary *PDFontDictionaryRef;
 typedef struct PDFont *PDFontRef;
 
 /**
+ *  A CID mapping.
+ *
+ *  @ingroup PDFONTS
+ *
+ *  CID mappings are currently used to deal with ToUnicode streams but have more
+ *  functionality in PDFs beyond this.
+ */
+typedef struct PDCMap *PDCMapRef;
+
+/**
  Crypto methods.
  */
 typedef enum {
@@ -561,8 +571,10 @@ typedef enum {
     PDInstanceTypeCSOper    = 21,   ///< Content stream operator
     PDInstanceTypeFontDict  = 22,   ///< PDFontDictionary
     PDInstanceTypeFont      = 23,   ///< PDFont
+    PDInstanceTypeCMap      = 24,   ///< PDCMap
+    PDInstanceTypePSExec    = 25,   ///< PostScript executable code
     //
-    PDInstanceType__SIZE    = 24,
+    PDInstanceType__SIZE    = 26,
 } PDInstanceType;
 
 /**

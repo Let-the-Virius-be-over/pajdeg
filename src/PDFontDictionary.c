@@ -1,7 +1,7 @@
 //
 // PDFontDictionary.c
 //
-// Copyright (c) 2012 - 2014 Karl-Johan Alm (http://github.com/kallewoof)
+// Copyright (c) 2012 - 2015 Karl-Johan Alm (http://github.com/kallewoof)
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -42,10 +42,12 @@ PDFontDictionaryRef PDFontDictionaryCreate(PDParserRef parser, PDObjectRef pageO
     fontDict->fonts = NULL;
     fontDict->parser = PDRetain(parser);
     
-    PDDictionaryRef resources = PDDictionaryGet(PDObjectGetDictionary(pageObject), "Resources");
+    PDReferenceRef resourcesRef = PDDictionaryGet(PDObjectGetDictionary(pageObject), "Resources");
     
-    if (resources) {
-        fontDict->fonts = PDDictionaryGet(resources, "Font");
+    if (resourcesRef) {
+        PDObjectRef resources = PDParserLocateAndCreateObject(parser, PDReferenceGetObjectID(resourcesRef), true);
+        fontDict->fonts = PDRetain(PDDictionaryGet(PDObjectGetDictionary(resources), "Font"));
+        PDRelease(resources);
     }
     
     return fontDict;
@@ -53,6 +55,8 @@ PDFontDictionaryRef PDFontDictionaryCreate(PDParserRef parser, PDObjectRef pageO
 
 PDFontRef PDFontDictionaryGetFont(PDFontDictionaryRef fontDict, const char *name)
 {
+    if (NULL == fontDict->fonts) return NULL;
+    
     void *font = PDDictionaryGet(fontDict->fonts, name);
     PDInstanceType it = PDResolve(font);
     if (! font || PDInstanceTypeFont == it) return font;
@@ -61,7 +65,7 @@ PDFontRef PDFontDictionaryGetFont(PDFontDictionaryRef fontDict, const char *name
     PDObjectRef obj = PDParserLocateAndCreateObject(fontDict->parser, PDReferenceGetObjectID(font), true);
     PDRequire(obj, NULL, "NULL object for font dictionary entry for %s", name);
     
-    PDFontRef fontObj = PDFontCreate(obj);
+    PDFontRef fontObj = PDFontCreate(fontDict->parser, obj);
     PDRequire(fontObj, NULL, "Failed to generate font object for font dictionary entry for %s", name);
     PDDictionarySet(fontDict->fonts, name, fontObj);
     PDRelease(obj);

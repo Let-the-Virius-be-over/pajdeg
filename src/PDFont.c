@@ -1,7 +1,7 @@
 //
 // PDFont.c
 //
-// Copyright (c) 2012 - 2014 Karl-Johan Alm (http://github.com/kallewoof)
+// Copyright (c) 2012 - 2015 Karl-Johan Alm (http://github.com/kallewoof)
 // 
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -22,17 +22,59 @@
 // THE SOFTWARE.
 //
 
+#include "Pajdeg.h"
 #include "PDFont.h"
+#include "PDCMap.h"
 #include "pd_internal.h"
+
+void PDFontCompileUnicodeMapping(PDFontRef font);
 
 void PDFontDestroy(PDFontRef font)
 {
+    PDRelease(font->parser);
     PDRelease(font->obj);
+    PDRelease(font->toUnicode);
 }
 
-PDFontRef PDFontCreate(PDObjectRef obj)
+PDFontRef PDFontCreate(PDParserRef parser, PDObjectRef obj)
 {
-    PDFontRef fontObj = PDAllocTyped(PDInstanceTypeFont, sizeof(struct PDFont), PDFontDestroy, false);
-    fontObj->obj = PDRetain(obj);
-    return fontObj;
+    PDFontRef font = PDAllocTyped(PDInstanceTypeFont, sizeof(struct PDFont), PDFontDestroy, false);
+    font->parser = PDRetain(parser);
+    font->obj = PDRetain(obj);
+    font->toUnicode = NULL;
+    font->enc = PDStringEncodingDefault;
+    PDFontCompileUnicodeMapping(font);
+    
+    return font;
+}
+
+PDStringRef PDFontGetEncodingName(PDFontRef font)
+{
+    return PDDictionaryGet(PDObjectGetDictionary(font->obj), "Encoding");
+}
+
+PDStringEncoding PDFontGetEncoding(PDFontRef font)
+{
+    if (font->enc != PDStringEncodingDefault) return font->enc;
+
+    font->enc = PDStringEncodingUndefined;
+    PDStringRef encName = PDFontGetEncodingName(font);
+    if (encName) font->enc = PDStringEncodingGetByName(PDStringBinaryValue(encName, NULL));
+
+    return font->enc;
+}
+
+void PDFontCompileUnicodeMapping(PDFontRef font)
+{
+    PDReferenceRef toUnicodeRef = PDDictionaryGet(PDObjectGetDictionary(font->obj), "ToUnicode");
+    if (toUnicodeRef) {
+        PDObjectRef toUnicodeObj = PDParserLocateAndCreateObject(font->parser, PDReferenceGetObjectID(toUnicodeRef), true);
+        char *stream = PDParserLocateAndFetchObjectStreamForObject(font->parser, toUnicodeObj);
+        if (stream) {
+            font->toUnicode = PDCMapCreateWithData(stream, PDObjectGetExtractedStreamLength(toUnicodeObj));
+        } else {
+            PDError("NULL stream for ToUnicode object %ld 0 R", PDObjectGetObID(toUnicodeObj));
+        }
+        PDRelease(toUnicodeObj);
+    }
 }
