@@ -211,6 +211,21 @@ PDDictionaryRef PDDictionaryCreateWithComplex(pd_stack stack)
     return hm;
 }
 
+PDDictionaryRef PDDictionaryCreateWithKeyValueDefinition(const void **defs)
+{
+    PDDictionaryRef hm = _PDDictionaryCreateWithSettings(PD_HASHMAP_DEFAULT_BUCKETS);
+
+    PDInteger i = 0;
+    char *key;
+    void *val;
+    while (defs[i]) {
+        key = (char *)defs[i++];
+        val = (void *)defs[i++];
+        PDDictionarySet(hm, key, val);
+    }
+    return hm;
+}
+
 void PDDictionaryAddEntriesFromComplex(PDDictionaryRef hm, pd_stack stack)
 {
     if (stack == NULL) {
