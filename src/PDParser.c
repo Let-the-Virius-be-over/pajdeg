@@ -43,6 +43,7 @@
 #include "PDString.h"
 #include "PDNumber.h"
 #include "PDScanner.h"
+#include "PDFontDictionary.h"
 
 void PDParserDestroy(PDParserRef parser)
 {
@@ -52,6 +53,7 @@ void PDParserDestroy(PDParserRef parser)
     for (pd_stack t = parser->xstack; t; t = t->prev)
         printf("- [-]: %ld\n", ((PDTypeRef)t->info - 1)->retainCount);*/
     
+    PDRelease(parser->mfd);
     PDRelease(parser->aiTree);
     PDRelease(parser->catalog);
     PDRelease(parser->construct);
@@ -86,6 +88,7 @@ PDParserRef PDParserCreateWithStream(PDTwinStreamRef stream)
     parser->state = PDParserStateBase;
     parser->success = true;
     parser->aiTree = PDSplayTreeCreateWithDeallocator(PDReleaseFunc);
+    parser->mfd = PDFontDictionaryCreate(parser, NULL);
     
     if (! PDXTableFetchXRefs(parser)) {
         PDError("PDF is invalid or in an unsupported format.");
@@ -413,31 +416,33 @@ char *PDParserFetchCurrentObjectStream(PDParserRef parser, PDInteger obid)
     PDInteger len = parser->streamLen;
     PDStringRef filterName = NULL;
     void *filterValue = PDDictionaryGet(PDObjectGetDictionary(parser->construct), "Filter");
-    PDInstanceType filterType = PDResolve(filterValue);
-    switch (filterType) {
-        case PDInstanceTypeArray:{
-            PDInteger count = PDArrayGetCount(filterValue);
-            if (count == 0) {
-                PDWarn("Null filter (empty array value) encountered");
-            } else {
-                if (count > 1) {
-                    PDInteger cap = 32;
-                    char *buf = malloc(32);
-                    PDArrayPrinter(filterValue, &buf, 0, &cap);
-                    PDWarn("Unsupported chained filter in %s", buf);
-                    free(buf);
+    if (filterValue) {
+        PDInstanceType filterType = PDResolve(filterValue);
+        switch (filterType) {
+            case PDInstanceTypeArray:{
+                PDInteger count = PDArrayGetCount(filterValue);
+                if (count == 0) {
+                    PDWarn("Null filter (empty array value) encountered");
+                } else {
+                    if (count > 1) {
+                        PDInteger cap = 32;
+                        char *buf = malloc(32);
+                        PDArrayPrinter(filterValue, &buf, 0, &cap);
+                        PDWarn("Unsupported chained filter in %s", buf);
+                        free(buf);
+                    }
+                    filterValue = PDArrayGetElement(filterValue, 0);
                 }
-                filterValue = PDArrayGetElement(filterValue, 0);
-            }
-        } break;
-            
-        case PDInstanceTypeString:
-            break;
-            
-        default:
-            PDWarn("Unsupported filter type %d", filterType);
-            filterValue = NULL;
-            break;
+            } break;
+                
+            case PDInstanceTypeString:
+                break;
+                
+            default:
+                PDWarn("Unsupported filter type %d", filterType);
+                filterValue = NULL;
+                break;
+        }
     }
     
     filterName = filterValue;
