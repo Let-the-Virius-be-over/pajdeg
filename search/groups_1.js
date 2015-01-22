@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['core_20types',['Core types',['../a00031.html',1,'']]]
+  ['core_20types',['Core types',['../a00036.html',1,'']]]
 ];
