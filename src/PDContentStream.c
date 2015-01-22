@@ -376,6 +376,8 @@ void *PDContentStreamPopValue(PDContentStreamRef cs, const char *stream, PDInteg
         mark++;
     }
     
+    if (mark == i && mark < len) mark++; // we do this to avoid infinite loops
+    
     str = strndup(&stream[i], mark - i);
     *iptr = mark + (termWS && chtype == PDOperatorSymbolGlobWhitespace);
     res = cf(str);
