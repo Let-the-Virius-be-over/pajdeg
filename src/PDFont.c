@@ -65,7 +65,6 @@ PDStringRef PDFontGetEncodingName(PDFontRef font)
 
     if (encoding && it != PDInstanceTypeString) {
         if (it == PDInstanceTypeRef) {
-            printf("processing encoding %s::%s in %s\n", PDDescription(encoding), PDDescription(font->fontDict), PDDescription(font));
             encoding = PDAutorelease(PDParserLocateAndCreateObject(font->parser, PDReferenceGetObjectID(encoding), true));
             it = PDResolve(encoding);
         }
