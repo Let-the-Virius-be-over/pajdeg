@@ -45,19 +45,30 @@ PDFontDictionaryRef PDFontDictionaryCreate(PDParserRef parser, PDObjectRef pageO
     
         fontDict->encodings = PDRetain(parser->mfd->encodings);
         
-        PDReferenceRef resourcesRef = PDDictionaryGet(PDObjectGetDictionary(pageObject), "Resources");
+        void *resourcesValue = PDDictionaryGet(PDObjectGetDictionary(pageObject), "Resources");
         
-        if (resourcesRef) {
-            PDObjectRef resources = PDParserLocateAndCreateObject(parser, PDReferenceGetObjectID(resourcesRef), true);
-            void *fonts = PDDictionaryGet(PDObjectGetDictionary(resources), "Font");
-            if (PDResolve(fonts) == PDInstanceTypeRef) {
-                PDObjectRef fontObj = PDParserLocateAndCreateObject(parser, PDReferenceGetObjectID(fonts), true);
-                fontDict->fonts = PDRetain(PDObjectGetDictionary(fontObj));
-                PDRelease(fontObj);
+        if (resourcesValue) {
+            PDDictionaryRef resourcesDict = NULL;
+            PDInstanceType it = PDResolve(resourcesValue);
+            if (it == PDInstanceTypeRef) {
+                PDObjectRef resources = PDParserLocateAndCreateObject(parser, PDReferenceGetObjectID(resourcesValue), true);
+                resourcesDict = PDObjectGetDictionary(resources);
+                PDRelease(resources); // this is okay, because all parser generated objects survive until the parser dies, thus resourcesDict will survive
+            } else if (it == PDInstanceTypeDict) {
+                resourcesDict = resourcesValue;
             } else {
-                fontDict->fonts = PDRetain(fonts);
+                PDError("unrecognized resource value %s", PDDescription(resourcesValue));
             }
-            PDRelease(resources);
+            if (resourcesDict) {
+                void *fonts = PDDictionaryGet(resourcesDict, "Font");
+                if (PDResolve(fonts) == PDInstanceTypeRef) {
+                    PDObjectRef fontObj = PDParserLocateAndCreateObject(parser, PDReferenceGetObjectID(fonts), true);
+                    fontDict->fonts = PDRetain(PDObjectGetDictionary(fontObj));
+                    PDRelease(fontObj);
+                } else {
+                    fontDict->fonts = PDRetain(fonts);
+                }
+            }
         }
         
     } else {
@@ -115,6 +126,13 @@ void PDFontDictionaryApplyEncodingDictionary(PDFontDictionaryRef fontDict, PDFon
                   192 /Agrave /Aacute /Acircumflex /Atilde /Adieresis /Aring /AE /Ccedilla /Egrave /Eacute /Ecircumflex /Edieresis /Igrave /Iacute /Icircumflex /Idieresis /Eth /Ntilde /Ograve /Oacute /Ocircumflex /Otilde /Odieresis /multiply /Oslash /Ugrave /Uacute /Ucircumflex /Udieresis /Yacute /Thorn /germandbls /agrave /aacute /acircumflex /atilde /adieresis /aring /ae /ccedilla /egrave /eacute /ecircumflex /edieresis /igrave /iacute /icircumflex /idieresis /eth /ntilde /ograve /oacute /ocircumflex /otilde /odieresis /divide /oslash /ugrave /uacute /ucircumflex /udieresis /yacute /thorn /ydieresis ] >>
      */
     PDArrayRef darr = PDDictionaryGet(encoding, "Differences");
+    if (PDResolve(darr) == PDInstanceTypeRef) {
+        PDObjectRef darrOb = PDParserLocateAndCreateObject(fontDict->parser, PDReferenceGetObjectID((PDReferenceRef)darr), true);
+        if (darrOb) {
+            darr = PDObjectGetArray(darrOb);
+        }
+        PDRelease(darrOb); // okay because parser retains all created objects until the parser itself dies
+    }
     if (darr) {
         unsigned char *em = font->encMap = malloc(256);
         memcpy(em, PDStringLatinPDFToWin, 256);
@@ -137,7 +155,7 @@ void PDFontDictionaryApplyEncodingDictionary(PDFontDictionaryRef fontDict, PDFon
                     PDAssert(code >= 0 && code < 256);
                     em[code] = PDStringLatinPDFToWin[PDNumberGetInteger(value)];
                 } else {
-                    PDWarn("unknown latin name %s is ignored in encoding mapping", PDStringNameValue(v, false));
+                    PDNotice("unknown latin name %s is ignored in encoding mapping", PDStringNameValue(v, false));
                 }
                 code++;
             }
