@@ -709,7 +709,7 @@ PDBool PDScannerPollType(PDScannerRef scanner, char type)
     }
     
     PDInteger boffs_copy = scanner->boffset;
-    pd_stack ss_copy;
+    pd_stack ss_copy = NULL;
     
     if (! scanner->strict) {
         ss_copy = NULL;
