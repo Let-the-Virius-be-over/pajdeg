@@ -149,15 +149,19 @@ void PDCMapAppendBFRange(PDCMapRef cmap, PDStringRef rangeFrom, PDStringRef rang
     rangemap->startRange = PDStringCreateFromStringWithType(rangeFrom, PDStringTypeBinary, false, false);
     rangemap->endRange = PDStringCreateFromStringWithType(rangeTo, PDStringTypeBinary, false, false);
     rangemap->mapStart = PDStringCreateFromStringWithType(mapTo, PDStringTypeBinary, false, false);
-//    printf("%ld bf ranges:\n", cmap->bfrCount);
-//    for (int i = 0; i < cmap->bfrCount; i++) {
-//        printf("#%d: %s ... %s -> %s\n",
-//               i, 
-//               PDStringHexValue(cmap->bfrs[i].startRange, true),
-//               PDStringHexValue(cmap->bfrs[i].endRange, true),
-//               PDStringHexValue(cmap->bfrs[i].mapStart, true)
-//               );
-//    }
+}
+
+void PDCMapDump(PDCMapRef cmap) 
+{
+    printf("%ld bf ranges:\n", cmap->bfrCount);
+    for (int i = 0; i < cmap->bfrCount; i++) {
+        printf("#%d: %s ... %s -> %s\n",
+               i, 
+               PDStringHexValue(cmap->bfrs[i].startRange, true),
+               PDStringHexValue(cmap->bfrs[i].endRange, true),
+               PDStringHexValue(cmap->bfrs[i].mapStart, true)
+               );
+    }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -252,7 +256,8 @@ PDStringRef _PDCMapApply1(PDCMapRef cmap, PDStringRef string)
         }
         
         // we REQUIRE that every char is mapped, as they need to go from 1-byte len to 2-byte len
-        PDAssert(found);
+        // apparently PDFs are very bad at this, so we just print a notice about it
+        PDNotice("invalid character encountered in ToUnicode mapping: %x", b);
         // but if this is production, we map them to 0x00, [byte]
         if (! found) {
             dstData[diter] = 0;
