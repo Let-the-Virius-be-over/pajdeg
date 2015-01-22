@@ -325,6 +325,7 @@ static inline PDArrayRef PDDictionaryFindBucket(PDDictionaryRef hm, const char *
 
 void PDDictionarySet(PDDictionaryRef hm, const char *key, void *value)
 {
+    PDAssert(key != NULL);  // crash = key is NULL; this is not allowed
     PDAssert(value != NULL); // crash = value is NULL; use delete to remove keys
     
 #ifdef PD_SUPPORT_CRYPTO
