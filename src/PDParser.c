@@ -278,8 +278,22 @@ pd_stack PDParserLocateAndCreateDefinitionForObjectWithSize(PDParserRef parser, 
         // the object did not fit in our expected buffer, which means it's unusually big; we bump the buffer size to 6k if it's smaller, otherwise we consider this a failure
         pd_stack_destroy(&stack);
         stack = NULL;
-        if (bufsize < 64000 && readBytes == bufsize)
+        if (readBytes == bufsize) {
+            if (master) {
+                PDSize newbs = PDXTableDetermineObjectSize(parser->mxt, obid);
+                if (newbs > bufsize) {
+                    bufsize = newbs; 
+                } else {
+                    PDError("PDXTable determined object size is not sufficient for reading object");
+                    if (bufsize > 64000) return NULL;
+                    bufsize *= 2;
+                }
+            } else {
+                if (bufsize > 64000) return NULL;
+                bufsize = (bufsize + 1024) * 3;
+            }
             return PDParserLocateAndCreateDefinitionForObjectWithSize(parser, obid, (bufsize + 1024) * 3, master, outOffset);
+        }
     }
     
     return stack;
@@ -291,7 +305,9 @@ pd_stack PDParserLocateAndCreateDefinitionForObject(PDParserRef parser, PDIntege
     if (parser->construct && parser->construct->obid == obid) {
         return pd_stack_copy(parser->construct->def);
     }
-    return PDParserLocateAndCreateDefinitionForObjectWithSize(parser, obid, 4192, master, NULL);
+    PDInteger bufsize = 4192;
+    if (master && parser->mxt->nextOb) bufsize = PDXTableDetermineObjectSize(parser->mxt, obid);
+    return PDParserLocateAndCreateDefinitionForObjectWithSize(parser, obid, bufsize, master, NULL);
 }
 
 PDObjectRef PDParserLocateAndCreateObject(PDParserRef parser, PDInteger obid, PDBool master)
@@ -369,7 +385,7 @@ void PDParserPrepareStreamData(PDParserRef parser, PDObjectRef ob, PDInteger len
         PDStreamFilterRef filter = PDStreamFilterObtain(PDStringEscapedValue(filterName, false), true, filterOpts);
         
         if (NULL == filter) {
-            PDWarn("Unknown filter \"%s\" is ignored.", PDStringEscapedValue(filterName, false));
+            PDNotice("Unknown filter \"%s\" is ignored.", PDStringEscapedValue(filterName, false));
         } else {
             PDInteger allocated;
             char *extractedBuf;
