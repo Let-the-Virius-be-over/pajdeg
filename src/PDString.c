@@ -483,7 +483,7 @@ char *PDStringHexToBinary(char *string, PDSize len, PDBool wrapped, PDSize *outL
 //        PDInteger b = PDOperatorSymbolGlobHex[csr[i+1]];
 //        PDInteger c = (a << 4) + b;
 //        PDInteger d = (PDOperatorSymbolGlobHex[csr[i]] << 4) + PDOperatorSymbolGlobHex[csr[i+1]];
-        res[reslen++] = (PDOperatorSymbolGlobHex[csr[i]] << 4) + PDOperatorSymbolGlobHex[csr[i+1]];
+        res[reslen++] = (PDOperatorSymbolGlobHex[(unsigned char)csr[i]] << 4) + PDOperatorSymbolGlobHex[(unsigned char)csr[i+1]];
         
         if (reslen == rescap) {
             // in theory we should never end up here; if we do, we just make sure we don't crash
