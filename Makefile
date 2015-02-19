@@ -4,7 +4,7 @@ SRCDIR	= src
 
 all:	pajdeg
 
-pajdeg:	$(SRCDIR) libpajdeg.a
+pajdeg:	$(SRCDIR)
 	cd $(SRCDIR) && make 
 	mv $(SRCDIR)/libpajdeg.a .
 
