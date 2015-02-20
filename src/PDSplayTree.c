@@ -19,6 +19,7 @@ typedef struct st_node *st_node;
 
 struct PDSplayTree {
     PDDeallocator deallocator;
+    PDInitiator   initiator;
     st_node       root;
     PDInteger     count;
 };
@@ -119,6 +120,7 @@ PDSplayTreeRef PDSplayTreeCreateWithDeallocator(PDDeallocator deallocator)
 {
     PDSplayTreeRef st = PDAllocTyped(PDInstanceTypeTree, sizeof(struct PDSplayTree), PDSplayTreeDestroy, false);
     st->deallocator = deallocator;
+    st->initiator = NULL;
     st->count = 0;
     st->root = NULL;
     return st;
@@ -129,11 +131,23 @@ PDSplayTreeRef PDSplayTreeCreate(void)
     return PDSplayTreeCreateWithDeallocator(st_node_null);
 }
 
+void PDSplayTreeSetDeallocator(PDSplayTreeRef tree, PDDeallocator deallocator)
+{
+    tree->deallocator = deallocator;
+}
+
+void PDSplayTreeSetInitiator(PDSplayTreeRef tree, void *initiator)
+{
+    tree->initiator = initiator;
+}
+
 void PDSplayTreeInsert(PDSplayTreeRef tree, PDInteger key, void *value)
 {
+    if (tree->initiator) value = tree->initiator(value);
+    
     st_node z = st_node_find(tree->root, key);
     if (z) {
-        (*tree->deallocator)(z->value);
+        tree->deallocator(z->value);
         z->value = value;
         return;
     }

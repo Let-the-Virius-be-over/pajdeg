@@ -207,6 +207,7 @@ PDOperatorState PDContentStreamTextExtractor_Tj(PDContentStreamRef cs, PDContent
             PDRelease(utf8string);
         } else {
             PDWarn("Unable to extract string");
+            string->enc = string->font && string->font->enc && string->font->enc != PDStringEncodingUndefined ? string->font->enc : PDStringEncodingDefault;
             utf8string = PDStringCreateUTF8Encoded(string);
         }
     }
@@ -228,7 +229,7 @@ PDOperatorState PDContentStreamTextExtractor_TJ(PDContentStreamRef cs, PDContent
     PDSize length;
     const char *data;
     for (PDInteger i = 0; i < argc; i++) {
-        void *v = PDArrayGetElement(args, i);
+        PDStringRef v = PDArrayGetElement(args, i);
         if (PDResolve(v) == PDInstanceTypeString) {
             PDStringSetFont(v, userInfo->font);
             utf8string = PDStringCreateUTF8Encoded(v);

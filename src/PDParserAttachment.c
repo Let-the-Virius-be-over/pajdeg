@@ -189,11 +189,8 @@ void PDParserAttachmentPerformImport(PDParserAttachmentRef attachment, PDObjectR
     
     PDParserClarifyObjectStreamExistence(attachment->foreignParser, source);
     if (source->hasStream) {
-        char *stream = PDParserLocateAndFetchObjectStreamForObject(attachment->foreignParser, source);
-        //        if (PDObjectHasTextStream(source)) {
-        //            printf("stream [%ld b]:\n===\n%s\n", (long)source->streamLen, stream);
-        //        }
-        PDObjectSetStreamFiltered(dest, stream, source->extractedLen, false);
+        PDParserLocateAndFetchObjectStreamForObject(attachment->foreignParser, source);
+        PDObjectSetStreamFiltered(dest, source->streamBuf, source->extractedLen, false, false);
     }
 }
 

@@ -81,6 +81,7 @@ static PDStringEncoding autoList[] = {
                  enc > 0 && enc < __PDSTRINGENC_END; \
                  enc = autoList[enc])
 
+// Apple based encodings
 static const char *enc_ascii = "ASCII";
 static const char *enc_utf8 = "UTF-8";
 static const char *enc_utf16be = "UTF-16BE";
@@ -97,12 +98,25 @@ static const char *enc_cp1253 = "CP1253";
 static const char *enc_cp1254 = "CP1254";
 static const char *enc_cp1250 = "CP1250";
 static const char *enc_iso_2022_jp = "ISO-2022-JP";
+
+// PDF specification encodings
+static const char *enc_euccn = "EUC-CN";
+static const char *enc_gbk = "GBK";
+static const char *enc_gb18030 = "GB18030";
+static const char *enc_ucs2 = "UCS-2BE";
+static const char *enc_big5 = "BIG5";
+static const char *enc_big5hkscs = "BIG5-HKSCS";
+static const char *enc_cp950 = "CP950";
+static const char *enc_euctw = "EUC-TW";
+static const char *enc_euckr = "EUC-KR";
+static const char *enc_uhc = "UHC";
+
 static const char **enc_names = NULL;
 static PDDictionaryRef encMap = NULL;
 
 static inline void setup_enc_names() 
 {
-    PDAssert(__PDSTRINGENC_END == 16);
+    PDAssert(__PDSTRINGENC_END == 26);
     enc_names = malloc(sizeof(char*) * __PDSTRINGENC_END);
     enc_names[ 0] = enc_ascii;
     enc_names[ 1] = enc_utf8;
@@ -120,33 +134,129 @@ static inline void setup_enc_names()
     enc_names[13] = enc_cp1254;
     enc_names[14] = enc_cp1250;
     enc_names[15] = enc_iso_2022_jp;
+    enc_names[16] = enc_euccn;
+    enc_names[17] = enc_gbk;
+    enc_names[18] = enc_gb18030;
+    enc_names[19] = enc_ucs2;
+    enc_names[20] = enc_big5;
+    enc_names[21] = enc_big5hkscs;
+    enc_names[22] = enc_cp950;
+    enc_names[23] = enc_euctw;
+    enc_names[24] = enc_euckr;
+    enc_names[25] = enc_uhc;
     
     encMap = PDDictionaryCreate();
     
     // same as above; this is not strictly necessary, but for convenience, Pajdeg's PDStringEncodingByName also accepts the (internally canonical) iconv names
-    PDDictionarySet(encMap, enc_ascii, PDNumberWithInteger(PDStringEncodingASCII));
-    PDDictionarySet(encMap, enc_utf8, PDNumberWithInteger(PDStringEncodingUTF8));
-    PDDictionarySet(encMap, enc_utf16be, PDNumberWithInteger(PDStringEncodingUTF16BE));
-    PDDictionarySet(encMap, enc_utf16le, PDNumberWithInteger(PDStringEncodingUTF16LE));
-    PDDictionarySet(encMap, enc_utf32, PDNumberWithInteger(PDStringEncodingUTF32));
-    PDDictionarySet(encMap, enc_macroman, PDNumberWithInteger(PDStringEncodingMacRoman));
-    PDDictionarySet(encMap, enc_eucjp, PDNumberWithInteger(PDStringEncodingEUCJP));
-    PDDictionarySet(encMap, enc_shift_jis, PDNumberWithInteger(PDStringEncodingSHIFTJIS));
-    PDDictionarySet(encMap, enc_iso_8859_1, PDNumberWithInteger(PDStringEncodingISO8859_1));
-    PDDictionarySet(encMap, enc_iso_8859_2, PDNumberWithInteger(PDStringEncodingISO8859_2));
-    PDDictionarySet(encMap, enc_cp1251, PDNumberWithInteger(PDStringEncodingCP1251));
-    PDDictionarySet(encMap, enc_cp1252, PDNumberWithInteger(PDStringEncodingCP1252));
-    PDDictionarySet(encMap, enc_cp1253, PDNumberWithInteger(PDStringEncodingCP1253));
-    PDDictionarySet(encMap, enc_cp1254, PDNumberWithInteger(PDStringEncodingCP1254));
-    PDDictionarySet(encMap, enc_cp1250, PDNumberWithInteger(PDStringEncodingCP1250));
-    PDDictionarySet(encMap, enc_iso_2022_jp, PDNumberWithInteger(PDStringEncodingISO2022JP));
+#define E(v) PDNumberWithInteger(v)
+    PDDictionarySet(encMap, enc_ascii, E(PDStringEncodingASCII));
+    PDDictionarySet(encMap, enc_utf8, E(PDStringEncodingUTF8));
+    PDDictionarySet(encMap, enc_utf16be, E(PDStringEncodingUTF16BE));
+    PDDictionarySet(encMap, enc_utf16le, E(PDStringEncodingUTF16LE));
+    PDDictionarySet(encMap, enc_utf32, E(PDStringEncodingUTF32));
+    PDDictionarySet(encMap, enc_macroman, E(PDStringEncodingMacRoman));
+    PDDictionarySet(encMap, enc_eucjp, E(PDStringEncodingEUCJP));
+    PDDictionarySet(encMap, enc_shift_jis, E(PDStringEncodingSHIFTJIS));
+    PDDictionarySet(encMap, enc_iso_8859_1, E(PDStringEncodingISO8859_1));
+    PDDictionarySet(encMap, enc_iso_8859_2, E(PDStringEncodingISO8859_2));
+    PDDictionarySet(encMap, enc_cp1251, E(PDStringEncodingCP1251));
+    PDDictionarySet(encMap, enc_cp1252, E(PDStringEncodingCP1252));
+    PDDictionarySet(encMap, enc_cp1253, E(PDStringEncodingCP1253));
+    PDDictionarySet(encMap, enc_cp1254, E(PDStringEncodingCP1254));
+    PDDictionarySet(encMap, enc_cp1250, E(PDStringEncodingCP1250));
+    PDDictionarySet(encMap, enc_iso_2022_jp, E(PDStringEncodingISO2022JP));
     
     // PDF specification names
-    PDDictionarySet(encMap, "Identity-H", PDNumberWithInteger(PDStringEncodingUTF16BE));
-    PDDictionarySet(encMap, "Identity-V", PDNumberWithInteger(PDStringEncodingUTF16BE));
-    PDDictionarySet(encMap, "WinAnsiEncoding", PDNumberWithInteger(PDStringEncodingCP1252));
-    PDDictionarySet(encMap, "MacRomanEncoding", PDNumberWithInteger(PDStringEncodingMacRoman));
-    PDDictionarySet(encMap, "MacRomanEncodingASCII", PDNumberWithInteger(PDStringEncodingMacRoman));
+    PDDictionarySet(encMap, "Identity-H", E(PDStringEncodingUTF16BE));
+    PDDictionarySet(encMap, "Identity-V", E(PDStringEncodingUTF16BE));
+    PDDictionarySet(encMap, "WinAnsiEncoding", E(PDStringEncodingCP1252));
+    PDDictionarySet(encMap, "MacRomanEncoding", E(PDStringEncodingMacRoman));
+    PDDictionarySet(encMap, "MacRomanEncodingASCII", E(PDStringEncodingMacRoman));
+    
+    // Chinese (simplified)
+    PDDictionarySet(encMap, "GB-EUC-H", E(PDStringEncodingEUCCN));
+    PDDictionarySet(encMap, "GB-EUC-V", E(PDStringEncodingEUCCN));
+    PDDictionarySet(encMap, "GBpc-EUC-H", E(PDStringEncodingEUCCN));
+    PDDictionarySet(encMap, "GBpc-EUC-V", E(PDStringEncodingEUCCN));
+    PDDictionarySet(encMap, "GBK-EUC-H", E(PDStringEncodingGBK));
+    PDDictionarySet(encMap, "GBK-EUC-V", E(PDStringEncodingGBK));
+    PDDictionarySet(encMap, "GBKp-EUC-H", E(PDStringEncodingGBK));
+    PDDictionarySet(encMap, "GBKp-EUC-V", E(PDStringEncodingGBK));
+    PDDictionarySet(encMap, "GBK2K-H", E(PDStringEncodingGB18030));
+    PDDictionarySet(encMap, "GBK2K-V", E(PDStringEncodingGB18030));
+    PDDictionarySet(encMap, "UniGB-UCS2-H", E(PDStringEncodingUCS2));
+    PDDictionarySet(encMap, "UniGB-UCS2-V", E(PDStringEncodingUCS2));
+    PDDictionarySet(encMap, "UniGB-UTF16-H", E(PDStringEncodingUTF16BE));
+    PDDictionarySet(encMap, "UniGB-UTF16-V", E(PDStringEncodingUTF16BE));
+    
+    // Chinese (traditional)
+    PDDictionarySet(encMap, "B5pc-H", E(PDStringEncodingBIG5));
+    PDDictionarySet(encMap, "B5pc-V", E(PDStringEncodingBIG5));
+    PDDictionarySet(encMap, "HKscs-B5-H", E(PDStringEncodingBIG5HKSCS));
+    PDDictionarySet(encMap, "HKscs-B5-V", E(PDStringEncodingBIG5HKSCS));
+    PDDictionarySet(encMap, "ETen-B5-H", E(PDStringEncodingBIG5));
+    PDDictionarySet(encMap, "ETen-B5-V", E(PDStringEncodingBIG5));
+    PDDictionarySet(encMap, "ETenms-B5-H", E(PDStringEncodingBIG5));
+    PDDictionarySet(encMap, "ETenms-B5-V", E(PDStringEncodingBIG5));
+    PDDictionarySet(encMap, "CNS-EUC-H", E(PDStringEncodingEUCTW));
+    PDDictionarySet(encMap, "CNS-EUC-V", E(PDStringEncodingEUCTW));
+    PDDictionarySet(encMap, "UniCNS-UCS2-H", E(PDStringEncodingUCS2));
+    PDDictionarySet(encMap, "UniCNS-UCS2-V", E(PDStringEncodingUCS2));
+    PDDictionarySet(encMap, "UniCNS-UTF16-H", E(PDStringEncodingUTF16BE));
+    PDDictionarySet(encMap, "UniCNS-UTF16-V", E(PDStringEncodingUTF16BE));
+    
+    // Japanese
+    PDDictionarySet(encMap, "83pv-RKSJ-H", E(PDStringEncodingSHIFTJIS));
+    PDDictionarySet(encMap, "90ms-RKSJ-H", E(PDStringEncodingSHIFTJIS));
+    PDDictionarySet(encMap, "90ms-RKSJ-V", E(PDStringEncodingSHIFTJIS));
+    PDDictionarySet(encMap, "90msp-RKSJ-H", E(PDStringEncodingSHIFTJIS));
+    PDDictionarySet(encMap, "90msp-RKSJ-V", E(PDStringEncodingSHIFTJIS));
+    PDDictionarySet(encMap, "90pv-RKSJ-H", E(PDStringEncodingSHIFTJIS));
+    PDDictionarySet(encMap, "Add-RKSJ-H", E(PDStringEncodingSHIFTJIS));
+    PDDictionarySet(encMap, "Add-RKSJ-V", E(PDStringEncodingSHIFTJIS));
+    PDDictionarySet(encMap, "EUC-H", E(PDStringEncodingEUCJP));
+    PDDictionarySet(encMap, "EUC-V", E(PDStringEncodingEUCJP));
+    PDDictionarySet(encMap, "Ext-RKSJ-H", E(PDStringEncodingSHIFTJIS));
+    PDDictionarySet(encMap, "Ext-RKSJ-V", E(PDStringEncodingSHIFTJIS));
+    PDDictionarySet(encMap, "H", E(PDStringEncodingISO2022JP));
+    PDDictionarySet(encMap, "V", E(PDStringEncodingISO2022JP));
+    PDDictionarySet(encMap, "UniJIS-UCS2-H", E(PDStringEncodingUCS2));
+    PDDictionarySet(encMap, "UniJIS-UCS2-V", E(PDStringEncodingUCS2));
+    PDDictionarySet(encMap, "UniJIS-UCS2-HW-H", E(PDStringEncodingUCS2));
+    PDDictionarySet(encMap, "UniJIS-UCS2-HW-V", E(PDStringEncodingUCS2));
+    PDDictionarySet(encMap, "UniJIS-UTF16-H", E(PDStringEncodingUTF16BE));
+    PDDictionarySet(encMap, "UniJIS-UTF16-V", E(PDStringEncodingUTF16BE));
+    
+    // Korean
+    PDDictionarySet(encMap, "KSC-EUC-H", E(PDStringEncodingEUCKR));
+    PDDictionarySet(encMap, "KSC-EUC-V", E(PDStringEncodingEUCKR));
+    PDDictionarySet(encMap, "KSCms-UHC-H", E(PDStringEncodingUHC));
+    PDDictionarySet(encMap, "KSCms-UHC-V", E(PDStringEncodingUHC));
+    PDDictionarySet(encMap, "KSCms-UHC-HW-H", E(PDStringEncodingUHC));
+    PDDictionarySet(encMap, "KSCms-UHC-HW-V", E(PDStringEncodingUHC));
+    PDDictionarySet(encMap, "KSCpc-EUC-H", E(PDStringEncodingEUCKR)); // these may be wrong; adobe spec goes: Mac OS, KS X 1001:1992 character set with Mac OS KH extensions, Script Manager Code 3
+    PDDictionarySet(encMap, "UniKS-UCS2-H", E(PDStringEncodingUCS2));
+    PDDictionarySet(encMap, "UniKS-UCS2-V", E(PDStringEncodingUCS2));
+    PDDictionarySet(encMap, "UniKS-UTF16-H", E(PDStringEncodingUTF16BE));
+    PDDictionarySet(encMap, "UniKS-UTF16-V", E(PDStringEncodingUTF16BE));
+    /*
+     PDStringEncodingEUCCN = 18,     ///< EUC-CN (aka GB-2312)
+     PDStringEncodingGBK = 19,       ///< GBK
+     PDStringEncodingGB18030 = 19,   ///< GB18030
+     PDStringEncodingUCS2 = 20,      ///< UCS-2BE, Unicode (UCS-2)
+     // Chinese (traditional)
+     PDStringEncodingBIG5 = 21,      ///< BIG5, Big Five character set (Mac OS)
+     PDStringEncodingBIG5HKSCS = 22, ///< BIG5-HKSCS, Hong Kong SCS, an extension to the Big Five char set/encoding
+     PDStringEncodingCP950 = 23,     ///< CP950, Windows CP-950 (Big Five char set with ETen extensions)
+     PDStringEncodingEUCTW = 24,     ///< EUC-TW, CNS 11643-1992 character set
+     // Japanese
+     PDStringEncodingSHIFTJIS = 25,  ///< SHIFT-JIS
+     // Korean
+     PDStringEncodingEUCKR = 26,     ///< EUC-KR
+     PDStringEncodingUHC = 27,       ///< UHC, Microsoft Code Page 949
+     */
+
+#undef E
 }
 
 const char *PDStringEncodingToIconvName(PDStringEncoding enc)
@@ -178,6 +288,7 @@ void PDStringSetFont(PDStringRef string, PDFontRef font)
     PDRelease(string->font);
     string->font = font;
     if (font) string->enc = PDFontGetEncoding(font);
+    if (string->alt) PDStringSetFont(string->alt, font);
 }
 
 PDStringRef PDUTF8String(PDStringRef string)
@@ -195,8 +306,8 @@ PDStringRef PDUTF8String(PDStringRef string)
     // does the string have an utf8 alternative already?
     if (string->alt && string->alt->enc == PDStringEncodingUTF8) return string->alt;
     
-    // we need an escaped or binary representation of the string
-    if (PDStringTypeBinary != string->type && PDStringTypeEscaped != string->type) {
+    // we need a binary representation of the string
+    if (PDStringTypeBinary != string->type) {
         source = PDAutorelease(PDStringCreateBinaryFromString(string));
     }
     
@@ -219,55 +330,65 @@ PDStringRef PDUTF8String(PDStringRef string)
     if (cap < 5) cap = 5;
     char *results = malloc(sizeof(char) * cap);
     
-    PDStringEncodingEnumerate(enc) {
-        size_t targetLeft = cap;
-        char *targetStart = results;
+    do {
         
-        if (knownEncoding) {
-            enc = knownEncoding;
-            knownEncoding = PDStringEncodingDefault;
-        }
-
-        cd = iconv_open(enc == PDStringEncodingUTF8 ? enc_utf16be : enc_utf8, PDStringEncodingToIconvName(enc));
-        
-        iconvctl(cd, ICONV_SET_FALLBACKS, (void*)&pdstring_iconv_fallbacks);
-        
-        char *sourceData = (char *)&source->data[source->wrapped];
-        size_t sourceLeft = source->length - (source->wrapped<<1);
-        size_t oldSourceLeft;
-        
-        while (1) {
-            iconv_unicode_mb_to_uc_fb_called = iconv_unicode_uc_to_mb_fb_called = false;
-            oldSourceLeft = sourceLeft;
-            iconv(cd, &sourceData, &sourceLeft, &targetStart, &targetLeft);
-            if (oldSourceLeft == sourceLeft || targetLeft > 4 || sourceLeft == 0 || iconv_unicode_uc_to_mb_fb_called || iconv_unicode_mb_to_uc_fb_called) break;
+        PDStringEncodingEnumerate(enc) {
+            size_t targetLeft = cap;
+            char *targetStart = results;
             
-            targetLeft += cap;
-            cap <<= 1;
-            PDSize size = targetStart - results;
-            results = realloc(results, cap);
-            targetStart = results + size;
-        }
-        
-        iconv_close(cd);
-        
-        if (sourceLeft == 0 && !iconv_unicode_mb_to_uc_fb_called && !iconv_unicode_uc_to_mb_fb_called) {
-            string->enc = enc;
-            if (string->enc == PDStringEncodingUTF8) {
-                free(results);
-                return string;
+            if (knownEncoding) {
+                enc = knownEncoding;
             }
             
-            PDRelease(string->alt);
-            string->alt = PDStringCreateBinary((char *)results, (targetStart-results));
-            string->alt->enc = PDStringEncodingUTF8;
-            return string->alt;
+            cd = iconv_open(enc == PDStringEncodingUTF8 ? enc_utf16be : enc_utf8, PDStringEncodingToIconvName(enc));
+            
+            iconvctl(cd, ICONV_SET_FALLBACKS, (void*)&pdstring_iconv_fallbacks);
+            
+            char *sourceData = (char *)&source->data[source->wrapped];
+            size_t sourceLeft = source->length - (source->wrapped<<1);
+            size_t oldSourceLeft;
+            
+            while (1) {
+                iconv_unicode_mb_to_uc_fb_called = iconv_unicode_uc_to_mb_fb_called = false;
+                oldSourceLeft = sourceLeft;
+                iconv(cd, &sourceData, &sourceLeft, &targetStart, &targetLeft);
+                if (oldSourceLeft == sourceLeft || targetLeft > 4 || sourceLeft == 0 || iconv_unicode_uc_to_mb_fb_called || iconv_unicode_mb_to_uc_fb_called) break;
+                
+                targetLeft += cap;
+                cap <<= 1;
+                PDSize size = targetStart - results;
+                results = realloc(results, cap);
+                targetStart = results + size;
+            }
+            
+            iconv_close(cd);
+            
+            if (sourceLeft == 0 && !iconv_unicode_mb_to_uc_fb_called && !iconv_unicode_uc_to_mb_fb_called) {
+                string->enc = enc;
+                if (string->enc == PDStringEncodingUTF8) {
+                    free(results);
+                    return string;
+                }
+                
+                PDRelease(string->alt);
+                string->alt = PDStringCreateBinary((char *)results, (targetStart-results));
+                string->alt->enc = PDStringEncodingUTF8;
+                return string->alt;
+            }
+            
+            if (string->font) {
+                PDNotice("failed recoding into UTF-8 despite existing font object!");
+            }
+            
+            if (knownEncoding) break;
         }
         
-        if (string->font) {
-            PDWarn("failed recoding into UTF-8 despite existing font object!");
-        }
-    }
+        if (knownEncoding) {
+            knownEncoding = PDStringEncodingDefault;
+            continue;
+        } else break;
+        
+    } while (1);
     
     free(results);
     

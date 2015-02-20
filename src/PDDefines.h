@@ -299,6 +299,14 @@ typedef const char         **PDID;
 typedef void (*PDDeallocator)(void *ob);
 
 /**
+ Initiation signature. 
+ 
+ This is only used in a few places, but it is used to match the deallocator so that people can insert and delete from 
+ a collection without caring about strdup()ing or free()ing stuff.
+ */
+typedef void *(*PDInitiator)(void *ob);
+
+/**
  NOP function (e.g. used as NULL deallocator).
  */
 extern void PDNOP(void*);
@@ -654,6 +662,7 @@ typedef enum {
 } PDStringType;
 
 typedef enum {
+    // Apple specified encodings (plus some extras)
     PDStringEncodingDefault = 0,    ///< This is most likely ASCII or UTF-8, but implicit checks are made where necessary
     PDStringEncodingASCII = 1,      ///< 8-bit regular ascii encoding (this is probably 7-bit, actually)
     PDStringEncodingUTF8 = 2,       ///< UTF-8 encoding
@@ -671,7 +680,23 @@ typedef enum {
     PDStringEncodingCP1254 = 14,    ///< Windows CP-1254
     PDStringEncodingCP1250 = 15,    ///< Windows CP-1250
     PDStringEncodingISO2022JP = 16, ///< ISO-2022-JP
-    __PDSTRINGENC_END = 16,         ///< --marker--
+    
+    // PDF specification listed standard encodings (extended from above list)
+    // Chinese (simplified)
+    PDStringEncodingEUCCN = 17,     ///< EUC-CN (aka GB-2312)
+    PDStringEncodingGBK = 18,       ///< GBK
+    PDStringEncodingGB18030 = 19,   ///< GB18030
+    PDStringEncodingUCS2 = 20,      ///< UCS-2BE, Unicode (UCS-2)
+    // Chinese (traditional)
+    PDStringEncodingBIG5 = 21,      ///< BIG5, Big Five character set (Mac OS)
+    PDStringEncodingBIG5HKSCS = 22, ///< BIG5-HKSCS, Hong Kong SCS, an extension to the Big Five char set/encoding
+    PDStringEncodingCP950 = 23,     ///< CP950, Windows CP-950 (Big Five char set with ETen extensions)
+    PDStringEncodingEUCTW = 24,     ///< EUC-TW, CNS 11643-1992 character set
+    // Korean
+    PDStringEncodingEUCKR = 25,     ///< EUC-KR
+    PDStringEncodingUHC = 26,       ///< UHC, Microsoft Code Page 949
+    
+    __PDSTRINGENC_END = 26,         ///< --marker--
     
     PDStringEncodingCustom = 998,   ///< The encoding has a custom mapping in an associated font object
     PDStringEncodingUndefined = 999,///< The encoding used was not determined correctly. The string may be a binary value or similar

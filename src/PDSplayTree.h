@@ -13,6 +13,8 @@
 
 extern PDSplayTreeRef PDSplayTreeCreate(void);
 extern PDSplayTreeRef PDSplayTreeCreateWithDeallocator(PDDeallocator deallocator);
+extern void PDSplayTreeSetDeallocator(PDSplayTreeRef tree, PDDeallocator deallocator);
+extern void PDSplayTreeSetInitiator(PDSplayTreeRef tree, void *initiator);
 extern void PDSplayTreeInsert(PDSplayTreeRef tree, PDInteger key, void *value);
 extern void *PDSplayTreeGet(PDSplayTreeRef tree, PDInteger key);
 extern void PDSplayTreeDelete(PDSplayTreeRef tree, PDInteger key);
