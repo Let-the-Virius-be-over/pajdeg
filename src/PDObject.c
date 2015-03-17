@@ -317,11 +317,7 @@ void PDObjectSetStream(PDObjectRef object, char *str, PDInteger len, PDBool incl
     object->ovrStreamLen = len;
     object->ovrStreamAlloc = allocated;
     if (includeLength)  {
-//        char *lenstr = malloc(30);
-//        sprintf(lenstr, "%ld", len);
         PDDictionarySet(PDObjectGetDictionary(object), "Length", PDNumberWithInteger(len));
-//        PDDictionarySet(PDObjectGetDictionary(object), "Length", lenstr);
-//        free(lenstr);
     }
 }
 
@@ -340,7 +336,7 @@ PDBool PDObjectSetStreamFiltered(PDObjectRef object, char *str, PDInteger len, P
     PDDictionaryRef decodeParms = PDDictionaryGetDictionary(obdict, "DecodeParms");
     
     PDBool success = true;
-    PDStreamFilterRef sf = PDStreamFilterObtain(PDStringEscapedValue(filter, false), false, decodeParms);
+    PDStreamFilterRef sf = PDStreamFilterObtain(PDStringEscapedValue(filter, false, NULL), false, decodeParms);
     if (NULL == sf) {
         // we don't support this filter; that means we've been handed the filtered value, because we were not able to extract it either, so we can pass it over to PDObjectSetStream
         PDObjectSetStream(object, str, len, true, allocated, true);
@@ -445,15 +441,8 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
                 PDObjectGetDictionary(object);
             }
             
-            val = PDDictionaryToString(object->inst);
+            val = PDDictionaryToString(object->inst, &i);
             
-//            if (NULL == object->dict) {
-//                // no dict probably means we can to-string but this needs to be tested; for now we instantiate dict and use that
-//                object->dict = pd_dict_from_pdf_dict_stack(object->def);
-//            } 
-//            
-//            val = pd_dict_to_string(object->dict);
-            i = strlen(val);
             PDStringGrow(i + i);
             putstr(val, i);
             free(val);
@@ -476,7 +465,7 @@ PDInteger PDObjectGenerateDefinition(PDObjectRef object, char **dstBuf, PDIntege
                 PDObjectInstantiate(object);
             }
             PDAssert(object->inst); // crash = failed to instantiate the string representation; reasons are unknown but may be that def was a char*, the old way to represent strings
-            cval = PDStringEscapedValue(object->inst, true);
+            cval = PDStringEscapedValue(object->inst, true, NULL);
             PDStringGrow(2 + strlen(cval));
             putfmt("%s", cval);
             break;

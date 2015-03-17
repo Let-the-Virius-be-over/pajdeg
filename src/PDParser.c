@@ -382,7 +382,7 @@ void PDParserPrepareStreamData(PDParserRef parser, PDObjectRef ob, PDInteger len
     
     if (filterName) {
         PDDictionaryRef filterOpts = PDDictionaryGet(PDObjectGetDictionary(ob), "DecodeParms");
-        PDStreamFilterRef filter = PDStreamFilterObtain(PDStringEscapedValue(filterName, false), true, filterOpts);
+        PDStreamFilterRef filter = PDStreamFilterObtain(PDStringEscapedValue(filterName, false, NULL), true, filterOpts);
         
         if (NULL == filter) {
             PDNotice("Unknown filter \"%s\" is ignored.", PDStringEscapedValue(filterName, false));
@@ -636,7 +636,7 @@ void PDParserUpdateObject(PDParserRef parser)
     PDScannerRef scanner = parser->scanner;
     PDObjectRef ob = parser->construct;
     
-    if (ob->synchronizer) (*ob->synchronizer)(parser, ob, ob->syncInfo);
+    if (ob->synchronizer) ob->synchronizer(parser, ob, ob->syncInfo);
     
     if (ob->deleteObject) {
         ob->skipObject = true;
@@ -652,7 +652,6 @@ void PDParserUpdateObject(PDParserRef parser)
 
             PDScannerSkip(scanner, parser->streamLen);
             PDTwinStreamDiscardContent(parser->stream);//, PDTwinStreamScannerCommitBytes(parser->stream));
-            
             
             PDScannerAssertComplex(scanner, PD_ENDSTREAM);
             //PDScannerAssertString(scanner, "endstream");
@@ -676,8 +675,13 @@ void PDParserUpdateObject(PDParserRef parser)
     // [*]endobj                endobj
     // (two potential scanner locs; the latter one for 'skip stream' or 'no stream' case)
 
-    // push object def, unless it should be skipped
-    if (! ob->skipObject) {
+    // discard 'endobj' keyword (if object should be skipped), or push object definition
+    if (ob->skipObject) {
+        PDScannerAssertString(scanner, "endobj");
+        PDTwinStreamDiscardContent(parser->stream);
+    } else {
+//    // push object def, unless it should be skipped
+//    if (! ob->skipObject) {
         // we have to deal with the stream, in case we're post stream; the reason is that 
         // ob's definition may change as a result of this
         if (ob->hasStream && !ob->skipStream && !ob->ovrStream && parser->state == PDParserStateObjectPostStream) {
@@ -744,7 +748,6 @@ void PDParserUpdateObject(PDParserRef parser)
             }
             
             PDScannerAssertComplex(scanner, PD_ENDSTREAM);
-            //PDScannerAssertString(scanner, "endstream");
           
             // no matter what, we want to get past endobj keyword for this object
             PDScannerAssertString(scanner, "endobj");

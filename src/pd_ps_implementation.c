@@ -229,13 +229,13 @@ PDBool pd_ps_compile_next(pd_ps_env cenv)
         //      12 dict begin\nbegincmap\nCIDSystemInfo\n<< /Registry (Adobe)\n/Ordering (UCS) /Supplement 0 >> def
         // which means we have to accept it as a name and pretend nothing's wrong
         PDWarn("PostScript error: undefined operator is used as a named key: %s", operatorName);
-        PDStringRef namedKey = PDStringCreate(operatorName);
+        PDStringRef namedKey = PDStringCreate(operatorName, strlen(operatorName));
         pd_ps_push(namedKey);
 //        cenv->failure = true;
         return true;
     } 
     
-    if (string) pd_ps_push(PDStringCreate(string));
+    if (string) pd_ps_push(PDStringCreate(string, strlen(string)));
 
     PDError("???");
     cenv->failure = true;

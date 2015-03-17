@@ -529,9 +529,12 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
 //        filterOpts = PDDictionaryCreateWithComplex(pd_stack_get_dict_key(X->stack, "DecodeParms", false));
 //        if (filterOpts) 
 //            filterOpts = PDStreamFilterGenerateOptionsFromDictionaryStack(filterOpts->prev->prev->info);
-        filter = PDStreamFilterObtain(PDStringEscapedValue(filterName, false), true, filterOpts);
+        filter = PDStreamFilterObtain(PDStringEscapedValue(filterName, false, NULL), true, filterOpts);
         if (NULL == filter) {
             PDError("unable to obtain filter %s!", filterName->data);
+            PDRelease(filterName->alt);
+            filterName->alt = NULL; // get rid of "cached" result
+            PDStringEscapedValue(filterName, false, NULL);
         }
     }
     
@@ -1217,12 +1220,12 @@ struct gnai_s {
 #endif
 };
 
-void PDXTableGNAIterator(char *key, void *value, void *userInfo, PDBool *shouldStop)
+void PDXTableGNAIterator(PDInteger key, void *value, void *userInfo, PDBool *shouldStop)
 {
     struct gnai_s *gna = userInfo;
     PDInteger obid = (PDInteger)value;
 #ifdef DEBUG_PDX_GNAI
-    PDInteger offs = (PDInteger)key;
+    PDInteger offs = key;
     PDAssert(gna->cap > obid);
     PDAssert(gna->prevOffset < offs);
     gna->prevOffset = offs;

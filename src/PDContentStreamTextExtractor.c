@@ -397,7 +397,7 @@ PDOperatorState PDContentStreamTextExtractor_ID(PDContentStreamRef cs, PDContent
     PDStringRef css = NULL;
     PDSize argx = PDArrayGetCount(args);
     for (PDSize i = 0; i < argx; i++) {
-        const char *key = PDStringEscapedValue(PDArrayGetElement(args, i++), false);
+        const char *key = PDStringEscapedValue(PDArrayGetElement(args, i++), false, NULL);
         void *val = PDArrayGetElement(args, i);
         PDNumberRef keyIndexN = PDDictionaryGet(entryMapping, key);
         if (keyIndexN) {
@@ -408,7 +408,7 @@ PDOperatorState PDContentStreamTextExtractor_ID(PDContentStreamRef cs, PDContent
                     break;
                 case KEY_CS:
                     css = val;
-                    PDNumberRef csbN = PDDictionaryGet(entryMapping, PDStringEscapedValue(val, false));
+                    PDNumberRef csbN = PDDictionaryGet(entryMapping, PDStringEscapedValue(val, false, NULL));
                     if (csbN) {
                         csb = PDNumberGetInteger(csbN);
                     } else {
