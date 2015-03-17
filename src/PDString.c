@@ -753,15 +753,6 @@ PDBool PDStringEqualsCString(PDStringRef string, const char *cString)
     PDStringRef utf8 = PDStringCreateUTF8Encoded(string);
     PDStringRef compat = PDStringCreateFromStringWithType(utf8, cString[0] == '/' ? PDStringTypeName : PDStringTypeBinary, false, false);
 
-//    printf("const unsigned char *first = {");
-//    unsigned char *apa = compat->data;
-//    for (int i = 0; apa[i]; i++) printf("%s%u", i ? ", " : "", apa[i]);
-//    printf("};\n");
-//    printf("const unsigned char *second = {");
-//    apa = cString;
-//    for (int i = 0; apa[i]; i++) printf("%s%u", i ? ", " : "", apa[i]);
-//    printf("};\n");
-    
     result = 0 == strcmp(compat->data, cString);
     if (! result) {
         // we may have a UTF starting symbol (which is invisible)
