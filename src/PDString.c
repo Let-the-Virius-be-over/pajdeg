@@ -261,8 +261,8 @@ PDStringRef PDStringCreateFromStringWithType(PDStringRef string, PDStringType ty
             
         default:
             res = PDStringBinaryValue(string, &len);
-            buf = malloc(len);
-            memcpy(buf, res, len);
+            buf = malloc(len + 1);
+            memcpy(buf, res, len + 1);
             result = PDStringCreateBinary(buf, len);
     }
     
