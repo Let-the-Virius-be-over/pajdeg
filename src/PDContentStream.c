@@ -320,7 +320,7 @@ void *PDContentStreamPopValue(PDContentStreamRef cs, const char *stream, PDInteg
             termChar = ')';
             termWS = false;
             termD = false;
-            cf = (creatorFunc) PDStringCreate;
+            cf = (creatorFunc) PDStringCreateL;
             break;
         case '/':
             // PDString (name)
@@ -348,7 +348,7 @@ void *PDContentStreamPopValue(PDContentStreamRef cs, const char *stream, PDInteg
             return PDContentStreamPopArray(cs, stream, len, iptr);
         default:
             // operator
-            cf = (creatorFunc) PDStringCreate;
+            cf = (creatorFunc) PDStringCreateL;
             break;
     }
     
