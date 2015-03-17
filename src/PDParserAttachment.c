@@ -118,7 +118,6 @@ void PDParserAttachmentImportStack(PDParserAttachmentRef attachment, pd_stack *d
                          0x3f999c ("array")
                          */
                         const char *key = s->prev->info;
-                        printf("(dict) %s\n", key);
                         for (ek = 0; ek < excludeKeysCount; ek++) 
                             if (0 == strcmp(key, excludeKeys[ek]))
                                 break;
