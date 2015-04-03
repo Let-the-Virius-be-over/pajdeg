@@ -930,6 +930,15 @@ struct PDStringConv {
  */
 #define PDDef(defs...) (PDDEF){(void*)defs, NULL}
 
+/**
+ @def PDDebug
+ Execute code if DEBUG is defined.
+ */
+#ifdef DEBUG
+#   define PDDebug(code...) code
+#else
+#   define PDDebug(code...) 
+#endif
 
 /**
  @def PDError
