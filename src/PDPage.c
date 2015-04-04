@@ -262,35 +262,44 @@ PDObjectRef PDPageGetContentsObjectAtIndex(PDPageRef page, PDInteger index)
     return page->contentObs[index];
 }
 
-PDRect PDPageGetMediaBox(PDPageRef page)
+PDBool PDPageGetRectWithName(PDPageRef page, const char *name, PDRect *outRect)
 {
-    PDRect rect = (PDRect) {{0,0}, {612,792}};
+    *outRect = (PDRect) {{0,0}, {612,792}};
     PDDictionaryRef obdict = PDObjectGetDictionary(page->ob);
-    void *mediaBoxValue = PDDictionaryGet(obdict, "MediaBox");
-    if (mediaBoxValue && PDInstanceTypeArray == PDResolve(mediaBoxValue)) {
-//    if (PDObjectTypeArray == PDObjectGetDictionaryEntryType(page->ob, "MediaBox")) {
-//        pd_array arr = PDObjectCopyDictionaryEntry(page->ob, "MediaBox");
-//        if (4 == pd_array_get_count(arr)) {
-        if (4 == PDArrayGetCount(mediaBoxValue)) {
-            rect = (PDRect) {
+    void *boxValue = PDDictionaryGet(obdict, name);
+    if (boxValue && PDInstanceTypeArray == PDResolve(boxValue)) {
+        if (4 == PDArrayGetCount(boxValue)) {
+            *outRect = (PDRect) {
                 {
-                    PDNumberGetReal(PDArrayGetElement(mediaBoxValue, 0)),
-                    PDNumberGetReal(PDArrayGetElement(mediaBoxValue, 1)),
-//                    PDRealFromString(pd_array_get_at_index(arr, 0)),
-//                    PDRealFromString(pd_array_get_at_index(arr, 1))
+                    PDNumberGetReal(PDArrayGetElement(boxValue, 0)),
+                    PDNumberGetReal(PDArrayGetElement(boxValue, 1)),
                 },
                 {
-                    PDNumberGetReal(PDArrayGetElement(mediaBoxValue, 2)),
-                    PDNumberGetReal(PDArrayGetElement(mediaBoxValue, 3)),
-//                    PDRealFromString(pd_array_get_at_index(arr, 2)),
-//                    PDRealFromString(pd_array_get_at_index(arr, 3))
+                    PDNumberGetReal(PDArrayGetElement(boxValue, 2)),
+                    PDNumberGetReal(PDArrayGetElement(boxValue, 3)),
                 }
             };
+            return true;
         } else {
-            PDNotice("invalid count for MediaBox array: %ld (require 4: x1, y1, x2, y2)", PDArrayGetCount(mediaBoxValue));
+            PDNotice("invalid count for %s array: %ld (require 4: x1, y1, x2, y2)", name, PDArrayGetCount(mediaBoxValue));
         }
-    }
-    return rect;
+    } 
+    return false;
+}
+
+PDRect PDPageGetMediaBox(PDPageRef page)
+{
+    PDRect result;
+    PDPageGetRectWithName(page, "MediaBox", &result);
+    return result;
+}
+
+PDRect PDPageGetCropBox(PDPageRef page)
+{
+    PDRect result;
+    if (! PDPageGetRectWithName(page, "CropBox", &result)) 
+        PDPageGetRectWithName(page, "MediaBox", &result);
+    return result;
 }
 
 PDArrayRef PDPageGetAnnotRefs(PDPageRef page)

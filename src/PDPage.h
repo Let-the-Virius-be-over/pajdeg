@@ -111,6 +111,7 @@ extern PDObjectRef PDPageGetContentsObjectAtIndex(PDPageRef page, PDInteger inde
 
 /**
  *  Fetch the media box for the given page.
+ *  If no media box is defined, a default rect value of {{0,0}, {612,792}} is returned.
  *
  *  @param page The page object
  *
@@ -119,6 +120,18 @@ extern PDObjectRef PDPageGetContentsObjectAtIndex(PDPageRef page, PDInteger inde
  *  @return A PDRect representing the media box.
  */
 extern PDRect PDPageGetMediaBox(PDPageRef page);
+
+/**
+ *  Fetch the crop box for the given page.
+ *  If no crop box is defined, the media box rect is returned in its stead.
+ *
+ *  @param page The page object
+ *
+ *  @note PDRects differ from e.g. CGRects in that they are composed of the two points making up the rectangle, as opposed to making up an origin pair and a size pair.
+ *
+ *  @return A PDRect representing the crop box.
+ */
+extern PDRect PDPageGetCropBox(PDPageRef page);
 
 /**
  *  Fetch the annotations for this page, as an array of PDReferences and/or PDObjects. 
