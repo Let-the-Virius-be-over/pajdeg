@@ -34,6 +34,8 @@
 PDBool iconv_unicode_mb_to_uc_fb_called = false;
 PDBool iconv_unicode_uc_to_mb_fb_called = false;
 
+#if !defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE)
+
 void pdstring_iconv_unicode_mb_to_uc_fallback(const char* inbuf, size_t inbufsize,
                                               void (*write_replacement) (const unsigned int *buf, size_t buflen,
                                                                          void* callback_arg),
@@ -59,6 +61,8 @@ const struct iconv_fallbacks pdstring_iconv_fallbacks = {
     NULL,
     NULL
 };
+
+#endif
 
 PDStringEncoding PDStringDetermineEncoding(PDStringRef string);
 
@@ -340,7 +344,9 @@ PDStringRef PDUTF8String(PDStringRef string)
             
             cd = iconv_open(enc == PDStringEncodingUTF8 ? enc_utf16be : enc_utf8, PDStringEncodingToIconvName(enc));
             
+#if !defined(_POSIX_C_SOURCE) || defined(_DARWIN_C_SOURCE)
             iconvctl(cd, ICONV_SET_FALLBACKS, (void*)&pdstring_iconv_fallbacks);
+#endif
             
             char *sourceData = (char *)&source->data[source->wrapped];
             size_t sourceLeft = source->length - (source->wrapped<<1);

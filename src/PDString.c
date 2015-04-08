@@ -801,8 +801,6 @@ PDBool PDStringEqualsString(PDStringRef string, PDStringRef string2)
     return result;
 }
 
-#pragma mark - Crypto
-
 #ifdef PD_SUPPORT_CRYPTO
 
 PDBool PDStringIsEncrypted(PDStringRef string)

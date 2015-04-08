@@ -640,9 +640,9 @@ static inline PDBool PDXTableReadXRefStreamContent(PDXI X, PDOffset offset)
         startob = PDNumberGetInteger(PDArrayGetElement(index, indexCtr));\
         obcount = PDNumberGetInteger(PDArrayGetElement(index, indexCtr+1));\
         indexCtr += 2
-//    startob = PDIntegerFromString(as(pd_stack, index->info)->prev->info); \
-//    obcount = PDIntegerFromString(as(pd_stack, index->prev->info)->prev->info); \
-//    index = index->prev->prev
+        /* startob = PDIntegerFromString(as(pd_stack, index->info)->prev->info); \
+    obcount = PDIntegerFromString(as(pd_stack, index->prev->info)->prev->info); \
+    index = index->prev->prev*/
     
     startob = 0;
     obcount = size;

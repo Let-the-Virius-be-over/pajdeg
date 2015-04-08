@@ -453,13 +453,13 @@ void PDScannerReadUntilDelimiter(PDScannerRef scanner, PDBool delimiterIsNewline
 static PDInteger SOSTATES = 0;
 #   define SOLog(msg...) //printf("[op] " msg)
 #   define SOEnt() \
-        SOSTATES++ //; \
+        SOSTATES++; \
         SOLog(" >>> PUSH #%ld: %s (%p)\n", SOSTATES, op->pushedState->name, op->pushedState)
 #   define SOExt() \
         /*SOLog(" <<< POP  #%ld: %s (%p)\n", SOSTATES, scanner->env->state->name, scanner->env->state);*/ \
         SOSTATES--
 #   define SOShowStack(descr, stack) \
-        //printf("%s", descr); \
+        printf("%s", descr); \
         pd_stack_show(stack)
 #else
 #   define SOLog(msg...) 

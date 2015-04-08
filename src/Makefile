@@ -1,4 +1,4 @@
-CFLAGS  = -I include -c -Wall
+CFLAGS  = -I include -std=gnu99 -c -Wall
 CC      = gcc
 SRC	= *.c
 # PDBTree.c PDEnv.c PDObject.c PDOperator.c PDParser.c PDPipe.c PDPortableDocumentFormatState.c PDReference.c PDScanner.c pd_stack.c PDState.c PDStaticHash.c PDStreamFilter.c PDStreamFilterFlateDecode.c PDStreamFilterPrediction.c PDTask.c PDTwinStream.c PDXTable.c
