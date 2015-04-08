@@ -98,7 +98,7 @@ void PDTWinStreamSetMethod(PDTwinStreamRef ts, PDTwinStreamMethod method)
         PDAssert(ts->offso == 0); // crash = the stream was reversed/unreversed AFTER content was written to output; this is absolutely not supported anywhere or in any way shape form or color
         if (reversedInput) {
             fseek(ts->fi, 0, SEEK_END);
-            fgetpos(ts->fi, &ts->offsi);
+            ts->offsi = ftell(ts->fi);
         } 
     }
     
@@ -356,7 +356,7 @@ PDSize PDTwinStreamFetchBranch(PDTwinStreamRef ts, PDSize position, PDInteger by
     
     // we set up a dedicated buffer for this request
     PDOffset cpos;
-    fgetpos(ts->fi, &cpos);
+    cpos = ftell(ts->fi);
     fseek(ts->fi, position, SEEK_SET);
     *buf = ts->sidebuf = malloc(bytes);
     PDSize read = fread(ts->sidebuf, 1, bytes, ts->fi);
@@ -369,7 +369,7 @@ void PDTwinStreamReassert(PDTwinStreamRef ts, PDOffset offset, char *expect, PDI
 {
     // we set up a dedicated buffer for this request
     PDOffset cpos;
-    fgetpos(ts->fo, &cpos);
+    cpos = ftell(ts->fo);
     fseek(ts->fo, offset, SEEK_SET);
     char *tmpbuf = malloc(len + 1);
     PDSize read = fread(tmpbuf, 1, len, ts->fo);
@@ -410,9 +410,9 @@ void PDTwinStreamCutBranch(PDTwinStreamRef ts, char *buf)
 void PDTwinStreamAsserts(PDTwinStreamRef ts)
 {
     PDOffset fp;
-    fgetpos(ts->fi, &fp);
+    fp = ftell(ts->fi);
     PDAssert(fp == ts->offsi + ts->holds);
-    fgetpos(ts->fo, &fp);
+    fp = ftell(ts->fo);
     PDAssert(fp == ts->offso);
 
     /*

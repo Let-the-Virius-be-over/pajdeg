@@ -810,8 +810,8 @@ struct PDTwinStream {
     
     FILE    *fi;                    ///< Reader
     FILE    *fo;                    ///< writer
-    fpos_t   offsi;                 ///< absolute offset in input for heap
-    fpos_t   offso;                 ///< absolute offset in output for file pointer
+    PDSize   offsi;                 ///< absolute offset in input for heap
+    PDSize   offso;                 ///< absolute offset in output for file pointer
     
     char    *heap;                  ///< heap in which buffer is located
     PDSize   size;                  ///< size of heap

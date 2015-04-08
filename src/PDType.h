@@ -33,7 +33,7 @@
  
  PDType provides the release and retain functionality to Pajdeg objects. 
  
- @warning Not all types in Pajdeg *are* Pajdeg objects. An object whose type is camel case and begins with capital `PD` is always a Pajdeg object, and can be retained and released, whereas objects using underscore separation in all lower case are non-Pajdeg objects (used by the Pajdeg system), such as pd_btree. The exception to this is primitive objects, such as PDInteger, PDBool, etc., and PDType itself.
+ @warning Not all types in Pajdeg *are* Pajdeg objects. An object whose type is camel case and begins with capital `PD` is always a Pajdeg object, and can be retained and released, whereas objects using underscore separation in all lower case are non-Pajdeg objects (used by the Pajdeg system), such as pd_stack. The exception to this is primitive objects, such as PDInteger, PDBool, etc., and PDType itself.
  
  ## Concept behind Release and Retain
  
@@ -68,8 +68,8 @@
  
  @{
  */
-#ifndef ICViewer_PDType_h
-#define ICViewer_PDType_h
+#ifndef INCLUDED_PDTYPE_H
+#define INCLUDED_PDTYPE_H
 
 #include "PDDefines.h"
 
@@ -147,6 +147,6 @@ extern void PDFlagGlobalObject(void *ob);
 #   define PDFlagGlobalObject(ob) 
 #endif
 
-#endif
+#endif // defined(INCLUDED_PDTYPE_H)
 
 /** @} */

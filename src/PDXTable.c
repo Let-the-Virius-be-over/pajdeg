@@ -245,7 +245,7 @@ PDXTableRef PDXTableCreate(PDXTableRef pdx)
     pdx->typeSize = 1;
     pdx->typeAlign = 0;
     pdx->offsSize = 4;
-    pdx->offsCap = 256 * 256 * 256 * 256 - 1;
+    pdx->offsCap = 0xffffffff;
     pdx->offsAlign = pdx->typeSize;
     pdx->genSize = 1;
     pdx->genAlign = pdx->offsAlign + pdx->offsSize;

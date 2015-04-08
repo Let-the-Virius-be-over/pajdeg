@@ -151,10 +151,15 @@
 
 /**
  *  The __deprecated macro should be available.
+ *  It may be available as __attribute_deprecated__.
  */
+#if !defined(__deprecated) && defined(__attribute_deprecated__)
+#    define __deprecated __attribute_deprecated__
+#endif
+
 #ifndef __deprecated
 #    warning __deprecated macro was not defined; consider including <sys/cdefs.h>
-#    define __deprecated 
+#    define __deprecated
 #endif
 
 /**
